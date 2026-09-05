@@ -131,6 +131,9 @@ ThemeData _theme(Brightness brightness) {
 
 enum ProblemFilter { all, remaining, complete }
 
+String _groupScope(String title) => 'group::$title';
+String _topicScope(String title) => 'topic::$title';
+
 class StudyGuideScreen extends StatefulWidget {
   const StudyGuideScreen({
     super.key,
@@ -152,7 +155,7 @@ class StudyGuideScreen extends StatefulWidget {
 class _StudyGuideScreenState extends State<StudyGuideScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _searchController = TextEditingController();
-  String? _selectedTopic;
+  String? _selectedScope;
   String _query = '';
   ProblemFilter _filter = ProblemFilter.all;
 
@@ -164,10 +167,14 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
 
   List<_TopicResult> get _visibleTopics {
     final query = _query.trim().toLowerCase();
-    final topics =
-        _selectedTopic == null
-            ? studyTopics
-            : studyTopics.where((topic) => topic.title == _selectedTopic);
+    Iterable<StudyTopic> topics = studyTopics;
+    if (_selectedScope?.startsWith('group::') ?? false) {
+      final group = _selectedScope!.substring('group::'.length);
+      topics = topics.where((topic) => topic.group == group);
+    } else if (_selectedScope?.startsWith('topic::') ?? false) {
+      final title = _selectedScope!.substring('topic::'.length);
+      topics = topics.where((topic) => topic.title == title);
+    }
     return topics
         .map((topic) {
           final topicMatches =
@@ -195,11 +202,44 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
         .toList();
   }
 
-  void _selectTopic(String? topic) {
-    setState(() => _selectedTopic = topic);
+  void _selectScope(String? scope) {
+    setState(() => _selectedScope = scope);
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
+  }
+
+  List<Widget> _groupedTopicCards(List<_TopicResult> results) {
+    final children = <Widget>[];
+    for (final group in studyGroups) {
+      final groupResults =
+          results.where((result) => result.topic.group == group.title).toList();
+      if (groupResults.isEmpty) continue;
+      children.add(
+        _GroupHeading(
+          group: group,
+          completed: widget.completed,
+          visibleCount: groupResults.fold(
+            0,
+            (count, result) => count + result.problems.length,
+          ),
+        ),
+      );
+      children.add(const SizedBox(height: 12));
+      for (final result in groupResults) {
+        children.add(
+          _TopicCard(
+            topic: result.topic,
+            problems: result.problems,
+            completed: widget.completed,
+            onChanged: widget.onProblemChanged,
+          ),
+        );
+        children.add(const SizedBox(height: 16));
+      }
+      children.add(const SizedBox(height: 12));
+    }
+    return children;
   }
 
   @override
@@ -219,8 +259,8 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
                 child: SafeArea(
                   child: _TopicNavigation(
                     completed: widget.completed,
-                    selectedTopic: _selectedTopic,
-                    onSelected: _selectTopic,
+                    selectedScope: _selectedScope,
+                    onSelected: _selectScope,
                   ),
                 ),
               ),
@@ -235,8 +275,8 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
                     width: 286,
                     child: _TopicNavigation(
                       completed: widget.completed,
-                      selectedTopic: _selectedTopic,
-                      onSelected: _selectTopic,
+                      selectedScope: _selectedScope,
+                      onSelected: _selectScope,
                     ),
                   ),
                 Expanded(
@@ -290,17 +330,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
                                       },
                                     )
                                   else
-                                    ...results.expand(
-                                      (result) => [
-                                        _TopicCard(
-                                          topic: result.topic,
-                                          problems: result.problems,
-                                          completed: widget.completed,
-                                          onChanged: widget.onProblemChanged,
-                                        ),
-                                        const SizedBox(height: 16),
-                                      ],
-                                    ),
+                                    ..._groupedTopicCards(results),
                                 ],
                               ),
                             ),
@@ -395,12 +425,12 @@ class _TopBar extends StatelessWidget {
 class _TopicNavigation extends StatelessWidget {
   const _TopicNavigation({
     required this.completed,
-    required this.selectedTopic,
+    required this.selectedScope,
     required this.onSelected,
   });
 
   final Set<String> completed;
-  final String? selectedTopic;
+  final String? selectedScope;
   final ValueChanged<String?> onSelected;
 
   @override
@@ -436,7 +466,7 @@ class _TopicNavigation extends StatelessWidget {
             child: _NavigationTile(
               label: 'All topics',
               icon: Icons.dashboard_outlined,
-              selected: selectedTopic == null,
+              selected: selectedScope == null,
               trailing: '${uniqueProblems.length}',
               onTap: () => onSelected(null),
             ),
@@ -453,27 +483,21 @@ class _TopicNavigation extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.separated(
+            child: ListView(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 20),
-              itemCount: studyTopics.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 3),
-              itemBuilder: (context, index) {
-                final topic = studyTopics[index];
-                final done =
-                    topic.problems
-                        .where(
-                          (problem) => completed.contains(problem.storageKey),
-                        )
-                        .length;
-                return _NavigationTile(
-                  label: topic.shortTitle,
-                  icon: topic.icon,
-                  iconColor: topic.color,
-                  selected: selectedTopic == topic.title,
-                  trailing: '$done/${topic.problems.length}',
-                  onTap: () => onSelected(topic.title),
-                );
-              },
+              children: [
+                for (final group in studyGroups)
+                  _GroupNavigationSection(
+                    group: group,
+                    topics:
+                        studyTopics
+                            .where((topic) => topic.group == group.title)
+                            .toList(),
+                    completed: completed,
+                    selectedScope: selectedScope,
+                    onSelected: onSelected,
+                  ),
+              ],
             ),
           ),
           Padding(
@@ -498,6 +522,122 @@ class _TopicNavigation extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GroupNavigationSection extends StatelessWidget {
+  const _GroupNavigationSection({
+    required this.group,
+    required this.topics,
+    required this.completed,
+    required this.selectedScope,
+    required this.onSelected,
+  });
+
+  final StudyGroup group;
+  final List<StudyTopic> topics;
+  final Set<String> completed;
+  final String? selectedScope;
+  final ValueChanged<String?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final problemIds = {
+      for (final topic in topics)
+        for (final problem in topic.problems) problem.storageKey,
+    };
+    final done = problemIds.where(completed.contains).length;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 13),
+      child: Column(
+        children: [
+          _NavigationTile(
+            label: group.title,
+            icon: group.icon,
+            iconColor: group.color,
+            selected: selectedScope == _groupScope(group.title),
+            trailing: '$done/${problemIds.length}',
+            onTap: () => onSelected(_groupScope(group.title)),
+          ),
+          const SizedBox(height: 3),
+          for (final topic in topics)
+            Padding(
+              padding: const EdgeInsets.only(left: 25),
+              child: _SubtopicNavigationTile(
+                topic: topic,
+                completed: completed,
+                selected: selectedScope == _topicScope(topic.title),
+                onTap: () => onSelected(_topicScope(topic.title)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SubtopicNavigationTile extends StatelessWidget {
+  const _SubtopicNavigationTile({
+    required this.topic,
+    required this.completed,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final StudyTopic topic;
+  final Set<String> completed;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final done =
+        topic.problems
+            .where((problem) => completed.contains(problem.storageKey))
+            .length;
+    return Material(
+      color:
+          selected ? scheme.primary.withValues(alpha: .1) : Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+          child: Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: selected ? scheme.primary : topic.color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  topic.shortTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                    color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              Text(
+                '$done/${topic.problems.length}',
+                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -805,8 +945,8 @@ class _ProgressPanel extends StatelessWidget {
                 color: const Color(0xFFFFD166),
               ),
               _Metric(
-                label: 'Topics',
-                value: '${studyTopics.length}',
+                label: 'Groups',
+                value: '${studyGroups.length}',
                 color: const Color(0xFF8AB4F8),
               ),
             ],
@@ -904,6 +1044,79 @@ class _GuideControls extends StatelessWidget {
     }
     return Row(
       children: [Expanded(child: search), const SizedBox(width: 14), filters],
+    );
+  }
+}
+
+class _GroupHeading extends StatelessWidget {
+  const _GroupHeading({
+    required this.group,
+    required this.completed,
+    required this.visibleCount,
+  });
+
+  final StudyGroup group;
+  final Set<String> completed;
+  final int visibleCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final topics = studyTopics.where((topic) => topic.group == group.title);
+    final problemIds = {
+      for (final topic in topics)
+        for (final problem in topic.problems) problem.storageKey,
+    };
+    final done = problemIds.where(completed.contains).length;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 10, 4, 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: group.color.withValues(alpha: .14),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: group.color.withValues(alpha: .36)),
+            ),
+            child: Icon(group.icon, size: 20, color: group.color),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  group.title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -.35,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  group.description,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '$done/${problemIds.length} complete  ·  $visibleCount shown',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: group.color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -12,6 +12,7 @@ class StudyProblem {
 
 class StudyTopic {
   const StudyTopic({
+    required this.group,
     required this.title,
     required this.shortTitle,
     required this.icon,
@@ -20,6 +21,7 @@ class StudyTopic {
     required this.problems,
   });
 
+  final String group;
   final String title;
   final String shortTitle;
   final IconData icon;
@@ -28,8 +30,62 @@ class StudyTopic {
   final List<StudyProblem> problems;
 }
 
+class StudyGroup {
+  const StudyGroup({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.description,
+  });
+
+  final String title;
+  final IconData icon;
+  final Color color;
+  final String description;
+}
+
+const studyGroups = <StudyGroup>[
+  StudyGroup(
+    title: 'Arrays & Hashing',
+    icon: Icons.dataset_outlined,
+    color: Color(0xFF4285F4),
+    description: 'Counting, ordering, and prefix-based array techniques',
+  ),
+  StudyGroup(
+    title: 'Scanning Patterns',
+    icon: Icons.linear_scale_rounded,
+    color: Color(0xFF34A853),
+    description: 'Windows, pointers, ranges, and one-pass state',
+  ),
+  StudyGroup(
+    title: 'Search & Optimization',
+    icon: Icons.manage_search_rounded,
+    color: Color(0xFFFBBC04),
+    description: 'Discarding search space and making locally safe choices',
+  ),
+  StudyGroup(
+    title: 'Core Data Structures',
+    icon: Icons.memory_rounded,
+    color: Color(0xFFEA4335),
+    description: 'Linked structures, tries, and operation-driven design',
+  ),
+  StudyGroup(
+    title: 'DFS & Recursion',
+    icon: Icons.account_tree_outlined,
+    color: Color(0xFF46BDC6),
+    description: 'Tree traversal, flood fill, and backtracking decision trees',
+  ),
+  StudyGroup(
+    title: 'Graph Algorithms',
+    icon: Icons.hub_outlined,
+    color: Color(0xFFB39DDB),
+    description: 'Dependencies, shortest paths, and connectivity',
+  ),
+];
+
 const studyTopics = <StudyTopic>[
   StudyTopic(
+    group: 'Arrays & Hashing',
     title: 'HashMap, Frequency & Top-K',
     shortTitle: 'HashMap & Top-K',
     icon: Icons.data_object_rounded,
@@ -64,6 +120,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Arrays & Hashing',
     title: 'Partitioning & Merge Sort',
     shortTitle: 'Sorting',
     icon: Icons.sort_rounded,
@@ -77,6 +134,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Scanning Patterns',
     title: 'Sliding Window',
     shortTitle: 'Sliding Window',
     icon: Icons.view_week_rounded,
@@ -109,6 +167,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Scanning Patterns',
     title: 'Two Pointers',
     shortTitle: 'Two Pointers',
     icon: Icons.compare_arrows_rounded,
@@ -124,6 +183,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Arrays & Hashing',
     title: 'Prefix Sum & Subarray',
     shortTitle: 'Prefix Sum',
     icon: Icons.stacked_line_chart_rounded,
@@ -146,6 +206,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Scanning Patterns',
     title: 'Stack & Monotonic Stack',
     shortTitle: 'Stack',
     icon: Icons.layers_rounded,
@@ -165,6 +226,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Search & Optimization',
     title: 'Binary Search',
     shortTitle: 'Binary Search',
     icon: Icons.manage_search_rounded,
@@ -191,6 +253,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Scanning Patterns',
     title: 'Intervals',
     shortTitle: 'Intervals',
     icon: Icons.calendar_view_week_rounded,
@@ -209,6 +272,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Core Data Structures',
     title: 'Linked List',
     shortTitle: 'Linked List',
     icon: Icons.account_tree_outlined,
@@ -224,6 +288,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'DFS & Recursion',
     title: 'Trees: DFS & BFS',
     shortTitle: 'Trees',
     icon: Icons.park_outlined,
@@ -260,6 +325,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Graph Algorithms',
     title: 'Topological Sort',
     shortTitle: 'Topological Sort',
     icon: Icons.route_rounded,
@@ -276,6 +342,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'DFS & Recursion',
     title: 'Flood Fill & Grid DFS',
     shortTitle: 'Grid DFS',
     icon: Icons.grid_view_rounded,
@@ -295,6 +362,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'DFS & Recursion',
     title: 'Backtracking',
     shortTitle: 'Backtracking',
     icon: Icons.fork_right_rounded,
@@ -310,6 +378,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Graph Algorithms',
     title: 'BFS & Shortest Path',
     shortTitle: 'BFS',
     icon: Icons.hub_outlined,
@@ -334,6 +403,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Graph Algorithms',
     title: 'Dijkstra & Weighted Graphs',
     shortTitle: 'Dijkstra',
     icon: Icons.alt_route_rounded,
@@ -360,6 +430,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Graph Algorithms',
     title: 'Union Find & MST',
     shortTitle: 'Union Find',
     icon: Icons.join_inner_rounded,
@@ -381,6 +452,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Search & Optimization',
     title: 'Greedy',
     shortTitle: 'Greedy',
     icon: Icons.trending_up_rounded,
@@ -395,6 +467,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Core Data Structures',
     title: 'Trie',
     shortTitle: 'Trie',
     icon: Icons.schema_rounded,
@@ -407,6 +480,7 @@ const studyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
+    group: 'Core Data Structures',
     title: 'Design & Data Structures',
     shortTitle: 'Design',
     icon: Icons.developer_board_rounded,
