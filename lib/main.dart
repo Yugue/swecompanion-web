@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'study_data.dart';
 
@@ -15,6 +16,7 @@ class SweCompanionApp extends StatefulWidget {
 
 class _SweCompanionAppState extends State<SweCompanionApp> {
   static const _completedKey = 'completed_problem_ids_v1';
+  static const _challengeMigrationKey = 'challenge_rounds_v1_added';
   static const _themeKey = 'dark_mode_v1';
 
   Set<String> _completed = initialCompletedProblems;
@@ -30,9 +32,31 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
   Future<void> _loadPreferences() async {
     final preferences = await SharedPreferences.getInstance();
     final savedProblems = preferences.getStringList(_completedKey);
+    final completed = savedProblems?.toSet() ?? initialCompletedProblems;
+    final challengeMigrationApplied =
+        preferences.getBool(_challengeMigrationKey) ?? false;
+
+    if (!challengeMigrationApplied) {
+      for (final topic in challengeTopics) {
+        for (final problem in topic.problems) {
+          if (problem.initiallyComplete &&
+              !coreProblemIds.contains(problem.storageKey)) {
+            completed.add(problem.storageKey);
+          }
+        }
+      }
+      await preferences.setBool(_challengeMigrationKey, true);
+      if (savedProblems != null) {
+        await preferences.setStringList(
+          _completedKey,
+          completed.toList()..sort(),
+        );
+      }
+    }
+
     if (!mounted) return;
     setState(() {
-      _completed = savedProblems?.toSet() ?? initialCompletedProblems;
+      _completed = completed;
       _darkMode = preferences.getBool(_themeKey) ?? true;
       _ready = true;
     });
@@ -1300,16 +1324,56 @@ class _ProblemRow extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Icon(
-                complete
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_unchecked_rounded,
-                color: complete ? accent : scheme.outline,
-                size: 18,
+              if (problem.difficulty case final difficulty?) ...[
+                const SizedBox(width: 8),
+                _DifficultyBadge(difficulty: difficulty),
+              ],
+              const SizedBox(width: 4),
+              IconButton(
+                tooltip: 'Open ${problem.title} on LeetCode',
+                onPressed:
+                    () => unawaited(
+                      launchUrl(
+                        Uri.parse(problem.leetCodeUrl),
+                        webOnlyWindowName: '_blank',
+                      ),
+                    ),
+                visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints.tightFor(
+                  width: 40,
+                  height: 40,
+                ),
+                icon: Icon(Icons.open_in_new_rounded, color: accent, size: 19),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DifficultyBadge extends StatelessWidget {
+  const _DifficultyBadge({required this.difficulty});
+
+  final String difficulty;
+
+  @override
+  Widget build(BuildContext context) {
+    final hard = difficulty == 'Hard';
+    final color = hard ? const Color(0xFFEA4335) : const Color(0xFFFBBC04);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .13),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        difficulty,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

@@ -1,13 +1,30 @@
 import 'package:flutter/material.dart';
 
 class StudyProblem {
-  const StudyProblem(this.id, this.title, {this.initiallyComplete = false});
+  const StudyProblem(
+    this.id,
+    this.title, {
+    this.initiallyComplete = false,
+    this.difficulty,
+    this.slug,
+  });
 
   final String id;
   final String title;
   final bool initiallyComplete;
+  final String? difficulty;
+  final String? slug;
 
   String get storageKey => id;
+
+  String get leetCodeSlug =>
+      slug ??
+      title
+          .toLowerCase()
+          .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+          .replaceAll(RegExp(r'^-+|-+$'), '');
+
+  String get leetCodeUrl => 'https://leetcode.com/problems/$leetCodeSlug/';
 }
 
 class StudyTopic {
@@ -81,9 +98,15 @@ const studyGroups = <StudyGroup>[
     color: Color(0xFFB39DDB),
     description: 'Dependencies, shortest paths, and connectivity',
   ),
+  StudyGroup(
+    title: 'Challenge Rounds',
+    icon: Icons.flag_outlined,
+    color: Color(0xFFFF8A65),
+    description: 'Mixed interview practice sets organized by round',
+  ),
 ];
 
-const studyTopics = <StudyTopic>[
+const coreStudyTopics = <StudyTopic>[
   StudyTopic(
     group: 'Arrays & Hashing',
     title: 'HashMap, Frequency & Top-K',
@@ -282,7 +305,11 @@ const studyTopics = <StudyTopic>[
     problems: [
       StudyProblem('206', 'Reverse Linked List', initiallyComplete: true),
       StudyProblem('142', 'Linked List Cycle II', initiallyComplete: true),
-      StudyProblem('19', 'Remove Nth Node From End', initiallyComplete: true),
+      StudyProblem(
+        '19',
+        'Remove Nth Node From End of List',
+        initiallyComplete: true,
+      ),
       StudyProblem('143', 'Reorder List', initiallyComplete: true),
       StudyProblem('23', 'Merge K Sorted Lists', initiallyComplete: true),
     ],
@@ -475,8 +502,12 @@ const studyTopics = <StudyTopic>[
     note:
         'Walk one character per level. Store terminal markers separately from children so prefixes and complete words remain distinct.',
     problems: [
-      StudyProblem('208', 'Implement Trie', initiallyComplete: true),
-      StudyProblem('211', 'Design Add and Search Words'),
+      StudyProblem(
+        '208',
+        'Implement Trie (Prefix Tree)',
+        initiallyComplete: true,
+      ),
+      StudyProblem('211', 'Design Add and Search Words Data Structure'),
     ],
   ),
   StudyTopic(
@@ -493,10 +524,731 @@ const studyTopics = <StudyTopic>[
         '380',
         'Insert Delete GetRandom O(1)',
         initiallyComplete: true,
+        slug: 'insert-delete-getrandom-o1',
       ),
     ],
   ),
 ];
+
+const challengeTopics = <StudyTopic>[
+  StudyTopic(
+    group: 'Challenge Rounds',
+    title: 'Mixed LeetCode Challenge Set — Round 4',
+    shortTitle: 'Round 4',
+    icon: Icons.flag_rounded,
+    color: Color(0xFFFF8A65),
+    note:
+        'A compact mixed round spanning search, graphs, trees, stacks, tries, and array techniques.',
+    problems: [
+      StudyProblem(
+        '1102',
+        'Path With Maximum Minimum Value',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '151',
+        'Reverse Words in a String',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '378',
+        'Kth Smallest Element in a Sorted Matrix',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '103',
+        'Binary Tree Zigzag Level Order Traversal',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '678',
+        'Valid Parenthesis String',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '646',
+        'Maximum Length of Pair Chain',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '48',
+        'Rotate Image',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1857',
+        'Largest Color Value in a Directed Graph',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '75',
+        'Sort Colors',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '297',
+        'Serialize and Deserialize Binary Tree',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '1019',
+        'Next Greater Node In Linked List',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '410',
+        'Split Array Largest Sum',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '1358',
+        'Number of Substrings Containing All Three Characters',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '912',
+        'Sort an Array',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '677',
+        'Map Sum Pairs',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '287',
+        'Find the Duplicate Number',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '815',
+        'Bus Routes',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '73',
+        'Set Matrix Zeroes',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1101',
+        'The Earliest Moment When Everyone Become Friends',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '235',
+        'Lowest Common Ancestor of a Binary Search Tree',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+    ],
+  ),
+  StudyTopic(
+    group: 'Challenge Rounds',
+    title: 'Mixed LeetCode Challenge Set — Round 3',
+    shortTitle: 'Round 3',
+    icon: Icons.flag_rounded,
+    color: Color(0xFFCE93D8),
+    note:
+        'A broad mixed round with extra interval scheduling, traversal, graph, and design practice.',
+    problems: [
+      StudyProblem(
+        '1642',
+        'Furthest Building You Can Reach',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '886',
+        'Possible Bipartition',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '394',
+        'Decode String',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1482',
+        'Minimum Number of Days to Make m Bouquets',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '77',
+        'Combinations',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1448',
+        'Count Good Nodes in Binary Tree',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '904',
+        'Fruit Into Baskets',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '947',
+        'Most Stones Removed with Same Row or Column',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '24',
+        'Swap Nodes in Pairs',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1976',
+        'Number of Ways to Arrive at Destination',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1334',
+        'Find the City With the Smallest Number of Neighbors at a Threshold Distance',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '2662',
+        'Minimum Cost of a Path With Special Roads',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1368',
+        'Minimum Cost to Make at Least One Valid Path in a Grid',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '3112',
+        'Minimum Time to Visit Disappearing Nodes',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1024',
+        'Video Stitching',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '648',
+        'Replace Words',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1268',
+        'Search Suggestions System',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '721',
+        'Accounts Merge',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1061',
+        'Lexicographically Smallest Equivalent String',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1584',
+        'Min Cost to Connect All Points',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1168',
+        'Optimize Water Distribution in a Village',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '2958',
+        'Length of Longest Subarray With at Most K Frequency',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '921',
+        'Minimum Add to Make Parentheses Valid',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '122',
+        'Best Time to Buy and Sell Stock II',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '735',
+        'Asteroid Collision',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '2462',
+        'Total Cost to Hire K Workers',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1110',
+        'Delete Nodes And Return Forest',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '162',
+        'Find Peak Element',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '40',
+        'Combination Sum II',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '90',
+        'Subsets II',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '328',
+        'Odd Even Linked List',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '863',
+        'All Nodes Distance K in Binary Tree',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1396',
+        'Design Underground System',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '763',
+        'Partition Labels',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '2812',
+        'Find the Safest Path in a Grid',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1146',
+        'Snapshot Array',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '211',
+        'Design Add and Search Words Data Structure',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+    ],
+  ),
+  StudyTopic(
+    group: 'Challenge Rounds',
+    title: 'Mixed LeetCode Challenge Set — Round 2',
+    shortTitle: 'Round 2',
+    icon: Icons.flag_rounded,
+    color: Color(0xFF46BDC6),
+    note:
+        'A mixed review of matrices, graphs, heaps, intervals, linked lists, and scanning patterns.',
+    problems: [
+      StudyProblem(
+        '2658',
+        'Maximum Number of Fish in a Grid',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '199',
+        'Binary Tree Right Side View',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '74',
+        'Search a 2D Matrix',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '399',
+        'Evaluate Division',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '767',
+        'Reorganize String',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '930',
+        'Binary Subarrays With Sum',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '881',
+        'Boats to Save People',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1011',
+        'Capacity To Ship Packages Within D Days',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '2',
+        'Add Two Numbers',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '85',
+        'Maximal Rectangle',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '851',
+        'Loud and Rich',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '729',
+        'My Calendar I',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1162',
+        'As Far from Land as Possible',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '138',
+        'Copy List with Random Pointer',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '2050',
+        'Parallel Courses III',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '454',
+        '4Sum II',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '436',
+        'Find Right Interval',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1004',
+        'Max Consecutive Ones III',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '437',
+        'Path Sum III',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '373',
+        'Find K Pairs with Smallest Sums',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '167',
+        'Two Sum II — Input Array Is Sorted',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1926',
+        'Nearest Exit from Entrance in Maze',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '907',
+        'Sum of Subarray Minimums',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1129',
+        'Shortest Path with Alternating Colors',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '36',
+        'Valid Sudoku',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '713',
+        'Subarray Product Less Than K',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '304',
+        'Range Sum Query 2D — Immutable',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+    ],
+  ),
+  StudyTopic(
+    group: 'Challenge Rounds',
+    title: 'Mixed LeetCode Challenge Set — Round 1',
+    shortTitle: 'Round 1',
+    icon: Icons.flag_rounded,
+    color: Color(0xFF81C995),
+    note:
+        'The original mixed round, covering core array, graph, tree, heap, stack, and interval patterns.',
+    problems: [
+      StudyProblem(
+        '128',
+        'Longest Consecutive Sequence',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '973',
+        'K Closest Points to Origin',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '934',
+        'Shortest Bridge',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '153',
+        'Find Minimum in Rotated Sorted Array',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '525',
+        'Contiguous Array',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '16',
+        '3Sum Closest',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '230',
+        'Kth Smallest Element in a BST',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '209',
+        'Minimum Size Subarray Sum',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '92',
+        'Reverse Linked List II',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1034',
+        'Coloring A Border',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '310',
+        'Minimum Height Trees',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '692',
+        'Top K Frequent Words',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '22',
+        'Generate Parentheses',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '974',
+        'Subarray Sums Divisible by K',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '981',
+        'Time Based Key-Value Store',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '402',
+        'Remove K Digits',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '864',
+        'Shortest Path to Get All Keys',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '1094',
+        'Car Pooling',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1219',
+        'Path with Maximum Gold',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '452',
+        'Minimum Number of Arrows to Burst Balloons',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '105',
+        'Construct Binary Tree from Preorder and Inorder Traversal',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '992',
+        'Subarrays with K Different Integers',
+        difficulty: 'Hard',
+      ),
+      StudyProblem('18', '4Sum', initiallyComplete: true, difficulty: 'Medium'),
+      StudyProblem(
+        '827',
+        'Making A Large Island',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '2192',
+        'All Ancestors of a Node in a Directed Acyclic Graph',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '25',
+        'Reverse Nodes in k-Group',
+        initiallyComplete: true,
+        difficulty: 'Hard',
+      ),
+      StudyProblem(
+        '901',
+        'Online Stock Span',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+      StudyProblem(
+        '1834',
+        'Single-Threaded CPU',
+        initiallyComplete: true,
+        difficulty: 'Medium',
+      ),
+    ],
+  ),
+];
+
+const studyTopics = <StudyTopic>[...coreStudyTopics, ...challengeTopics];
+
+Set<String> get coreProblemIds => {
+  for (final topic in coreStudyTopics)
+    for (final problem in topic.problems) problem.storageKey,
+};
 
 Set<String> get initialCompletedProblems => {
   for (final topic in studyTopics)
