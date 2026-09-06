@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'study_data.dart';
+import 'url_reference.dart';
 
 void main() => runApp(const SweCompanionApp());
 
@@ -158,6 +159,19 @@ enum ProblemFilter { all, remaining, complete }
 String _groupScope(String title) => 'group::$title';
 String _topicScope(String title) => 'topic::$title';
 
+String _topicReference(StudyTopic topic) => topic.title
+    .toLowerCase()
+    .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+    .replaceAll(RegExp(r'^-+|-+$'), '');
+
+StudyTopic? _topicForReference(String? reference) {
+  if (reference == null) return null;
+  for (final topic in studyTopics) {
+    if (_topicReference(topic) == reference) return topic;
+  }
+  return null;
+}
+
 class StudyGuideScreen extends StatefulWidget {
   const StudyGuideScreen({
     super.key,
@@ -177,16 +191,84 @@ class StudyGuideScreen extends StatefulWidget {
 }
 
 class _StudyGuideScreenState extends State<StudyGuideScreen> {
+  static const _expandedTopicKey = 'expanded_topic_reference_v1';
+
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _searchController = TextEditingController();
+  final _contentScrollController = ScrollController();
+  final _topicKeys = <String, GlobalKey>{
+    for (final topic in studyTopics) _topicReference(topic): GlobalKey(),
+  };
   String? _selectedScope;
   String _query = '';
   ProblemFilter _filter = ProblemFilter.all;
+  String _expandedTopicReference = _topicReference(studyTopics.first);
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_restoreExpandedTopic());
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _contentScrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _restoreExpandedTopic() async {
+    final preferences = await SharedPreferences.getInstance();
+    final linkedReference = readTopicReference();
+    final savedReference = preferences.getString(_expandedTopicKey);
+    final linkedTopic = _topicForReference(linkedReference);
+    final topic =
+        linkedTopic ?? _topicForReference(savedReference) ?? studyTopics.first;
+    final reference = _topicReference(topic);
+
+    await preferences.setString(_expandedTopicKey, reference);
+    if (!mounted) return;
+    setState(() => _expandedTopicReference = reference);
+    if (linkedTopic != null) {
+      unawaited(_scrollToTopic(reference));
+    }
+  }
+
+  Future<void> _scrollToTopic(String reference) async {
+    await WidgetsBinding.instance.endOfFrame;
+    await Future<void>.delayed(const Duration(milliseconds: 320));
+    if (!mounted) return;
+    final topicContext = _topicKeys[reference]?.currentContext;
+    if (topicContext == null || !topicContext.mounted) return;
+    final renderBox = topicContext.findRenderObject();
+    if (renderBox is! RenderBox || !_contentScrollController.hasClients) {
+      return;
+    }
+    final target = (_contentScrollController.offset +
+            renderBox.localToGlobal(Offset.zero).dy -
+            88)
+        .clamp(0.0, _contentScrollController.position.maxScrollExtent);
+    await _contentScrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _openTopic(StudyTopic topic, {bool scroll = false}) {
+    final reference = _topicReference(topic);
+    if (_expandedTopicReference != reference) {
+      setState(() => _expandedTopicReference = reference);
+    }
+    replaceTopicReference(reference);
+    unawaited(
+      SharedPreferences.getInstance().then(
+        (preferences) => preferences.setString(_expandedTopicKey, reference),
+      ),
+    );
+    if (scroll) {
+      unawaited(_scrollToTopic(reference));
+    }
   }
 
   List<_TopicResult> get _visibleTopics {
@@ -228,6 +310,15 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
 
   void _selectScope(String? scope) {
     setState(() => _selectedScope = scope);
+    if (scope?.startsWith('topic::') ?? false) {
+      final title = scope!.substring('topic::'.length);
+      for (final topic in studyTopics) {
+        if (topic.title == title) {
+          _openTopic(topic, scroll: true);
+          break;
+        }
+      }
+    }
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
@@ -235,6 +326,15 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
 
   List<Widget> _groupedTopicCards(List<_TopicResult> results) {
     final children = <Widget>[];
+    final expandedReference =
+        results.any(
+              (result) =>
+                  _topicReference(result.topic) == _expandedTopicReference,
+            )
+            ? _expandedTopicReference
+            : results.isEmpty
+            ? null
+            : _topicReference(results.first.topic);
     for (final group in studyGroups) {
       final groupResults =
           results.where((result) => result.topic.group == group.title).toList();
@@ -253,9 +353,12 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
       for (final result in groupResults) {
         children.add(
           _TopicCard(
+            headerKey: _topicKeys[_topicReference(result.topic)],
             topic: result.topic,
             problems: result.problems,
             completed: widget.completed,
+            expanded: _topicReference(result.topic) == expandedReference,
+            onOpen: () => _openTopic(result.topic),
             onChanged: widget.onProblemChanged,
           ),
         );
@@ -315,47 +418,43 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
                         onThemePressed: widget.onThemeChanged,
                       ),
                       Expanded(
-                        child: CustomScrollView(
-                          slivers: [
-                            SliverPadding(
-                              padding: EdgeInsets.fromLTRB(
-                                compact ? 16 : 32,
-                                12,
-                                compact ? 16 : 32,
-                                56,
+                        child: SingleChildScrollView(
+                          controller: _contentScrollController,
+                          padding: EdgeInsets.fromLTRB(
+                            compact ? 16 : 32,
+                            12,
+                            compact ? 16 : 32,
+                            56,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _OverviewHeader(compact: compact),
+                              const SizedBox(height: 24),
+                              _GuideControls(
+                                controller: _searchController,
+                                filter: _filter,
+                                compact: compact,
+                                onSearchChanged:
+                                    (value) => setState(() => _query = value),
+                                onFilterChanged:
+                                    (value) => setState(() => _filter = value),
                               ),
-                              sliver: SliverList.list(
-                                children: [
-                                  _OverviewHeader(compact: compact),
-                                  const SizedBox(height: 24),
-                                  _GuideControls(
-                                    controller: _searchController,
-                                    filter: _filter,
-                                    compact: compact,
-                                    onSearchChanged:
-                                        (value) =>
-                                            setState(() => _query = value),
-                                    onFilterChanged:
-                                        (value) =>
-                                            setState(() => _filter = value),
-                                  ),
-                                  const SizedBox(height: 22),
-                                  if (results.isEmpty)
-                                    _EmptyResults(
-                                      onClear: () {
-                                        _searchController.clear();
-                                        setState(() {
-                                          _query = '';
-                                          _filter = ProblemFilter.all;
-                                        });
-                                      },
-                                    )
-                                  else
-                                    ..._groupedTopicCards(results),
-                                ],
-                              ),
-                            ),
-                          ],
+                              const SizedBox(height: 22),
+                              if (results.isEmpty)
+                                _EmptyResults(
+                                  onClear: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _query = '';
+                                      _filter = ProblemFilter.all;
+                                    });
+                                  },
+                                )
+                              else
+                                ..._groupedTopicCards(results),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -1114,15 +1213,21 @@ class _GroupHeading extends StatelessWidget {
 
 class _TopicCard extends StatelessWidget {
   const _TopicCard({
+    required this.headerKey,
     required this.topic,
     required this.problems,
     required this.completed,
+    required this.expanded,
+    required this.onOpen,
     required this.onChanged,
   });
 
+  final GlobalKey? headerKey;
   final StudyTopic topic;
   final List<StudyProblem> problems;
   final Set<String> completed;
+  final bool expanded;
+  final VoidCallback onOpen;
   final Future<void> Function(String id, bool value) onChanged;
 
   @override
@@ -1139,89 +1244,158 @@ class _TopicCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: topic.color.withValues(alpha: .14),
-                    borderRadius: BorderRadius.circular(13),
-                    border: Border.all(
-                      color: topic.color.withValues(alpha: .35),
-                    ),
-                  ),
-                  child: Icon(topic.icon, color: topic.color, size: 23),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        topic.title,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -.3,
+          Semantics(
+            key: headerKey,
+            button: true,
+            expanded: expanded,
+            label: '${topic.title} section',
+            child: InkWell(
+              onTap: onOpen,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(22, 22, 18, 18),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: topic.color.withValues(alpha: .14),
+                        borderRadius: BorderRadius.circular(13),
+                        border: Border.all(
+                          color: topic.color.withValues(alpha: .35),
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        topic.note,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                          height: 1.45,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: topic.color.withValues(alpha: .12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    '$done/${topic.problems.length}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: topic.color,
+                      child: Icon(topic.icon, color: topic.color, size: 23),
                     ),
-                  ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            topic.title,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -.3,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            topic.note,
+                            maxLines: expanded ? null : 2,
+                            overflow: expanded ? null : TextOverflow.ellipsis,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                              height: 1.45,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: topic.color.withValues(alpha: .12),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '$done/${topic.problems.length}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: topic.color,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.link_rounded,
+                              size: 17,
+                              color: topic.color,
+                            ),
+                            const SizedBox(width: 5),
+                            AnimatedRotation(
+                              turns: expanded ? .5 : 0,
+                              duration: const Duration(milliseconds: 220),
+                              curve: Curves.easeOutCubic,
+                              child: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          LinearProgressIndicator(
-            value: fraction,
-            minHeight: 3,
-            backgroundColor: scheme.outline.withValues(alpha: .2),
-            color: topic.color,
-          ),
-          for (var index = 0; index < problems.length; index++) ...[
-            if (index > 0)
-              Divider(
-                height: 1,
-                indent: 72,
-                color: scheme.outline.withValues(alpha: .45),
               ),
-            _ProblemRow(
-              problem: problems[index],
-              complete: completed.contains(problems[index].storageKey),
-              accent: topic.color,
-              onChanged:
-                  (value) => onChanged(problems[index].storageKey, value),
             ),
-          ],
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            height: 3,
+            color:
+                expanded ? topic.color : scheme.outline.withValues(alpha: .35),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child:
+                expanded
+                    ? Column(
+                      children: [
+                        LinearProgressIndicator(
+                          value: fraction,
+                          minHeight: 2,
+                          backgroundColor: scheme.outline.withValues(alpha: .2),
+                          color: topic.color.withValues(alpha: .62),
+                        ),
+                        for (
+                          var index = 0;
+                          index < problems.length;
+                          index++
+                        ) ...[
+                          if (index > 0)
+                            Divider(
+                              height: 1,
+                              indent: 72,
+                              color: scheme.outline.withValues(alpha: .45),
+                            ),
+                          _ProblemRow(
+                            problem: problems[index],
+                            complete: completed.contains(
+                              problems[index].storageKey,
+                            ),
+                            accent: topic.color,
+                            onChanged:
+                                (value) => onChanged(
+                                  problems[index].storageKey,
+                                  value,
+                                ),
+                          ),
+                        ],
+                      ],
+                    )
+                    : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
