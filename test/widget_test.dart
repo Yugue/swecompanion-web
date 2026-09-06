@@ -18,11 +18,18 @@ void main() {
     expect(find.text('Two Sum'), findsOneWidget);
     expect(find.text('Sort Colors'), findsNothing);
 
-    await tester.tap(find.text('Partitioning & Merge Sort'));
+    await tester.tap(find.text('Sorting'));
     await tester.pumpAndSettle();
 
     expect(find.text('Two Sum'), findsNothing);
     expect(find.text('Sort Colors'), findsOneWidget);
+
+    await tester.tap(find.text('Sorting'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sort Colors'), findsNothing);
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getString('expanded_topic_reference_v1'), '__none__');
   });
 
   testWidgets('restores the expanded topic from local storage', (tester) async {
@@ -43,7 +50,6 @@ void main() {
       for (final topic in challengeTopics) ...topic.problems,
     ];
 
-    expect(studyGroups.last.title, 'Challenge Rounds');
     expect(challengeTopics, hasLength(4));
     expect(challengeProblems, hasLength(112));
     expect(
@@ -70,5 +76,37 @@ void main() {
       challengeProblems.singleWhere((problem) => problem.id == '310').title,
       'Minimum Height Trees',
     );
+  });
+
+  test('main topics are flat with requested review subcategories', () {
+    final titles = coreStudyTopics.map((topic) => topic.title).toSet();
+    expect(titles, containsAll(['Sorting', 'DFS', 'BFS']));
+    expect(
+      titles,
+      isNot(containsAll(['Trees: DFS & BFS', 'Flood Fill & Grid DFS'])),
+    );
+    expect(titles, isNot(contains('Backtracking')));
+
+    final sorting = coreStudyTopics.singleWhere(
+      (topic) => topic.title == 'Sorting',
+    );
+    expect(sorting.problems.map((problem) => problem.subcategory), [
+      'Two-group partitioning',
+      'Three-group partitioning',
+      'Merge sort',
+    ]);
+
+    final dfs = coreStudyTopics.singleWhere((topic) => topic.title == 'DFS');
+    expect(dfs.problems.map((problem) => problem.subcategory).toSet(), {
+      'Tree DFS',
+      'Backtracking',
+      'Flood fill / Grid DFS',
+    });
+
+    final bfs = coreStudyTopics.singleWhere((topic) => topic.title == 'BFS');
+    expect(bfs.problems.map((problem) => problem.subcategory).toSet(), {
+      'Tree BFS',
+      'Shortest path',
+    });
   });
 }

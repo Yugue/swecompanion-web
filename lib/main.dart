@@ -156,7 +156,6 @@ ThemeData _theme(Brightness brightness) {
 
 enum ProblemFilter { all, remaining, complete }
 
-String _groupScope(String title) => 'group::$title';
 String _topicScope(String title) => 'topic::$title';
 
 String _topicReference(StudyTopic topic) => topic.title
@@ -171,6 +170,13 @@ StudyTopic? _topicForReference(String? reference) {
   }
   return null;
 }
+
+String? _migrateTopicReference(String? reference) => switch (reference) {
+  'partitioning-merge-sort' => 'sorting',
+  'trees-dfs-bfs' || 'flood-fill-grid-dfs' || 'backtracking' => 'dfs',
+  'bfs-shortest-path' => 'bfs',
+  _ => reference,
+};
 
 class StudyGuideScreen extends StatefulWidget {
   const StudyGuideScreen({
@@ -192,6 +198,7 @@ class StudyGuideScreen extends StatefulWidget {
 
 class _StudyGuideScreenState extends State<StudyGuideScreen> {
   static const _expandedTopicKey = 'expanded_topic_reference_v1';
+  static const _noExpandedTopic = '__none__';
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _searchController = TextEditingController();
@@ -202,7 +209,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
   String? _selectedScope;
   String _query = '';
   ProblemFilter _filter = ProblemFilter.all;
-  String _expandedTopicReference = _topicReference(studyTopics.first);
+  String? _expandedTopicReference = _topicReference(studyTopics.first);
 
   @override
   void initState() {
@@ -219,17 +226,26 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
 
   Future<void> _restoreExpandedTopic() async {
     final preferences = await SharedPreferences.getInstance();
-    final linkedReference = readTopicReference();
-    final savedReference = preferences.getString(_expandedTopicKey);
+    final linkedReference = _migrateTopicReference(readTopicReference());
+    final savedReference = _migrateTopicReference(
+      preferences.getString(_expandedTopicKey),
+    );
     final linkedTopic = _topicForReference(linkedReference);
-    final topic =
-        linkedTopic ?? _topicForReference(savedReference) ?? studyTopics.first;
-    final reference = _topicReference(topic);
+    final savedTopic = _topicForReference(savedReference);
+    final reference =
+        linkedTopic != null
+            ? _topicReference(linkedTopic)
+            : savedReference == _noExpandedTopic
+            ? null
+            : _topicReference(savedTopic ?? studyTopics.first);
 
-    await preferences.setString(_expandedTopicKey, reference);
+    await preferences.setString(
+      _expandedTopicKey,
+      reference ?? _noExpandedTopic,
+    );
     if (!mounted) return;
     setState(() => _expandedTopicReference = reference);
-    if (linkedTopic != null) {
+    if (linkedTopic != null && reference != null) {
       unawaited(_scrollToTopic(reference));
     }
   }
@@ -257,16 +273,19 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
 
   void _openTopic(StudyTopic topic, {bool scroll = false}) {
     final reference = _topicReference(topic);
-    if (_expandedTopicReference != reference) {
-      setState(() => _expandedTopicReference = reference);
-    }
-    replaceTopicReference(reference);
+    final nextReference =
+        _expandedTopicReference == reference ? null : reference;
+    setState(() => _expandedTopicReference = nextReference);
+    replaceTopicReference(nextReference);
     unawaited(
       SharedPreferences.getInstance().then(
-        (preferences) => preferences.setString(_expandedTopicKey, reference),
+        (preferences) => preferences.setString(
+          _expandedTopicKey,
+          nextReference ?? _noExpandedTopic,
+        ),
       ),
     );
-    if (scroll) {
+    if (scroll && nextReference != null) {
       unawaited(_scrollToTopic(reference));
     }
   }
@@ -274,10 +293,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
   List<_TopicResult> get _visibleTopics {
     final query = _query.trim().toLowerCase();
     Iterable<StudyTopic> topics = studyTopics;
-    if (_selectedScope?.startsWith('group::') ?? false) {
-      final group = _selectedScope!.substring('group::'.length);
-      topics = topics.where((topic) => topic.group == group);
-    } else if (_selectedScope?.startsWith('topic::') ?? false) {
+    if (_selectedScope?.startsWith('topic::') ?? false) {
       final title = _selectedScope!.substring('topic::'.length);
       topics = topics.where((topic) => topic.title == title);
     }
@@ -324,10 +340,12 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
     }
   }
 
-  List<Widget> _groupedTopicCards(List<_TopicResult> results) {
+  List<Widget> _topicCards(List<_TopicResult> results) {
     final children = <Widget>[];
     final expandedReference =
-        results.any(
+        _expandedTopicReference == null
+            ? null
+            : results.any(
               (result) =>
                   _topicReference(result.topic) == _expandedTopicReference,
             )
@@ -335,36 +353,19 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
             : results.isEmpty
             ? null
             : _topicReference(results.first.topic);
-    for (final group in studyGroups) {
-      final groupResults =
-          results.where((result) => result.topic.group == group.title).toList();
-      if (groupResults.isEmpty) continue;
+    for (final result in results) {
       children.add(
-        _GroupHeading(
-          group: group,
+        _TopicCard(
+          headerKey: _topicKeys[_topicReference(result.topic)],
+          topic: result.topic,
+          problems: result.problems,
           completed: widget.completed,
-          visibleCount: groupResults.fold(
-            0,
-            (count, result) => count + result.problems.length,
-          ),
+          expanded: _topicReference(result.topic) == expandedReference,
+          onOpen: () => _openTopic(result.topic),
+          onChanged: widget.onProblemChanged,
         ),
       );
-      children.add(const SizedBox(height: 12));
-      for (final result in groupResults) {
-        children.add(
-          _TopicCard(
-            headerKey: _topicKeys[_topicReference(result.topic)],
-            topic: result.topic,
-            problems: result.problems,
-            completed: widget.completed,
-            expanded: _topicReference(result.topic) == expandedReference,
-            onOpen: () => _openTopic(result.topic),
-            onChanged: widget.onProblemChanged,
-          ),
-        );
-        children.add(const SizedBox(height: 16));
-      }
-      children.add(const SizedBox(height: 12));
+      children.add(const SizedBox(height: 16));
     }
     return children;
   }
@@ -452,7 +453,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
                                   },
                                 )
                               else
-                                ..._groupedTopicCards(results),
+                                ..._topicCards(results),
                             ],
                           ),
                         ),
@@ -606,16 +607,15 @@ class _TopicNavigation extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 20),
               children: [
-                for (final group in studyGroups)
-                  _GroupNavigationSection(
-                    group: group,
-                    topics:
-                        studyTopics
-                            .where((topic) => topic.group == group.title)
-                            .toList(),
-                    completed: completed,
-                    selectedScope: selectedScope,
-                    onSelected: onSelected,
+                for (final topic in studyTopics)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: _SubtopicNavigationTile(
+                      topic: topic,
+                      completed: completed,
+                      selected: selectedScope == _topicScope(topic.title),
+                      onTap: () => onSelected(_topicScope(topic.title)),
+                    ),
                   ),
               ],
             ),
@@ -641,58 +641,6 @@ class _TopicNavigation extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GroupNavigationSection extends StatelessWidget {
-  const _GroupNavigationSection({
-    required this.group,
-    required this.topics,
-    required this.completed,
-    required this.selectedScope,
-    required this.onSelected,
-  });
-
-  final StudyGroup group;
-  final List<StudyTopic> topics;
-  final Set<String> completed;
-  final String? selectedScope;
-  final ValueChanged<String?> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final problemIds = {
-      for (final topic in topics)
-        for (final problem in topic.problems) problem.storageKey,
-    };
-    final done = problemIds.where(completed.contains).length;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 13),
-      child: Column(
-        children: [
-          _NavigationTile(
-            label: group.title,
-            icon: group.icon,
-            iconColor: group.color,
-            selected: selectedScope == _groupScope(group.title),
-            trailing: '$done/${problemIds.length}',
-            onTap: () => onSelected(_groupScope(group.title)),
-          ),
-          const SizedBox(height: 3),
-          for (final topic in topics)
-            Padding(
-              padding: const EdgeInsets.only(left: 25),
-              child: _SubtopicNavigationTile(
-                topic: topic,
-                completed: completed,
-                selected: selectedScope == _topicScope(topic.title),
-                onTap: () => onSelected(_topicScope(topic.title)),
-              ),
-            ),
         ],
       ),
     );
@@ -770,7 +718,6 @@ class _NavigationTile extends StatelessWidget {
     required this.selected,
     required this.trailing,
     required this.onTap,
-    this.iconColor,
   });
 
   final String label;
@@ -778,7 +725,6 @@ class _NavigationTile extends StatelessWidget {
   final bool selected;
   final String trailing;
   final VoidCallback onTap;
-  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -797,10 +743,7 @@ class _NavigationTile extends StatelessWidget {
               Icon(
                 icon,
                 size: 20,
-                color:
-                    selected
-                        ? scheme.primary
-                        : iconColor ?? scheme.onSurfaceVariant,
+                color: selected ? scheme.primary : scheme.onSurfaceVariant,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1138,79 +1081,6 @@ class _GuideControls extends StatelessWidget {
   }
 }
 
-class _GroupHeading extends StatelessWidget {
-  const _GroupHeading({
-    required this.group,
-    required this.completed,
-    required this.visibleCount,
-  });
-
-  final StudyGroup group;
-  final Set<String> completed;
-  final int visibleCount;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final topics = studyTopics.where((topic) => topic.group == group.title);
-    final problemIds = {
-      for (final topic in topics)
-        for (final problem in topic.problems) problem.storageKey,
-    };
-    final done = problemIds.where(completed.contains).length;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 10, 4, 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: group.color.withValues(alpha: .14),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: group.color.withValues(alpha: .36)),
-            ),
-            child: Icon(group.icon, size: 20, color: group.color),
-          ),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  group.title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -.35,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  group.description,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '$done/${problemIds.length} complete  ·  $visibleCount shown',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: group.color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _TopicCard extends StatelessWidget {
   const _TopicCard({
     required this.headerKey,
@@ -1273,14 +1143,30 @@ class _TopicCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            topic.title,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -.3,
-                            ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  topic.title,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -.3,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Tooltip(
+                                message: 'Reference link for ${topic.title}',
+                                child: Icon(
+                                  Icons.link_rounded,
+                                  size: 18,
+                                  color: topic.color,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 5),
                           Text(
@@ -1321,25 +1207,14 @@ class _TopicCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.link_rounded,
-                              size: 17,
-                              color: topic.color,
-                            ),
-                            const SizedBox(width: 5),
-                            AnimatedRotation(
-                              turns: expanded ? .5 : 0,
-                              duration: const Duration(milliseconds: 220),
-                              curve: Curves.easeOutCubic,
-                              child: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
+                        AnimatedRotation(
+                          turns: expanded ? .5 : 0,
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                          child: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: scheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -1373,7 +1248,16 @@ class _TopicCard extends StatelessWidget {
                           index < problems.length;
                           index++
                         ) ...[
-                          if (index > 0)
+                          if (problems[index].subcategory case final label?)
+                            if (index == 0 ||
+                                problems[index - 1].subcategory != label)
+                              _ProblemSubcategoryHeading(
+                                label: label,
+                                accent: topic.color,
+                              ),
+                          if (index > 0 &&
+                              problems[index].subcategory ==
+                                  problems[index - 1].subcategory)
                             Divider(
                               height: 1,
                               indent: 72,
@@ -1395,6 +1279,39 @@ class _TopicCard extends StatelessWidget {
                       ],
                     )
                     : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProblemSubcategoryHeading extends StatelessWidget {
+  const _ProblemSubcategoryHeading({required this.label, required this.accent});
+
+  final String label;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 6),
+      child: Row(
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 9),
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              color: accent,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
           ),
         ],
       ),

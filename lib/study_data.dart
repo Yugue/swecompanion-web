@@ -7,6 +7,7 @@ class StudyProblem {
     this.initiallyComplete = false,
     this.difficulty,
     this.slug,
+    this.subcategory,
   });
 
   final String id;
@@ -14,6 +15,7 @@ class StudyProblem {
   final bool initiallyComplete;
   final String? difficulty;
   final String? slug;
+  final String? subcategory;
 
   String get storageKey => id;
 
@@ -46,65 +48,6 @@ class StudyTopic {
   final String note;
   final List<StudyProblem> problems;
 }
-
-class StudyGroup {
-  const StudyGroup({
-    required this.title,
-    required this.icon,
-    required this.color,
-    required this.description,
-  });
-
-  final String title;
-  final IconData icon;
-  final Color color;
-  final String description;
-}
-
-const studyGroups = <StudyGroup>[
-  StudyGroup(
-    title: 'Arrays & Hashing',
-    icon: Icons.dataset_outlined,
-    color: Color(0xFF4285F4),
-    description: 'Counting, ordering, and prefix-based array techniques',
-  ),
-  StudyGroup(
-    title: 'Scanning Patterns',
-    icon: Icons.linear_scale_rounded,
-    color: Color(0xFF34A853),
-    description: 'Windows, pointers, ranges, and one-pass state',
-  ),
-  StudyGroup(
-    title: 'Search & Optimization',
-    icon: Icons.manage_search_rounded,
-    color: Color(0xFFFBBC04),
-    description: 'Discarding search space and making locally safe choices',
-  ),
-  StudyGroup(
-    title: 'Core Data Structures',
-    icon: Icons.memory_rounded,
-    color: Color(0xFFEA4335),
-    description: 'Linked structures, tries, and operation-driven design',
-  ),
-  StudyGroup(
-    title: 'DFS & Recursion',
-    icon: Icons.account_tree_outlined,
-    color: Color(0xFF46BDC6),
-    description: 'Tree traversal, flood fill, and backtracking decision trees',
-  ),
-  StudyGroup(
-    title: 'Graph Algorithms',
-    icon: Icons.hub_outlined,
-    color: Color(0xFFB39DDB),
-    description: 'Dependencies, shortest paths, and connectivity',
-  ),
-  StudyGroup(
-    title: 'Challenge Rounds',
-    icon: Icons.flag_outlined,
-    color: Color(0xFFFF8A65),
-    description: 'Mixed interview practice sets organized by round',
-  ),
-];
 
 const coreStudyTopics = <StudyTopic>[
   StudyTopic(
@@ -144,16 +87,31 @@ const coreStudyTopics = <StudyTopic>[
   ),
   StudyTopic(
     group: 'Arrays & Hashing',
-    title: 'Partitioning & Merge Sort',
+    title: 'Sorting',
     shortTitle: 'Sorting',
     icon: Icons.sort_rounded,
     color: Color(0xFF8AB4F8),
     note:
         'For two or three groups, maintain regions with pointers. For general sorting, split, solve each half, and merge in linear time.',
     problems: [
-      StudyProblem('75', 'Sort Colors', initiallyComplete: true),
-      StudyProblem('905', 'Sort Array By Parity', initiallyComplete: true),
-      StudyProblem('912', 'Sort an Array', initiallyComplete: true),
+      StudyProblem(
+        '905',
+        'Sort Array By Parity',
+        initiallyComplete: true,
+        subcategory: 'Two-group partitioning',
+      ),
+      StudyProblem(
+        '75',
+        'Sort Colors',
+        initiallyComplete: true,
+        subcategory: 'Three-group partitioning',
+      ),
+      StudyProblem(
+        '912',
+        'Sort an Array',
+        initiallyComplete: true,
+        subcategory: 'Merge sort',
+      ),
     ],
   ),
   StudyTopic(
@@ -316,39 +274,103 @@ const coreStudyTopics = <StudyTopic>[
   ),
   StudyTopic(
     group: 'DFS & Recursion',
-    title: 'Trees: DFS & BFS',
-    shortTitle: 'Trees',
+    title: 'DFS',
+    shortTitle: 'DFS',
     icon: Icons.park_outlined,
     color: Color(0xFF78D9EC),
     note:
-        'DFS is natural for values returned from children. BFS is natural for levels, minimum depth, and nearest-node questions.',
+        'Use tree DFS to combine values returned by children, backtracking to explore decisions, and grid DFS to traverse connected regions.',
     problems: [
       StudyProblem(
         '104',
         'Maximum Depth of Binary Tree',
         initiallyComplete: true,
-      ),
-      StudyProblem(
-        '102',
-        'Binary Tree Level Order Traversal',
-        initiallyComplete: true,
+        subcategory: 'Tree DFS',
       ),
       StudyProblem(
         '98',
         'Validate Binary Search Tree',
         initiallyComplete: true,
+        subcategory: 'Tree DFS',
       ),
       StudyProblem(
         '236',
         'Lowest Common Ancestor of a Binary Tree',
         initiallyComplete: true,
+        subcategory: 'Tree DFS',
       ),
       StudyProblem(
         '124',
         'Binary Tree Maximum Path Sum',
         initiallyComplete: true,
+        subcategory: 'Tree DFS',
       ),
-      StudyProblem('543', 'Diameter of Binary Tree', initiallyComplete: true),
+      StudyProblem(
+        '543',
+        'Diameter of Binary Tree',
+        initiallyComplete: true,
+        subcategory: 'Tree DFS',
+      ),
+      StudyProblem(
+        '46',
+        'Permutations',
+        initiallyComplete: true,
+        subcategory: 'Backtracking',
+      ),
+      StudyProblem(
+        '78',
+        'Subsets',
+        initiallyComplete: true,
+        subcategory: 'Backtracking',
+      ),
+      StudyProblem(
+        '39',
+        'Combination Sum',
+        initiallyComplete: true,
+        subcategory: 'Backtracking',
+      ),
+      StudyProblem(
+        '79',
+        'Word Search',
+        initiallyComplete: true,
+        subcategory: 'Backtracking',
+      ),
+      StudyProblem(
+        '131',
+        'Palindrome Partitioning',
+        initiallyComplete: true,
+        subcategory: 'Backtracking',
+      ),
+      StudyProblem(
+        '200',
+        'Number of Islands',
+        initiallyComplete: true,
+        subcategory: 'Flood fill / Grid DFS',
+      ),
+      StudyProblem(
+        '695',
+        'Max Area of Island',
+        initiallyComplete: true,
+        subcategory: 'Flood fill / Grid DFS',
+      ),
+      StudyProblem(
+        '130',
+        'Surrounded Regions',
+        initiallyComplete: true,
+        subcategory: 'Flood fill / Grid DFS',
+      ),
+      StudyProblem(
+        '1254',
+        'Number of Closed Islands',
+        initiallyComplete: true,
+        subcategory: 'Flood fill / Grid DFS',
+      ),
+      StudyProblem(
+        '417',
+        'Pacific Atlantic Water Flow',
+        initiallyComplete: true,
+        subcategory: 'Flood fill / Grid DFS',
+      ),
     ],
   ),
   StudyTopic(
@@ -369,44 +391,8 @@ const coreStudyTopics = <StudyTopic>[
     ],
   ),
   StudyTopic(
-    group: 'DFS & Recursion',
-    title: 'Flood Fill & Grid DFS',
-    shortTitle: 'Grid DFS',
-    icon: Icons.grid_view_rounded,
-    color: Color(0xFF57BB8A),
-    note:
-        'Treat every cell as a graph node. Mark a cell when it is discovered so each component is visited once.',
-    problems: [
-      StudyProblem('200', 'Number of Islands', initiallyComplete: true),
-      StudyProblem('695', 'Max Area of Island', initiallyComplete: true),
-      StudyProblem('130', 'Surrounded Regions', initiallyComplete: true),
-      StudyProblem('1254', 'Number of Closed Islands', initiallyComplete: true),
-      StudyProblem(
-        '417',
-        'Pacific Atlantic Water Flow',
-        initiallyComplete: true,
-      ),
-    ],
-  ),
-  StudyTopic(
-    group: 'DFS & Recursion',
-    title: 'Backtracking',
-    shortTitle: 'Backtracking',
-    icon: Icons.fork_right_rounded,
-    color: Color(0xFFFF8A65),
-    note:
-        'Choose, recurse, then undo. Define the decision at one tree level and prevent duplicate paths at that same level.',
-    problems: [
-      StudyProblem('46', 'Permutations', initiallyComplete: true),
-      StudyProblem('78', 'Subsets', initiallyComplete: true),
-      StudyProblem('39', 'Combination Sum', initiallyComplete: true),
-      StudyProblem('79', 'Word Search', initiallyComplete: true),
-      StudyProblem('131', 'Palindrome Partitioning', initiallyComplete: true),
-    ],
-  ),
-  StudyTopic(
     group: 'Graph Algorithms',
-    title: 'BFS & Shortest Path',
+    title: 'BFS',
     shortTitle: 'BFS',
     icon: Icons.hub_outlined,
     color: Color(0xFF5BB9D4),
@@ -414,19 +400,46 @@ const coreStudyTopics = <StudyTopic>[
         'BFS explores an unweighted graph layer by layer, so the first arrival is the shortest path. Put all equivalent starting points in the initial queue.',
     problems: [
       StudyProblem(
+        '102',
+        'Binary Tree Level Order Traversal',
+        initiallyComplete: true,
+        subcategory: 'Tree BFS',
+      ),
+      StudyProblem(
         '1091',
         'Shortest Path in Binary Matrix',
         initiallyComplete: true,
+        subcategory: 'Shortest path',
       ),
-      StudyProblem('542', '01 Matrix', initiallyComplete: true),
-      StudyProblem('433', 'Minimum Genetic Mutation', initiallyComplete: true),
-      StudyProblem('909', 'Snakes and Ladders', initiallyComplete: true),
+      StudyProblem(
+        '542',
+        '01 Matrix',
+        initiallyComplete: true,
+        subcategory: 'Shortest path',
+      ),
+      StudyProblem(
+        '433',
+        'Minimum Genetic Mutation',
+        initiallyComplete: true,
+        subcategory: 'Shortest path',
+      ),
+      StudyProblem(
+        '909',
+        'Snakes and Ladders',
+        initiallyComplete: true,
+        subcategory: 'Shortest path',
+      ),
       StudyProblem(
         '1293',
         'Shortest Path in a Grid with Obstacles Elimination',
         initiallyComplete: true,
+        subcategory: 'Shortest path',
       ),
-      StudyProblem('847', 'Shortest Path Visiting All Nodes'),
+      StudyProblem(
+        '847',
+        'Shortest Path Visiting All Nodes',
+        subcategory: 'Shortest path',
+      ),
     ],
   ),
   StudyTopic(
