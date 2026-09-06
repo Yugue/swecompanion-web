@@ -326,10 +326,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
                               ),
                               sliver: SliverList.list(
                                 children: [
-                                  _OverviewHeader(
-                                    completed: widget.completed,
-                                    compact: compact,
-                                  ),
+                                  _OverviewHeader(compact: compact),
                                   const SizedBox(height: 24),
                                   _GuideControls(
                                     controller: _searchController,
@@ -735,34 +732,18 @@ class _NavigationTile extends StatelessWidget {
 }
 
 class _OverviewHeader extends StatelessWidget {
-  const _OverviewHeader({required this.completed, required this.compact});
+  const _OverviewHeader({required this.compact});
 
-  final Set<String> completed;
   final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final total = uniqueProblems.length;
-    final complete =
-        uniqueProblems
-            .where((problem) => completed.contains(problem.storageKey))
-            .length;
-    final remaining = total - complete;
-    final progress = total == 0 ? 0.0 : complete / total;
 
     final content = <Widget>[
-      Expanded(flex: 5, child: _HeaderCopy(complete: complete)),
+      const Expanded(flex: 5, child: _HeaderCopy()),
       const SizedBox(width: 36, height: 28),
-      Expanded(
-        flex: 4,
-        child: _ProgressPanel(
-          total: total,
-          complete: complete,
-          remaining: remaining,
-          progress: progress,
-        ),
-      ),
+      const Expanded(flex: 4, child: _GuidePromisePanel()),
     ];
 
     return Container(
@@ -786,15 +767,10 @@ class _OverviewHeader extends StatelessWidget {
           compact
               ? Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _HeaderCopy(complete: complete),
-                  const SizedBox(height: 24),
-                  _ProgressPanel(
-                    total: total,
-                    complete: complete,
-                    remaining: remaining,
-                    progress: progress,
-                  ),
+                children: const [
+                  _HeaderCopy(),
+                  SizedBox(height: 24),
+                  _GuidePromisePanel(),
                 ],
               )
               : Row(children: content),
@@ -803,8 +779,7 @@ class _OverviewHeader extends StatelessWidget {
 }
 
 class _HeaderCopy extends StatelessWidget {
-  const _HeaderCopy({required this.complete});
-  final int complete;
+  const _HeaderCopy();
 
   @override
   Widget build(BuildContext context) {
@@ -822,7 +797,7 @@ class _HeaderCopy extends StatelessWidget {
             ),
           ),
           child: const Text(
-            'INTERVIEW PREP',
+            'FREE INTERVIEW GUIDE',
             style: TextStyle(
               color: Color(0xFF8AB4F8),
               fontWeight: FontWeight.w700,
@@ -833,18 +808,16 @@ class _HeaderCopy extends StatelessWidget {
         ),
         const SizedBox(height: 17),
         Text(
-          complete == 0
-              ? 'Build your pattern library.'
-              : 'Keep the patterns sharp.',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+          'Master the fundamentals. Walk into L4–L6 interviews with confidence.',
+          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
             fontWeight: FontWeight.w700,
-            height: 1.1,
-            letterSpacing: -.8,
+            height: 1.06,
+            letterSpacing: -1.1,
           ),
         ),
         const SizedBox(height: 11),
         Text(
-          'Review the cue, work the problem, and check it off. Your progress stays in this browser.',
+          'A carefully organized guide to the data structures, algorithms, and representative LeetCode questions that appear most often in software engineering interviews.',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: scheme.onSurfaceVariant,
             height: 1.5,
@@ -856,12 +829,16 @@ class _HeaderCopy extends StatelessWidget {
           runSpacing: 10,
           children: [
             _MemoryCue(
-              icon: Icons.view_week_outlined,
-              label: 'Window → longest / shortest valid',
+              icon: Icons.workspace_premium_outlined,
+              label: 'L4–L6 focused',
             ),
             _MemoryCue(
-              icon: Icons.stacked_line_chart,
-              label: 'Prefix → exact sum with negatives',
+              icon: Icons.insights_rounded,
+              label: 'High-frequency topics',
+            ),
+            _MemoryCue(
+              icon: Icons.checklist_rounded,
+              label: 'Representative problems',
             ),
           ],
         ),
@@ -899,18 +876,8 @@ class _MemoryCue extends StatelessWidget {
   }
 }
 
-class _ProgressPanel extends StatelessWidget {
-  const _ProgressPanel({
-    required this.total,
-    required this.complete,
-    required this.remaining,
-    required this.progress,
-  });
-
-  final int total;
-  final int complete;
-  final int remaining;
-  final double progress;
+class _GuidePromisePanel extends StatelessWidget {
+  const _GuidePromisePanel();
 
   @override
   Widget build(BuildContext context) {
@@ -925,55 +892,52 @@ class _ProgressPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${(progress * 100).round()}%',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -1.1,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '$complete of $total',
-                style: TextStyle(
-                  color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 9,
-              backgroundColor: scheme.outline.withValues(alpha: .35),
-              color: const Color(0xFF34A853),
+          Text(
+            'BUILT FOR INTERVIEW TRANSFER',
+            style: TextStyle(
+              color: scheme.primary,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.05,
             ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _Metric(
-                label: 'Complete',
-                value: '$complete',
-                color: const Color(0xFF81C995),
+          const SizedBox(height: 10),
+          Text(
+            'Learn the pattern, not just the answer.',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 17),
+          const _PromiseItem(
+            icon: Icons.account_tree_outlined,
+            text: 'Fundamental data structures and algorithms',
+          ),
+          const SizedBox(height: 12),
+          const _PromiseItem(
+            icon: Icons.auto_awesome_motion_outlined,
+            text: 'The most common coding interview topic families',
+          ),
+          const SizedBox(height: 12),
+          const _PromiseItem(
+            icon: Icons.route_outlined,
+            text: 'Carefully sequenced questions that build confidence',
+          ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF34A853).withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF34A853).withValues(alpha: .28),
               ),
-              _Metric(
-                label: 'Remaining',
-                value: '$remaining',
-                color: const Color(0xFFFFD166),
-              ),
-              _Metric(
-                label: 'Groups',
-                value: '${studyGroups.length}',
-                color: const Color(0xFF8AB4F8),
-              ),
-            ],
+            ),
+            child: const Text(
+              'Build skills that carry into any coding interview.',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -981,40 +945,43 @@ class _ProgressPanel extends StatelessWidget {
   }
 }
 
-class _Metric extends StatelessWidget {
-  const _Metric({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-  final String label;
-  final String value;
-  final Color color;
+class _PromiseItem extends StatelessWidget {
+  const _PromiseItem({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: color,
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: scheme.primary.withValues(alpha: .12),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(icon, size: 17, color: scheme.primary),
+        ),
+        const SizedBox(width: 11),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: scheme.onSurfaceVariant,
+                fontSize: 13,
+                height: 1.35,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          Text(
-            label,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

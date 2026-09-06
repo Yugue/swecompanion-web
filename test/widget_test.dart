@@ -10,7 +10,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('SWE Companion'), findsOneWidget);
-    expect(find.text('Keep the patterns sharp.'), findsOneWidget);
+    expect(find.textContaining('Walk into L4–L6 interviews'), findsOneWidget);
+    expect(find.textContaining('Learn the pattern'), findsOneWidget);
   });
 
   test('challenge rounds and official LeetCode links are complete', () {
