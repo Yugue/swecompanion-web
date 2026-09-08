@@ -14,7 +14,8 @@ void main() {
 
     expect(find.text('SWE Companion'), findsOneWidget);
     expect(find.textContaining('Walk into L4–L6 interviews'), findsOneWidget);
-    expect(find.textContaining('Learn the pattern'), findsOneWidget);
+    expect(find.textContaining('Learn the pattern'), findsNothing);
+    expect(find.text('8/8'), findsOneWidget);
     expect(find.text('Two Sum'), findsOneWidget);
     expect(find.text('Sort Colors'), findsNothing);
 

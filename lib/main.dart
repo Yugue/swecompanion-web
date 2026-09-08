@@ -557,6 +557,10 @@ class _TopicNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final completedCount =
+        uniqueProblems
+            .where((problem) => completed.contains(problem.storageKey))
+            .length;
     return Container(
       decoration: BoxDecoration(
         color: scheme.surfaceContainer.withValues(alpha: .96),
@@ -588,7 +592,12 @@ class _TopicNavigation extends StatelessWidget {
               label: 'All topics',
               icon: Icons.dashboard_outlined,
               selected: selectedScope == null,
-              trailing: '${uniqueProblems.length}',
+              trailing: _ProgressRing(
+                done: completedCount,
+                total: uniqueProblems.length,
+                color: scheme.primary,
+                size: 40,
+              ),
               onTap: () => onSelected(null),
             ),
           ),
@@ -699,9 +708,11 @@ class _SubtopicNavigationTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                '$done/${topic.problems.length}',
-                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
+              _ProgressRing(
+                done: done,
+                total: topic.problems.length,
+                color: topic.color,
+                size: 34,
               ),
             ],
           ),
@@ -723,7 +734,7 @@ class _NavigationTile extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool selected;
-  final String trailing;
+  final Widget trailing;
   final VoidCallback onTap;
 
   @override
@@ -757,12 +768,65 @@ class _NavigationTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                trailing,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: scheme.onSurfaceVariant,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+              trailing,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProgressRing extends StatelessWidget {
+  const _ProgressRing({
+    required this.done,
+    required this.total,
+    required this.color,
+    required this.size,
+    this.strokeWidth = 2.5,
+  });
+
+  final int done;
+  final int total;
+  final Color color;
+  final double size;
+  final double strokeWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final safeDone = done < 0 ? 0 : (done > total ? total : done);
+    final progress = total == 0 ? 0.0 : safeDone / total;
+    final label = '$safeDone/$total';
+
+    return Semantics(
+      label: '$safeDone of $total complete',
+      child: ExcludeSemantics(
+        child: SizedBox.square(
+          dimension: size,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CircularProgressIndicator(
+                value: progress,
+                strokeWidth: strokeWidth,
+                strokeCap: StrokeCap.round,
+                color: color,
+                backgroundColor: scheme.outline.withValues(alpha: .3),
+              ),
+              Padding(
+                padding: EdgeInsets.all(size * .16),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: size * .25,
+                      fontWeight: FontWeight.w800,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -782,12 +846,6 @@ class _OverviewHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    final content = <Widget>[
-      const Expanded(flex: 5, child: _HeaderCopy()),
-      const SizedBox(width: 36, height: 28),
-      const Expanded(flex: 4, child: _GuidePromisePanel()),
-    ];
-
     return Container(
       padding: EdgeInsets.all(compact ? 22 : 30),
       decoration: BoxDecoration(
@@ -805,17 +863,7 @@ class _OverviewHeader extends StatelessWidget {
           ),
         ],
       ),
-      child:
-          compact
-              ? Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: const [
-                  _HeaderCopy(),
-                  SizedBox(height: 24),
-                  _GuidePromisePanel(),
-                ],
-              )
-              : Row(children: content),
+      child: const _HeaderCopy(),
     );
   }
 }
@@ -914,116 +962,6 @@ class _MemoryCue extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _GuidePromisePanel extends StatelessWidget {
-  const _GuidePromisePanel();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: .45),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: scheme.outline.withValues(alpha: .55)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'BUILT FOR INTERVIEW TRANSFER',
-            style: TextStyle(
-              color: scheme.primary,
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.05,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Learn the pattern, not just the answer.',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 17),
-          const _PromiseItem(
-            icon: Icons.account_tree_outlined,
-            text: 'Fundamental data structures and algorithms',
-          ),
-          const SizedBox(height: 12),
-          const _PromiseItem(
-            icon: Icons.auto_awesome_motion_outlined,
-            text: 'The most common coding interview topic families',
-          ),
-          const SizedBox(height: 12),
-          const _PromiseItem(
-            icon: Icons.route_outlined,
-            text: 'Carefully sequenced questions that build confidence',
-          ),
-          const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF34A853).withValues(alpha: .12),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: const Color(0xFF34A853).withValues(alpha: .28),
-              ),
-            ),
-            child: const Text(
-              'Build skills that carry into any coding interview.',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PromiseItem extends StatelessWidget {
-  const _PromiseItem({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: scheme.primary.withValues(alpha: .12),
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Icon(icon, size: 17, color: scheme.primary),
-        ),
-        const SizedBox(width: 11),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Text(
-              text,
-              style: TextStyle(
-                color: scheme.onSurfaceVariant,
-                fontSize: 13,
-                height: 1.35,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -1188,23 +1126,12 @@ class _TopicCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: topic.color.withValues(alpha: .12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '$done/${topic.problems.length}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: topic.color,
-                            ),
-                          ),
+                        _ProgressRing(
+                          done: done,
+                          total: topic.problems.length,
+                          color: topic.color,
+                          size: 48,
+                          strokeWidth: 3,
                         ),
                         const SizedBox(height: 10),
                         AnimatedRotation(
