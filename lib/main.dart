@@ -130,7 +130,7 @@ ThemeData _theme(Brightness brightness) {
       color: scheme.surfaceContainer,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: scheme.outline.withValues(alpha: .68)),
       ),
     ),
@@ -139,15 +139,15 @@ ThemeData _theme(Brightness brightness) {
       fillColor: scheme.surfaceContainer,
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: scheme.outline),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: scheme.outline),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: scheme.primary, width: 1.5),
       ),
     ),
@@ -525,7 +525,7 @@ class _TopBar extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               color: scheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(color: scheme.outline.withValues(alpha: .75)),
             ),
             child: IconButton(
@@ -670,10 +670,10 @@ class _SubtopicNavigationTile extends StatelessWidget {
     return Material(
       color:
           selected ? scheme.primary.withValues(alpha: .1) : Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(6),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
           child: Row(
@@ -732,10 +732,10 @@ class _NavigationTile extends StatelessWidget {
     return Material(
       color:
           selected ? scheme.primary.withValues(alpha: .13) : Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(7),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(7),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           child: Row(
@@ -792,7 +792,7 @@ class _OverviewHeader extends StatelessWidget {
       padding: EdgeInsets.all(compact ? 22 : 30),
       decoration: BoxDecoration(
         color: scheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: scheme.outline.withValues(alpha: .7)),
         boxShadow: [
           BoxShadow(
@@ -833,7 +833,7 @@ class _HeaderCopy extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
           decoration: BoxDecoration(
             color: const Color(0xFF4285F4).withValues(alpha: .13),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(6),
             border: Border.all(
               color: const Color(0xFF4285F4).withValues(alpha: .35),
             ),
@@ -901,7 +901,7 @@ class _MemoryCue extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: .6),
-        borderRadius: BorderRadius.circular(11),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -928,7 +928,7 @@ class _GuidePromisePanel extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: .45),
-        borderRadius: BorderRadius.circular(19),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: scheme.outline.withValues(alpha: .55)),
       ),
       child: Column(
@@ -971,7 +971,7 @@ class _GuidePromisePanel extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: const Color(0xFF34A853).withValues(alpha: .12),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: const Color(0xFF34A853).withValues(alpha: .28),
               ),
@@ -1004,7 +1004,7 @@ class _PromiseItem extends StatelessWidget {
           height: 30,
           decoration: BoxDecoration(
             color: scheme.primary.withValues(alpha: .12),
-            borderRadius: BorderRadius.circular(9),
+            borderRadius: BorderRadius.circular(5),
           ),
           child: Icon(icon, size: 17, color: scheme.primary),
         ),
@@ -1131,7 +1131,7 @@ class _TopicCard extends StatelessWidget {
                       height: 44,
                       decoration: BoxDecoration(
                         color: topic.color.withValues(alpha: .14),
-                        borderRadius: BorderRadius.circular(13),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: topic.color.withValues(alpha: .35),
                         ),
@@ -1195,7 +1195,7 @@ class _TopicCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: topic.color.withValues(alpha: .12),
-                            borderRadius: BorderRadius.circular(999),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             '$done/${topic.problems.length}',
@@ -1350,7 +1350,7 @@ class _ProblemRow extends StatelessWidget {
                 activeColor: accent,
                 checkColor: Colors.black87,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
               SizedBox(
@@ -1424,7 +1424,7 @@ class _DifficultyBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: .13),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(5),
       ),
       child: Text(
         difficulty,
