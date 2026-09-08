@@ -520,8 +520,8 @@ const coreStudyTopics = <StudyTopic>[
   ),
   StudyTopic(
     group: 'Core Data Structures',
-    title: 'Design & Data Structures',
-    shortTitle: 'Design',
+    title: 'Data Structures to Know',
+    shortTitle: 'Data Structures',
     icon: Icons.developer_board_rounded,
     color: Color(0xFFA7C7FA),
     note:

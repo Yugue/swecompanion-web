@@ -81,7 +81,11 @@ void main() {
 
   test('main topics are flat with requested review subcategories', () {
     final titles = coreStudyTopics.map((topic) => topic.title).toSet();
-    expect(titles, containsAll(['Sorting', 'DFS', 'BFS']));
+    expect(
+      titles,
+      containsAll(['Sorting', 'DFS', 'BFS', 'Data Structures to Know']),
+    );
+    expect(titles, isNot(contains('Design & Data Structures')));
     expect(
       titles,
       isNot(containsAll(['Trees: DFS & BFS', 'Flood Fill & Grid DFS'])),

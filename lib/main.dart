@@ -175,6 +175,7 @@ String? _migrateTopicReference(String? reference) => switch (reference) {
   'partitioning-merge-sort' => 'sorting',
   'trees-dfs-bfs' || 'flood-fill-grid-dfs' || 'backtracking' => 'dfs',
   'bfs-shortest-path' || 'topological-sort' => 'bfs',
+  'design-data-structures' => 'data-structures-to-know',
   _ => reference,
 };
 
