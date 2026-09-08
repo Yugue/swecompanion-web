@@ -86,6 +86,7 @@ void main() {
       isNot(containsAll(['Trees: DFS & BFS', 'Flood Fill & Grid DFS'])),
     );
     expect(titles, isNot(contains('Backtracking')));
+    expect(titles, isNot(contains('Topological Sort')));
 
     final sorting = coreStudyTopics.singleWhere(
       (topic) => topic.title == 'Sorting',
@@ -106,6 +107,7 @@ void main() {
     final bfs = coreStudyTopics.singleWhere((topic) => topic.title == 'BFS');
     expect(bfs.problems.map((problem) => problem.subcategory).toSet(), {
       'Tree BFS',
+      'Topological sort',
       'Shortest path',
     });
   });

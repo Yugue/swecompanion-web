@@ -375,35 +375,30 @@ const coreStudyTopics = <StudyTopic>[
   ),
   StudyTopic(
     group: 'Graph Algorithms',
-    title: 'Topological Sort',
-    shortTitle: 'Topological Sort',
-    icon: Icons.route_rounded,
-    color: Color(0xFFB39DDB),
-    note:
-        'Kahn’s algorithm starts with zero-indegree nodes. If fewer than n nodes are processed, a cycle is preventing progress.',
-    problems: [
-      StudyProblem('207', 'Course Schedule', initiallyComplete: true),
-      StudyProblem(
-        '1857',
-        'Largest Color Value in a Directed Graph',
-        initiallyComplete: true,
-      ),
-    ],
-  ),
-  StudyTopic(
-    group: 'Graph Algorithms',
     title: 'BFS',
     shortTitle: 'BFS',
     icon: Icons.hub_outlined,
     color: Color(0xFF5BB9D4),
     note:
-        'BFS explores an unweighted graph layer by layer, so the first arrival is the shortest path. Put all equivalent starting points in the initial queue.',
+        'BFS explores one layer at a time. Use it for tree levels and unweighted shortest paths; Kahn’s algorithm applies the same queue pattern to dependencies.',
     problems: [
       StudyProblem(
         '102',
         'Binary Tree Level Order Traversal',
         initiallyComplete: true,
         subcategory: 'Tree BFS',
+      ),
+      StudyProblem(
+        '207',
+        'Course Schedule',
+        initiallyComplete: true,
+        subcategory: 'Topological sort',
+      ),
+      StudyProblem(
+        '1857',
+        'Largest Color Value in a Directed Graph',
+        initiallyComplete: true,
+        subcategory: 'Topological sort',
       ),
       StudyProblem(
         '1091',

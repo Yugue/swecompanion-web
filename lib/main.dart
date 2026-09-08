@@ -174,7 +174,7 @@ StudyTopic? _topicForReference(String? reference) {
 String? _migrateTopicReference(String? reference) => switch (reference) {
   'partitioning-merge-sort' => 'sorting',
   'trees-dfs-bfs' || 'flood-fill-grid-dfs' || 'backtracking' => 'dfs',
-  'bfs-shortest-path' => 'bfs',
+  'bfs-shortest-path' || 'topological-sort' => 'bfs',
   _ => reference,
 };
 
@@ -1308,9 +1308,9 @@ class _ProblemSubcategoryHeading extends StatelessWidget {
             label.toUpperCase(),
             style: TextStyle(
               color: accent,
-              fontSize: 11,
+              fontSize: 14,
               fontWeight: FontWeight.w800,
-              letterSpacing: 1,
+              letterSpacing: .6,
             ),
           ),
         ],
