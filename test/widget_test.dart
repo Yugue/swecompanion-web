@@ -14,7 +14,7 @@ void main() {
     await tester.pumpWidget(const SweCompanionApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('SWE Companion'), findsOneWidget);
+    expect(find.text('LeetCode'), findsOneWidget);
     expect(find.textContaining('Walk into L4–L6 interviews'), findsOneWidget);
     expect(find.textContaining('Learn the pattern'), findsNothing);
     expect(find.text('8/8'), findsOneWidget);
@@ -33,6 +33,11 @@ void main() {
     expect(find.text('Sort Colors'), findsNothing);
     final preferences = await SharedPreferences.getInstance();
     expect(preferences.getString('expanded_topic_reference_v1'), '__none__');
+
+    await tester.tap(find.text('ML'));
+    await tester.pumpAndSettle();
+    expect(find.text('Chapter 1 — Foundations'), findsOneWidget);
+    expect(find.text('LeetCode'), findsOneWidget);
   });
 
   testWidgets('restores the expanded topic from local storage', (tester) async {
@@ -132,9 +137,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Part I — Foundations'), findsOneWidget);
-    expect(find.text('ML fundamentals'), findsOneWidget);
-    expect(find.text('Part I knowledge check'), findsOneWidget);
+    expect(find.text('Chapter 1 — Foundations'), findsOneWidget);
+    expect(find.text('1.1  ML fundamentals'), findsOneWidget);
+    expect(find.text('Chapter 1 knowledge check'), findsOneWidget);
     expect(find.textContaining('Without them, the composition'), findsNothing);
 
     await tester.tap(

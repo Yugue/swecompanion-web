@@ -332,24 +332,25 @@ class _MlTopBar extends StatelessWidget {
           if (showMenu) const SizedBox(width: 4),
           if (showMenu) const _MlProductMark(size: 28),
           if (showMenu) const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              compact ? 'ML Interview Guide' : 'ML interview study workspace',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                letterSpacing: -.2,
+          if (!compact)
+            Expanded(
+              child: Text(
+                'Interview study workspace',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -.2,
+                ),
               ),
-            ),
-          ),
-          TextButton.icon(
-            onPressed:
+            )
+          else
+            const Spacer(),
+          _MlTrackSwitcher(
+            onLeetCode:
                 () => Navigator.of(
                   context,
                 ).pushNamedAndRemoveUntil('/', (_) => false),
-            icon: const Icon(Icons.account_tree_outlined, size: 18),
-            label: Text(compact ? 'DSA' : 'Coding guide'),
           ),
           const SizedBox(width: 8),
           Container(
@@ -368,6 +369,69 @@ class _MlTopBar extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MlTrackSwitcher extends StatelessWidget {
+  const _MlTrackSwitcher({required this.onLeetCode});
+
+  final VoidCallback onLeetCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outline.withValues(alpha: .75)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _MlTrackButton(label: 'LeetCode', selected: false, onTap: onLeetCode),
+          const _MlTrackButton(label: 'ML', selected: true),
+        ],
+      ),
+    );
+  }
+}
+
+class _MlTrackButton extends StatelessWidget {
+  const _MlTrackButton({
+    required this.label,
+    required this.selected,
+    this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color:
+          selected ? scheme.primary.withValues(alpha: .16) : Colors.transparent,
+      borderRadius: BorderRadius.circular(5),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(5),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? scheme.primary : scheme.onSurfaceVariant,
+              fontSize: 13,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -446,7 +510,7 @@ class _MlNavigation extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: _MlNavTile(
-                      label: '${part.number}. ${part.title}',
+                      label: 'Chapter ${part.number} · ${part.title}',
                       icon: part.icon,
                       selected: expandedPartId == part.id,
                       trailing: _MlProgressRing(
@@ -768,7 +832,7 @@ class _MlPartCard extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  'Part ${part.number} — ${part.title}',
+                                  'Chapter ${part.number} — ${part.title}',
                                   style: Theme.of(
                                     context,
                                   ).textTheme.titleLarge?.copyWith(
@@ -847,6 +911,8 @@ class _MlPartCard extends StatelessWidget {
                           for (final topic in topics) ...[
                             _MlTopicCard(
                               key: topicKeys[topic.id],
+                              chapterNumber:
+                                  '${part.number}.${part.topics.indexOf(topic) + 1}',
                               topic: topic,
                               accent: part.color,
                               complete: completed.contains(topic.id),
@@ -876,12 +942,14 @@ class _MlPartCard extends StatelessWidget {
 class _MlTopicCard extends StatelessWidget {
   const _MlTopicCard({
     super.key,
+    required this.chapterNumber,
     required this.topic,
     required this.accent,
     required this.complete,
     required this.onCompleted,
     required this.onReference,
   });
+  final String chapterNumber;
   final MlTopic topic;
   final Color accent;
   final bool complete;
@@ -924,7 +992,7 @@ class _MlTopicCard extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
-                      topic.title,
+                      '$chapterNumber  ${topic.title}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         decoration:
@@ -1081,7 +1149,7 @@ class _MlQuizSection extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Part ${part.number} knowledge check',
+                  'Chapter ${part.number} knowledge check',
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),

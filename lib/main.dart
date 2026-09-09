@@ -542,18 +542,20 @@ class _TopBar extends StatelessWidget {
           if (showMenu) const SizedBox(width: 4),
           if (showMenu) const _ProductMark(size: 28),
           if (showMenu) const SizedBox(width: 10),
-          Text(
-            compact ? 'SWE Companion' : 'Interview study workspace',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              letterSpacing: -.2,
-            ),
-          ),
-          const Spacer(),
-          TextButton.icon(
-            onPressed: () => Navigator.of(context).pushNamed('/ml'),
-            icon: const Icon(Icons.psychology_outlined, size: 18),
-            label: Text(compact ? 'ML' : 'ML guide'),
+          if (!compact)
+            Expanded(
+              child: Text(
+                'Interview study workspace',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -.2,
+                ),
+              ),
+            )
+          else
+            const Spacer(),
+          _StudyTrackSwitcher(
+            onMl: () => Navigator.of(context).pushNamed('/ml'),
           ),
           const SizedBox(width: 8),
           Container(
@@ -572,6 +574,69 @@ class _TopBar extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StudyTrackSwitcher extends StatelessWidget {
+  const _StudyTrackSwitcher({required this.onMl});
+
+  final VoidCallback onMl;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outline.withValues(alpha: .75)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _StudyTrackButton(label: 'LeetCode', selected: true, onTap: () {}),
+          _StudyTrackButton(label: 'ML', selected: false, onTap: onMl),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudyTrackButton extends StatelessWidget {
+  const _StudyTrackButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color:
+          selected ? scheme.primary.withValues(alpha: .16) : Colors.transparent,
+      borderRadius: BorderRadius.circular(5),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(5),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? scheme.primary : scheme.onSurfaceVariant,
+              fontSize: 13,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
       ),
     );
   }

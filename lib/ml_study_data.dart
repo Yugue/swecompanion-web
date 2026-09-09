@@ -77,7 +77,7 @@ const _orange = Color(0xFFF97316);
 final mlParts = <MlPart>[
   MlPart(
     id: 'foundations',
-    number: 'I',
+    number: '1',
     title: 'Foundations',
     description:
         'The mathematical and modeling vocabulary needed to reason from first principles.',
@@ -248,7 +248,7 @@ final mlParts = <MlPart>[
   ),
   MlPart(
     id: 'learning',
-    number: 'II',
+    number: '2',
     title: 'How neural networks learn',
     description:
         'Optimization, stability, regularization, and the evidence used to debug training.',
@@ -479,7 +479,7 @@ final mlParts = <MlPart>[
   ),
   MlPart(
     id: 'architectures',
-    number: 'III',
+    number: '3',
     title: 'Core architectures',
     description:
         'The progression from spatial inductive bias to recurrent memory and attention.',
@@ -634,7 +634,7 @@ final mlParts = <MlPart>[
   ),
   MlPart(
     id: 'transformers',
-    number: 'IV',
+    number: '4',
     title: 'Transformers in depth',
     description:
         'Attention mechanics, block structure, model families, and the cost of long context.',
@@ -844,7 +844,7 @@ final mlParts = <MlPart>[
   ),
   MlPart(
     id: 'modern-deep-learning',
-    number: 'V',
+    number: '5',
     title: 'Modern deep-learning fundamentals',
     description:
         'Representation learning, adaptation, decoding, and efficient autoregressive inference.',
@@ -988,7 +988,7 @@ final mlParts = <MlPart>[
   ),
   MlPart(
     id: 'practical-reasoning',
-    number: 'VI',
+    number: '6',
     title: 'Practical ML reasoning',
     description:
         'How to choose, diagnose, deploy, and defend an ML system under real constraints.',
@@ -1094,7 +1094,7 @@ final mlParts = <MlPart>[
   ),
   MlPart(
     id: 'generative-models',
-    number: 'VII',
+    number: '7',
     title: 'Generative and representation models',
     description:
         'Lower-priority concepts worth recognizing and explaining at a high level.',
