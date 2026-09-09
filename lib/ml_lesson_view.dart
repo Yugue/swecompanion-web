@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 
 class MlLessonView extends StatelessWidget {
   const MlLessonView({super.key, required this.topicId, required this.accent});
@@ -301,7 +302,6 @@ class _LessonBlockView extends StatelessWidget {
           ),
         );
       case _LessonBlockType.code:
-      case _LessonBlockType.math:
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
@@ -313,18 +313,39 @@ class _LessonBlockView extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.all(15),
             child: SelectableText(
-              block.type == _LessonBlockType.math
-                  ? _readableMath(block.text)
-                  : block.text,
+              block.text,
               style: TextStyle(
                 fontFamily: 'monospace',
                 fontSize: 13.5,
                 height: 1.5,
-                color:
-                    block.type == _LessonBlockType.math
-                        ? accent
-                        : scheme.onSurface,
+                color: scheme.onSurface,
               ),
+            ),
+          ),
+        );
+      case _LessonBlockType.math:
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 18),
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest.withValues(alpha: .65),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: scheme.outline.withValues(alpha: .55)),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Math.tex(
+              block.text,
+              mathStyle: MathStyle.display,
+              textStyle: TextStyle(color: accent, fontSize: 17),
+              onErrorFallback:
+                  (error) => SelectableText(
+                    block.text,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      color: scheme.error,
+                    ),
+                  ),
             ),
           ),
         );
@@ -334,21 +355,6 @@ class _LessonBlockView extends StatelessWidget {
   }
 }
 
-String _readableMath(String value) {
-  return _readableInline(value)
-      .replaceAll(r'\in', '∈')
-      .replaceAll(r'\boxed', '')
-      .replaceAll(r'\begin{bmatrix}', '')
-      .replaceAll(r'\end{bmatrix}', '')
-      .replaceAll(r'\\', '\n')
-      .replaceAll('&', '  ')
-      .replaceAll('{{', '{')
-      .replaceAll('}}', '}')
-      .replaceAll('{', '')
-      .replaceAll('}', '')
-      .trim();
-}
-
 class _InlineMarkdown extends StatelessWidget {
   const _InlineMarkdown(this.text, {required this.style});
   final String text;
@@ -356,8 +362,8 @@ class _InlineMarkdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spans = <TextSpan>[];
-    final pattern = RegExp(r'(\*\*.+?\*\*|`.+?`)');
+    final spans = <InlineSpan>[];
+    final pattern = RegExp(r'(\*\*.+?\*\*|`.+?`|\\\(.+?\\\))');
     var cursor = 0;
     for (final match in pattern.allMatches(text)) {
       if (match.start > cursor) {
@@ -366,7 +372,26 @@ class _InlineMarkdown extends StatelessWidget {
         );
       }
       final token = match.group(0)!;
-      if (token.startsWith('**')) {
+      if (token.startsWith(r'\(')) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Math.tex(
+                token.substring(2, token.length - 2),
+                mathStyle: MathStyle.text,
+                textStyle: style.copyWith(fontSize: style.fontSize ?? 15),
+                onErrorFallback:
+                    (error) => Text(
+                      token.substring(2, token.length - 2),
+                      style: style.copyWith(fontFamily: 'monospace'),
+                    ),
+              ),
+            ),
+          ),
+        );
+      } else if (token.startsWith('**')) {
         spans.add(
           TextSpan(
             text: _readableInline(token.substring(2, token.length - 2)),
