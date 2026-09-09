@@ -94,33 +94,37 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
           return MaterialPageRoute<void>(
             settings: settings,
             builder:
-                (_) =>
-                    _ready
-                        ? MlReviewPage(
-                          darkMode: _darkMode,
-                          onThemeChanged: _toggleTheme,
-                          initialReference:
-                              segments.length > 1 ? segments[1] : null,
-                        )
-                        : const Scaffold(
-                          body: Center(child: CircularProgressIndicator()),
-                        ),
+                (_) => SelectionArea(
+                  child:
+                      _ready
+                          ? MlReviewPage(
+                            darkMode: _darkMode,
+                            onThemeChanged: _toggleTheme,
+                            initialReference:
+                                segments.length > 1 ? segments[1] : null,
+                          )
+                          : const Scaffold(
+                            body: Center(child: CircularProgressIndicator()),
+                          ),
+                ),
           );
         }
         return MaterialPageRoute<void>(
           settings: settings,
           builder:
-              (_) =>
-                  _ready
-                      ? StudyGuideScreen(
-                        completed: _completed,
-                        darkMode: _darkMode,
-                        onProblemChanged: _toggleProblem,
-                        onThemeChanged: _toggleTheme,
-                      )
-                      : const Scaffold(
-                        body: Center(child: CircularProgressIndicator()),
-                      ),
+              (_) => SelectionArea(
+                child:
+                    _ready
+                        ? StudyGuideScreen(
+                          completed: _completed,
+                          darkMode: _darkMode,
+                          onProblemChanged: _toggleProblem,
+                          onThemeChanged: _toggleTheme,
+                        )
+                        : const Scaffold(
+                          body: Center(child: CircularProgressIndicator()),
+                        ),
+              ),
         );
       },
     );

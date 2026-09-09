@@ -15,6 +15,7 @@ void main() {
     await tester.pumpWidget(const SweCompanionApp());
     await tester.pumpAndSettle();
 
+    expect(find.byType(SelectionArea), findsOneWidget);
     expect(find.text('LeetCode'), findsOneWidget);
     expect(find.textContaining('Walk into L4–L6 interviews'), findsOneWidget);
     expect(find.textContaining('Learn the pattern'), findsNothing);
@@ -146,7 +147,7 @@ void main() {
       find.text('Prepare for the Google ML Domain Interview.'),
       findsOneWidget,
     );
-    expect(find.textContaining('45–60 minute conversation'), findsOneWidget);
+    expect(find.textContaining('45–60 minute interview'), findsOneWidget);
     expect(find.textContaining('3–5 foundational'), findsOneWidget);
     expect(find.text('Deep Learning / Neural Networks'), findsOneWidget);
     expect(find.text('Agentic AI Development'), findsOneWidget);

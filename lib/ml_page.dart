@@ -717,15 +717,7 @@ class _MlHero extends StatelessWidget {
           ),
           const SizedBox(height: 11),
           Text(
-            'Designed for Google L4–L6 candidates, the ML domain interview is a focused 45–60 minute conversation in which you are typically asked to explain 3–5 foundational machine-learning concepts and reason through follow-up questions. Before the interview, each candidate pre-selects one ML domain from the areas below.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: scheme.onSurfaceVariant,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 11),
-          Text(
-            'The current guide presents Deep Learning / Neural Networks. Its content is carefully organized to cover the fundamental concepts and subject areas that may appear in this domain interview, with detailed explanations, diagrams, formulas, tables, and quizzes. Mastering these concepts gives you an exceptionally strong foundation for success—we have tested this preparation approach ourselves.',
+            'Designed for Google L4–L6 candidates, this 45–60 minute interview asks you to explain 3–5 foundational concepts from an ML domain you select in advance. This guide covers Deep Learning / Neural Networks with carefully organized explanations, diagrams, formulas, tables, and quizzes across the subjects most likely to appear. It is a preparation approach we have tested ourselves.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: scheme.onSurfaceVariant,
               height: 1.5,

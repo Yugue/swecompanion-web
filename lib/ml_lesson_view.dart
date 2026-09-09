@@ -27,14 +27,12 @@ class MlLessonView extends StatelessWidget {
           );
         }
         final blocks = _parseLesson(snapshot.data!);
-        return SelectionArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final block in blocks)
-                _LessonBlockView(block: block, accent: accent),
-            ],
-          ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final block in blocks)
+              _LessonBlockView(block: block, accent: accent),
+          ],
         );
       },
     );
