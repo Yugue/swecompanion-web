@@ -233,6 +233,12 @@ class _MlReviewPageState extends State<MlReviewPage> {
     final desktop = width >= 1060;
     final compact = width < 1320;
     final results = _visibleParts;
+    final pinnedPart = _partForReference(_expandedTopicId);
+    final pinnedTopic = mlTopicsById[_expandedTopicId];
+    final pinnedNumber =
+        pinnedPart != null && pinnedTopic != null
+            ? '${pinnedPart.number}.${pinnedPart.topics.indexOf(pinnedTopic) + 1}'
+            : null;
 
     final navigation = _MlNavigation(
       completed: _completed,
@@ -264,6 +270,16 @@ class _MlReviewPageState extends State<MlReviewPage> {
                             () => _scaffoldKey.currentState?.openDrawer(),
                         onThemePressed: widget.onThemeChanged,
                       ),
+                      if (pinnedPart != null &&
+                          pinnedTopic != null &&
+                          pinnedNumber != null)
+                        _MlPinnedTopicBar(
+                          number: pinnedNumber,
+                          title: pinnedTopic.title,
+                          accent: pinnedPart.color,
+                          onReference:
+                              () => _openReference(pinnedPart, pinnedTopic.id),
+                        ),
                       Expanded(
                         child: SingleChildScrollView(
                           controller: _scrollController,
@@ -349,6 +365,79 @@ class _MlPartResult {
   const _MlPartResult(this.part, this.topics);
   final MlPart part;
   final List<MlTopic> topics;
+}
+
+class _MlPinnedTopicBar extends StatelessWidget {
+  const _MlPinnedTopicBar({
+    required this.number,
+    required this.title,
+    required this.accent,
+    required this.onReference,
+  });
+
+  final String number;
+  final String title;
+  final Color accent;
+  final VoidCallback onReference;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      height: 54,
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainer,
+        border: Border(
+          bottom: BorderSide(color: accent.withValues(alpha: .55), width: 2),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: .13),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              number,
+              style: TextStyle(
+                color: accent,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$number · $title',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Return to $number $title',
+            onPressed: onReference,
+            icon: Icon(
+              Icons.vertical_align_top_rounded,
+              color: accent,
+              size: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _MlTopBar extends StatelessWidget {
@@ -716,11 +805,37 @@ class _MlHero extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 11),
-          Text(
-            'Designed for Google L4–L6 candidates, this 45–60 minute interview asks you to explain 3–5 foundational concepts from an ML domain you select in advance. This guide covers Deep Learning / Neural Networks with carefully organized explanations, diagrams, formulas, tables, and quizzes across the subjects most likely to appear. It is a preparation approach we have tested ourselves.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: scheme.onSurfaceVariant,
-              height: 1.5,
+          _MlHeroStatement(
+            label: 'Designed for',
+            text:
+                'Google L4–L6 candidates preparing for a 45–60 minute ML domain interview covering 3–5 foundational concepts from a domain selected in advance.',
+          ),
+          const SizedBox(height: 8),
+          const _MlHeroStatement(
+            label: 'Covers',
+            text:
+                'Deep Learning / Neural Networks fundamentals, with carefully organized explanations, diagrams, formulas, tables, and quizzes.',
+          ),
+          const SizedBox(height: 13),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+            decoration: BoxDecoration(
+              color: _green.withValues(alpha: .1),
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(color: _green.withValues(alpha: .35)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.verified_outlined, color: _green, size: 19),
+                SizedBox(width: 9),
+                Expanded(
+                  child: Text(
+                    'The writers of this page successfully passed the ML domain interview by following only this guide.',
+                    style: TextStyle(fontWeight: FontWeight.w600, height: 1.4),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -738,6 +853,37 @@ class _MlHero extends StatelessWidget {
               _MlCue(icon: Icons.quiz_outlined, label: '50 revealable answers'),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MlHeroStatement extends StatelessWidget {
+  const _MlHeroStatement({required this.label, required this.text});
+
+  final String label;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final style = Theme.of(context).textTheme.bodyLarge?.copyWith(
+      color: scheme.onSurfaceVariant,
+      height: 1.5,
+    );
+    return Text.rich(
+      TextSpan(
+        style: style,
+        children: [
+          TextSpan(
+            text: '$label: ',
+            style: TextStyle(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          TextSpan(text: text),
         ],
       ),
     );
@@ -1429,7 +1575,7 @@ class _MlQuizSection extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Chapter ${part.number} knowledge check',
+                  'Chapter ${part.number} quiz',
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),

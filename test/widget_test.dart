@@ -147,7 +147,9 @@ void main() {
       find.text('Prepare for the Google ML Domain Interview.'),
       findsOneWidget,
     );
-    expect(find.textContaining('45–60 minute interview'), findsOneWidget);
+    expect(find.textContaining('Designed for:'), findsOneWidget);
+    expect(find.textContaining('Covers:'), findsOneWidget);
+    expect(find.textContaining('successfully passed'), findsOneWidget);
     expect(find.textContaining('3–5 foundational'), findsOneWidget);
     expect(find.text('Deep Learning / Neural Networks'), findsOneWidget);
     expect(find.text('Agentic AI Development'), findsOneWidget);
@@ -157,7 +159,7 @@ void main() {
     );
     expect(find.text('Chapter 1 — Foundations'), findsOneWidget);
     expect(find.text('1.1  ML fundamentals'), findsOneWidget);
-    expect(find.text('Chapter 1 knowledge check'), findsOneWidget);
+    expect(find.text('Chapter 1 quiz'), findsOneWidget);
     expect(find.textContaining('Without them, the composition'), findsNothing);
 
     await tester.tap(
@@ -181,6 +183,7 @@ void main() {
 
     await tester.tap(find.text('1.1  ML fundamentals'));
     await tester.pumpAndSettle();
+    expect(find.text('1.1 · ML fundamentals'), findsOneWidget);
     expect(
       find.textContaining('For your Google L4–L5 ML domain interview'),
       findsOneWidget,
