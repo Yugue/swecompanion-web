@@ -575,19 +575,6 @@ final mlParts = <MlPart>[
         code:
             'decoder_input = target[:, :-1]  # shifted targets during training',
       ),
-      _topic(
-        'encoder-decoder-attention',
-        'Encoder–decoder attention',
-        'Attention lets each decoder step retrieve the most relevant encoder states instead of relying on one fixed summary.',
-        [
-          'A decoder query scores all encoder states.',
-          'Normalized scores form a weighted context vector.',
-          'This solves the fixed-vector bottleneck and improves alignment.',
-          'Here attention connects decoder to encoder; self-attention is introduced separately in Transformers.',
-        ],
-        'Why was attention useful before self-attention and Transformers existed?',
-        code: 'context = attention(decoder_state, encoder_states)',
-      ),
     ],
     quiz: [
       _quiz(
@@ -1113,58 +1100,6 @@ final mlParts = <MlPart>[
         ],
         'Why does an unconstrained overcomplete autoencoder risk learning the identity?',
         code: 'reconstruction = decoder(encoder(x))',
-      ),
-      _topic(
-        'vae',
-        'Variational autoencoders',
-        'A Variational Autoencoder (VAE) learns a distribution over latent codes and a smooth, sampleable latent space.',
-        [
-          'The encoder predicts μ and variance rather than one deterministic code.',
-          'The reparameterization trick enables gradients through sampling.',
-          'The objective balances reconstruction with Kullback–Leibler divergence toward a prior.',
-          'The tradeoff is sample smoothness and coverage versus sharper reconstruction.',
-        ],
-        'Why is z = μ + σ⊙ε useful for backpropagation?',
-        code: 'z = mu + torch.exp(0.5 * logvar) * torch.randn_like(mu)',
-      ),
-      _topic(
-        'gans',
-        'Generative adversarial networks',
-        'A Generative Adversarial Network (GAN) trains a generator to fool a discriminator while the discriminator learns real versus fake.',
-        [
-          'The generator maps noise to samples; the discriminator supplies a learned training signal.',
-          'GANs can create sharp samples but training is unstable.',
-          'Mode collapse means the generator covers only part of the data distribution.',
-          'The two networks form a minimax game rather than a simple fixed supervised objective.',
-        ],
-        'What is mode collapse and why can aggregate sample quality hide it?',
-        code: 'g_loss = -torch.log(discriminator(generator(noise))).mean()',
-      ),
-      _topic(
-        'diffusion',
-        'Diffusion models',
-        'Diffusion models learn to reverse a gradual noising process and generate data from noise through repeated denoising.',
-        [
-          'The forward process adds noise according to a schedule.',
-          'Training commonly predicts the added noise or an equivalent parameterization.',
-          'Sampling repeatedly applies the learned reverse step.',
-          'They are stable and high quality but iterative sampling can be slow.',
-        ],
-        'Contrast diffusion’s training/sampling process with a GAN’s adversarial game.',
-        code: 'loss = F.mse_loss(model(noisy_x, timestep), added_noise)',
-      ),
-      _topic(
-        'contrastive',
-        'Contrastive learning',
-        'Contrastive learning shapes representations by pulling related examples together and pushing unrelated examples apart.',
-        [
-          'Positive pairs can be augmentations of the same item or semantically linked examples.',
-          'Negatives teach separation, though some objectives avoid explicit negatives.',
-          'Temperature controls concentration in similarity logits.',
-          'Representation quality depends heavily on what the pairing and augmentation rules declare invariant.',
-        ],
-        'How can a bad augmentation policy teach the wrong invariance?',
-        code: 'logits = normalized_a @ normalized_b.T / temperature',
       ),
     ],
   ),

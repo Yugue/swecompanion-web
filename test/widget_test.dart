@@ -160,14 +160,21 @@ void main() {
       preferences.getStringList('ml_completed_topics_v1'),
       contains('ml-fundamentals'),
     );
+
+    await tester.tap(find.text('1.1  ML fundamentals'));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('For your Google L4–L5 ML domain interview'),
+      findsOneWidget,
+    );
   });
 
-  test('ML curriculum has unique topics and five complete quizzes', () {
+  test('ML curriculum has full lessons and five complete quizzes', () {
     final topics = [for (final part in mlParts) ...part.topics];
     final quizzes = [for (final part in mlParts) ...part.quiz];
 
     expect(mlParts, hasLength(7));
-    expect(topics, hasLength(62));
+    expect(topics, hasLength(57));
     expect(topics.map((topic) => topic.id).toSet(), hasLength(topics.length));
     expect(quizzes, hasLength(50));
     expect(

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'ml_lesson_view.dart';
 import 'ml_study_data.dart';
 import 'url_reference.dart';
 
@@ -32,6 +33,7 @@ class MlReviewPage extends StatefulWidget {
 class _MlReviewPageState extends State<MlReviewPage> {
   static const _completedKey = 'ml_completed_topics_v1';
   static const _expandedKey = 'ml_expanded_part_v1';
+  static const _expandedTopicKey = 'ml_expanded_topic_v1';
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _searchController = TextEditingController();
@@ -49,6 +51,7 @@ class _MlReviewPageState extends State<MlReviewPage> {
   String _query = '';
   MlTopicFilter _filter = MlTopicFilter.all;
   String? _expandedPartId = mlParts.first.id;
+  String? _expandedTopicId;
   bool _ready = false;
 
   @override
@@ -79,10 +82,13 @@ class _MlReviewPageState extends State<MlReviewPage> {
     final linkedPart = _partForReference(reference);
     final savedPart = mlPartsById[preferences.getString(_expandedKey)];
     final expanded = linkedPart?.id ?? savedPart?.id ?? mlParts.first.id;
+    final linkedTopic = mlTopicsById[reference];
+    final savedTopic = mlTopicsById[preferences.getString(_expandedTopicKey)];
     if (!mounted) return;
     setState(() {
       _completed = preferences.getStringList(_completedKey)?.toSet() ?? {};
       _expandedPartId = expanded;
+      _expandedTopicId = linkedTopic?.id ?? savedTopic?.id;
       _ready = true;
     });
     if (reference != null) unawaited(_scrollToReference(reference));
@@ -118,28 +124,62 @@ class _MlReviewPageState extends State<MlReviewPage> {
 
   void _openPart(MlPart part, {bool scroll = false}) {
     final next = _expandedPartId == part.id ? null : part.id;
-    setState(() => _expandedPartId = next);
+    setState(() {
+      _expandedPartId = next;
+      _expandedTopicId = null;
+    });
     replaceMlReference(next);
     unawaited(
       SharedPreferences.getInstance().then(
         (preferences) => preferences.setString(_expandedKey, next ?? ''),
       ),
     );
+    unawaited(
+      SharedPreferences.getInstance().then(
+        (preferences) => preferences.setString(_expandedTopicKey, ''),
+      ),
+    );
     if (scroll && next != null) unawaited(_scrollToReference(part.id));
   }
 
   void _openReference(MlPart part, String reference) {
-    setState(() => _expandedPartId = part.id);
+    final topic = mlTopicsById[reference];
+    setState(() {
+      _expandedPartId = part.id;
+      _expandedTopicId = topic?.id;
+    });
     replaceMlReference(reference);
     unawaited(
       SharedPreferences.getInstance().then(
         (preferences) => preferences.setString(_expandedKey, part.id),
       ),
     );
+    unawaited(
+      SharedPreferences.getInstance().then(
+        (preferences) =>
+            preferences.setString(_expandedTopicKey, topic?.id ?? ''),
+      ),
+    );
     unawaited(_scrollToReference(reference));
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
+  }
+
+  void _toggleTopic(MlPart part, MlTopic topic) {
+    final next = _expandedTopicId == topic.id ? null : topic.id;
+    setState(() {
+      _expandedPartId = part.id;
+      _expandedTopicId = next;
+    });
+    replaceMlReference(next ?? part.id);
+    unawaited(
+      SharedPreferences.getInstance().then((preferences) async {
+        await preferences.setString(_expandedKey, part.id);
+        await preferences.setString(_expandedTopicKey, next ?? '');
+      }),
+    );
+    if (next != null) unawaited(_scrollToReference(topic.id));
   }
 
   List<_MlPartResult> get _visibleParts {
@@ -254,6 +294,7 @@ class _MlReviewPageState extends State<MlReviewPage> {
                                     topics: result.topics,
                                     completed: _completed,
                                     expanded: _expandedPartId == result.part.id,
+                                    expandedTopicId: _expandedTopicId,
                                     revealedAnswers: _revealedAnswers,
                                     onOpen: () => _openPart(result.part),
                                     onReference:
@@ -261,6 +302,9 @@ class _MlReviewPageState extends State<MlReviewPage> {
                                           result.part,
                                           reference,
                                         ),
+                                    onTopicOpen:
+                                        (topic) =>
+                                            _toggleTopic(result.part, topic),
                                     onCompleted: _setCompleted,
                                     onReveal: (key) {
                                       setState(() {
@@ -671,7 +715,7 @@ class _MlHero extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _MlCue(icon: Icons.layers_outlined, label: '7 structured parts'),
+              _MlCue(icon: Icons.layers_outlined, label: '57 full lessons'),
               _MlCue(
                 icon: Icons.psychology_alt_outlined,
                 label: 'Interview prompts',
@@ -772,9 +816,11 @@ class _MlPartCard extends StatelessWidget {
     required this.topics,
     required this.completed,
     required this.expanded,
+    required this.expandedTopicId,
     required this.revealedAnswers,
     required this.onOpen,
     required this.onReference,
+    required this.onTopicOpen,
     required this.onCompleted,
     required this.onReveal,
   });
@@ -784,9 +830,11 @@ class _MlPartCard extends StatelessWidget {
   final List<MlTopic> topics;
   final Set<String> completed;
   final bool expanded;
+  final String? expandedTopicId;
   final Set<String> revealedAnswers;
   final VoidCallback onOpen;
   final ValueChanged<String> onReference;
+  final ValueChanged<MlTopic> onTopicOpen;
   final Future<void> Function(String, bool) onCompleted;
   final ValueChanged<String> onReveal;
 
@@ -916,6 +964,8 @@ class _MlPartCard extends StatelessWidget {
                               topic: topic,
                               accent: part.color,
                               complete: completed.contains(topic.id),
+                              expanded: expandedTopicId == topic.id,
+                              onOpen: () => onTopicOpen(topic),
                               onCompleted:
                                   (value) => onCompleted(topic.id, value),
                               onReference: () => onReference(topic.id),
@@ -946,6 +996,8 @@ class _MlTopicCard extends StatelessWidget {
     required this.topic,
     required this.accent,
     required this.complete,
+    required this.expanded,
+    required this.onOpen,
     required this.onCompleted,
     required this.onReference,
   });
@@ -953,6 +1005,8 @@ class _MlTopicCard extends StatelessWidget {
   final MlTopic topic;
   final Color accent;
   final bool complete;
+  final bool expanded;
+  final VoidCallback onOpen;
   final ValueChanged<bool> onCompleted;
   final VoidCallback onReference;
 
@@ -970,149 +1024,254 @@ class _MlTopicCard extends StatelessWidget {
                   : scheme.outline.withValues(alpha: .65),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 14, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Checkbox(
-                  value: complete,
-                  onChanged: (value) => onCompleted(value ?? false),
-                  activeColor: accent,
-                  checkColor: Colors.black87,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Text(
-                      '$chapterNumber  ${topic.title}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        decoration:
-                            complete ? TextDecoration.lineThrough : null,
-                        decorationColor: scheme.onSurfaceVariant,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            button: true,
+            expanded: expanded,
+            label: '$chapterNumber ${topic.title} lesson',
+            child: InkWell(
+              onTap: onOpen,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: complete,
+                      onChanged: (value) => onCompleted(value ?? false),
+                      activeColor: accent,
+                      checkColor: Colors.black87,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(3),
                       ),
                     ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Reference link for ${topic.title}',
-                  onPressed: onReference,
-                  icon: Icon(Icons.link_rounded, color: accent, size: 19),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 52),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    topic.summary,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(height: 1.5),
-                  ),
-                  const SizedBox(height: 12),
-                  for (final point in topic.keyPoints)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 7),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(top: 7),
-                            width: 5,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: accent,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              point,
-                              style: TextStyle(
-                                color: scheme.onSurfaceVariant,
-                                height: 1.45,
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$chapterNumber  ${topic.title}',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                decoration:
+                                    complete
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                decorationColor: scheme.onSurfaceVariant,
                               ),
                             ),
-                          ),
-                        ],
+                            if (!expanded) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                topic.summary,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: scheme.onSurfaceVariant,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
-                  if (topic.code case final code?) ...[
-                    const SizedBox(height: 7),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 13,
-                        vertical: 11,
-                      ),
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerHighest.withValues(
-                          alpha: .6,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: scheme.outline.withValues(alpha: .45),
-                        ),
-                      ),
-                      child: SelectableText(
-                        code,
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 13,
-                          color: scheme.onSurface,
-                          height: 1.4,
+                    IconButton(
+                      tooltip: 'Reference link for ${topic.title}',
+                      onPressed: onReference,
+                      icon: Icon(Icons.link_rounded, color: accent, size: 19),
+                    ),
+                    AnimatedRotation(
+                      turns: expanded ? .5 : 0,
+                      duration: const Duration(milliseconds: 220),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10, right: 6),
+                        child: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: .08),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: accent.withValues(alpha: .24)),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+              ),
+            ),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 260),
+            alignment: Alignment.topCenter,
+            child:
+                expanded
+                    ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Icon(
-                          Icons.record_voice_over_outlined,
-                          size: 18,
-                          color: accent,
+                        Divider(
+                          height: 1,
+                          color: scheme.outline.withValues(alpha: .55),
                         ),
-                        const SizedBox(width: 9),
-                        Expanded(
-                          child: Text(
-                            'Interview probe: ${topic.interviewPrompt}',
-                            style: const TextStyle(
-                              fontSize: 13.5,
-                              height: 1.4,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 6, 24, 30),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _MlLessonOverview(topic: topic, accent: accent),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 30,
+                                  bottom: 2,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Divider(
+                                        color: scheme.outline.withValues(
+                                          alpha: .55,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'FULL LESSON',
+                                      style: TextStyle(
+                                        color: accent,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 1.1,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Divider(
+                                        color: scheme.outline.withValues(
+                                          alpha: .55,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              MlLessonView(topicId: topic.id, accent: accent),
+                            ],
                           ),
                         ),
                       ],
+                    )
+                    : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MlLessonOverview extends StatelessWidget {
+  const _MlLessonOverview({required this.topic, required this.accent});
+
+  final MlTopic topic;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.only(top: 22),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: .07),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: accent.withValues(alpha: .3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'INTERVIEW-READY OVERVIEW',
+            style: TextStyle(
+              color: accent,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            topic.summary,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
+          ),
+          const SizedBox(height: 13),
+          for (final point in topic.keyPoints)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 7),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 7),
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: accent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      point,
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        height: 1.45,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+          if (topic.code case final code?) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest.withValues(alpha: .65),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: SelectableText(
+                code,
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+            ),
           ],
-        ),
+          const SizedBox(height: 13),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.record_voice_over_outlined, size: 18, color: accent),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  'Interview probe: ${topic.interviewPrompt}',
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    height: 1.45,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
