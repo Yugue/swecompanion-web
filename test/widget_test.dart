@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swe_companion/main.dart';
+import 'package:swe_companion/ml_page.dart';
+import 'package:swe_companion/ml_study_data.dart';
 import 'package:swe_companion/study_data.dart';
 
 void main() {
@@ -115,5 +117,62 @@ void main() {
       'Topological sort',
       'Shortest path',
     });
+  });
+
+  testWidgets('ML guide reveals quiz answers and saves review progress', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 7000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MlReviewPage(darkMode: true, onThemeChanged: () async {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Part I — Foundations'), findsOneWidget);
+    expect(find.text('ML fundamentals'), findsOneWidget);
+    expect(find.text('Part I knowledge check'), findsOneWidget);
+    expect(find.textContaining('Without them, the composition'), findsNothing);
+
+    await tester.tap(
+      find.text(
+        'Why are nonlinear activations necessary between linear layers?',
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Without them, the composition'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byType(Checkbox).first);
+    await tester.pumpAndSettle();
+    final preferences = await SharedPreferences.getInstance();
+    expect(
+      preferences.getStringList('ml_completed_topics_v1'),
+      contains('ml-fundamentals'),
+    );
+  });
+
+  test('ML curriculum has unique topics and five complete quizzes', () {
+    final topics = [for (final part in mlParts) ...part.topics];
+    final quizzes = [for (final part in mlParts) ...part.quiz];
+
+    expect(mlParts, hasLength(7));
+    expect(topics, hasLength(62));
+    expect(topics.map((topic) => topic.id).toSet(), hasLength(topics.length));
+    expect(quizzes, hasLength(50));
+    expect(
+      topics.every(
+        (topic) =>
+            topic.summary.isNotEmpty &&
+            topic.keyPoints.length >= 3 &&
+            topic.interviewPrompt.isNotEmpty,
+      ),
+      isTrue,
+    );
   });
 }

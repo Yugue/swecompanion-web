@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'study_data.dart';
 import 'url_reference.dart';
+import 'ml_page.dart';
 
 void main() => runApp(const SweCompanionApp());
 
@@ -85,17 +86,43 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
       themeMode: _darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),
-      home:
-          _ready
-              ? StudyGuideScreen(
-                completed: _completed,
-                darkMode: _darkMode,
-                onProblemChanged: _toggleProblem,
-                onThemeChanged: _toggleTheme,
-              )
-              : const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              ),
+      onGenerateRoute: (settings) {
+        final route = settings.name ?? '/';
+        if (route.startsWith('/ml')) {
+          final segments =
+              route.split('/').where((part) => part.isNotEmpty).toList();
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder:
+                (_) =>
+                    _ready
+                        ? MlReviewPage(
+                          darkMode: _darkMode,
+                          onThemeChanged: _toggleTheme,
+                          initialReference:
+                              segments.length > 1 ? segments[1] : null,
+                        )
+                        : const Scaffold(
+                          body: Center(child: CircularProgressIndicator()),
+                        ),
+          );
+        }
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder:
+              (_) =>
+                  _ready
+                      ? StudyGuideScreen(
+                        completed: _completed,
+                        darkMode: _darkMode,
+                        onProblemChanged: _toggleProblem,
+                        onThemeChanged: _toggleTheme,
+                      )
+                      : const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      ),
+        );
+      },
     );
   }
 }
@@ -523,6 +550,12 @@ class _TopBar extends StatelessWidget {
             ),
           ),
           const Spacer(),
+          TextButton.icon(
+            onPressed: () => Navigator.of(context).pushNamed('/ml'),
+            icon: const Icon(Icons.psychology_outlined, size: 18),
+            label: Text(compact ? 'ML' : 'ML guide'),
+          ),
+          const SizedBox(width: 8),
           Container(
             decoration: BoxDecoration(
               color: scheme.surfaceContainer,

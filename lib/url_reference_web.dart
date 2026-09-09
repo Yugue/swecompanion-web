@@ -22,3 +22,14 @@ void replaceTopicReference(String? reference) {
   );
   web.window.history.replaceState(null, '', next.toString());
 }
+
+String? readMlReference() {
+  final fragment = Uri.parse(web.window.location.href).fragment;
+  final values = fragment.split('/').where((part) => part.isNotEmpty).toList();
+  return values.length >= 2 && values.first == 'ml' ? values[1] : null;
+}
+
+void replaceMlReference(String? reference) {
+  final path = reference == null ? '/ml' : '/ml/$reference';
+  web.window.history.replaceState(null, '', '#$path');
+}
