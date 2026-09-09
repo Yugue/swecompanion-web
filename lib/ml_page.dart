@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sticky_headers/sticky_headers.dart';
 
 import 'ml_lesson_view.dart';
 import 'ml_study_data.dart';
@@ -233,12 +234,6 @@ class _MlReviewPageState extends State<MlReviewPage> {
     final desktop = width >= 1060;
     final compact = width < 1320;
     final results = _visibleParts;
-    final pinnedPart = _partForReference(_expandedTopicId);
-    final pinnedTopic = mlTopicsById[_expandedTopicId];
-    final pinnedNumber =
-        pinnedPart != null && pinnedTopic != null
-            ? '${pinnedPart.number}.${pinnedPart.topics.indexOf(pinnedTopic) + 1}'
-            : null;
 
     final navigation = _MlNavigation(
       completed: _completed,
@@ -270,16 +265,6 @@ class _MlReviewPageState extends State<MlReviewPage> {
                             () => _scaffoldKey.currentState?.openDrawer(),
                         onThemePressed: widget.onThemeChanged,
                       ),
-                      if (pinnedPart != null &&
-                          pinnedTopic != null &&
-                          pinnedNumber != null)
-                        _MlPinnedTopicBar(
-                          number: pinnedNumber,
-                          title: pinnedTopic.title,
-                          accent: pinnedPart.color,
-                          onReference:
-                              () => _openReference(pinnedPart, pinnedTopic.id),
-                        ),
                       Expanded(
                         child: SingleChildScrollView(
                           controller: _scrollController,
@@ -365,79 +350,6 @@ class _MlPartResult {
   const _MlPartResult(this.part, this.topics);
   final MlPart part;
   final List<MlTopic> topics;
-}
-
-class _MlPinnedTopicBar extends StatelessWidget {
-  const _MlPinnedTopicBar({
-    required this.number,
-    required this.title,
-    required this.accent,
-    required this.onReference,
-  });
-
-  final String number;
-  final String title;
-  final Color accent;
-  final VoidCallback onReference;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      height: 54,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainer,
-        border: Border(
-          bottom: BorderSide(color: accent.withValues(alpha: .55), width: 2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: .12),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: .13),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              number,
-              style: TextStyle(
-                color: accent,
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '$number · $title',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-            ),
-          ),
-          IconButton(
-            tooltip: 'Return to $number $title',
-            onPressed: onReference,
-            icon: Icon(
-              Icons.vertical_align_top_rounded,
-              color: accent,
-              size: 20,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _MlTopBar extends StatelessWidget {
@@ -625,7 +537,7 @@ class _MlNavigation extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: _MlNavTile(
-              label: 'ML interview guide',
+              label: 'Deep Learning / Neural Networks',
               icon: Icons.psychology_outlined,
               selected: true,
               trailing: _MlProgressRing(
@@ -1280,159 +1192,185 @@ class _MlTopicCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
+    final borderColor =
+        complete
+            ? accent.withValues(alpha: .55)
+            : scheme.outline.withValues(alpha: .65);
+    final header = Container(
       decoration: BoxDecoration(
         color: scheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(
-          color:
-              complete
-                  ? accent.withValues(alpha: .55)
-                  : scheme.outline.withValues(alpha: .65),
+        borderRadius:
+            expanded
+                ? const BorderRadius.vertical(top: Radius.circular(9))
+                : BorderRadius.circular(9),
+        border: Border.all(color: borderColor),
+        boxShadow:
+            expanded
+                ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: .13),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+                : null,
+      ),
+      child: Semantics(
+        button: true,
+        expanded: expanded,
+        label: '$chapterNumber ${topic.title} lesson',
+        child: InkWell(
+          onTap: onOpen,
+          borderRadius:
+              expanded
+                  ? const BorderRadius.vertical(top: Radius.circular(9))
+                  : BorderRadius.circular(9),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Checkbox(
+                  value: complete,
+                  onChanged: (value) => onCompleted(value ?? false),
+                  activeColor: accent,
+                  checkColor: Colors.black87,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$chapterNumber  ${topic.title}',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            decoration:
+                                complete ? TextDecoration.lineThrough : null,
+                            decorationColor: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                        if (!expanded) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            topic.summary,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: scheme.onSurfaceVariant,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Reference link for ${topic.title}',
+                  onPressed: onReference,
+                  icon: Icon(Icons.link_rounded, color: accent, size: 19),
+                ),
+                AnimatedRotation(
+                  turns: expanded ? .5 : 0,
+                  duration: const Duration(milliseconds: 220),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10, right: 6),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Semantics(
-            button: true,
-            expanded: expanded,
-            label: '$chapterNumber ${topic.title} lesson',
-            child: InkWell(
-              onTap: onOpen,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: complete,
-                      onChanged: (value) => onCompleted(value ?? false),
-                      activeColor: accent,
-                      checkColor: Colors.black87,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(3),
-                      ),
+    );
+
+    return StickyHeader(
+      header: header,
+      content: AnimatedSize(
+        duration: const Duration(milliseconds: 260),
+        alignment: Alignment.topCenter,
+        child:
+            expanded
+                ? Container(
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainer,
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(9),
                     ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 10),
+                    border: Border(
+                      left: BorderSide(color: borderColor),
+                      right: BorderSide(color: borderColor),
+                      bottom: BorderSide(color: borderColor),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Divider(
+                        height: 1,
+                        color: scheme.outline.withValues(alpha: .55),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 6, 24, 30),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(
-                              '$chapterNumber  ${topic.title}',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                decoration:
-                                    complete
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                decorationColor: scheme.onSurfaceVariant,
+                            _MlLessonOverview(topic: topic, accent: accent),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: 30,
+                                bottom: 2,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Divider(
+                                      color: scheme.outline.withValues(
+                                        alpha: .55,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'FULL LESSON',
+                                    style: TextStyle(
+                                      color: accent,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.1,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Divider(
+                                      color: scheme.outline.withValues(
+                                        alpha: .55,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            if (!expanded) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                topic.summary,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: scheme.onSurfaceVariant,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
+                            MlLessonView(topicId: topic.id, accent: accent),
                           ],
                         ),
                       ),
-                    ),
-                    IconButton(
-                      tooltip: 'Reference link for ${topic.title}',
-                      onPressed: onReference,
-                      icon: Icon(Icons.link_rounded, color: accent, size: 19),
-                    ),
-                    AnimatedRotation(
-                      turns: expanded ? .5 : 0,
-                      duration: const Duration(milliseconds: 220),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 10, right: 6),
-                        child: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 260),
-            alignment: Alignment.topCenter,
-            child:
-                expanded
-                    ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Divider(
-                          height: 1,
-                          color: scheme.outline.withValues(alpha: .55),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 6, 24, 30),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _MlLessonOverview(topic: topic, accent: accent),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  top: 30,
-                                  bottom: 2,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Divider(
-                                        color: scheme.outline.withValues(
-                                          alpha: .55,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'FULL LESSON',
-                                      style: TextStyle(
-                                        color: accent,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 1.1,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Divider(
-                                        color: scheme.outline.withValues(
-                                          alpha: .55,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              MlLessonView(topicId: topic.id, accent: accent),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                    : const SizedBox.shrink(),
-          ),
-        ],
+                    ],
+                  ),
+                )
+                : const SizedBox.shrink(),
       ),
     );
   }

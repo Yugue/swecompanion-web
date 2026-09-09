@@ -173,7 +173,8 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.tap(find.byType(Checkbox).first);
+    final firstTopicCheckbox = find.byType(Checkbox).first;
+    tester.widget<Checkbox>(firstTopicCheckbox).onChanged!(true);
     await tester.pumpAndSettle();
     final preferences = await SharedPreferences.getInstance();
     expect(
@@ -181,9 +182,16 @@ void main() {
       contains('ml-fundamentals'),
     );
 
-    await tester.tap(find.text('1.1  ML fundamentals'));
+    final firstTopicHeader = find.text('1.1  ML fundamentals');
+    final firstTopicInkWell =
+        find
+            .ancestor(of: firstTopicHeader, matching: find.byType(InkWell))
+            .first;
+    tester.widget<InkWell>(firstTopicInkWell).onTap!();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
-    expect(find.text('1.1 · ML fundamentals'), findsOneWidget);
+    expect(find.text('1.1  ML fundamentals'), findsOneWidget);
     expect(
       find.textContaining('For your Google L4–L5 ML domain interview'),
       findsOneWidget,
