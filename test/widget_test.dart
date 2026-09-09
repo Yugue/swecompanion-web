@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swe_companion/main.dart';
+import 'package:swe_companion/ml_lesson_view.dart';
 import 'package:swe_companion/ml_page.dart';
 import 'package:swe_companion/ml_study_data.dart';
 import 'package:swe_companion/study_data.dart';
@@ -137,6 +138,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('GOOGLE ML DOMAIN INTERVIEW STUDY GUIDE'), findsOneWidget);
+    expect(find.text('Deep Learning / Neural Networks'), findsNWidgets(2));
+    expect(find.text('Agentic AI Development'), findsOneWidget);
+    expect(
+      find.text('Generative AI → Large Language Models (LLM)'),
+      findsOneWidget,
+    );
     expect(find.text('Chapter 1 — Foundations'), findsOneWidget);
     expect(find.text('1.1  ML fundamentals'), findsOneWidget);
     expect(find.text('Chapter 1 knowledge check'), findsOneWidget);
@@ -167,6 +175,29 @@ void main() {
       find.textContaining('For your Google L4–L5 ML domain interview'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('ML lessons render tables and diagrams as structured content', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 12000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: MlLessonView(
+              topicId: 'architecture-choice',
+              accent: Colors.blue,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('DIAGRAM / FLOW'), findsWidgets);
+    expect(find.text('Natural starting point'), findsOneWidget);
   });
 
   test('ML curriculum has full lessons and five complete quizzes', () {

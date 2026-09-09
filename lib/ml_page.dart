@@ -14,6 +14,19 @@ const _red = Color(0xFFEA4335);
 const _yellow = Color(0xFFFBBC04);
 const _green = Color(0xFF34A853);
 
+const _googleMlInterviewDomains = [
+  'Agentic AI Development',
+  'Applied Machine Learning → Basics of ML',
+  'Recommendations / Ranking / Predictions (RRP)',
+  'Computer Vision (CV) / Image Processing',
+  'Natural Language Processing / Understanding (NLP / NLU)',
+  'Speech / Audio',
+  'Deep Learning / Neural Networks',
+  'Reinforcement Learning',
+  'Distributed Machine Learning',
+  'Generative AI → Large Language Models (LLM)',
+];
+
 class MlReviewPage extends StatefulWidget {
   const MlReviewPage({
     super.key,
@@ -684,7 +697,7 @@ class _MlHero extends StatelessWidget {
               border: Border.all(color: _blue.withValues(alpha: .35)),
             ),
             child: const Text(
-              'GOOGLE ML DOMAIN REVIEW',
+              'GOOGLE ML DOMAIN INTERVIEW STUDY GUIDE',
               style: TextStyle(
                 color: Color(0xFF8AB4F8),
                 fontWeight: FontWeight.w700,
@@ -695,7 +708,7 @@ class _MlHero extends StatelessWidget {
           ),
           const SizedBox(height: 17),
           Text(
-            'Reason from fundamentals. Answer with interview-level precision.',
+            'Deep Learning / Neural Networks',
             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
               fontWeight: FontWeight.w700,
               height: 1.06,
@@ -704,12 +717,14 @@ class _MlHero extends StatelessWidget {
           ),
           const SizedBox(height: 11),
           Text(
-            'A structured L4–L5 review of neural networks, Transformers, modern deep learning, and practical ML system reasoning. Each topic keeps the core intuition, exact mechanics, a compact implementation cue, and the follow-up an interviewer is likely to probe.',
+            'This section is an exhaustive, structured review of the Deep Learning / Neural Networks domain. It covers fundamentals, architectures, Transformers, representation learning, and practical ML reasoning with the explanations, diagrams, formulas, tables, and quizzes needed for an interview-ready review.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: scheme.onSurfaceVariant,
               height: 1.5,
             ),
           ),
+          const SizedBox(height: 20),
+          const _MlDomainOverview(),
           const SizedBox(height: 20),
           const Wrap(
             spacing: 10,
@@ -724,6 +739,112 @@ class _MlHero extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MlDomainOverview extends StatelessWidget {
+  const _MlDomainOverview();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: .45),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: scheme.outline.withValues(alpha: .55)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.tune_rounded, size: 18, color: scheme.primary),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  'Candidate-selectable Google ML domains',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 7),
+          Text(
+            'Candidates can prepare for one of the following domain areas. The highlighted domain is the guide currently presented on this page.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final domain in _googleMlInterviewDomains)
+                _MlDomainChip(
+                  label: domain,
+                  selected: domain == 'Deep Learning / Neural Networks',
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MlDomainChip extends StatelessWidget {
+  const _MlDomainChip({required this.label, required this.selected});
+
+  final String label;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 520),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+        decoration: BoxDecoration(
+          color:
+              selected
+                  ? scheme.primary.withValues(alpha: .15)
+                  : scheme.surface.withValues(alpha: .5),
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(
+            color:
+                selected
+                    ? scheme.primary.withValues(alpha: .65)
+                    : scheme.outline.withValues(alpha: .45),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) ...[
+              Icon(Icons.check_circle_rounded, size: 15, color: scheme.primary),
+              const SizedBox(width: 7),
+            ],
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                  fontSize: 12.5,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -74,6 +74,8 @@ enum _LessonBlockType {
   bullet,
   quote,
   code,
+  diagram,
+  table,
   math,
   divider,
 }
@@ -117,6 +119,7 @@ List<_LessonBlock> _parseLesson(String source) {
       continue;
     }
     if (trimmed.startsWith('```')) {
+      final language = trimmed.substring(3).trim().toLowerCase();
       index++;
       final content = <String>[];
       while (index < lines.length && !lines[index].trim().startsWith('```')) {
@@ -124,8 +127,14 @@ List<_LessonBlock> _parseLesson(String source) {
         index++;
       }
       if (index < lines.length) index++;
+      final fencedText = content.join('\n').trimRight();
       blocks.add(
-        _LessonBlock(_LessonBlockType.code, content.join('\n').trimRight()),
+        _LessonBlock(
+          language == 'text' && _looksLikeDiagram(fencedText)
+              ? _LessonBlockType.diagram
+              : _LessonBlockType.code,
+          fencedText,
+        ),
       );
       continue;
     }
@@ -142,13 +151,13 @@ List<_LessonBlock> _parseLesson(String source) {
       );
       continue;
     }
-    if (_isTableLine(trimmed)) {
+    if (_startsTable(lines, index)) {
       final content = <String>[];
       while (index < lines.length && _isTableLine(lines[index].trim())) {
         content.add(lines[index].trim());
         index++;
       }
-      blocks.add(_LessonBlock(_LessonBlockType.code, content.join('\n')));
+      blocks.add(_LessonBlock(_LessonBlockType.table, content.join('\n')));
       continue;
     }
     if (trimmed.startsWith('### ')) {
@@ -211,6 +220,26 @@ void _removeSourceTitle(List<String> lines) {
 
 bool _isTableLine(String line) =>
     line.startsWith('|') && line.endsWith('|') && line.length > 2;
+
+bool _startsTable(List<String> lines, int index) {
+  if (index + 1 >= lines.length || !_isTableLine(lines[index].trim())) {
+    return false;
+  }
+  final separatorCells = _tableCells(lines[index + 1]);
+  return separatorCells.isNotEmpty &&
+      separatorCells.every(
+        (cell) => RegExp(r'^:?-{3,}:?$').hasMatch(cell.trim()),
+      );
+}
+
+List<String> _tableCells(String line) {
+  final trimmed = line.trim();
+  if (!_isTableLine(trimmed)) return const [];
+  return trimmed.substring(1, trimmed.length - 1).split('|');
+}
+
+bool _looksLikeDiagram(String text) =>
+    RegExp(r'[↓↑→←│─┌┐└┘├┤┬┴▼▲]').hasMatch(text);
 
 class _LessonBlockView extends StatelessWidget {
   const _LessonBlockView({required this.block, required this.accent});
@@ -302,27 +331,19 @@ class _LessonBlockView extends StatelessWidget {
           ),
         );
       case _LessonBlockType.code:
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest.withValues(alpha: .65),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: scheme.outline.withValues(alpha: .55)),
-          ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.all(15),
-            child: SelectableText(
-              block.text,
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 13.5,
-                height: 1.5,
-                color: scheme.onSurface,
-              ),
-            ),
-          ),
+        return _LessonCodePanel(
+          text: block.text,
+          accent: accent,
+          isDiagram: false,
         );
+      case _LessonBlockType.diagram:
+        return _LessonCodePanel(
+          text: block.text,
+          accent: accent,
+          isDiagram: true,
+        );
+      case _LessonBlockType.table:
+        return _LessonTable(markdown: block.text, accent: accent);
       case _LessonBlockType.math:
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -352,6 +373,177 @@ class _LessonBlockView extends StatelessWidget {
       case _LessonBlockType.divider:
         return Divider(height: 32, color: scheme.outline.withValues(alpha: .5));
     }
+  }
+}
+
+class _LessonCodePanel extends StatelessWidget {
+  const _LessonCodePanel({
+    required this.text,
+    required this.accent,
+    required this.isDiagram,
+  });
+
+  final String text;
+  final Color accent;
+  final bool isDiagram;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final panelColor =
+        isDiagram
+            ? accent.withValues(alpha: .065)
+            : scheme.surfaceContainerHighest.withValues(alpha: .65);
+    return Semantics(
+      label: isDiagram ? 'Lesson diagram' : 'Code example',
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: panelColor,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color:
+                isDiagram
+                    ? accent.withValues(alpha: .42)
+                    : scheme.outline.withValues(alpha: .55),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+              child: Row(
+                children: [
+                  Icon(
+                    isDiagram
+                        ? Icons.account_tree_outlined
+                        : Icons.code_rounded,
+                    size: 15,
+                    color: isDiagram ? accent : scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    isDiagram ? 'DIAGRAM / FLOW' : 'CODE / EXAMPLE',
+                    style: TextStyle(
+                      color: isDiagram ? accent : scheme.onSurfaceVariant,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: .9,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(15, 11, 15, 15),
+              child: SelectableText(
+                text,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 13.5,
+                  height: 1.5,
+                  color: scheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LessonTable extends StatelessWidget {
+  const _LessonTable({required this.markdown, required this.accent});
+
+  final String markdown;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final rawRows = markdown.split('\n').map(_tableCells).toList();
+    if (rawRows.length < 2) return const SizedBox.shrink();
+    final rows = <List<String>>[rawRows.first, ...rawRows.skip(2)];
+    final columnCount = rows.fold<int>(
+      0,
+      (maximum, row) => row.length > maximum ? row.length : maximum,
+    );
+
+    return Semantics(
+      label: 'Lesson table',
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: scheme.outline.withValues(alpha: .55)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Table(
+            defaultColumnWidth: const IntrinsicColumnWidth(),
+            border: TableBorder(
+              horizontalInside: BorderSide(
+                color: scheme.outline.withValues(alpha: .4),
+              ),
+              verticalInside: BorderSide(
+                color: scheme.outline.withValues(alpha: .35),
+              ),
+            ),
+            children: [
+              for (var rowIndex = 0; rowIndex < rows.length; rowIndex++)
+                TableRow(
+                  decoration: BoxDecoration(
+                    color:
+                        rowIndex == 0
+                            ? accent.withValues(alpha: .11)
+                            : rowIndex.isEven
+                            ? scheme.surfaceContainerHighest.withValues(
+                              alpha: .28,
+                            )
+                            : scheme.surfaceContainer.withValues(alpha: .38),
+                  ),
+                  children: [
+                    for (var column = 0; column < columnCount; column++)
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minWidth: 116,
+                          maxWidth: 340,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 11,
+                          ),
+                          child: _InlineMarkdown(
+                            column < rows[rowIndex].length
+                                ? rows[rowIndex][column].trim()
+                                : '',
+                            style: TextStyle(
+                              color:
+                                  rowIndex == 0
+                                      ? scheme.onSurface
+                                      : scheme.onSurfaceVariant,
+                              fontSize: 13.5,
+                              height: 1.4,
+                              fontWeight:
+                                  rowIndex == 0
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
