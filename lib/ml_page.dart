@@ -697,7 +697,7 @@ class _MlHero extends StatelessWidget {
               border: Border.all(color: _blue.withValues(alpha: .35)),
             ),
             child: const Text(
-              'GOOGLE ML DOMAIN INTERVIEW STUDY GUIDE',
+              'GOOGLE L4–L6 ML DOMAIN INTERVIEW STUDY GUIDE',
               style: TextStyle(
                 color: Color(0xFF8AB4F8),
                 fontWeight: FontWeight.w700,
@@ -708,7 +708,7 @@ class _MlHero extends StatelessWidget {
           ),
           const SizedBox(height: 17),
           Text(
-            'Deep Learning / Neural Networks',
+            'Prepare for the Google ML Domain Interview.',
             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
               fontWeight: FontWeight.w700,
               height: 1.06,
@@ -717,7 +717,15 @@ class _MlHero extends StatelessWidget {
           ),
           const SizedBox(height: 11),
           Text(
-            'This section is an exhaustive, structured review of the Deep Learning / Neural Networks domain. It covers fundamentals, architectures, Transformers, representation learning, and practical ML reasoning with the explanations, diagrams, formulas, tables, and quizzes needed for an interview-ready review.',
+            'Designed for Google L4–L6 candidates, the ML domain interview is a focused 45–60 minute conversation in which you are typically asked to explain 3–5 foundational machine-learning concepts and reason through follow-up questions. Before the interview, each candidate pre-selects one ML domain from the areas below.',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: scheme.onSurfaceVariant,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 11),
+          Text(
+            'The current guide presents Deep Learning / Neural Networks. Its content is carefully organized to cover the fundamental concepts and subject areas that may appear in this domain interview, with detailed explanations, diagrams, formulas, tables, and quizzes. Mastering these concepts gives you an exceptionally strong foundation for success—we have tested this preparation approach ourselves.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: scheme.onSurfaceVariant,
               height: 1.5,
@@ -776,7 +784,7 @@ class _MlDomainOverview extends StatelessWidget {
           ),
           const SizedBox(height: 7),
           Text(
-            'Candidates can prepare for one of the following domain areas. The highlighted domain is the guide currently presented on this page.',
+            'Candidates pre-select one of the following areas before the interview. The highlighted domain is the guide currently presented on this page.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
               height: 1.45,

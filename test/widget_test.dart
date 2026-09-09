@@ -138,8 +138,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('GOOGLE ML DOMAIN INTERVIEW STUDY GUIDE'), findsOneWidget);
-    expect(find.text('Deep Learning / Neural Networks'), findsNWidgets(2));
+    expect(
+      find.text('GOOGLE L4–L6 ML DOMAIN INTERVIEW STUDY GUIDE'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Prepare for the Google ML Domain Interview.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('45–60 minute conversation'), findsOneWidget);
+    expect(find.textContaining('3–5 foundational'), findsOneWidget);
+    expect(find.text('Deep Learning / Neural Networks'), findsOneWidget);
     expect(find.text('Agentic AI Development'), findsOneWidget);
     expect(
       find.text('Generative AI → Large Language Models (LLM)'),
