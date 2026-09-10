@@ -1296,12 +1296,11 @@ class _MlTopicCard extends StatelessWidget {
       ),
     );
 
-    return StickyHeader(
-      header: header,
-      content: AnimatedSize(
-        duration: const Duration(milliseconds: 260),
-        alignment: Alignment.topCenter,
-        child:
+    return SizedBox(
+      width: double.infinity,
+      child: StickyHeader(
+        header: header,
+        content:
             expanded
                 ? Container(
                   decoration: BoxDecoration(

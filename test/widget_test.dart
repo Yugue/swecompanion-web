@@ -183,11 +183,7 @@ void main() {
     );
 
     final firstTopicHeader = find.text('1.1  ML fundamentals');
-    final firstTopicInkWell =
-        find
-            .ancestor(of: firstTopicHeader, matching: find.byType(InkWell))
-            .first;
-    tester.widget<InkWell>(firstTopicInkWell).onTap!();
+    await tester.tap(firstTopicHeader);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
