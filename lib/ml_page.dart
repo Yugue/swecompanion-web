@@ -763,7 +763,7 @@ class _MlHero extends StatelessWidget {
           _MlHeroStatement(
             label: 'Designed for',
             text:
-                'Google L4–L6 candidates preparing for a 45–60 minute ML domain interview covering 3–5 foundational concepts from a domain selected in advance.',
+                'Google L4–L6 candidates preparing for a 45–60 minute interview with 3–5 common knowledge questions in one ML domain selected in advance.',
           ),
           const SizedBox(height: 8),
           const _MlHeroStatement(
@@ -794,6 +794,8 @@ class _MlHero extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          const _MlInterviewPrimer(),
+          const SizedBox(height: 20),
           const _MlDomainOverview(),
           const SizedBox(height: 20),
           const Wrap(
@@ -809,6 +811,129 @@ class _MlHero extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MlInterviewPrimer extends StatelessWidget {
+  const _MlInterviewPrimer();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+      color: scheme.onSurfaceVariant,
+      height: 1.5,
+    );
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: .43),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: scheme.outline.withValues(alpha: .55)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'How the ML domain interview works',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 9),
+          Text(
+            'The interviewer is technical, but they want to see that you understand your chosen domain well enough to explain its ideas clearly to a non-technical person. Questions are often broad. Treat them like a system-design prompt: ask clarifying questions, collaborate to narrow the scope, then go deep on the concept the interviewer actually wants.',
+            style: bodyStyle,
+          ),
+          const SizedBox(height: 15),
+          Text(
+            'Example: narrow the question before teaching',
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 10),
+          const _MlDialogueLine(
+            speaker: 'Interviewer',
+            text: 'What is a loss function?',
+            interviewer: true,
+          ),
+          const _MlDialogueLine(
+            speaker: 'Candidate',
+            text:
+                'A loss function measures how far a model’s predictions are from the desired outcome and gives training a number to minimize. Is there a particular task you want to focus on, such as regression or classification?',
+          ),
+          const _MlDialogueLine(
+            speaker: 'Interviewer',
+            text: 'Let’s focus on binary classification.',
+            interviewer: true,
+          ),
+          const _MlDialogueLine(
+            speaker: 'Candidate',
+            text:
+                'Binary cross-entropy is a common training loss. Separately, we can judge performance with metrics such as recall or precision. Are missed positives or false alarms more important for this problem?',
+          ),
+          const _MlDialogueLine(
+            speaker: 'Interviewer',
+            text: 'Let’s focus on recall.',
+            interviewer: true,
+          ),
+          const _MlDialogueLine(
+            speaker: 'Candidate',
+            text:
+                'Recall asks: of all the real positive cases, how many did we catch? Missing a cancer case can be especially costly, so recall may matter more there; in spam filtering, wrongly hiding a legitimate email can make precision important. I can walk through an example from a project where we chose the metric and threshold around those trade-offs.',
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Once the target is clear, explain that idea in depth—what it measures, when it matters, the trade-offs, and a concrete example. Avoid spending time on unrelated concepts. If coding comes up, expect simple implementation or pseudocode rather than building a Transformer from scratch.',
+            style: bodyStyle,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MlDialogueLine extends StatelessWidget {
+  const _MlDialogueLine({
+    required this.speaker,
+    required this.text,
+    this.interviewer = false,
+  });
+
+  final String speaker;
+  final String text;
+  final bool interviewer;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final color = interviewer ? _blue : _green;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .07),
+        borderRadius: BorderRadius.circular(5),
+        border: Border(left: BorderSide(color: color, width: 2)),
+      ),
+      child: Text.rich(
+        TextSpan(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: scheme.onSurfaceVariant,
+            height: 1.45,
+          ),
+          children: [
+            TextSpan(
+              text: '$speaker: ',
+              style: TextStyle(color: color, fontWeight: FontWeight.w700),
+            ),
+            TextSpan(text: text),
+          ],
+        ),
       ),
     );
   }

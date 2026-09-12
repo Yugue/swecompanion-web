@@ -150,7 +150,17 @@ void main() {
     expect(find.textContaining('Designed for:'), findsOneWidget);
     expect(find.textContaining('Covers:'), findsOneWidget);
     expect(find.textContaining('successfully passed'), findsOneWidget);
-    expect(find.textContaining('3–5 foundational'), findsOneWidget);
+    expect(find.textContaining('3–5 common knowledge'), findsOneWidget);
+    expect(find.text('How the ML domain interview works'), findsOneWidget);
+    expect(find.textContaining('non-technical person'), findsOneWidget);
+    expect(find.textContaining('ask clarifying questions'), findsOneWidget);
+    expect(find.textContaining('What is a loss function?'), findsOneWidget);
+    expect(find.textContaining('Binary cross-entropy'), findsOneWidget);
+    expect(find.textContaining('Let’s focus on recall.'), findsOneWidget);
+    expect(
+      find.textContaining('simple implementation or pseudocode'),
+      findsOneWidget,
+    );
     expect(find.text('Deep Learning / Neural Networks'), findsOneWidget);
     expect(find.text('Agentic AI Development'), findsOneWidget);
     expect(
