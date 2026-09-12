@@ -116,6 +116,35 @@ class _MlReviewPageState extends State<MlReviewPage> {
     await preferences.setStringList(_completedKey, _completed.toList()..sort());
   }
 
+  Future<void> _confirmResetProgress() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Reset ML progress?'),
+            content: const Text(
+              'All completed lessons in this ML guide will be marked incomplete. '
+              'This progress will be erased from this device and cannot be recovered.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('No, keep progress'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Yes, reset progress'),
+              ),
+            ],
+          ),
+    );
+    if (confirmed != true || !mounted) return;
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove(_completedKey);
+    if (!mounted) return;
+    setState(() => _completed = {});
+  }
+
   Future<void> _scrollToReference(String reference) async {
     await WidgetsBinding.instance.endOfFrame;
     await Future<void>.delayed(const Duration(milliseconds: 360));
@@ -239,6 +268,7 @@ class _MlReviewPageState extends State<MlReviewPage> {
       completed: _completed,
       expandedPartId: _expandedPartId,
       onPartSelected: (part) => _openReference(part, part.id),
+      onResetProgress: _confirmResetProgress,
     );
 
     return Scaffold(
@@ -500,11 +530,13 @@ class _MlNavigation extends StatelessWidget {
     required this.completed,
     required this.expandedPartId,
     required this.onPartSelected,
+    required this.onResetProgress,
   });
 
   final Set<String> completed;
   final String? expandedPartId;
   final ValueChanged<MlPart> onPartSelected;
+  final VoidCallback onResetProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -587,18 +619,29 @@ class _MlNavigation extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(Icons.save_outlined, size: 17, color: scheme.primary),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Text(
-                    'Review progress saved on this device',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
+                Row(
+                  children: [
+                    Icon(Icons.save_outlined, size: 17, color: scheme.primary),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Text(
+                        'Progress saved on this device',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: onResetProgress,
+                  icon: const Icon(Icons.restart_alt_rounded, size: 18),
+                  label: const Text('Reset progress'),
                 ),
               ],
             ),

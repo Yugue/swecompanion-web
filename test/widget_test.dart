@@ -217,6 +217,48 @@ void main() {
     expect(find.text('Natural starting point'), findsOneWidget);
   });
 
+  testWidgets(
+    'ML progress reset requires confirmation and keeps LeetCode data',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1600, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      SharedPreferences.setMockInitialValues({
+        'ml_completed_topics_v1': ['ml-fundamentals'],
+        'completed_problem_ids_v1': ['two-sum'],
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MlReviewPage(darkMode: true, onThemeChanged: () async {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      if (find.byTooltip('Open curriculum').evaluate().isNotEmpty) {
+        await tester.tap(find.byTooltip('Open curriculum'));
+        await tester.pumpAndSettle();
+      }
+      expect(find.text('Progress saved on this device'), findsOneWidget);
+      expect(find.text('1/57'), findsOneWidget);
+      await tester.tap(find.text('Reset progress'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('cannot be recovered'), findsOneWidget);
+      await tester.tap(find.text('No, keep progress'));
+      await tester.pumpAndSettle();
+      expect(find.text('1/57'), findsOneWidget);
+
+      await tester.tap(find.text('Reset progress'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Yes, reset progress'));
+      await tester.pumpAndSettle();
+      expect(find.text('0/57'), findsOneWidget);
+      final preferences = await SharedPreferences.getInstance();
+      expect(preferences.getStringList('ml_completed_topics_v1'), isNull);
+      expect(preferences.getStringList('completed_problem_ids_v1'), [
+        'two-sum',
+      ]);
+    },
+  );
+
   test('ML curriculum has full lessons and five complete quizzes', () {
     final topics = [for (final part in mlParts) ...part.topics];
     final quizzes = [for (final part in mlParts) ...part.quiz];
