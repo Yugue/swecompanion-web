@@ -153,10 +153,14 @@ void main() {
     expect(find.textContaining('3–5 common knowledge'), findsOneWidget);
     expect(find.text('How the ML domain interview works'), findsOneWidget);
     expect(find.textContaining('non-technical person'), findsOneWidget);
-    expect(find.textContaining('ask clarifying questions'), findsOneWidget);
+    expect(find.textContaining('Ask clarifying questions'), findsOneWidget);
+    expect(find.textContaining('Collaborate:'), findsOneWidget);
+    expect(find.textContaining('Identify the key concept:'), findsOneWidget);
+    expect(find.textContaining('Explain it clearly:'), findsOneWidget);
     expect(find.textContaining('What is a loss function?'), findsOneWidget);
     expect(find.textContaining('Binary cross-entropy'), findsOneWidget);
     expect(find.textContaining('Let’s focus on recall.'), findsOneWidget);
+    expect(find.textContaining('KEY CONCEPT FOUND: RECALL'), findsOneWidget);
     expect(
       find.textContaining('simple implementation or pseudocode'),
       findsOneWidget,

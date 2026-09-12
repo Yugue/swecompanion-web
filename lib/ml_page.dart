@@ -844,8 +844,25 @@ class _MlInterviewPrimer extends StatelessWidget {
           ),
           const SizedBox(height: 9),
           Text(
-            'The interviewer is technical, but they want to see that you understand your chosen domain well enough to explain its ideas clearly to a non-technical person. Questions are often broad. Treat them like a system-design prompt: ask clarifying questions, collaborate to narrow the scope, then go deep on the concept the interviewer actually wants.',
+            'The interviewer is technical, but this is not a test of how many definitions you can recite. Questions are often vague, like system-design prompts. Ask clarifying questions and work back and forth with the interviewer to find the concept they actually want you to explain.',
             style: bodyStyle,
+          ),
+          const SizedBox(height: 12),
+          const _MlEvaluationPoint(
+            icon: Icons.forum_outlined,
+            title: 'Collaborate',
+            description: 'Narrow a broad prompt together instead of guessing.',
+          ),
+          const _MlEvaluationPoint(
+            icon: Icons.center_focus_strong_outlined,
+            title: 'Identify the key concept',
+            description: 'Notice what the interviewer chooses to focus on.',
+          ),
+          const _MlEvaluationPoint(
+            icon: Icons.record_voice_over_outlined,
+            title: 'Explain it clearly',
+            description:
+                'Know the idea well enough that a non-technical person could follow your explanation.',
           ),
           const SizedBox(height: 15),
           Text(
@@ -880,6 +897,20 @@ class _MlInterviewPrimer extends StatelessWidget {
             text: 'Let’s focus on recall.',
             interviewer: true,
           ),
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: _green.withValues(alpha: .13),
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(color: _green.withValues(alpha: .42)),
+            ),
+            child: const Text(
+              'KEY CONCEPT FOUND: RECALL. Stop surveying other losses, metrics, or model architectures. Spend the rest of the answer explaining recall well.',
+              style: TextStyle(fontWeight: FontWeight.w700, height: 1.4),
+            ),
+          ),
           const _MlDialogueLine(
             speaker: 'Candidate',
             text:
@@ -887,8 +918,55 @@ class _MlInterviewPrimer extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Once the target is clear, explain that idea in depth—what it measures, when it matters, the trade-offs, and a concrete example. Avoid spending time on unrelated concepts. If coding comes up, expect simple implementation or pseudocode rather than building a Transformer from scratch.',
+            'The key concept in this example is recall. Explain what it measures, why missed positives matter, the trade-offs, and a concrete project example. Spending time on unrelated concepts does not help. If coding comes up, expect simple implementation or pseudocode rather than building a Transformer from scratch.',
             style: bodyStyle,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MlEvaluationPoint extends StatelessWidget {
+  const _MlEvaluationPoint({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 7),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 17, color: scheme.primary),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.45,
+                ),
+                children: [
+                  TextSpan(
+                    text: '$title: ',
+                    style: TextStyle(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextSpan(text: description),
+                ],
+              ),
+            ),
           ),
         ],
       ),
