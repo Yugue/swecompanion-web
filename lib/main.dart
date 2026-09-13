@@ -11,7 +11,9 @@ import 'ml_page.dart';
 void main() => runApp(const SweCompanionApp());
 
 class SweCompanionApp extends StatefulWidget {
-  const SweCompanionApp({super.key});
+  const SweCompanionApp({super.key, this.initialRoute});
+
+  final String? initialRoute;
 
   @override
   State<SweCompanionApp> createState() => _SweCompanionAppState();
@@ -25,6 +27,7 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
   final ValueNotifier<Set<String>> _completed = ValueNotifier(
     initialCompletedProblems,
   );
+  SharedPreferences? _preferences;
   bool _darkMode = true;
   bool _ready = false;
 
@@ -66,6 +69,7 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
     }
 
     if (!mounted) return;
+    _preferences = preferences;
     _completed.value = completed;
     setState(() {
       _darkMode = preferences.getBool(_themeKey) ?? true;
@@ -96,56 +100,66 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
     await preferences.setBool(_themeKey, _darkMode);
   }
 
+  Route<void> _routeFor(RouteSettings settings) {
+    final route = settings.name ?? '/';
+    if (route.startsWith('/ml')) {
+      final segments =
+          route.split('/').where((part) => part.isNotEmpty).toList();
+      return PageRouteBuilder<void>(
+        settings: settings,
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+        pageBuilder:
+            (_, _, _) => SelectionArea(
+              child:
+                  _ready
+                      ? MlReviewPage(
+                        darkMode: _darkMode,
+                        onThemeChanged: _toggleTheme,
+                        preferences: _preferences,
+                        initialReference:
+                            segments.length > 1 ? segments[1] : null,
+                      )
+                      : const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      ),
+            ),
+      );
+    }
+    return PageRouteBuilder<void>(
+      settings: settings,
+      transitionDuration: Duration.zero,
+      reverseTransitionDuration: Duration.zero,
+      pageBuilder:
+          (_, _, _) => SelectionArea(
+            child:
+                _ready
+                    ? StudyGuideScreen(
+                      completed: _completed,
+                      darkMode: _darkMode,
+                      onProblemChanged: _toggleProblem,
+                      onResetProgress: _resetLeetCodeProgress,
+                      onThemeChanged: _toggleTheme,
+                    )
+                    : const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    ),
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SWE Companion',
+      initialRoute: widget.initialRoute,
       debugShowCheckedModeBanner: false,
       themeMode: _darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),
-      onGenerateRoute: (settings) {
-        final route = settings.name ?? '/';
-        if (route.startsWith('/ml')) {
-          final segments =
-              route.split('/').where((part) => part.isNotEmpty).toList();
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder:
-                (_) => SelectionArea(
-                  child:
-                      _ready
-                          ? MlReviewPage(
-                            darkMode: _darkMode,
-                            onThemeChanged: _toggleTheme,
-                            initialReference:
-                                segments.length > 1 ? segments[1] : null,
-                          )
-                          : const Scaffold(
-                            body: Center(child: CircularProgressIndicator()),
-                          ),
-                ),
-          );
-        }
-        return MaterialPageRoute<void>(
-          settings: settings,
-          builder:
-              (_) => SelectionArea(
-                child:
-                    _ready
-                        ? StudyGuideScreen(
-                          completed: _completed,
-                          darkMode: _darkMode,
-                          onProblemChanged: _toggleProblem,
-                          onResetProgress: _resetLeetCodeProgress,
-                          onThemeChanged: _toggleTheme,
-                        )
-                        : const Scaffold(
-                          body: Center(child: CircularProgressIndicator()),
-                        ),
-              ),
-        );
-      },
+      onGenerateRoute: _routeFor,
+      onGenerateInitialRoutes:
+          (routeName) => [_routeFor(RouteSettings(name: routeName))],
     );
   }
 }
@@ -259,6 +273,10 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
   final _topicKeys = <String, GlobalKey>{
     for (final topic in studyTopics) _topicReference(topic): GlobalKey(),
   };
+  final _expandedTopics = <String, ValueNotifier<bool>>{
+    for (final topic in studyTopics)
+      _topicReference(topic): ValueNotifier(topic == studyTopics.first),
+  };
   String? _selectedScope;
   String _query = '';
   ProblemFilter _filter = ProblemFilter.all;
@@ -274,7 +292,19 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
   void dispose() {
     _searchController.dispose();
     _contentScrollController.dispose();
+    for (final notifier in _expandedTopics.values) {
+      notifier.dispose();
+    }
     super.dispose();
+  }
+
+  void _setExpandedTopic(String? reference) {
+    if (_expandedTopicReference == reference) return;
+    if (_expandedTopicReference case final previous?) {
+      _expandedTopics[previous]?.value = false;
+    }
+    _expandedTopicReference = reference;
+    if (reference != null) _expandedTopics[reference]?.value = true;
   }
 
   Future<void> _restoreExpandedTopic() async {
@@ -297,7 +327,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
       reference ?? _noExpandedTopic,
     );
     if (!mounted) return;
-    setState(() => _expandedTopicReference = reference);
+    _setExpandedTopic(reference);
     if (linkedTopic != null && reference != null) {
       unawaited(_scrollToTopic(reference));
     }
@@ -305,7 +335,6 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
 
   Future<void> _scrollToTopic(String reference) async {
     await WidgetsBinding.instance.endOfFrame;
-    await Future<void>.delayed(const Duration(milliseconds: 320));
     if (!mounted) return;
     final topicContext = _topicKeys[reference]?.currentContext;
     if (topicContext == null || !topicContext.mounted) return;
@@ -319,7 +348,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
         .clamp(0.0, _contentScrollController.position.maxScrollExtent);
     await _contentScrollController.animateTo(
       target,
-      duration: const Duration(milliseconds: 420),
+      duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
     );
   }
@@ -357,11 +386,11 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
     if (mounted && _filter != ProblemFilter.all) setState(() {});
   }
 
-  void _openTopic(StudyTopic topic, {bool scroll = false}) {
+  void _openTopic(StudyTopic topic) {
     final reference = _topicReference(topic);
     final nextReference =
         _expandedTopicReference == reference ? null : reference;
-    setState(() => _expandedTopicReference = nextReference);
+    _setExpandedTopic(nextReference);
     replaceTopicReference(nextReference);
     unawaited(
       SharedPreferences.getInstance().then(
@@ -371,9 +400,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
         ),
       ),
     );
-    if (scroll && nextReference != null) {
-      unawaited(_scrollToTopic(reference));
-    }
+    unawaited(_scrollToTopic(reference));
   }
 
   List<_TopicResult> get _visibleTopics {
@@ -418,7 +445,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
       final title = scope!.substring('topic::'.length);
       for (final topic in studyTopics) {
         if (topic.title == title) {
-          _openTopic(topic, scroll: true);
+          _openTopic(topic);
           break;
         }
       }
@@ -432,14 +459,18 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
     final children = <Widget>[];
     for (final result in results) {
       children.add(
-        _TopicCard(
-          headerKey: _topicKeys[_topicReference(result.topic)],
-          topic: result.topic,
-          problems: result.problems,
-          completed: widget.completed,
-          expanded: _topicReference(result.topic) == _expandedTopicReference,
-          onOpen: () => _openTopic(result.topic),
-          onChanged: _onProblemChanged,
+        ValueListenableBuilder<bool>(
+          valueListenable: _expandedTopics[_topicReference(result.topic)]!,
+          builder:
+              (context, expanded, _) => _TopicCard(
+                headerKey: _topicKeys[_topicReference(result.topic)],
+                topic: result.topic,
+                problems: result.problems,
+                completed: widget.completed,
+                expanded: expanded,
+                onOpen: () => _openTopic(result.topic),
+                onChanged: _onProblemChanged,
+              ),
         ),
       );
       children.add(const SizedBox(height: 16));
@@ -1306,14 +1337,11 @@ class _TopicCard extends StatelessWidget {
                               ),
                         ),
                         const SizedBox(height: 10),
-                        AnimatedRotation(
-                          turns: expanded ? .5 : 0,
-                          duration: const Duration(milliseconds: 220),
-                          curve: Curves.easeOutCubic,
-                          child: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: scheme.onSurfaceVariant,
-                          ),
+                        Icon(
+                          expanded
+                              ? Icons.keyboard_arrow_up_rounded
+                              : Icons.keyboard_arrow_down_rounded,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ],
                     ),
@@ -1322,8 +1350,7 @@ class _TopicCard extends StatelessWidget {
               ),
             ),
           ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
+          Container(
             height: 3,
             color:
                 expanded ? topic.color : scheme.outline.withValues(alpha: .35),

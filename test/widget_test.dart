@@ -37,6 +37,8 @@ void main() {
     expect(preferences.getString('expanded_topic_reference_v1'), '__none__');
 
     await tester.tap(find.text('ML'));
+    await tester.pump();
+    expect(find.text('Chapter 1 — Foundations'), findsOneWidget);
     await tester.pumpAndSettle();
     expect(find.text('Chapter 1 — Foundations'), findsOneWidget);
     expect(find.text('LeetCode'), findsOneWidget);
@@ -58,6 +60,24 @@ void main() {
 
     expect(find.text('Subarray Sum Equals K'), findsOneWidget);
     expect(find.text('Two Sum'), findsNothing);
+  });
+
+  testWidgets('a deep-linked ML page switches directly to LeetCode', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 5000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const SweCompanionApp(initialRoute: '/ml/learning'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Chapter 2 — How neural networks learn'), findsOneWidget);
+
+    await tester.tap(find.text('LeetCode'));
+    await tester.pumpAndSettle();
+    expect(find.text('Two Sum'), findsOneWidget);
+    expect(find.text('Chapter 2 — How neural networks learn'), findsNothing);
   });
 
   testWidgets('a filtered LeetCode topic expands and collapses in one tap', (
@@ -280,6 +300,19 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
     expect(find.text('1.1  ML fundamentals'), findsOneWidget);
+    expect(
+      find.textContaining('For your Google L4–L5 ML domain interview'),
+      findsOneWidget,
+    );
+
+    await tester.tap(firstTopicHeader);
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('For your Google L4–L5 ML domain interview'),
+      findsNothing,
+    );
+    await tester.tap(firstTopicHeader);
+    await tester.pumpAndSettle();
     expect(
       find.textContaining('For your Google L4–L5 ML domain interview'),
       findsOneWidget,

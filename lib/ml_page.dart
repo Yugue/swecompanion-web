@@ -35,11 +35,13 @@ class MlReviewPage extends StatefulWidget {
     required this.darkMode,
     required this.onThemeChanged,
     this.initialReference,
+    this.preferences,
   });
 
   final bool darkMode;
   final Future<void> Function() onThemeChanged;
   final String? initialReference;
+  final SharedPreferences? preferences;
 
   @override
   State<MlReviewPage> createState() => _MlReviewPageState();
@@ -68,12 +70,25 @@ class _MlReviewPageState extends State<MlReviewPage> {
   MlTopicFilter _filter = MlTopicFilter.all;
   String? _expandedPartId = mlParts.first.id;
   String? _expandedTopicId;
+  final _expandedParts = <String, ValueNotifier<bool>>{
+    for (final part in mlParts)
+      part.id: ValueNotifier(part.id == mlParts.first.id),
+  };
+  final _expandedTopics = <String, ValueNotifier<bool>>{
+    for (final part in mlParts)
+      for (final topic in part.topics) topic.id: ValueNotifier(false),
+  };
+  final ValueNotifier<String?> _activePart = ValueNotifier(mlParts.first.id);
   bool _ready = false;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_restore());
+    if (widget.preferences case final preferences?) {
+      _restoreFrom(preferences);
+    } else {
+      unawaited(_restore());
+    }
   }
 
   @override
@@ -81,7 +96,32 @@ class _MlReviewPageState extends State<MlReviewPage> {
     _searchController.dispose();
     _scrollController.dispose();
     _completionNotifier.dispose();
+    _activePart.dispose();
+    for (final notifier in _expandedParts.values) {
+      notifier.dispose();
+    }
+    for (final notifier in _expandedTopics.values) {
+      notifier.dispose();
+    }
     super.dispose();
+  }
+
+  void _setExpanded(String? partId, String? topicId) {
+    if (_expandedPartId != partId) {
+      if (_expandedPartId case final previous?) {
+        _expandedParts[previous]?.value = false;
+      }
+      _expandedPartId = partId;
+      _activePart.value = partId;
+      if (partId != null) _expandedParts[partId]?.value = true;
+    }
+    if (_expandedTopicId != topicId) {
+      if (_expandedTopicId case final previous?) {
+        _expandedTopics[previous]?.value = false;
+      }
+      _expandedTopicId = topicId;
+      if (topicId != null) _expandedTopics[topicId]?.value = true;
+    }
   }
 
   MlPart? _partForReference(String? reference) {
@@ -95,20 +135,21 @@ class _MlReviewPageState extends State<MlReviewPage> {
 
   Future<void> _restore() async {
     final preferences = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() => _restoreFrom(preferences));
+  }
+
+  void _restoreFrom(SharedPreferences preferences) {
     final reference = widget.initialReference ?? readMlReference();
     final linkedPart = _partForReference(reference);
     final savedPart = mlPartsById[preferences.getString(_expandedKey)];
     final expanded = linkedPart?.id ?? savedPart?.id ?? mlParts.first.id;
     final linkedTopic = mlTopicsById[reference];
     final savedTopic = mlTopicsById[preferences.getString(_expandedTopicKey)];
-    if (!mounted) return;
     _completed = preferences.getStringList(_completedKey)?.toSet() ?? {};
     _completionNotifier.value = _completed;
-    setState(() {
-      _expandedPartId = expanded;
-      _expandedTopicId = linkedTopic?.id ?? savedTopic?.id;
-      _ready = true;
-    });
+    _setExpanded(expanded, linkedTopic?.id ?? savedTopic?.id);
+    _ready = true;
     if (reference != null) unawaited(_scrollToReference(reference));
   }
 
@@ -155,7 +196,6 @@ class _MlReviewPageState extends State<MlReviewPage> {
 
   Future<void> _scrollToReference(String reference) async {
     await WidgetsBinding.instance.endOfFrame;
-    await Future<void>.delayed(const Duration(milliseconds: 360));
     if (!mounted || !_scrollController.hasClients) return;
     final targetKey = _topicKeys[reference] ?? _partKeys[reference];
     final targetContext = targetKey?.currentContext;
@@ -168,17 +208,14 @@ class _MlReviewPageState extends State<MlReviewPage> {
         .clamp(0.0, _scrollController.position.maxScrollExtent);
     await _scrollController.animateTo(
       target,
-      duration: const Duration(milliseconds: 440),
+      duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
     );
   }
 
-  void _openPart(MlPart part, {bool scroll = false}) {
+  void _openPart(MlPart part) {
     final next = _expandedPartId == part.id ? null : part.id;
-    setState(() {
-      _expandedPartId = next;
-      _expandedTopicId = null;
-    });
+    _setExpanded(next, null);
     replaceMlReference(next);
     unawaited(
       SharedPreferences.getInstance().then(
@@ -190,15 +227,12 @@ class _MlReviewPageState extends State<MlReviewPage> {
         (preferences) => preferences.setString(_expandedTopicKey, ''),
       ),
     );
-    if (scroll && next != null) unawaited(_scrollToReference(part.id));
+    unawaited(_scrollToReference(part.id));
   }
 
   void _openReference(MlPart part, String reference) {
     final topic = mlTopicsById[reference];
-    setState(() {
-      _expandedPartId = part.id;
-      _expandedTopicId = topic?.id;
-    });
+    _setExpanded(part.id, topic?.id);
     replaceMlReference(reference);
     unawaited(
       SharedPreferences.getInstance().then(
@@ -219,10 +253,7 @@ class _MlReviewPageState extends State<MlReviewPage> {
 
   void _toggleTopic(MlPart part, MlTopic topic) {
     final next = _expandedTopicId == topic.id ? null : topic.id;
-    setState(() {
-      _expandedPartId = part.id;
-      _expandedTopicId = next;
-    });
+    _setExpanded(part.id, next);
     replaceMlReference(next ?? part.id);
     unawaited(
       SharedPreferences.getInstance().then((preferences) async {
@@ -230,7 +261,7 @@ class _MlReviewPageState extends State<MlReviewPage> {
         await preferences.setString(_expandedTopicKey, next ?? '');
       }),
     );
-    if (next != null) unawaited(_scrollToReference(topic.id));
+    unawaited(_scrollToReference(topic.id));
   }
 
   List<_MlPartResult> get _visibleParts {
@@ -272,14 +303,18 @@ class _MlReviewPageState extends State<MlReviewPage> {
     final compact = width < 1320;
     final results = _visibleParts;
 
-    final navigation = ValueListenableBuilder<Set<String>>(
-      valueListenable: _completionNotifier,
+    final navigation = ValueListenableBuilder<String?>(
+      valueListenable: _activePart,
       builder:
-          (context, completed, _) => _MlNavigation(
-            completed: completed,
-            expandedPartId: _expandedPartId,
-            onPartSelected: (part) => _openReference(part, part.id),
-            onResetProgress: _confirmResetProgress,
+          (context, partId, _) => ValueListenableBuilder<Set<String>>(
+            valueListenable: _completionNotifier,
+            builder:
+                (context, completed, _) => _MlNavigation(
+                  completed: completed,
+                  expandedPartId: partId,
+                  onPartSelected: (part) => _openReference(part, part.id),
+                  onResetProgress: _confirmResetProgress,
+                ),
           ),
     );
 
@@ -343,32 +378,39 @@ class _MlReviewPageState extends State<MlReviewPage> {
                                 )
                               else
                                 for (final result in results) ...[
-                                  _MlPartCard(
-                                    headerKey: _partKeys[result.part.id],
-                                    topicKeys: _topicKeys,
-                                    part: result.part,
-                                    topics: result.topics,
-                                    completed: _completionNotifier,
-                                    expanded: _expandedPartId == result.part.id,
-                                    expandedTopicId: _expandedTopicId,
-                                    revealedAnswers: _revealedAnswers,
-                                    onOpen: () => _openPart(result.part),
-                                    onReference:
-                                        (reference) => _openReference(
-                                          result.part,
-                                          reference,
+                                  ValueListenableBuilder<bool>(
+                                    valueListenable:
+                                        _expandedParts[result.part.id]!,
+                                    builder:
+                                        (context, expanded, _) => _MlPartCard(
+                                          headerKey: _partKeys[result.part.id],
+                                          topicKeys: _topicKeys,
+                                          topicExpansion: _expandedTopics,
+                                          part: result.part,
+                                          topics: result.topics,
+                                          completed: _completionNotifier,
+                                          expanded: expanded,
+                                          revealedAnswers: _revealedAnswers,
+                                          onOpen: () => _openPart(result.part),
+                                          onReference:
+                                              (reference) => _openReference(
+                                                result.part,
+                                                reference,
+                                              ),
+                                          onTopicOpen:
+                                              (topic) => _toggleTopic(
+                                                result.part,
+                                                topic,
+                                              ),
+                                          onCompleted: _setCompleted,
+                                          onReveal: (key) {
+                                            setState(() {
+                                              _revealedAnswers.contains(key)
+                                                  ? _revealedAnswers.remove(key)
+                                                  : _revealedAnswers.add(key);
+                                            });
+                                          },
                                         ),
-                                    onTopicOpen:
-                                        (topic) =>
-                                            _toggleTopic(result.part, topic),
-                                    onCompleted: _setCompleted,
-                                    onReveal: (key) {
-                                      setState(() {
-                                        _revealedAnswers.contains(key)
-                                            ? _revealedAnswers.remove(key)
-                                            : _revealedAnswers.add(key);
-                                      });
-                                    },
                                   ),
                                   const SizedBox(height: 16),
                                 ],
@@ -448,12 +490,7 @@ class _MlTopBar extends StatelessWidget {
             const Spacer(),
           _MlTrackSwitcher(
             onLeetCode: () {
-              final navigator = Navigator.of(context);
-              if (navigator.canPop()) {
-                navigator.pop();
-              } else {
-                navigator.pushNamedAndRemoveUntil('/', (_) => false);
-              }
+              Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
             },
           ),
           const SizedBox(width: 8),
@@ -1253,11 +1290,11 @@ class _MlPartCard extends StatelessWidget {
   const _MlPartCard({
     required this.headerKey,
     required this.topicKeys,
+    required this.topicExpansion,
     required this.part,
     required this.topics,
     required this.completed,
     required this.expanded,
-    required this.expandedTopicId,
     required this.revealedAnswers,
     required this.onOpen,
     required this.onReference,
@@ -1267,11 +1304,11 @@ class _MlPartCard extends StatelessWidget {
   });
   final GlobalKey? headerKey;
   final Map<String, GlobalKey> topicKeys;
+  final Map<String, ValueNotifier<bool>> topicExpansion;
   final MlPart part;
   final List<MlTopic> topics;
   final ValueListenable<Set<String>> completed;
   final bool expanded;
-  final String? expandedTopicId;
   final Set<String> revealedAnswers;
   final VoidCallback onOpen;
   final ValueChanged<String> onReference;
@@ -1373,13 +1410,11 @@ class _MlPartCard extends StatelessWidget {
                               ),
                         ),
                         const SizedBox(height: 10),
-                        AnimatedRotation(
-                          turns: expanded ? .5 : 0,
-                          duration: const Duration(milliseconds: 220),
-                          child: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: scheme.onSurfaceVariant,
-                          ),
+                        Icon(
+                          expanded
+                              ? Icons.keyboard_arrow_up_rounded
+                              : Icons.keyboard_arrow_down_rounded,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ],
                     ),
@@ -1388,8 +1423,7 @@ class _MlPartCard extends StatelessWidget {
               ),
             ),
           ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
+          Container(
             height: 3,
             color:
                 expanded ? part.color : scheme.outline.withValues(alpha: .35),
@@ -1401,17 +1435,22 @@ class _MlPartCard extends StatelessWidget {
               child: Column(
                 children: [
                   for (final topic in topics) ...[
-                    _MlTopicCard(
-                      key: topicKeys[topic.id],
-                      chapterNumber:
-                          '${part.number}.${part.topics.indexOf(topic) + 1}',
-                      topic: topic,
-                      accent: part.color,
-                      completed: completed,
-                      expanded: expandedTopicId == topic.id,
-                      onOpen: () => onTopicOpen(topic),
-                      onCompleted: (value) => onCompleted(topic.id, value),
-                      onReference: () => onReference(topic.id),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: topicExpansion[topic.id]!,
+                      builder:
+                          (context, topicExpanded, _) => _MlTopicCard(
+                            key: topicKeys[topic.id],
+                            chapterNumber:
+                                '${part.number}.${part.topics.indexOf(topic) + 1}',
+                            topic: topic,
+                            accent: part.color,
+                            completed: completed,
+                            expanded: topicExpanded,
+                            onOpen: () => onTopicOpen(topic),
+                            onCompleted:
+                                (value) => onCompleted(topic.id, value),
+                            onReference: () => onReference(topic.id),
+                          ),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -1545,15 +1584,13 @@ class _MlTopicCard extends StatelessWidget {
                       onPressed: onReference,
                       icon: Icon(Icons.link_rounded, color: accent, size: 19),
                     ),
-                    AnimatedRotation(
-                      turns: expanded ? .5 : 0,
-                      duration: const Duration(milliseconds: 220),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 10, right: 6),
-                        child: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: scheme.onSurfaceVariant,
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10, right: 6),
+                      child: Icon(
+                        expanded
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        color: scheme.onSurfaceVariant,
                       ),
                     ),
                   ],
