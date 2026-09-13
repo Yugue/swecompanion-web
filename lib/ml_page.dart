@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_headers/sticky_headers.dart';
@@ -61,6 +62,7 @@ class _MlReviewPageState extends State<MlReviewPage> {
   };
 
   Set<String> _completed = {};
+  final ValueNotifier<Set<String>> _completionNotifier = ValueNotifier({});
   final Set<String> _revealedAnswers = {};
   String _query = '';
   MlTopicFilter _filter = MlTopicFilter.all;
@@ -78,6 +80,7 @@ class _MlReviewPageState extends State<MlReviewPage> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
+    _completionNotifier.dispose();
     super.dispose();
   }
 
@@ -99,8 +102,9 @@ class _MlReviewPageState extends State<MlReviewPage> {
     final linkedTopic = mlTopicsById[reference];
     final savedTopic = mlTopicsById[preferences.getString(_expandedTopicKey)];
     if (!mounted) return;
+    _completed = preferences.getStringList(_completedKey)?.toSet() ?? {};
+    _completionNotifier.value = _completed;
     setState(() {
-      _completed = preferences.getStringList(_completedKey)?.toSet() ?? {};
       _expandedPartId = expanded;
       _expandedTopicId = linkedTopic?.id ?? savedTopic?.id;
       _ready = true;
@@ -109,11 +113,13 @@ class _MlReviewPageState extends State<MlReviewPage> {
   }
 
   Future<void> _setCompleted(String topicId, bool value) async {
-    setState(
-      () => value ? _completed.add(topicId) : _completed.remove(topicId),
-    );
+    final next = {..._completed};
+    value ? next.add(topicId) : next.remove(topicId);
+    _completed = next;
+    _completionNotifier.value = next;
+    if (_filter != MlTopicFilter.all) setState(() {});
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setStringList(_completedKey, _completed.toList()..sort());
+    await preferences.setStringList(_completedKey, next.toList()..sort());
   }
 
   Future<void> _confirmResetProgress() async {
@@ -142,7 +148,9 @@ class _MlReviewPageState extends State<MlReviewPage> {
     final preferences = await SharedPreferences.getInstance();
     await preferences.remove(_completedKey);
     if (!mounted) return;
-    setState(() => _completed = {});
+    _completed = {};
+    _completionNotifier.value = _completed;
+    if (_filter != MlTopicFilter.all) setState(() {});
   }
 
   Future<void> _scrollToReference(String reference) async {
@@ -264,11 +272,15 @@ class _MlReviewPageState extends State<MlReviewPage> {
     final compact = width < 1320;
     final results = _visibleParts;
 
-    final navigation = _MlNavigation(
-      completed: _completed,
-      expandedPartId: _expandedPartId,
-      onPartSelected: (part) => _openReference(part, part.id),
-      onResetProgress: _confirmResetProgress,
+    final navigation = ValueListenableBuilder<Set<String>>(
+      valueListenable: _completionNotifier,
+      builder:
+          (context, completed, _) => _MlNavigation(
+            completed: completed,
+            expandedPartId: _expandedPartId,
+            onPartSelected: (part) => _openReference(part, part.id),
+            onResetProgress: _confirmResetProgress,
+          ),
     );
 
     return Scaffold(
@@ -336,7 +348,7 @@ class _MlReviewPageState extends State<MlReviewPage> {
                                     topicKeys: _topicKeys,
                                     part: result.part,
                                     topics: result.topics,
-                                    completed: _completed,
+                                    completed: _completionNotifier,
                                     expanded: _expandedPartId == result.part.id,
                                     expandedTopicId: _expandedTopicId,
                                     revealedAnswers: _revealedAnswers,
@@ -435,10 +447,14 @@ class _MlTopBar extends StatelessWidget {
           else
             const Spacer(),
           _MlTrackSwitcher(
-            onLeetCode:
-                () => Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/', (_) => false),
+            onLeetCode: () {
+              final navigator = Navigator.of(context);
+              if (navigator.canPop()) {
+                navigator.pop();
+              } else {
+                navigator.pushNamedAndRemoveUntil('/', (_) => false);
+              }
+            },
           ),
           const SizedBox(width: 8),
           Container(
@@ -1253,7 +1269,7 @@ class _MlPartCard extends StatelessWidget {
   final Map<String, GlobalKey> topicKeys;
   final MlPart part;
   final List<MlTopic> topics;
-  final Set<String> completed;
+  final ValueListenable<Set<String>> completed;
   final bool expanded;
   final String? expandedTopicId;
   final Set<String> revealedAnswers;
@@ -1266,8 +1282,6 @@ class _MlPartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final done =
-        part.topics.where((topic) => completed.contains(topic.id)).length;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -1342,12 +1356,21 @@ class _MlPartCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Column(
                       children: [
-                        _MlProgressRing(
-                          done: done,
-                          total: part.topics.length,
-                          color: part.color,
-                          size: 48,
-                          strokeWidth: 3,
+                        ValueListenableBuilder<Set<String>>(
+                          valueListenable: completed,
+                          builder:
+                              (context, values, _) => _MlProgressRing(
+                                done:
+                                    part.topics
+                                        .where(
+                                          (topic) => values.contains(topic.id),
+                                        )
+                                        .length,
+                                total: part.topics.length,
+                                color: part.color,
+                                size: 48,
+                                strokeWidth: 3,
+                              ),
                         ),
                         const SizedBox(height: 10),
                         AnimatedRotation(
@@ -1371,43 +1394,36 @@ class _MlPartCard extends StatelessWidget {
             color:
                 expanded ? part.color : scheme.outline.withValues(alpha: .35),
           ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 260),
-            alignment: Alignment.topCenter,
-            child:
-                expanded
-                    ? Container(
-                      color: scheme.surface.withValues(alpha: .22),
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        children: [
-                          for (final topic in topics) ...[
-                            _MlTopicCard(
-                              key: topicKeys[topic.id],
-                              chapterNumber:
-                                  '${part.number}.${part.topics.indexOf(topic) + 1}',
-                              topic: topic,
-                              accent: part.color,
-                              complete: completed.contains(topic.id),
-                              expanded: expandedTopicId == topic.id,
-                              onOpen: () => onTopicOpen(topic),
-                              onCompleted:
-                                  (value) => onCompleted(topic.id, value),
-                              onReference: () => onReference(topic.id),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                          if (part.quiz.isNotEmpty)
-                            _MlQuizSection(
-                              part: part,
-                              revealedAnswers: revealedAnswers,
-                              onReveal: onReveal,
-                            ),
-                        ],
-                      ),
-                    )
-                    : const SizedBox.shrink(),
-          ),
+          if (expanded)
+            Container(
+              color: scheme.surface.withValues(alpha: .22),
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                children: [
+                  for (final topic in topics) ...[
+                    _MlTopicCard(
+                      key: topicKeys[topic.id],
+                      chapterNumber:
+                          '${part.number}.${part.topics.indexOf(topic) + 1}',
+                      topic: topic,
+                      accent: part.color,
+                      completed: completed,
+                      expanded: expandedTopicId == topic.id,
+                      onOpen: () => onTopicOpen(topic),
+                      onCompleted: (value) => onCompleted(topic.id, value),
+                      onReference: () => onReference(topic.id),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (part.quiz.isNotEmpty)
+                    _MlQuizSection(
+                      part: part,
+                      revealedAnswers: revealedAnswers,
+                      onReveal: onReveal,
+                    ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -1420,7 +1436,7 @@ class _MlTopicCard extends StatelessWidget {
     required this.chapterNumber,
     required this.topic,
     required this.accent,
-    required this.complete,
+    required this.completed,
     required this.expanded,
     required this.onOpen,
     required this.onCompleted,
@@ -1429,7 +1445,7 @@ class _MlTopicCard extends StatelessWidget {
   final String chapterNumber;
   final MlTopic topic;
   final Color accent;
-  final bool complete;
+  final ValueListenable<Set<String>> completed;
   final bool expanded;
   final VoidCallback onOpen;
   final ValueChanged<bool> onCompleted;
@@ -1438,108 +1454,115 @@ class _MlTopicCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final borderColor =
-        complete
-            ? accent.withValues(alpha: .55)
-            : scheme.outline.withValues(alpha: .65);
-    final header = Container(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainer,
-        borderRadius:
-            expanded
-                ? const BorderRadius.vertical(top: Radius.circular(9))
-                : BorderRadius.circular(9),
-        border: Border.all(color: borderColor),
-        boxShadow:
-            expanded
-                ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: .13),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-                : null,
-      ),
-      child: Semantics(
-        button: true,
-        expanded: expanded,
-        label: '$chapterNumber ${topic.title} lesson',
-        child: InkWell(
-          onTap: onOpen,
-          borderRadius:
-              expanded
-                  ? const BorderRadius.vertical(top: Radius.circular(9))
-                  : BorderRadius.circular(9),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Checkbox(
-                  value: complete,
-                  onChanged: (value) => onCompleted(value ?? false),
-                  activeColor: accent,
-                  checkColor: Colors.black87,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$chapterNumber  ${topic.title}',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            decoration:
-                                complete ? TextDecoration.lineThrough : null,
-                            decorationColor: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                        if (!expanded) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            topic.summary,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: scheme.onSurfaceVariant,
-                              height: 1.4,
+    final borderColor = scheme.outline.withValues(alpha: .65);
+    final header = ValueListenableBuilder<Set<String>>(
+      valueListenable: completed,
+      builder: (context, values, _) {
+        final complete = values.contains(topic.id);
+        return Container(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainer,
+            borderRadius:
+                expanded
+                    ? const BorderRadius.vertical(top: Radius.circular(9))
+                    : BorderRadius.circular(9),
+            border: Border.all(
+              color: complete ? accent.withValues(alpha: .55) : borderColor,
+            ),
+            boxShadow:
+                expanded
+                    ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: .13),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                    : null,
+          ),
+          child: Semantics(
+            button: true,
+            expanded: expanded,
+            label: '$chapterNumber ${topic.title} lesson',
+            child: InkWell(
+              onTap: onOpen,
+              borderRadius:
+                  expanded
+                      ? const BorderRadius.vertical(top: Radius.circular(9))
+                      : BorderRadius.circular(9),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: complete,
+                      onChanged: (value) => onCompleted(value ?? false),
+                      activeColor: accent,
+                      checkColor: Colors.black87,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$chapterNumber  ${topic.title}',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                decoration:
+                                    complete
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                decorationColor: scheme.onSurfaceVariant,
+                              ),
                             ),
-                          ),
-                        ],
-                      ],
+                            if (!expanded) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                topic.summary,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: scheme.onSurfaceVariant,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Reference link for ${topic.title}',
-                  onPressed: onReference,
-                  icon: Icon(Icons.link_rounded, color: accent, size: 19),
-                ),
-                AnimatedRotation(
-                  turns: expanded ? .5 : 0,
-                  duration: const Duration(milliseconds: 220),
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10, right: 6),
-                    child: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: scheme.onSurfaceVariant,
+                    IconButton(
+                      tooltip: 'Reference link for ${topic.title}',
+                      onPressed: onReference,
+                      icon: Icon(Icons.link_rounded, color: accent, size: 19),
                     ),
-                  ),
+                    AnimatedRotation(
+                      turns: expanded ? .5 : 0,
+                      duration: const Duration(milliseconds: 220),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10, right: 6),
+                        child: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
 
     return SizedBox(

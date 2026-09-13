@@ -40,6 +40,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Chapter 1 — Foundations'), findsOneWidget);
     expect(find.text('LeetCode'), findsOneWidget);
+
+    await tester.tap(find.text('LeetCode'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sort Colors'), findsNothing);
+    expect(find.text('Two Sum'), findsNothing);
   });
 
   testWidgets('restores the expanded topic from local storage', (tester) async {
@@ -99,6 +104,10 @@ void main() {
     expect(find.text('Two Sum'), findsOneWidget);
     final twoSumCheckbox = find.byType(Checkbox).first;
     expect(tester.widget<Checkbox>(twoSumCheckbox).value, isFalse);
+    await tester.tap(twoSumCheckbox);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Checkbox>(find.byType(Checkbox).first).value, isTrue);
+    expect(preferences.getStringList('completed_problem_ids_v1'), ['1']);
   });
 
   test('challenge rounds and official LeetCode links are complete', () {

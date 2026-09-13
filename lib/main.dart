@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,7 +22,9 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
   static const _challengeMigrationKey = 'challenge_rounds_v1_added';
   static const _themeKey = 'dark_mode_v1';
 
-  Set<String> _completed = initialCompletedProblems;
+  final ValueNotifier<Set<String>> _completed = ValueNotifier(
+    initialCompletedProblems,
+  );
   bool _darkMode = true;
   bool _ready = false;
 
@@ -29,6 +32,12 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
   void initState() {
     super.initState();
     unawaited(_loadPreferences());
+  }
+
+  @override
+  void dispose() {
+    _completed.dispose();
+    super.dispose();
   }
 
   Future<void> _loadPreferences() async {
@@ -57,19 +66,19 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
     }
 
     if (!mounted) return;
+    _completed.value = completed;
     setState(() {
-      _completed = completed;
       _darkMode = preferences.getBool(_themeKey) ?? true;
       _ready = true;
     });
   }
 
   Future<void> _toggleProblem(String id, bool value) async {
-    setState(() {
-      value ? _completed.add(id) : _completed.remove(id);
-    });
+    final next = {..._completed.value};
+    value ? next.add(id) : next.remove(id);
+    _completed.value = next;
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setStringList(_completedKey, _completed.toList()..sort());
+    await preferences.setStringList(_completedKey, next.toList()..sort());
   }
 
   Future<void> _resetLeetCodeProgress() async {
@@ -78,7 +87,7 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
     // guide's initial completed defaults on the next load.
     await preferences.setStringList(_completedKey, []);
     if (!mounted) return;
-    setState(() => _completed = {});
+    _completed.value = {};
   }
 
   Future<void> _toggleTheme() async {
@@ -230,7 +239,7 @@ class StudyGuideScreen extends StatefulWidget {
     required this.onThemeChanged,
   });
 
-  final Set<String> completed;
+  final ValueListenable<Set<String>> completed;
   final bool darkMode;
   final Future<void> Function(String id, bool value) onProblemChanged;
   final Future<void> Function() onResetProgress;
@@ -337,7 +346,15 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
             ],
           ),
     );
-    if (confirmed == true && mounted) await widget.onResetProgress();
+    if (confirmed == true && mounted) {
+      await widget.onResetProgress();
+      if (mounted && _filter != ProblemFilter.all) setState(() {});
+    }
+  }
+
+  Future<void> _onProblemChanged(String id, bool value) async {
+    await widget.onProblemChanged(id, value);
+    if (mounted && _filter != ProblemFilter.all) setState(() {});
   }
 
   void _openTopic(StudyTopic topic, {bool scroll = false}) {
@@ -373,7 +390,9 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
               '${topic.title} ${topic.note}'.toLowerCase().contains(query);
           final problems =
               topic.problems.where((problem) {
-                final complete = widget.completed.contains(problem.storageKey);
+                final complete = widget.completed.value.contains(
+                  problem.storageKey,
+                );
                 final matchesFilter = switch (_filter) {
                   ProblemFilter.all => true,
                   ProblemFilter.remaining => !complete,
@@ -431,7 +450,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
           completed: widget.completed,
           expanded: _topicReference(result.topic) == expandedReference,
           onOpen: () => _openTopic(result.topic),
-          onChanged: widget.onProblemChanged,
+          onChanged: _onProblemChanged,
         ),
       );
       children.add(const SizedBox(height: 16));
@@ -454,11 +473,15 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
               : Drawer(
                 width: 304,
                 child: SafeArea(
-                  child: _TopicNavigation(
-                    completed: widget.completed,
-                    selectedScope: _selectedScope,
-                    onSelected: _selectScope,
-                    onResetProgress: _confirmResetProgress,
+                  child: ValueListenableBuilder<Set<String>>(
+                    valueListenable: widget.completed,
+                    builder:
+                        (context, completed, _) => _TopicNavigation(
+                          completed: completed,
+                          selectedScope: _selectedScope,
+                          onSelected: _selectScope,
+                          onResetProgress: _confirmResetProgress,
+                        ),
                   ),
                 ),
               ),
@@ -471,11 +494,15 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
                 if (desktop)
                   SizedBox(
                     width: 286,
-                    child: _TopicNavigation(
-                      completed: widget.completed,
-                      selectedScope: _selectedScope,
-                      onSelected: _selectScope,
-                      onResetProgress: _confirmResetProgress,
+                    child: ValueListenableBuilder<Set<String>>(
+                      valueListenable: widget.completed,
+                      builder:
+                          (context, completed, _) => _TopicNavigation(
+                            completed: completed,
+                            selectedScope: _selectedScope,
+                            onSelected: _selectScope,
+                            onResetProgress: _confirmResetProgress,
+                          ),
                     ),
                   ),
                 Expanded(
@@ -1188,7 +1215,7 @@ class _TopicCard extends StatelessWidget {
   final GlobalKey? headerKey;
   final StudyTopic topic;
   final List<StudyProblem> problems;
-  final Set<String> completed;
+  final ValueListenable<Set<String>> completed;
   final bool expanded;
   final VoidCallback onOpen;
   final Future<void> Function(String id, bool value) onChanged;
@@ -1196,12 +1223,6 @@ class _TopicCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final done =
-        topic.problems
-            .where((problem) => completed.contains(problem.storageKey))
-            .length;
-    final fraction = done / topic.problems.length;
-
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -1281,12 +1302,23 @@ class _TopicCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        _ProgressRing(
-                          done: done,
-                          total: topic.problems.length,
-                          color: topic.color,
-                          size: 48,
-                          strokeWidth: 3,
+                        ValueListenableBuilder<Set<String>>(
+                          valueListenable: completed,
+                          builder:
+                              (context, doneIds, _) => _ProgressRing(
+                                done:
+                                    topic.problems
+                                        .where(
+                                          (problem) => doneIds.contains(
+                                            problem.storageKey,
+                                          ),
+                                        )
+                                        .length,
+                                total: topic.problems.length,
+                                color: topic.color,
+                                size: 48,
+                                strokeWidth: 3,
+                              ),
                         ),
                         const SizedBox(height: 10),
                         AnimatedRotation(
@@ -1311,57 +1343,58 @@ class _TopicCard extends StatelessWidget {
             color:
                 expanded ? topic.color : scheme.outline.withValues(alpha: .35),
           ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child:
-                expanded
-                    ? Column(
-                      children: [
-                        LinearProgressIndicator(
-                          value: fraction,
-                          minHeight: 2,
-                          backgroundColor: scheme.outline.withValues(alpha: .2),
-                          color: topic.color.withValues(alpha: .62),
-                        ),
-                        for (
-                          var index = 0;
-                          index < problems.length;
-                          index++
-                        ) ...[
-                          if (problems[index].subcategory case final label?)
-                            if (index == 0 ||
-                                problems[index - 1].subcategory != label)
-                              _ProblemSubcategoryHeading(
-                                label: label,
-                                accent: topic.color,
-                              ),
-                          if (index > 0 &&
-                              problems[index].subcategory ==
-                                  problems[index - 1].subcategory)
-                            Divider(
-                              height: 1,
-                              indent: 72,
-                              color: scheme.outline.withValues(alpha: .45),
-                            ),
-                          _ProblemRow(
-                            problem: problems[index],
-                            complete: completed.contains(
-                              problems[index].storageKey,
-                            ),
-                            accent: topic.color,
-                            onChanged:
-                                (value) => onChanged(
-                                  problems[index].storageKey,
-                                  value,
-                                ),
+          if (expanded)
+            Column(
+              children: [
+                ValueListenableBuilder<Set<String>>(
+                  valueListenable: completed,
+                  builder:
+                      (context, doneIds, _) => LinearProgressIndicator(
+                        value:
+                            topic.problems
+                                .where(
+                                  (problem) =>
+                                      doneIds.contains(problem.storageKey),
+                                )
+                                .length /
+                            topic.problems.length,
+                        minHeight: 2,
+                        backgroundColor: scheme.outline.withValues(alpha: .2),
+                        color: topic.color.withValues(alpha: .62),
+                      ),
+                ),
+                for (var index = 0; index < problems.length; index++) ...[
+                  if (problems[index].subcategory case final label?)
+                    if (index == 0 || problems[index - 1].subcategory != label)
+                      _ProblemSubcategoryHeading(
+                        label: label,
+                        accent: topic.color,
+                      ),
+                  if (index > 0 &&
+                      problems[index].subcategory ==
+                          problems[index - 1].subcategory)
+                    Divider(
+                      height: 1,
+                      indent: 72,
+                      color: scheme.outline.withValues(alpha: .45),
+                    ),
+                  ValueListenableBuilder<Set<String>>(
+                    valueListenable: completed,
+                    builder:
+                        (context, doneIds, _) => _ProblemRow(
+                          problem: problems[index],
+                          complete: doneIds.contains(
+                            problems[index].storageKey,
                           ),
-                        ],
-                      ],
-                    )
-                    : const SizedBox.shrink(),
-          ),
+                          accent: topic.color,
+                          onChanged:
+                              (value) =>
+                                  onChanged(problems[index].storageKey, value),
+                        ),
+                  ),
+                ],
+              ],
+            ),
         ],
       ),
     );

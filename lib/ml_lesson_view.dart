@@ -5,13 +5,20 @@ import 'package:flutter_math_fork/flutter_math.dart';
 class MlLessonView extends StatelessWidget {
   const MlLessonView({super.key, required this.topicId, required this.accent});
 
+  static final Map<String, Future<List<_LessonBlock>>> _cachedLessons = {};
+
   final String topicId;
   final Color accent;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      future: rootBundle.loadString('assets/ml_lessons/$topicId.md'),
+    return FutureBuilder<List<_LessonBlock>>(
+      future: _cachedLessons.putIfAbsent(topicId, () async {
+        final source = await rootBundle.loadString(
+          'assets/ml_lessons/$topicId.md',
+        );
+        return _parseLesson(source);
+      }),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return _LessonNotice(
@@ -26,7 +33,7 @@ class MlLessonView extends StatelessWidget {
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        final blocks = _parseLesson(snapshot.data!);
+        final blocks = snapshot.data!;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
