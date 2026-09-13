@@ -430,17 +430,6 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
 
   List<Widget> _topicCards(List<_TopicResult> results) {
     final children = <Widget>[];
-    final expandedReference =
-        _expandedTopicReference == null
-            ? null
-            : results.any(
-              (result) =>
-                  _topicReference(result.topic) == _expandedTopicReference,
-            )
-            ? _expandedTopicReference
-            : results.isEmpty
-            ? null
-            : _topicReference(results.first.topic);
     for (final result in results) {
       children.add(
         _TopicCard(
@@ -448,7 +437,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
           topic: result.topic,
           problems: result.problems,
           completed: widget.completed,
-          expanded: _topicReference(result.topic) == expandedReference,
+          expanded: _topicReference(result.topic) == _expandedTopicReference,
           onOpen: () => _openTopic(result.topic),
           onChanged: _onProblemChanged,
         ),
@@ -807,11 +796,7 @@ class _TopicNavigation extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.cloud_done_outlined,
-                      size: 17,
-                      color: scheme.primary,
-                    ),
+                    Icon(Icons.save_outlined, size: 17, color: scheme.primary),
                     const SizedBox(width: 9),
                     Expanded(
                       child: Text(

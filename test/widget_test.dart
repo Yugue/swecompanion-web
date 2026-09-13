@@ -21,18 +21,18 @@ void main() {
     expect(find.textContaining('Learn the pattern'), findsNothing);
     expect(find.text('8/8'), findsOneWidget);
     expect(find.text('Two Sum'), findsOneWidget);
-    expect(find.text('Sort Colors'), findsNothing);
+    expect(find.byTooltip('Open Sort Colors on LeetCode'), findsNothing);
 
     await tester.tap(find.text('Sorting'));
     await tester.pumpAndSettle();
 
     expect(find.text('Two Sum'), findsNothing);
-    expect(find.text('Sort Colors'), findsOneWidget);
+    expect(find.byTooltip('Open Sort Colors on LeetCode'), findsOneWidget);
 
     await tester.tap(find.text('Sorting'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Sort Colors'), findsNothing);
+    expect(find.byTooltip('Open Sort Colors on LeetCode'), findsNothing);
     final preferences = await SharedPreferences.getInstance();
     expect(preferences.getString('expanded_topic_reference_v1'), '__none__');
 
@@ -60,6 +60,28 @@ void main() {
     expect(find.text('Two Sum'), findsNothing);
   });
 
+  testWidgets('a filtered LeetCode topic expands and collapses in one tap', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 5000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const SweCompanionApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Sort Colors');
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Open Sort Colors on LeetCode'), findsNothing);
+
+    await tester.tap(find.text('Sorting'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Open Sort Colors on LeetCode'), findsOneWidget);
+
+    await tester.tap(find.text('Sorting'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Open Sort Colors on LeetCode'), findsNothing);
+  });
+
   testWidgets('LeetCode reset confirms and remains empty after reopening', (
     tester,
   ) async {
@@ -78,6 +100,7 @@ void main() {
     }
 
     expect(find.text('Progress saved on this device'), findsOneWidget);
+    expect(find.byIcon(Icons.save_outlined), findsOneWidget);
     expect(find.text('1/${uniqueProblems.length}'), findsOneWidget);
     await tester.tap(find.text('Reset progress'));
     await tester.pumpAndSettle();
