@@ -55,6 +55,52 @@ void main() {
     expect(find.text('Two Sum'), findsNothing);
   });
 
+  testWidgets('LeetCode reset confirms and remains empty after reopening', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    SharedPreferences.setMockInitialValues({
+      'completed_problem_ids_v1': ['1'],
+      'challenge_rounds_v1_added': true,
+      'ml_completed_topics_v1': ['ml-fundamentals'],
+    });
+    await tester.pumpWidget(const SweCompanionApp());
+    await tester.pumpAndSettle();
+    if (find.byTooltip('Open topics').evaluate().isNotEmpty) {
+      await tester.tap(find.byTooltip('Open topics'));
+      await tester.pumpAndSettle();
+    }
+
+    expect(find.text('Progress saved on this device'), findsOneWidget);
+    expect(find.text('1/${uniqueProblems.length}'), findsOneWidget);
+    await tester.tap(find.text('Reset progress'));
+    await tester.pumpAndSettle();
+    expect(find.text('Reset LeetCode progress?'), findsOneWidget);
+    expect(find.textContaining('cannot be recovered'), findsOneWidget);
+    await tester.tap(find.text('No, keep progress'));
+    await tester.pumpAndSettle();
+    expect(find.text('1/${uniqueProblems.length}'), findsOneWidget);
+
+    await tester.tap(find.text('Reset progress'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Yes, reset progress'));
+    await tester.pumpAndSettle();
+    expect(find.text('0/${uniqueProblems.length}'), findsOneWidget);
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getStringList('completed_problem_ids_v1'), isEmpty);
+    expect(preferences.getStringList('ml_completed_topics_v1'), [
+      'ml-fundamentals',
+    ]);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(const SweCompanionApp());
+    await tester.pumpAndSettle();
+    expect(find.text('Two Sum'), findsOneWidget);
+    final twoSumCheckbox = find.byType(Checkbox).first;
+    expect(tester.widget<Checkbox>(twoSumCheckbox).value, isFalse);
+  });
+
   test('challenge rounds and official LeetCode links are complete', () {
     final challengeProblems = [
       for (final topic in challengeTopics) ...topic.problems,

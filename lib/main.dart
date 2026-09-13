@@ -72,6 +72,15 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
     await preferences.setStringList(_completedKey, _completed.toList()..sort());
   }
 
+  Future<void> _resetLeetCodeProgress() async {
+    final preferences = await SharedPreferences.getInstance();
+    // An empty saved list is intentional: removing the key would restore the
+    // guide's initial completed defaults on the next load.
+    await preferences.setStringList(_completedKey, []);
+    if (!mounted) return;
+    setState(() => _completed = {});
+  }
+
   Future<void> _toggleTheme() async {
     setState(() => _darkMode = !_darkMode);
     final preferences = await SharedPreferences.getInstance();
@@ -119,6 +128,7 @@ class _SweCompanionAppState extends State<SweCompanionApp> {
                           completed: _completed,
                           darkMode: _darkMode,
                           onProblemChanged: _toggleProblem,
+                          onResetProgress: _resetLeetCodeProgress,
                           onThemeChanged: _toggleTheme,
                         )
                         : const Scaffold(
@@ -216,12 +226,14 @@ class StudyGuideScreen extends StatefulWidget {
     required this.completed,
     required this.darkMode,
     required this.onProblemChanged,
+    required this.onResetProgress,
     required this.onThemeChanged,
   });
 
   final Set<String> completed;
   final bool darkMode;
   final Future<void> Function(String id, bool value) onProblemChanged;
+  final Future<void> Function() onResetProgress;
   final Future<void> Function() onThemeChanged;
 
   @override
@@ -301,6 +313,31 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
       duration: const Duration(milliseconds: 420),
       curve: Curves.easeOutCubic,
     );
+  }
+
+  Future<void> _confirmResetProgress() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Reset LeetCode progress?'),
+            content: const Text(
+              'All completed LeetCode problems will be marked incomplete. '
+              'This progress will be erased from this device and cannot be recovered.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('No, keep progress'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Yes, reset progress'),
+              ),
+            ],
+          ),
+    );
+    if (confirmed == true && mounted) await widget.onResetProgress();
   }
 
   void _openTopic(StudyTopic topic, {bool scroll = false}) {
@@ -421,6 +458,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
                     completed: widget.completed,
                     selectedScope: _selectedScope,
                     onSelected: _selectScope,
+                    onResetProgress: _confirmResetProgress,
                   ),
                 ),
               ),
@@ -437,6 +475,7 @@ class _StudyGuideScreenState extends State<StudyGuideScreen> {
                       completed: widget.completed,
                       selectedScope: _selectedScope,
                       onSelected: _selectScope,
+                      onResetProgress: _confirmResetProgress,
                     ),
                   ),
                 Expanded(
@@ -651,11 +690,13 @@ class _TopicNavigation extends StatelessWidget {
     required this.completed,
     required this.selectedScope,
     required this.onSelected,
+    required this.onResetProgress,
   });
 
   final Set<String> completed;
   final String? selectedScope;
   final ValueChanged<String?> onSelected;
+  final VoidCallback onResetProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -733,22 +774,33 @@ class _TopicNavigation extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  Icons.cloud_done_outlined,
-                  size: 17,
-                  color: scheme.primary,
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Text(
-                    'Progress saved on this device',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.cloud_done_outlined,
+                      size: 17,
+                      color: scheme.primary,
                     ),
-                  ),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Text(
+                        'Progress saved on this device',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: onResetProgress,
+                  icon: const Icon(Icons.restart_alt_rounded, size: 18),
+                  label: const Text('Reset progress'),
                 ),
               ],
             ),
