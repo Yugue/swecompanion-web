@@ -7,7 +7,7 @@ import { TopBar } from "@/components/TopBar";
 import { QuizSection } from "@/components/quiz/QuizSection";
 
 export function generateStaticParams() {
-  return mlParts.filter((part) => part.quiz.length > 0).map((part) => ({ id: part.id }));
+  return mlParts.filter((part) => part.quizQuestionCount > 0).map((part) => ({ id: part.id }));
 }
 
 export async function generateMetadata({
@@ -20,7 +20,7 @@ export async function generateMetadata({
   if (!part) return {};
   return {
     title: `${part.title} Mock Interview Quiz`,
-    description: `Realistic interview-style questions covering ${part.title.toLowerCase()} - answer out loud, then reveal the model answer. Premium.`,
+    description: `${part.quizQuestionCount} realistic interview-style questions covering ${part.title.toLowerCase()}, written to match a real L4-L6 interview. Premium.`,
     alternates: { canonical: `/ml/${id}/quiz` },
   };
 }
@@ -32,27 +32,12 @@ export default async function MlChapterQuizPage({
 }) {
   const { id } = await params;
   const part = mlPartsById[id];
-  if (!part || part.quiz.length === 0) notFound();
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: part.quiz.map((q) => ({
-      "@type": "Question",
-      name: q.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Available to premium members - sign in and upgrade to view the model answer.",
-      },
-    })),
-  };
+  if (!part || part.quizQuestionCount === 0) notFound();
 
   return (
     <div className="flex min-h-screen flex-col" style={{ "--accent": part.color } as React.CSSProperties}>
       <TopBar activeTrack="ml" />
       <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-
         <Link href={`/ml#${part.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
           <ArrowLeft size={16} /> Chapter {part.number} — {part.title}
         </Link>
@@ -65,7 +50,12 @@ export default async function MlChapterQuizPage({
           like you&apos;re in the room.
         </p>
 
-        <QuizSection quizId={`ml-${part.id}`} title={`Chapter ${part.number} quiz`} questions={part.quiz} />
+        <QuizSection
+          quizId={`ml-${part.id}`}
+          title={`Chapter ${part.number} quiz`}
+          covers={part.description}
+          questionCount={part.quizQuestionCount}
+        />
       </main>
     </div>
   );

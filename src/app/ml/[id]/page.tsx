@@ -104,7 +104,7 @@ export default async function MlLessonPage({
 
         <LessonView topicId={topic.id} />
 
-        {part.quiz.length > 0 && (
+        {part.quizQuestionCount > 0 && (
           <Link
             href={`/ml/${part.id}/quiz`}
             className="mt-8 flex items-center justify-center gap-2 rounded-lg border border-[var(--accent)] px-4 py-3 text-sm font-semibold text-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]"

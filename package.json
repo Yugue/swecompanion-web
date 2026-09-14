@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:quiz-answers": "tsx scripts/seedQuizAnswers.ts"
+    "seed:quizzes": "tsx scripts/seedQuizzes.ts"
   },
   "dependencies": {
     "firebase": "^12.19.0",

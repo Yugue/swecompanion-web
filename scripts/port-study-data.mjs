@@ -214,7 +214,7 @@ function emitTopic(t, indent = "  ") {
   lines.push(`${indent}  ],`);
   const quiz = LEETCODE_QUIZZES[slugify(t.title)];
   if (quiz) {
-    lines.push(`${indent}  quiz: [${quiz.map((q) => `{ question: ${jsStr(q.question)} }`).join(", ")}],`);
+    lines.push(`${indent}  quizQuestionCount: ${quiz.length},`);
   }
   lines.push(`${indent}},`);
   return lines.join("\n");
@@ -232,10 +232,6 @@ export interface StudyProblem {
   subcategory?: string;
 }
 
-export interface QuizQuestion {
-  question: string;
-}
-
 export interface StudyTopic {
   slug: string;
   group: string;
@@ -245,7 +241,9 @@ export interface StudyTopic {
   color: string;
   note: string;
   problems: StudyProblem[];
-  quiz?: QuizQuestion[];
+  // Quiz questions AND answers are premium content, served only from Firestore
+  // (see quizzes/{quizId} + firestore.rules) - only the count is public.
+  quizQuestionCount?: number;
 }
 
 export function leetCodeSlug(p: StudyProblem): string {
@@ -295,15 +293,15 @@ export const studyTopicsBySlug: Record<string, StudyTopic> = Object.fromEntries(
 
 writeFileSync(new URL("../src/lib/studyData.generated.ts", import.meta.url), out, "utf8");
 
-const leetcodeQuizAnswers = Object.fromEntries(
+const leetcodeQuizzes = Object.fromEntries(
   Object.entries(LEETCODE_QUIZZES).map(([slug, questions]) => [
     `lc-${slug}`,
-    questions.map((q) => q.answer),
+    { questions: questions.map((q) => q.question), answers: questions.map((q) => q.answer) },
   ])
 );
 writeFileSync(
-  new URL("./leetcodeQuizAnswers.generated.json", import.meta.url),
-  JSON.stringify(leetcodeQuizAnswers, null, 2),
+  new URL("./leetcodeQuizzes.generated.json", import.meta.url),
+  JSON.stringify(leetcodeQuizzes, null, 2),
   "utf8"
 );
 

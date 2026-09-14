@@ -87,10 +87,10 @@ export function MlPartDetails({
         ))}
       </div>
 
-      {part.quiz.length > 0 && (
+      {part.quizQuestionCount > 0 && (
         <div className="flex items-center justify-between gap-3 border-t border-outline/50 px-5 py-4">
           <p className="text-sm text-text-muted">
-            {part.quiz.length} mock-interview question{part.quiz.length === 1 ? "" : "s"} for this
+            {part.quizQuestionCount} mock-interview question{part.quizQuestionCount === 1 ? "" : "s"} for this
             chapter
           </p>
           <Link

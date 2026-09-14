@@ -7,7 +7,7 @@ import { TopBar } from "@/components/TopBar";
 import { QuizSection } from "@/components/quiz/QuizSection";
 
 export function generateStaticParams() {
-  return studyTopics.filter((t) => t.quiz && t.quiz.length > 0).map((t) => ({ slug: t.slug }));
+  return studyTopics.filter((t) => (t.quizQuestionCount ?? 0) > 0).map((t) => ({ slug: t.slug }));
 }
 
 export async function generateMetadata({
@@ -20,7 +20,7 @@ export async function generateMetadata({
   if (!topic) return {};
   return {
     title: `${topic.title} Mock Interview Quiz`,
-    description: `Realistic interview-style questions on ${topic.title.toLowerCase()} - answer out loud, then reveal the model answer. Premium.`,
+    description: `${topic.quizQuestionCount} realistic interview-style questions on ${topic.title.toLowerCase()}, written to match a real L4-L6 interview. Premium.`,
     alternates: { canonical: `/topics/${slug}/quiz` },
   };
 }
@@ -32,27 +32,12 @@ export default async function TopicQuizPage({
 }) {
   const { slug } = await params;
   const topic = studyTopicsBySlug[slug];
-  if (!topic || !topic.quiz || topic.quiz.length === 0) notFound();
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: topic.quiz.map((q) => ({
-      "@type": "Question",
-      name: q.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Available to premium members - sign in and upgrade to view the model answer.",
-      },
-    })),
-  };
+  if (!topic || !topic.quizQuestionCount) notFound();
 
   return (
     <div className="flex min-h-screen flex-col" style={{ "--accent": topic.color } as React.CSSProperties}>
       <TopBar activeTrack="leetcode" />
       <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-
         <Link href={`/topics/${topic.slug}`} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
           <ArrowLeft size={16} /> {topic.title}
         </Link>
@@ -65,7 +50,12 @@ export default async function TopicQuizPage({
           like you&apos;re in the room.
         </p>
 
-        <QuizSection quizId={`lc-${topic.slug}`} title={`${topic.shortTitle} quiz`} questions={topic.quiz} />
+        <QuizSection
+          quizId={`lc-${topic.slug}`}
+          title={`${topic.shortTitle} quiz`}
+          covers={topic.note}
+          questionCount={topic.quizQuestionCount}
+        />
       </main>
     </div>
   );

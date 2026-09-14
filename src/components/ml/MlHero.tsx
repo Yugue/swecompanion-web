@@ -14,7 +14,7 @@ const DOMAINS = [
   "Generative AI → Large Language Models (LLM)",
 ];
 
-const quizCount = mlParts.reduce((n, p) => n + p.quiz.length, 0);
+const quizCount = mlParts.reduce((n, p) => n + p.quizQuestionCount, 0);
 
 export function MlHero() {
   return (

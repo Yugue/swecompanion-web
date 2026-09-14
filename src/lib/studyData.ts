@@ -10,10 +10,6 @@ export interface StudyProblem {
   subcategory?: string;
 }
 
-export interface QuizQuestion {
-  question: string;
-}
-
 export interface StudyTopic {
   slug: string;
   group: string;
@@ -23,7 +19,9 @@ export interface StudyTopic {
   color: string;
   note: string;
   problems: StudyProblem[];
-  quiz?: QuizQuestion[];
+  // Quiz questions AND answers are premium content, served only from Firestore
+  // (quizzes/{quizId}, gated by firestore.rules) - only the count is public here.
+  quizQuestionCount?: number;
 }
 
 export function leetCodeSlug(p: StudyProblem): string {
@@ -59,7 +57,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "378", title: "Kth Smallest Element in a Sorted Matrix", initiallyComplete: true },
       { id: "632", title: "Smallest Range Covering Elements from K Lists", initiallyComplete: true },
     ],
-    quiz: [{ question: "Walk me through your approach to Two Sum — start with the brute force, then optimize." }, { question: "You need the k most frequent elements in a stream that's too large to sort fully. What's the pattern and why not just sort?" }, { question: "Two Sum uses a hash map for O(1) lookups. What's the trade-off versus sorting the array and using two pointers?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "sorting",
@@ -74,7 +72,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "75", title: "Sort Colors", initiallyComplete: true, subcategory: "Three-group partitioning" },
       { id: "912", title: "Sort an Array", initiallyComplete: true, subcategory: "Merge sort" },
     ],
-    quiz: [{ question: "How do you decide between two-pointer partitioning and a full merge sort for a 'sort this array' question?" }, { question: "Walk through the invariant that makes the Dutch National Flag (Sort Colors) partitioning correct." }, { question: "Merge sort is O(n log n) — where does the log n come from, and why is the merge step linear?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "sliding-window",
@@ -92,7 +90,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "1358", title: "Number of Substrings Containing All Three Characters", initiallyComplete: true },
       { id: "2962", title: "Count Subarrays Where Max Element Appears at Least K Times", initiallyComplete: true },
     ],
-    quiz: [{ question: "What tells you a problem is a sliding window problem rather than, say, a two-pointer or prefix-sum problem?" }, { question: "In 'Minimum Window Substring', why do you expand the right pointer and shrink the left pointer, and what invariant do you maintain?" }, { question: "How would you adapt a sliding window solution if the array can contain negative numbers, breaking the usual monotonic sum assumption?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "two-pointers",
@@ -109,7 +107,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "42", title: "Trapping Rain Water", initiallyComplete: true },
       { id: "287", title: "Find the Duplicate Number", initiallyComplete: true },
     ],
-    quiz: [{ question: "For 'Container With Most Water', why do you move the pointer at the shorter line inward rather than the taller one?" }, { question: "When do two pointers require the array to be sorted first, and when do they not?" }, { question: "What's the time complexity trade-off of two pointers on a sorted array versus a hash-map approach for pair-sum problems?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "prefix-sum-and-subarray",
@@ -125,7 +123,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "523", title: "Continuous Subarray Sum", initiallyComplete: true },
       { id: "238", title: "Product of Array Except Self", initiallyComplete: true },
     ],
-    quiz: [{ question: "Why does a prefix sum turn 'count subarrays with sum k' into a hash map lookup problem?" }, { question: "What edge case do people forget when initializing the prefix-sum frequency map?" }, { question: "How does prefix sum extend to 2D range-sum queries, and why is it worth it?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "stack-and-monotonic-stack",
@@ -142,7 +140,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "503", title: "Next Greater Element II", initiallyComplete: true },
       { id: "84", title: "Largest Rectangle in Histogram", initiallyComplete: true },
     ],
-    quiz: [{ question: "What invariant does a monotonic stack maintain, and what problem shape does that solve?" }, { question: "Walk through how a monotonic decreasing stack finds the next greater element for every array position." }, { question: "How is 'Largest Rectangle in Histogram' related to monotonic stacks?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "binary-search",
@@ -162,7 +160,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "981", title: "Time Based Key-Value Store" },
       { id: "4", title: "Median of Two Sorted Arrays" },
     ],
-    quiz: [{ question: "Binary search assumes a sorted array — how do you recognize a problem where it applies even though nothing looks explicitly sorted?" }, { question: "What's the classic off-by-one bug in binary search, and how do you avoid it?" }, { question: "How does binary search adapt for a rotated sorted array, like 'Search in Rotated Sorted Array'?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "intervals",
@@ -182,7 +180,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "986", title: "Interval List Intersections" },
       { id: "1229", title: "Meeting Scheduler" },
     ],
-    quiz: [{ question: "What's the first step in nearly every interval-merging problem, and why does it matter so much?" }, { question: "How do you decide if two intervals overlap, and how do you merge them?" }, { question: "For 'Meeting Rooms II' — minimum number of rooms needed — why do you need both start and end events, not just merging?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "linked-list",
@@ -199,7 +197,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "143", title: "Reorder List", initiallyComplete: true },
       { id: "23", title: "Merge K Sorted Lists", initiallyComplete: true },
     ],
-    quiz: [{ question: "How do you detect a cycle in a linked list without extra memory, and how do you then find where it begins?" }, { question: "Walk through reversing a singly linked list iteratively." }, { question: "How is 'Copy List with Random Pointer' harder than a normal deep copy, and what's the O(1)-space trick?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "dfs",
@@ -226,7 +224,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "1254", title: "Number of Closed Islands", initiallyComplete: true, subcategory: "Flood fill / Grid DFS" },
       { id: "417", title: "Pacific Atlantic Water Flow", initiallyComplete: true, subcategory: "Flood fill / Grid DFS" },
     ],
-    quiz: [{ question: "When would you reach for DFS over BFS on a tree or graph problem?" }, { question: "How do you handle a grid flood-fill / island-counting DFS without risking a stack overflow on very large grids?" }, { question: "For backtracking problems like generating permutations or subsets, what makes the difference between DFS and plain recursion explicit?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "bfs",
@@ -247,7 +245,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "1293", title: "Shortest Path in a Grid with Obstacles Elimination", initiallyComplete: true, subcategory: "Shortest path" },
       { id: "847", title: "Shortest Path Visiting All Nodes", subcategory: "Shortest path" },
     ],
-    quiz: [{ question: "Why is BFS the right tool for shortest path in an unweighted graph, but not in a weighted one?" }, { question: "Walk through multi-source BFS and give an example of when it's needed." }, { question: "How do you detect a cycle in a directed graph using BFS, and how does that relate to topological sort?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "dijkstra-and-weighted-graphs",
@@ -263,7 +261,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "787", title: "Cheapest Flights Within K Stops", initiallyComplete: true },
       { id: "3341", title: "Find Minimum Time to Reach Last Room I", initiallyComplete: true },
     ],
-    quiz: [{ question: "Why does Dijkstra's algorithm fail on graphs with negative edge weights?" }, { question: "What data structure makes Dijkstra's algorithm efficient, and what's the resulting complexity?" }, { question: "How would you adapt Dijkstra to also reconstruct the actual shortest path, not just its length?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "union-find-and-mst",
@@ -278,7 +276,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "990", title: "Satisfiability of Equality Equations", initiallyComplete: true },
       { id: "1584", title: "Min Cost to Connect All Points", initiallyComplete: true },
     ],
-    quiz: [{ question: "What do path compression and union by rank/size each contribute to Union-Find's efficiency?" }, { question: "Why is Union-Find the natural structure for 'number of connected components' or 'redundant connection' problems?" }, { question: "Walk through Kruskal's algorithm for minimum spanning tree and explain where Union-Find comes in." }],
+    quizQuestionCount: 3,
   },
   {
     slug: "greedy",
@@ -294,7 +292,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "45", title: "Jump Game II", initiallyComplete: true },
       { id: "134", title: "Gas Station", initiallyComplete: true },
     ],
-    quiz: [{ question: "How do you tell whether a problem actually has the greedy-choice property, versus needing DP?" }, { question: "For 'Jump Game II' (minimum jumps to reach the end), what's the greedy insight?" }, { question: "In interval scheduling — maximizing the number of non-overlapping intervals you can select — why does sorting by end time (not start time) give the greedy optimum?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "trie",
@@ -308,7 +306,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "208", title: "Implement Trie (Prefix Tree)", initiallyComplete: true },
       { id: "211", title: "Design Add and Search Words Data Structure" },
     ],
-    quiz: [{ question: "What's the time complexity advantage a trie gives you over a hash set of strings for prefix queries?" }, { question: "How is a trie node typically structured, and how do you mark the end of a word?" }, { question: "When would a trie be the wrong choice compared to a simpler hash set, even for prefix problems?" }],
+    quizQuestionCount: 3,
   },
   {
     slug: "data-structures-to-know",
@@ -322,7 +320,7 @@ export const coreStudyTopics: StudyTopic[] = [
       { id: "146", title: "LRU Cache", initiallyComplete: true },
       { id: "380", title: "Insert Delete GetRandom O(1)", initiallyComplete: true, slug: "insert-delete-getrandom-o1" },
     ],
-    quiz: [{ question: "'Insert Delete GetRandom O(1)' asks for average O(1) insert, delete, and random access all at once — why doesn't a plain hash set or array alone satisfy that?" }, { question: "When would you reach for a heap versus a balanced BST when you need ordered access to a dynamic set?" }, { question: "What's the core design idea behind an LRU cache, and which two structures does it combine?" }],
+    quizQuestionCount: 3,
   },
 ];
 

@@ -1,9 +1,10 @@
 // Run once, locally, by the project owner (not part of the build/deploy pipeline):
-//   npm run seed:quiz-answers
+//   npm run seed:quizzes
 //
-// Populates the `quizAnswers/{quizId}` collection with the premium answer arrays that
-// intentionally do NOT live in the static site bundle - see the plan's "Premium quiz
-// architecture" and firestore.rules for why these are only readable by premium users.
+// Populates the `quizzes/{quizId}` collection with the full premium quiz content (both
+// questions and answers) that intentionally do NOT live in the static site bundle - see the
+// plan's "Premium quiz architecture" and firestore.rules for why these are only readable by
+// premium users.
 //
 // Needs Firebase Admin credentials for the `swecompanion` project. Either:
 //   - set GOOGLE_APPLICATION_CREDENTIALS to a service-account JSON key file, or
@@ -22,16 +23,16 @@ const app = existsSync(keyPath)
   : initializeApp({ credential: applicationDefault() });
 
 const db = getFirestore(app);
-const answers = JSON.parse(readFileSync(join(__dirname, "quizAnswers.json"), "utf8")) as Record<
+const quizzes = JSON.parse(readFileSync(join(__dirname, "quizzes.json"), "utf8")) as Record<
   string,
-  string[]
+  { questions: string[]; answers: string[] }
 >;
 
 async function main() {
-  const entries = Object.entries(answers);
-  for (const [quizId, list] of entries) {
-    await db.collection("quizAnswers").doc(quizId).set({ answers: list });
-    console.log(`Seeded ${quizId} (${list.length} answers)`);
+  const entries = Object.entries(quizzes);
+  for (const [quizId, quiz] of entries) {
+    await db.collection("quizzes").doc(quizId).set(quiz);
+    console.log(`Seeded ${quizId} (${quiz.questions.length} questions)`);
   }
   console.log(`Done - ${entries.length} quiz documents written.`);
 }

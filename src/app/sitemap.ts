@@ -14,7 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   for (const topic of studyTopics) {
     entries.push({ url: `${siteUrl}/topics/${topic.slug}`, priority: 0.7 });
-    if (topic.quiz && topic.quiz.length > 0) {
+    if ((topic.quizQuestionCount ?? 0) > 0) {
       entries.push({ url: `${siteUrl}/topics/${topic.slug}/quiz`, priority: 0.6 });
     }
   }
@@ -23,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     for (const topic of part.topics) {
       entries.push({ url: `${siteUrl}/ml/${topic.id}`, priority: 0.8 });
     }
-    if (part.quiz.length > 0) {
+    if (part.quizQuestionCount > 0) {
       entries.push({ url: `${siteUrl}/ml/${part.id}/quiz`, priority: 0.6 });
     }
   }

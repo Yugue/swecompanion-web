@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useAuth } from "@/lib/AuthProvider";
+import { GoogleIcon, GithubIcon } from "./BrandIcons";
 
 function friendlyError(err: unknown): string {
   const code = (err as { code?: string })?.code ?? "";
@@ -65,17 +66,17 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
             type="button"
             disabled={busy}
             onClick={() => run(signInWithGoogle)}
-            className="rounded-lg border border-outline bg-surface-high px-4 py-2.5 text-sm font-semibold text-text hover:brightness-110 disabled:opacity-50"
+            className="flex items-center justify-center gap-2.5 rounded-lg border border-outline bg-surface-high px-4 py-2.5 text-sm font-semibold text-text hover:brightness-110 disabled:opacity-50"
           >
-            Continue with Google
+            <GoogleIcon /> Continue with Google
           </button>
           <button
             type="button"
             disabled={busy}
             onClick={() => run(signInWithGithub)}
-            className="rounded-lg border border-outline bg-surface-high px-4 py-2.5 text-sm font-semibold text-text hover:brightness-110 disabled:opacity-50"
+            className="flex items-center justify-center gap-2.5 rounded-lg border border-outline bg-surface-high px-4 py-2.5 text-sm font-semibold text-text hover:brightness-110 disabled:opacity-50"
           >
-            Continue with GitHub
+            <GithubIcon /> Continue with GitHub
           </button>
         </div>
 

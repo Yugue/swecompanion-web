@@ -91,7 +91,7 @@ export function TopicDetails({
         })}
       </div>
 
-      {topic.quiz && topic.quiz.length > 0 && (
+      {(topic.quizQuestionCount ?? 0) > 0 && (
         <div className="border-t border-outline/50 px-5 py-4">
           <Link
             href={`/topics/${topic.slug}/quiz`}

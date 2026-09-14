@@ -33,10 +33,10 @@ service cloud.firestore {
       }
     }
 
-    // Quiz questions are public and live in the static site bundle, not here. Answers are
-    // premium-only content, seeded once via scripts/seedQuizAnswers.ts (Admin SDK, bypasses
-    // rules) - clients may only ever read them, and only when premium.
-    match /quizAnswers/{quizId} {
+    // Quiz questions AND answers are premium-only content - neither ships in the static site
+    // bundle. Seeded once via scripts/seedQuizzes.ts (Admin SDK, bypasses rules) - clients may
+    // only ever read them, and only when premium.
+    match /quizzes/{quizId} {
       allow read: if isPremium();
       allow write: if false;
     }
