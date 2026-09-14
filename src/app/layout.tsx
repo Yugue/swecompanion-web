@@ -22,18 +22,18 @@ export const metadata: Metadata = {
   },
 };
 
-// Applied before hydration so the default theme (dark, matching the original app) never flashes
-// light first, and a returning visitor's saved choice is respected immediately.
+// Applied before hydration so the default theme (light) never flashes dark first, and a
+// returning visitor's saved choice is respected immediately.
 const noFlashThemeScript = `
 try {
   var saved = localStorage.getItem('theme_v1');
-  if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 } catch (e) {}
 `;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" data-theme="dark" className="h-full" suppressHydrationWarning>
+    <html lang="en" data-theme="light" className="h-full" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: noFlashThemeScript }} />
       </head>

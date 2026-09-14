@@ -28,17 +28,6 @@
   --color-text-muted: #9aa0a6;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg: #101216;
-    --color-surface: #191c22;
-    --color-surface-high: #252932;
-    --color-outline: #3c424d;
-    --color-text: #e3e7ee;
-    --color-text-muted: #9aa0a6;
-  }
-}
-
 @theme inline {
   --color-bg: var(--color-bg);
   --color-surface: var(--color-surface);
