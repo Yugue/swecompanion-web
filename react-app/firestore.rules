@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isPremium() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.premium == true;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+
+      // First-time profile creation must start non-premium.
+      allow create: if isOwner(userId) && request.resource.data.premium == false;
+
+      // `premium` can never change from a client write - only the Firestore console
+      // (or a future billing Cloud Function using the Admin SDK, which bypasses rules) can flip it.
+      allow update: if isOwner(userId) &&
+        request.resource.data.premium == resource.data.premium;
+
+      match /progress/{kind} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Quiz questions are public and live in the static site bundle, not here. Answers are
+    // premium-only content, seeded once via scripts/seedQuizAnswers.ts (Admin SDK, bypasses
+    // rules) - clients may only ever read them, and only when premium.
+    match /quizAnswers/{quizId} {
+      allow read: if isPremium();
+      allow write: if false;
+    }
+  }
+}

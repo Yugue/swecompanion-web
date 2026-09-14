@@ -1,0 +1,142 @@
+{
+  "ml-foundations": [
+    "Without them, the composition W\u2082(W\u2081x+b\u2081)+b\u2082 is still a single linear transformation and cannot model nonlinear boundaries.",
+    "[32, 64]: one 64-dimensional representation for each of 32 examples.",
+    "Raw, unbounded logits. It applies the sigmoid internally in a numerically stable way.",
+    "A logit is an unnormalized real-valued score. A probability is normalized and bounded, produced through sigmoid or softmax.",
+    "The gradient of a scalar loss with respect to intermediate values and parameters by applying the chain rule backward through the graph.",
+    "Increasing w locally increases the loss; gradient descent therefore moves w in the negative-gradient direction.",
+    "The negative log of the true-class probability grows rapidly as that probability approaches zero.",
+    "The model is overfitting: it fits training-specific patterns that do not generalize.",
+    "High bias underfits both train and validation data. High variance fits training data well but has a large validation gap.",
+    "Verify data/labels and loss wiring, overfit a tiny batch, inspect learning rate and gradients, then check initialization and activations."
+  ],
+  "ml-learning": [
+    "Loss decreases very slowly; gradients may be valid, but each parameter update is too small for the compute budget.",
+    "Clip the global gradient norm, then find the underlying cause such as learning rate, unstable operations, or bad inputs.",
+    "An exponential moving average of past gradients, which accelerates consistent directions and damps oscillation.",
+    "A per-parameter second-moment estimate that adaptively scales the first-moment update, plus bias correction.",
+    "Warmup protects unstable early steps; decay reduces later step size so training can refine a solution.",
+    "Its variance accounts for ReLU zeroing about half the signal, helping activation and gradient scales survive depth.",
+    "LayerNorm, because it normalizes each token across features and does not depend on batch composition or running batch statistics.",
+    "It is disabled; the training-time scaling already makes expected activation magnitude match inference.",
+    "They provide a clean identity route for signals and gradients, so each block can learn a residual correction.",
+    "Usually no. This is underfitting or an optimization/data problem; more regularization can make training fit worse."
+  ],
+  "ml-architectures": [
+    "A small kernel connects locally and the same kernel weights are shared across every spatial position.",
+    "floor((input + 2\u00d7padding \u2212 kernel)/stride) + 1 for each spatial axis.",
+    "The region of the original input that can influence one feature; it grows as convolutional or pooling layers stack.",
+    "It reduces spatial resolution and computation and adds some invariance, but loses exact location and fine detail.",
+    "h\u209c = f(W\u2093x\u209c + W\u2095h\u209c\u208b\u2081 + b), with the same parameters reused at each timestep.",
+    "It multiplies many recurrent Jacobians; repeated factors below or above one shrink or grow gradients exponentially.",
+    "Cell state c\u209c is the long-lived memory path; hidden state h\u209c is the exposed output used by the cell and downstream layers.",
+    "A GRU has no separate cell state and uses fewer gates, making it simpler and often cheaper.",
+    "During training, the decoder receives the true previous target token rather than its own previous prediction.",
+    "It removed the need to compress an entire input sequence into one fixed vector by letting each decoder step retrieve relevant encoder states."
+  ],
+  "ml-transformers": [
+    "Query says what the current token seeks; Key says what each token can match; Value carries the information retrieved when that match receives weight.",
+    "Compute QK\u1d40/\u221ad\u2096, apply any masks, then softmax across candidate key positions.",
+    "Unscaled dot products grow in variance with dimension, saturating softmax and shrinking useful gradients.",
+    "Separate learned projections let the model attend to different relationships and representation subspaces in parallel.",
+    "Position t cannot use tokens after t, so next-token training and generation remain autoregressive.",
+    "Plain self-attention has no inherent order; positions let identical token sets in different orders produce different representations.",
+    "Attention mixes information across positions; the feed-forward network transforms features independently at each position.",
+    "x + F(LN(x)); normalization is inside the sublayer branch, preserving a clean identity route.",
+    "Queries come from decoder states; keys and values come from encoder outputs.",
+    "It forms and processes an N\u00d7N compatibility matrix. Doubling N creates about four times as many token pairs."
+  ],
+  "ml-modern-deep-learning": [
+    "No. It is an arbitrary vocabulary index used to retrieve a learned dense embedding vector.",
+    "The raw sequence supplies both input and target by shifting itself; no human label is required.",
+    "No. Full fine-tuning can update all parameters; freezing and PEFT methods explicitly reduce the trainable subset.",
+    "Supervised fine-tuning on diverse instruction\u2013response examples so the model learns to interpret and follow instructions.",
+    "Freeze W and learn \u0394W = BA, where A and B have low rank r \u226a d; use W\u2032 = W + BA.",
+    "The best k partial sequences by cumulative score, repeatedly expanded and pruned at each generation step.",
+    "It divides logits before softmax: T<1 sharpens the distribution; T>1 flattens it.",
+    "Top-k always keeps k tokens. Top-p keeps the smallest variable-sized set whose cumulative probability reaches p.",
+    "Past Keys and Values for every layer; the new token computes a fresh Query and attends over those cached states.",
+    "Fine-tuning overwrites useful pretrained behavior. Mitigate it with a smaller learning rate, freezing, PEFT, or mixing broader data."
+  ],
+  "lc-hashmap-frequency-and-top-k": [
+    "Brute force checks every pair, O(n\u00b2) time and O(1) space. To optimize, walk the array once and keep a hash map from value to index. For each element x, check whether target - x is already in the map before inserting x \u2014 this gives one pass, O(n) time and O(n) space, and correctly handles duplicates because you check before inserting the current element.",
+    "Sorting the whole frequency list is O(n log n) when you only need the top k. Instead, count frequencies with a hash map, then use a min-heap of size k: push elements and pop the smallest whenever the heap exceeds k. That's O(n log k), which is much better when k is small relative to n.",
+    "Sorting + two pointers is O(n log n) time but O(1) extra space (or O(n) if you must preserve original indices, since sorting loses them). The hash map approach is O(n) time but O(n) space. If you need the original indices and space isn't constrained, the hash map wins on time; if memory is tight and you don't need indices, sorting is a reasonable trade."
+  ],
+  "lc-sorting": [
+    "If the values fall into a small, known number of categories (e.g. two or three distinct groups like 0/1 or red/white/blue), a single-pass partitioning scheme with pointers gets O(n) time and O(1) space \u2014 that's the Dutch National Flag pattern. If the values are arbitrary and you need a general-purpose sort, you fall back to divide-and-conquer: split, recursively sort each half, and merge in linear time for O(n log n).",
+    "Maintain three pointers: low, mid, high. Everything before low is 0s, between low and mid is 1s, and after high is 2s; mid is the current element being examined. If arr[mid] is 0, swap with low and advance both low and mid. If it's 1, just advance mid. If it's 2, swap with high and decrement high without advancing mid, since the swapped-in value still needs examining. The loop ends when mid passes high.",
+    "The log n factor comes from recursively halving the array until subarrays have one element, which takes log n levels. At each level, merging all the subarrays back together touches every element once, so each level costs O(n), and log n levels gives O(n log n) total. The merge step itself is linear because you only ever advance through each of the two sorted halves once, comparing fronts and taking the smaller."
+  ],
+  "lc-sliding-window": [
+    "The signal is usually 'longest' or 'shortest' contiguous subarray or substring satisfying some condition. If shrinking or growing a window from one side lets you incrementally maintain the condition \u2014 like a running count or a set of seen characters \u2014 that's sliding window. If you instead need a fixed relationship between two indices computed independently, that's more likely two pointers or prefix sum.",
+    "You expand the window by moving right until it contains all required characters, then shrink from the left as far as possible while it still satisfies that condition, recording the minimum length window seen. The invariant is a count map of required characters remaining to satisfy; expanding decreases the count, shrinking only proceeds while the count is fully satisfied.",
+    "Classic sliding window relies on the window's sum or count changing monotonically as you expand or shrink \u2014 negative numbers break that, since growing the window can decrease the sum. In that case, you typically switch to prefix sums combined with a hash map (to find complementary sums) or a different structure like a monotonic deque, rather than a simple two-pointer window."
+  ],
+  "lc-two-pointers": [
+    "The area is limited by the shorter of the two lines. If you move the pointer at the taller line inward, the width shrinks but the limiting height can only stay the same or get worse, so the area can't improve. Moving the shorter line's pointer is the only move that has a chance of finding a taller line and increasing the area, so it's the only move worth making.",
+    "Two pointers need sorting when you're exploiting order to decide which side to move \u2014 for example, in Two Sum on a sorted array, comparing the sum to the target tells you whether to move the left or right pointer inward. When pointers are just tracking positions for something like fast/slow cycle detection or in-place partitioning, order isn't required at all.",
+    "Two pointers on a pre-sorted array is O(n log n) if you have to sort first, then O(n) to scan, so O(n log n) overall, with O(1) extra space. The hash-map approach is O(n) time but O(n) space. If the array is already sorted, two pointers is strictly better; if it isn't and you can't destroy the original order, the hash map avoids the sort cost."
+  ],
+  "lc-prefix-sum-and-subarray": [
+    "If prefix[i] is the sum of the first i elements, the sum of any subarray (i, j] equals prefix[j] - prefix[i]. So you're looking for pairs of prefix sums that differ by exactly k. As you scan and compute each prefix sum, you check how many times prefix[j] - k has already occurred, using a hash map of prefix-sum frequencies seen so far, which turns an O(n\u00b2) brute force into O(n).",
+    "You have to seed the map with prefix sum 0 occurring once before you start scanning, to account for subarrays that start from index 0 and already equal the target sum exactly. Forgetting that undercounts any subarray beginning at the very start of the array.",
+    "You precompute a 2D prefix sum where each cell holds the sum of the rectangle from the origin to that cell, built in O(rows \u00d7 cols). Then any rectangular sub-rectangle sum can be computed in O(1) using inclusion-exclusion on four corner values, instead of resumming the rectangle every query. It's worth it whenever you have many range queries on a static grid."
+  ],
+  "lc-stack-and-monotonic-stack": [
+    "A monotonic stack keeps its elements in strictly increasing or decreasing order by popping elements that violate that order as you push a new one. That's exactly the right tool for 'next greater/smaller element' style problems, because popping an element means you've just found its next greater (or smaller) neighbor \u2014 the current element you're pushing.",
+    "Scan left to right, and for each new value, pop everything on the stack smaller than it \u2014 each pop's next-greater answer is the current value, since it's the first larger element to its right. After popping, push the current value's index. Anything still on the stack at the end has no next greater element.",
+    "You keep a stack of indices with increasing bar heights. When you hit a bar shorter than the stack's top, that top bar can't extend any further right, so you pop it and compute the rectangle using its height and a width spanning from the new stack top to the current index. This finds, for every bar, the maximal rectangle where it's the shortest bar, in O(n) total."
+  ],
+  "lc-binary-search": [
+    "The real requirement isn't a sorted array, it's a monotonic predicate \u2014 a yes/no answer that flips exactly once as you move along a range. If you can define 'is this candidate answer feasible' and that feasibility is monotonic in the candidate value, you can binary search on the answer itself, like minimizing the maximum load or finding a minimum capacity.",
+    "The usual bug is an infinite loop or missed element from inconsistent boundary updates \u2014 for example using mid = (lo+hi)/2 with hi = mid instead of hi = mid - 1 when you've already ruled out mid. The fix is to be explicit about whether your range is inclusive or half-open and keep the invariant consistent every iteration; a safe default is lo <= hi with hi = mid - 1 and lo = mid + 1 for a closed range.",
+    "At each step, at least one half of the array (from lo to mid, or mid to hi) is still properly sorted. Check which half is sorted by comparing arr[lo] to arr[mid], then check whether the target falls within that sorted half's range \u2014 if so recurse there, otherwise recurse into the other half. This keeps it O(log n) despite the rotation."
+  ],
+  "lc-intervals": [
+    "Sort the intervals by start time. Once sorted, you only ever need to compare each interval to the last one you've kept, because any overlap must happen with the most recently added interval \u2014 you never have to look back further than that. Skipping the sort turns an O(n log n) problem into something that needs much more bookkeeping.",
+    "Two intervals [a,b] and [c,d], sorted so a <= c, overlap when c <= b. If they overlap, merge them into [a, max(b,d)]; if not, the first interval is finalized and you move on to comparing the next pair.",
+    "You're not merging overlapping meetings, you're counting the maximum number that are simultaneously in progress. Separate and sort all start times and end times independently; sweep through them in order, incrementing a room counter on a start and decrementing on an end when it happens before or at the next start. The maximum value the counter reaches is the answer. A min-heap of end times is an equivalent way to track this."
+  ],
+  "lc-linked-list": [
+    "Floyd's cycle detection: a slow pointer moves one step, a fast pointer moves two; if there's a cycle they'll eventually meet inside it. To find the cycle's start, reset one pointer to the head and advance both one step at a time from there \u2014 they meet exactly at the cycle's entry point, because of the distance relationship between the head, the cycle start, and the meeting point.",
+    "Keep three pointers: prev starting at null, curr starting at head, and a temporary next. At each step, save next = curr.next, point curr.next back to prev, then advance prev = curr and curr = next. When curr is null, prev is the new head. It's O(n) time, O(1) space.",
+    "The random pointer can point anywhere in the list, including forward, so you can't build the copy in one pass with a simple hash map unless you accept O(n) extra space. The O(1)-space trick interleaves each cloned node right after its original (A\u2192A'\u2192B\u2192B'\u2192...), which lets you set each clone's random pointer as original.random.next, then unweave the interleaved list back into two separate lists."
+  ],
+  "lc-dfs": [
+    "DFS is the natural fit when you need to explore full paths before backtracking \u2014 counting paths, exploring all combinations, or when you need to process a subtree's results before its parent, like computing heights or validating a BST. BFS is better when you specifically need shortest-path-in-unweighted-graph or level-by-level structure.",
+    "Recursive DFS is clean but can blow the call stack on very large connected regions since many runtimes have shallow default recursion limits. An explicit stack (iterative DFS) avoids that risk while preserving the same visited-set logic \u2014 push neighbors instead of recursing, and pop until the stack is empty.",
+    "It's the same idea, but backtracking explicitly undoes a choice after exploring it \u2014 add a candidate to the current path, recurse, then remove it before trying the next candidate. That mutate-recurse-undo pattern is what lets you reuse one array/path structure across the whole search instead of allocating a new one at every level."
+  ],
+  "lc-bfs": [
+    "BFS explores nodes in increasing order of distance from the source because it processes the graph level by level using a queue \u2014 the first time you reach a node is guaranteed to be via a shortest path, but only when every edge has the same 'cost' of 1. With weighted edges, a longer path in terms of edge count can have a smaller total weight, so you need something like Dijkstra's that accounts for edge weight.",
+    "Instead of starting the queue with a single node, you seed it with every source node at distance 0 simultaneously, then run standard BFS. This correctly computes, for every cell, the shortest distance to the nearest of multiple sources at once \u2014 for example, 'Rotting Oranges,' where every already-rotten orange is a simultaneous source.",
+    "Kahn's algorithm: compute in-degrees for every node, start a BFS queue with all zero-in-degree nodes, and each time you process a node, decrement its neighbors' in-degrees, enqueuing any that hit zero. If you process fewer nodes than exist in the graph by the time the queue empties, there's a cycle, because some nodes never reached in-degree zero. If you process all nodes, the order you dequeued them in is a valid topological sort."
+  ],
+  "lc-dijkstra-and-weighted-graphs": [
+    "Dijkstra greedily finalizes the shortest distance to a node as soon as it's popped from the priority queue, assuming no future relaxation could improve it \u2014 that assumption only holds if all remaining edge weights are non-negative. A negative edge could later reduce the distance to an already-finalized node, which Dijkstra would miss. Bellman-Ford handles negative weights by relaxing every edge repeatedly instead of greedily finalizing.",
+    "A min-heap (priority queue) keyed on current best-known distance, so you always expand the closest unvisited node next. With a binary heap, that gives O((V + E) log V) time \u2014 each edge can trigger a heap insertion, and each is O(log V).",
+    "Keep a parent/predecessor array alongside the distance array; whenever you relax an edge and improve a node's distance, record the node you relaxed it from. Once the algorithm finishes, walk backward from the destination through the parent pointers to reconstruct the path, then reverse it."
+  ],
+  "lc-union-find-and-mst": [
+    "Path compression flattens the tree during find operations by pointing nodes directly to the root, so future lookups are faster. Union by rank/size attaches the smaller tree under the bigger one's root during union, preventing the tree from growing tall in the first place. Together they give near-constant amortized time per operation \u2014 technically O(\u03b1(n)), the inverse Ackermann function.",
+    "Those problems are fundamentally asking whether two nodes already belong to the same group, and merging groups as you process edges \u2014 exactly what union and find operations do. You process each edge once: if the two endpoints are already connected, that edge is redundant (or would create a cycle); otherwise, you union them.",
+    "Sort all edges by weight ascending. Go through them in order, and for each edge, use Union-Find to check if its two endpoints are already connected \u2014 if not, add the edge to the MST and union the two sets; if they are already connected, adding it would create a cycle, so skip it. You stop once you've added n-1 edges for n nodes."
+  ],
+  "lc-greedy": [
+    "You need to be able to argue that a locally optimal choice at each step never precludes reaching a globally optimal solution \u2014 usually via an exchange argument, showing that any optimal solution can be transformed into one that includes your greedy choice without getting worse. If the optimal choice at a step depends on what you choose later, or overlapping subproblems interact, that's a sign you need DP instead.",
+    "Track the farthest index reachable from the current 'jump window,' and the end of the current window. As you scan, keep extending the farthest reachable index; once you reach the end of the current window, you must take a jump, so increment the jump count and extend the window to the farthest index found so far. This greedily commits to a jump only when forced to, which minimizes total jumps.",
+    "Sorting by end time and always picking the interval that finishes earliest among those still compatible leaves the most room for future intervals. Sorting by start time doesn't have that guarantee, because an early-starting interval can still block out a lot of the timeline if it runs long. The exchange argument shows any optimal solution can be rearranged to match this earliest-finish-first choice without losing intervals."
+  ],
+  "lc-trie": [
+    "A hash set can tell you if an exact string exists in O(1) average, but checking whether any string starts with a given prefix requires scanning every entry, O(n \u00b7 L) in the worst case. A trie answers 'does any word start with this prefix' in O(L) time, where L is the prefix length, by just walking down L trie nodes, regardless of how many words are stored.",
+    "Each node holds an array or map of children keyed by character, plus a boolean flag (often isEndOfWord) marking whether a valid word ends at that node. Insertion walks character by character, creating child nodes as needed, and sets that flag true at the final character's node.",
+    "If you never actually need prefix queries \u2014 only exact membership checks \u2014 a trie adds memory overhead (a node per character, potentially with a full alphabet-sized children array) for no benefit over a hash set's O(1) average lookup. Tries earn their keep specifically when prefix matching, autocomplete, or word-with-wildcard search is part of the requirement."
+  ],
+  "lc-data-structures-to-know": [
+    "An array alone gives O(1) random access via a random index, but deletion from the middle is O(n) if you shift elements. A hash set alone gives O(1) insert/delete/lookup but has no way to pick a uniformly random element in O(1). The trick is combining both: an array for O(1) random-index access, plus a hash map from value to its array index for O(1) lookup, and on deletion, swap the target with the last array element before popping, updating the map, to avoid shifting.",
+    "A heap gives you O(log n) insert and O(log n) extract-min/max, but only efficient access to the single min or max \u2014 no efficient arbitrary rank or range queries. A balanced BST (or a language's ordered map/set) supports O(log n) insert, delete, and lookup of arbitrary elements, plus in-order traversal and range queries. If you only ever need the extreme element, a heap is simpler and often faster in practice; if you need general ordered access, use a BST-backed structure.",
+    "You need O(1) get and put while always knowing which entry was least recently used. A hash map gives O(1) lookup from key to a node, and a doubly linked list maintains usage order \u2014 moving a node to the front on every access, and evicting from the back when the cache is full. The combination gives O(1) for both operations, which neither structure alone would provide."
+  ]
+}
