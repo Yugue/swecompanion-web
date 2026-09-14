@@ -22,7 +22,7 @@ The actual Transformer equation is:
 \boxed{
 \operatorname{Attention}(Q,K,V)
 =
-\operatorname{softmax}
+\mathrm{softmax}
 \left(
 \frac{QK^T}{\sqrt{d_k}}
 \right)V
@@ -345,7 +345,7 @@ Original representation
 Each head independently computes:
 
 \[
-\operatorname{softmax}
+\mathrm{softmax}
 \left(
 \frac{Q_iK_i^T}{\sqrt{64}}
 \right)V_i

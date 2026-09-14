@@ -77,6 +77,7 @@ enum _LessonBlockType {
   heading3,
   paragraph,
   bullet,
+  numbered,
   quote,
   code,
   diagram,
@@ -107,6 +108,7 @@ List<_LessonBlock> _parseLesson(String source) {
         trimmed == '---' ||
         trimmed.startsWith('- ') ||
         trimmed.startsWith('* ') ||
+        _numberedItem.hasMatch(trimmed) ||
         trimmed.startsWith('>') ||
         _isTableLine(trimmed);
   }
@@ -185,6 +187,11 @@ List<_LessonBlock> _parseLesson(String source) {
       index++;
       continue;
     }
+    if (_numberedItem.hasMatch(trimmed)) {
+      blocks.add(_LessonBlock(_LessonBlockType.numbered, trimmed));
+      index++;
+      continue;
+    }
     if (trimmed.startsWith('>')) {
       final content = <String>[];
       while (index < lines.length && lines[index].trim().startsWith('>')) {
@@ -225,6 +232,8 @@ void _removeSourceTitle(List<String> lines) {
 
 bool _isTableLine(String line) =>
     line.startsWith('|') && line.endsWith('|') && line.length > 2;
+
+final _numberedItem = RegExp(r'^\d+\.\s+');
 
 bool _startsTable(List<String> lines, int index) {
   if (index + 1 >= lines.length || !_isTableLine(lines[index].trim())) {
@@ -306,6 +315,37 @@ class _LessonBlockView extends StatelessWidget {
               Expanded(
                 child: _InlineMarkdown(
                   block.text,
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.52,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      case _LessonBlockType.numbered:
+        final match = _numberedItem.firstMatch(block.text)!;
+        return Padding(
+          padding: const EdgeInsets.only(left: 5, bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 29,
+                child: Text(
+                  match.group(0)!.trim(),
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _InlineMarkdown(
+                  block.text.substring(match.end),
                   style: TextStyle(
                     fontSize: 15,
                     height: 1.52,
@@ -560,39 +600,47 @@ class _InlineMarkdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spans = <InlineSpan>[];
-    final pattern = RegExp(r'(\*\*.+?\*\*|`.+?`|\\\(.+?\\\))');
+    final pattern = RegExp(r'(\*\*|`[^`]*`|\\\(.*?\\\))');
     var cursor = 0;
+    var bold = false;
+
+    void appendText(String value) {
+      if (value.isEmpty) return;
+      spans.add(
+        TextSpan(
+          text: _readableInline(value),
+          style: bold ? const TextStyle(fontWeight: FontWeight.w700) : null,
+        ),
+      );
+    }
+
     for (final match in pattern.allMatches(text)) {
-      if (match.start > cursor) {
-        spans.add(
-          TextSpan(text: _readableInline(text.substring(cursor, match.start))),
-        );
-      }
+      appendText(text.substring(cursor, match.start));
       final token = match.group(0)!;
-      if (token.startsWith(r'\(')) {
+      if (token == '**') {
+        bold = !bold;
+      } else if (token.startsWith(r'\(')) {
+        final expression = token.substring(2, token.length - 2);
+        final mathTextStyle = style.copyWith(
+          fontSize: style.fontSize ?? 15,
+          fontWeight: bold ? FontWeight.w700 : style.fontWeight,
+        );
         spans.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2),
               child: Math.tex(
-                token.substring(2, token.length - 2),
+                expression,
                 mathStyle: MathStyle.text,
-                textStyle: style.copyWith(fontSize: style.fontSize ?? 15),
+                textStyle: mathTextStyle,
                 onErrorFallback:
                     (error) => Text(
-                      token.substring(2, token.length - 2),
-                      style: style.copyWith(fontFamily: 'monospace'),
+                      expression,
+                      style: mathTextStyle.copyWith(fontFamily: 'monospace'),
                     ),
               ),
             ),
-          ),
-        );
-      } else if (token.startsWith('**')) {
-        spans.add(
-          TextSpan(
-            text: _readableInline(token.substring(2, token.length - 2)),
-            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
         );
       } else {
@@ -602,6 +650,7 @@ class _InlineMarkdown extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'monospace',
               fontSize: (style.fontSize ?? 15) - 1,
+              fontWeight: bold ? FontWeight.w700 : null,
               backgroundColor:
                   Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
@@ -610,9 +659,7 @@ class _InlineMarkdown extends StatelessWidget {
       }
       cursor = match.end;
     }
-    if (cursor < text.length) {
-      spans.add(TextSpan(text: _readableInline(text.substring(cursor))));
-    }
+    appendText(text.substring(cursor));
     return Text.rich(TextSpan(style: style, children: spans));
   }
 }

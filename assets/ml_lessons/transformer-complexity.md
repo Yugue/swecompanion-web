@@ -22,7 +22,7 @@ Attention is:
 \[
 \operatorname{Attention}(Q,K,V)
 =
-\operatorname{softmax}
+\mathrm{softmax}
 \left(
 \frac{QK^T}{\sqrt{d_k}}
 \right)V

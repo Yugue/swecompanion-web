@@ -272,7 +272,7 @@ Temperature changes the logits before softmax:
 \[
 \boxed{
 P_i=
-\operatorname{softmax}
+\mathrm{softmax}
 \left(\frac{z_i}{T}\right)
 }
 \]

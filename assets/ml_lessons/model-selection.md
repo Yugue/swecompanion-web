@@ -498,7 +498,7 @@ The difficult part is not writing that line.
 It's making sure:
 
 \[
-\boxed{\text{validation_loss actually represents what you care about}}
+\boxed{\text{validation loss actually represents what you care about}}
 \]
 
 ---

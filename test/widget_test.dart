@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swe_companion/main.dart';
 import 'package:swe_companion/ml_lesson_view.dart';
@@ -339,7 +340,35 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('DIAGRAM / FLOW'), findsWidgets);
+    expect(find.text('CODE / EXAMPLE'), findsWidgets);
+    expect(find.byType(Table), findsWidgets);
     expect(find.text('Natural starting point'), findsOneWidget);
+  });
+
+  testWidgets('attention equations and numbered points render in the lesson', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1000, 12000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: MlLessonView(
+              topicId: 'scaled-multihead',
+              accent: Colors.green,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Math), findsWidgets);
+    expect(find.textContaining(r'\boxed{'), findsNothing);
+    expect(find.text('1.'), findsWidgets);
+    expect(find.text('2.'), findsWidgets);
+    expect(find.text('DIAGRAM / FLOW'), findsWidgets);
   });
 
   testWidgets(

@@ -198,7 +198,7 @@ So the complete equation is:
 \boxed{
 \operatorname{Attention}(Q,K,V)
 =
-\operatorname{softmax}
+\mathrm{softmax}
 \left(
 \frac{QK^T}{\sqrt{d_k}} + M
 \right)V
