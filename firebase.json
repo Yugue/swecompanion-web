@@ -1,11 +1,11 @@
 {
   "hosting": {
-    "public": "react-app/out",
+    "public": "out",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "cleanUrls": true,
     "trailingSlash": false
   },
   "firestore": {
-    "rules": "react-app/firestore.rules"
+    "rules": "firestore.rules"
   }
 }
