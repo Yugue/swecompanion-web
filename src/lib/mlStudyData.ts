@@ -556,6 +556,146 @@ export const mlParts: MlPart[] = [
     ],
     quizQuestionCount: 0,
   },
+  {
+    id: "system-design",
+    number: "8",
+    title: "ML system design",
+    description:
+      "Where the center of gravity shifts from software architecture to the ML lifecycle living inside it.",
+    color: "#EC4899",
+    icon: "Network",
+    topics: [
+      {
+        id: "ml-system-design-framing",
+        title: "ML system design vs traditional system design",
+        summary:
+          "An ML system design interview still cares about production architecture, but the center of gravity shifts from the software system itself to the ML lifecycle running inside it.",
+        keyPoints: [
+          "Traditional SD centers on service boundaries, APIs, databases and schemas, caching, replication/sharding, consistency, load balancing, failure handling, and storage/throughput scaling.",
+          "ML SD keeps all of that as the backdrop, but centers on problem formulation, data/label quality, feature design, model choice, training objective, class imbalance, offline evaluation, threshold selection, train/validation/test strategy, inference architecture, monitoring for drift and model quality, retraining/rollout, and scaling training and serving.",
+          "A useful mental split: traditional SD asks 'how do I build and scale the software system?'; ML SD asks 'how do I build, evaluate, serve, and maintain the model inside the software system?'",
+          "The strongest answers move fluidly between both registers instead of treating them as separate interviews.",
+        ],
+        interviewPrompt:
+          "An interviewer asks you to design a fraud-detection system. Name three traditional-SD concerns and three ML-SD concerns you'd address, and explain why the ML-SD ones now dominate the conversation.",
+        code: "traditional SD: build + scale the software system\nML SD: build + evaluate + serve + maintain the model inside it",
+      },
+      {
+        id: "problem-formulation",
+        title: "Problem formulation",
+        summary:
+          "Before any model exists, an ML system design answer has to translate a business goal into a learnable prediction task with a concrete input, output, and label definition.",
+        keyPoints: [
+          "State the business metric first (revenue, churn, fraud losses), then translate it into a proxy ML objective the model can actually optimize.",
+          "Fix the unit of prediction: per-request, per-user, per-session, per-item-pair - this decision shapes the data, the features, and the serving path.",
+          "Decide the task type (binary classification, ranking, regression, sequence generation) and justify it against the business decision it feeds.",
+          "Name what a label even means operationally, and how far in the future it becomes observable - that delay drives the rest of the design.",
+        ],
+        interviewPrompt:
+          "For 'predict which users will churn next month', walk through turning that sentence into a concrete prediction unit, label definition, and task type.",
+      },
+      {
+        id: "data-and-label-quality",
+        title: "Data and label quality",
+        summary:
+          "A model is only as good as its labels; interviewers probe whether you notice leakage, noisy labels, and label delay before you ever get to model choice.",
+        keyPoints: [
+          "Ask where labels come from: human annotation, implicit signal (clicks, purchases), or a downstream outcome - each has a different noise and delay profile.",
+          "Implicit labels are cheap but biased by what the current system already shows users - this is exposure bias, and it silently limits what the model can learn.",
+          "Leakage sneaks in through features only available after the label is known, or through preprocessing (e.g. normalization) computed over the full dataset before splitting.",
+          "Label delay - the gap between an event and its ground truth becoming known - determines how fast you can retrain and how you validate online.",
+        ],
+        interviewPrompt:
+          "Your fraud labels arrive from chargebacks 60-90 days after a transaction. What does that delay force you to do differently in training data construction and retraining cadence?",
+      },
+      {
+        id: "feature-design",
+        title: "Feature design",
+        summary:
+          "Feature design is where domain knowledge enters the system - the choice of what information the model sees and when it becomes available.",
+        keyPoints: [
+          "Separate features by freshness: static (rarely changes), slowly-changing (daily aggregates), and real-time (must be computed at request time).",
+          "A feature store exists to guarantee training/serving consistency - the same feature definition and freshness must be used offline and online, or you get train/serve skew.",
+          "Prefer features that generalize (aggregates, ratios, embeddings) over ones that memorize (raw IDs) unless the model and data volume can support the latter.",
+          "Every real-time feature adds a serving dependency and latency cost - justify it against the accuracy it buys.",
+        ],
+        interviewPrompt:
+          "You want to add 'number of failed logins in the last 10 minutes' as a fraud-detection feature. What does that require on the serving path, and what could go wrong if training and serving compute it differently?",
+        code: "train_time_feature(x) == serve_time_feature(x)  # the feature-store guarantee",
+      },
+      {
+        id: "model-choice-and-objective",
+        title: "Model choice and training objective",
+        summary:
+          "Model choice is a means to an end - the training objective (loss) has to match the actual decision the system will make with the model's output.",
+        keyPoints: [
+          "Start from a simple, well-understood baseline (logistic regression, gradient-boosted trees) before justifying a more complex model - the baseline sets the bar the complex model must clear.",
+          "The loss function must reflect the real cost structure: cross-entropy assumes calibrated probabilities matter; a ranking loss assumes only relative order matters.",
+          "Model choice trades off accuracy against interpretability, training cost, inference latency, and how much labeled data is actually available.",
+          "A model that wins on offline loss but can't hit the latency budget in production is the wrong model, regardless of its accuracy.",
+        ],
+        interviewPrompt:
+          "Why might a gradient-boosted tree beat a deep neural network for a tabular fraud model with 50k labeled examples, even though the neural network has higher capacity?",
+      },
+      {
+        id: "class-imbalance",
+        title: "Class imbalance",
+        summary:
+          "Most production ML problems (fraud, churn, rare disease, ad clicks) are heavily imbalanced, and the naive approach - just train on the raw data - quietly fails.",
+        keyPoints: [
+          "A model can get 99.9% accuracy on a 0.1%-positive-rate dataset by always predicting the majority class - accuracy is the wrong headline metric here.",
+          "Resampling (oversample the minority class, undersample the majority, or SMOTE-style synthesis) rebalances training data, but changes what the model's raw output probabilities mean.",
+          "Class-weighted loss functions penalize minority-class mistakes more heavily without duplicating or discarding data.",
+          "Whatever technique you pick, evaluate on the original, untouched class distribution - resampling is a training-time trick, not a change to reality.",
+        ],
+        interviewPrompt:
+          "You oversample the positive class 50x during training. What happens to the model's predicted probabilities, and how do you correctly calibrate or threshold them at inference time?",
+      },
+      {
+        id: "evaluation-thresholds-and-splits",
+        title: "Offline evaluation, thresholds, and train/validation/test strategy",
+        summary:
+          "A model's raw score is not a decision - offline evaluation, threshold selection, and a leakage-free split strategy together turn a score into something the business can act on.",
+        keyPoints: [
+          "Pick offline metrics that match the deployment decision: precision/recall/F1 or PR-AUC for imbalanced classification, ranking metrics (NDCG, MRR) for ranking, calibration error when probabilities are consumed directly.",
+          "Threshold selection is a business decision expressed in ML terms - moving the threshold trades precision for recall along the curve; pick the point that matches the true cost of false positives vs false negatives.",
+          "For data with a time dimension, split chronologically (train on the past, validate/test on the future) instead of randomly, or you leak future information into training.",
+          "Re-validate the threshold after any retrain - the operating point that was optimal for one data distribution silently drifts as the distribution shifts.",
+        ],
+        interviewPrompt:
+          "Your fraud model has to choose a single threshold. Walk through how you'd pick it, given that a false positive blocks a legitimate purchase and a false negative costs a chargeback.",
+      },
+      {
+        id: "inference-and-serving-scale",
+        title: "Inference architecture and scaling serving",
+        summary:
+          "How a model is served - batch, online, or streaming - and how training and serving scale are architecture decisions that shape everything upstream of them.",
+        keyPoints: [
+          "Batch inference (precompute predictions on a schedule) is cheap and simple but can't react to fresh input; online/real-time inference reacts immediately but adds a hard latency budget to every request.",
+          "A common middle ground: precompute expensive representations (embeddings) in batch, and do a cheap, fast operation (dot product, small model) online.",
+          "Scaling training usually means data or model parallelism across GPUs/TPUs; scaling serving usually means horizontal replicas behind a load balancer, plus caching of hot predictions or embeddings.",
+          "Model size, quantization, and distillation are serving-side levers to hit a latency/cost budget without retraining a fundamentally different model.",
+        ],
+        interviewPrompt:
+          "Design the serving path for a recommendation system that must return results in under 100ms for 10,000 requests per second. What's precomputed, and what's computed at request time?",
+      },
+      {
+        id: "monitoring-drift-and-retraining",
+        title: "Monitoring, drift, and retraining/rollout",
+        summary:
+          "A deployed model is not a finished product - production ML needs monitoring to detect when the world has changed, and a retraining/rollout process to respond safely.",
+        keyPoints: [
+          "Monitor at three levels: input data (feature distributions shifting), predictions (the model's output distribution shifting), and, once available, ground truth (accuracy actually degrading).",
+          "Distribution shift comes in flavors: covariate shift (input distribution changes), label shift (class balance changes), and concept drift (the relationship between input and label itself changes).",
+          "Retraining triggers are usually scheduled (weekly/monthly) or threshold-based (fire when a monitored metric crosses a limit) - both need a labeled, delay-aware feedback loop to work at all.",
+          "Roll out a new model gradually (shadow traffic, then a small percentage, then full rollout) with an easy rollback path, the same discipline used for any risky software deploy.",
+        ],
+        interviewPrompt:
+          "Your fraud model's precision quietly drops over three months with no code changes. Walk through how you'd detect that, diagnose whether it's covariate shift or concept drift, and decide whether to retrain.",
+      },
+    ],
+    quizQuestionCount: 0,
+  },
 ];
 
 export const mlTopicsById: Record<string, MlTopic> = Object.fromEntries(
