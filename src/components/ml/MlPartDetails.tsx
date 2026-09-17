@@ -70,7 +70,7 @@ export function MlPartDetails({
               checked={completed.has(topic.id)}
               onChange={() => onToggleTopic(topic.id)}
               className="size-[18px] shrink-0 accent-[var(--accent)]"
-              aria-label={`Mark ${topic.title} reviewed`}
+              aria-label={`Mark ${topic.title} completed`}
             />
             <span className="w-9 shrink-0 text-right text-xs font-bold text-text-muted">
               {part.number}.{i + 1}

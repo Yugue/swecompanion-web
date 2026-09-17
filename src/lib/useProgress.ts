@@ -31,7 +31,13 @@ export function useProgress(kind: "leetcode" | "ml", initial: string[]) {
   const storageKey = `progress_${kind}_v1`;
   const { user } = useAuth();
   const [completed, setCompleted] = useState<Set<string>>(() => new Set(initial));
-  const hydrated = useRef(false);
+  // `hydrated` has to be React state, not a ref: it's set in the same effect as `setCompleted`,
+  // and only state updates from the same effect are guaranteed to land in the same render. With a
+  // ref, `hydrated.current` flips to true synchronously while the paired `setCompleted` is still
+  // pending, so the persist effect below could fire once with hydrated=true but the *old* (empty)
+  // `completed` closure and write that empty set back over real localStorage data - React Strict
+  // Mode's double-invoked effects turned that into a permanent data loss, not just a flicker.
+  const [hydrated, setHydrated] = useState(false);
   const completedRef = useRef(completed);
   useEffect(() => {
     completedRef.current = completed;
@@ -44,15 +50,15 @@ export function useProgress(kind: "leetcode" | "ml", initial: string[]) {
     // correcting from it here - once - is the standard pattern for this exact SSR/CSR gap.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCompleted(loadLocal(storageKey, initial));
-    hydrated.current = true;
+    setHydrated(true);
     // Only run once on mount - `initial` is a stable default set from static data.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!hydrated.current) return;
+    if (!hydrated) return;
     window.localStorage.setItem(storageKey, JSON.stringify([...completed]));
-  }, [completed, storageKey]);
+  }, [completed, hydrated, storageKey]);
 
   useEffect(() => {
     if (!user || mergedForUid.current === user.uid) return;

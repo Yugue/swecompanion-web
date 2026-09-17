@@ -19,7 +19,7 @@ export function LessonCompleteToggle({ topicId, accent }: { topicId: string; acc
       }}
     >
       <CheckCircle2 size={17} />
-      {done ? "Marked reviewed" : "Mark as reviewed"}
+      {done ? "Marked completed" : "Mark as completed"}
     </button>
   );
 }

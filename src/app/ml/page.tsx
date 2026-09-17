@@ -106,7 +106,7 @@ export default function MlHubPage() {
 
             {results.length === 0 ? (
               <div className="rounded-xl border border-outline bg-surface px-6 py-14 text-center">
-                <p className="mb-3 font-semibold text-text">No review topics match those filters.</p>
+                <p className="mb-3 font-semibold text-text">No topics match those filters.</p>
                 <button
                   type="button"
                   onClick={() => {
