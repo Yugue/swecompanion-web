@@ -1,3 +1,7 @@
+"use client";
+
+import { useLayoutEffect, useRef, useState } from "react";
+
 export function ProgressRing({
   done,
   total,
@@ -15,6 +19,20 @@ export function ProgressRing({
   const progress = total === 0 ? 0 : safeDone / total;
   const radius = size / 2 - strokeWidth;
   const circumference = 2 * Math.PI * radius;
+  const label = `${safeDone}/${total}`;
+
+  const labelRef = useRef<HTMLSpanElement>(null);
+  const [scale, setScale] = useState(1);
+
+  // Shrink the label (rather than letting it overflow the ring) when the digit count grows -
+  // e.g. "181/199" or "15/15" would otherwise poke past the circle at a fixed font size.
+  useLayoutEffect(() => {
+    const el = labelRef.current;
+    if (!el) return;
+    const naturalWidth = el.scrollWidth;
+    const maxWidth = size * 0.7;
+    setScale(naturalWidth > maxWidth ? maxWidth / naturalWidth : 1);
+  }, [label, size]);
 
   return (
     <div
@@ -46,12 +64,15 @@ export function ProgressRing({
           style={{ transition: "stroke-dashoffset 200ms ease" }}
         />
       </svg>
-      <span
-        className="absolute inset-0 flex items-center justify-center font-extrabold tabular-nums"
-        style={{ color, fontSize: size * 0.25 }}
-      >
-        {safeDone}/{total}
-      </span>
+      <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+        <span
+          ref={labelRef}
+          className="inline-block whitespace-nowrap font-extrabold tabular-nums"
+          style={{ color, fontSize: size * 0.25, transform: `scale(${scale})` }}
+        >
+          {label}
+        </span>
+      </div>
     </div>
   );
 }

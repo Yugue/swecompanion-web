@@ -19,7 +19,7 @@ export function ProblemRow({
   onToggle: (id: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-3.5 border-t border-outline/40 px-3.5 py-2.5 first:border-t-0">
+    <div className="flex items-center gap-3.5 border-t border-outline/40 px-5 py-2.5 first:border-t-0">
       <input
         type="checkbox"
         checked={complete}
