@@ -30,7 +30,7 @@ export function ProgressRing({
     const el = labelRef.current;
     if (!el) return;
     const naturalWidth = el.scrollWidth;
-    const maxWidth = size * 0.7;
+    const maxWidth = size * 0.8;
     setScale(naturalWidth > maxWidth ? maxWidth / naturalWidth : 1);
   }, [label, size]);
 
@@ -68,7 +68,7 @@ export function ProgressRing({
         <span
           ref={labelRef}
           className="inline-block whitespace-nowrap font-extrabold tabular-nums"
-          style={{ color, fontSize: size * 0.25, transform: `scale(${scale})` }}
+          style={{ color, fontSize: size * 0.32, transform: `scale(${scale})` }}
         >
           {label}
         </span>
