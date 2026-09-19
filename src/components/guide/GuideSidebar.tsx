@@ -3,6 +3,7 @@
 import { LayoutDashboard, RotateCcw } from "lucide-react";
 import type { StudyTopic } from "@/lib/studyData";
 import { uniqueProblems } from "@/lib/studyData";
+import { chapterPath } from "@/lib/codingPaths";
 import { ProgressRing } from "@/components/ProgressRing";
 import { ProductMark } from "@/components/ProductMark";
 
@@ -45,7 +46,7 @@ export function GuideSidebar({
             <button
               key={topic.slug}
               type="button"
-              onClick={() => onJump(topic.slug)}
+              onClick={() => onJump(chapterPath(topic))}
               className="mb-1 flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left hover:bg-surface-high"
             >
               <span className="size-1.5 shrink-0 rounded-full" style={{ background: topic.color }} />

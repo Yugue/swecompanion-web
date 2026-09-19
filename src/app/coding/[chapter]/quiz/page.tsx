@@ -2,43 +2,44 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { studyTopics, studyTopicsBySlug } from "@/lib/studyData";
+import { studyTopics } from "@/lib/studyData";
+import { CODING_PATH, chapterPath, chapterHref, studyTopicsByPath } from "@/lib/codingPaths";
 import { TopBar } from "@/components/TopBar";
 import { QuizSection } from "@/components/quiz/QuizSection";
 
 export function generateStaticParams() {
-  return studyTopics.filter((t) => (t.quizQuestionCount ?? 0) > 0).map((t) => ({ slug: t.slug }));
+  return studyTopics.filter((t) => (t.quizQuestionCount ?? 0) > 0).map((t) => ({ chapter: chapterPath(t) }));
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ chapter: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const topic = studyTopicsBySlug[slug];
+  const { chapter } = await params;
+  const topic = studyTopicsByPath[chapter];
   if (!topic) return {};
   return {
     title: `${topic.title} Mock Interview Quiz`,
     description: `${topic.quizQuestionCount} realistic interview-style questions on ${topic.title.toLowerCase()}, written to match a real L4-L6 interview. Premium.`,
-    alternates: { canonical: `/topics/${slug}/quiz` },
+    alternates: { canonical: `${CODING_PATH}/${chapter}/quiz` },
   };
 }
 
 export default async function TopicQuizPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ chapter: string }>;
 }) {
-  const { slug } = await params;
-  const topic = studyTopicsBySlug[slug];
+  const { chapter } = await params;
+  const topic = studyTopicsByPath[chapter];
   if (!topic || !topic.quizQuestionCount) notFound();
 
   return (
     <div className="flex min-h-screen flex-col" style={{ "--accent": topic.color } as React.CSSProperties}>
       <TopBar activeTrack="leetcode" />
       <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8">
-        <Link href={`/topics/${topic.slug}`} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
+        <Link href={chapterHref(topic)} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
           <ArrowLeft size={16} /> {topic.title}
         </Link>
 

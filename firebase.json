@@ -3,7 +3,26 @@
     "public": "out",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "cleanUrls": true,
-    "trailingSlash": false
+    "trailingSlash": false,
+    "redirects": [
+      { "source": "/", "destination": "/coding", "type": 302 },
+      { "source": "/mldomain", "destination": "/mldomain/deeplearning", "type": 302 },
+      { "source": "/ml", "destination": "/mldomain/deeplearning", "type": 301 },
+      { "source": "/ml/:path*", "destination": "/mldomain/deeplearning/:path*", "type": 301 },
+      { "source": "/aml", "destination": "/mldomain/appliedml", "type": 301 },
+      { "source": "/aml/:path*", "destination": "/mldomain/appliedml/:path*", "type": 301 },
+      { "source": "/topics/hashmap-frequency-and-top-k/:rest*", "destination": "/coding/hashmap/:rest*", "type": 301 },
+      { "source": "/topics/prefix-sum-and-subarray/:rest*", "destination": "/coding/prefix-sum/:rest*", "type": 301 },
+      { "source": "/topics/stack-and-monotonic-stack/:rest*", "destination": "/coding/stack/:rest*", "type": 301 },
+      { "source": "/topics/dijkstra-and-weighted-graphs/:rest*", "destination": "/coding/dijkstra/:rest*", "type": 301 },
+      { "source": "/topics/union-find-and-mst/:rest*", "destination": "/coding/union-find/:rest*", "type": 301 },
+      { "source": "/topics/data-structures-to-know/:rest*", "destination": "/coding/data-structures/:rest*", "type": 301 },
+      { "source": "/topics/mixed-leetcode-challenge-set-round-4/:rest*", "destination": "/coding/challenge-4/:rest*", "type": 301 },
+      { "source": "/topics/mixed-leetcode-challenge-set-round-3/:rest*", "destination": "/coding/challenge-3/:rest*", "type": 301 },
+      { "source": "/topics/mixed-leetcode-challenge-set-round-2/:rest*", "destination": "/coding/challenge-2/:rest*", "type": 301 },
+      { "source": "/topics/mixed-leetcode-challenge-set-round-1/:rest*", "destination": "/coding/challenge-1/:rest*", "type": 301 },
+      { "source": "/topics/:path*", "destination": "/coding/:path*", "type": 301 }
+    ]
   },
   "firestore": {
     "rules": "firestore.rules"

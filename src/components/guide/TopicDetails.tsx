@@ -3,12 +3,12 @@
    module-level map, never defines a new component; this pattern reads as unsafe to the linter's
    heuristic but isn't. */
 
-import Link from "next/link";
-import { ChevronDown, ChevronUp, Link as LinkIcon } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { StudyTopic, StudyProblem } from "@/lib/studyData";
 import { getIcon } from "@/lib/icons";
 import { ProgressRing } from "@/components/ProgressRing";
 import { QuizTeaser } from "@/components/quiz/QuizTeaser";
+import { chapterPath, chapterQuizHref } from "@/lib/codingPaths";
 import { ProblemRow } from "./ProblemRow";
 
 export function TopicDetails({
@@ -31,7 +31,7 @@ export function TopicDetails({
 
   return (
     <details
-      id={topic.slug}
+      id={chapterPath(topic)}
       open={open}
       onToggle={(e) => {
         if (e.currentTarget.open !== open) onToggle();
@@ -52,14 +52,6 @@ export function TopicDetails({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="truncate text-lg font-bold tracking-tight text-text">{topic.title}</h3>
-            <Link
-              href={`/topics/${topic.slug}`}
-              onClick={(e) => e.stopPropagation()}
-              title={`Overview page for ${topic.title}`}
-              className="shrink-0 text-[var(--accent)]"
-            >
-              <LinkIcon size={16} />
-            </Link>
           </div>
           <p className={`text-sm leading-relaxed text-text-muted ${open ? "" : "line-clamp-2"}`}>
             {topic.note}
@@ -73,18 +65,33 @@ export function TopicDetails({
 
       <div className="border-t-[3px]" style={{ borderColor: "var(--accent)" }} />
 
-      <div className="py-1">
+      <div className="pb-1">
         {problems.map((problem, i) => {
-          const showHeading = problem.subcategory && problem.subcategory !== problems[i - 1]?.subcategory;
+          const heading = problem.subcategory;
+          const showHeading = heading && heading !== problems[i - 1]?.subcategory;
+          // Progress is over the whole subcategory, not just the rows the current search shows.
+          const group = showHeading ? topic.problems.filter((p) => p.subcategory === heading) : [];
+          const groupDone = group.filter((p) => completed.has(p.id)).length;
           return (
-            <div key={problem.id} className={i > 0 ? "border-t border-outline/40" : undefined}>
+            <div key={problem.id} className={i > 0 && !showHeading ? "border-t border-outline/40" : undefined}>
               {showHeading && (
-                <div className="flex items-center gap-3.5 px-5 pb-1 pt-4">
+                <div
+                  className={`flex items-center gap-3.5 border-outline/50 bg-surface-high/40 px-5 py-2.5 ${
+                    i > 0 ? "border-y" : "border-b"
+                  }`}
+                >
                   <span className="flex w-11 shrink-0 justify-center">
-                    <span className="size-1.5 rounded-full" style={{ background: "var(--accent)" }} />
+                    <span className="h-4 w-1 rounded-full" style={{ background: "var(--accent)" }} />
                   </span>
-                  <span className="text-[13px] font-extrabold uppercase tracking-wide text-[var(--accent)]">
-                    {problem.subcategory}
+                  <h4 className="min-w-0 flex-1 truncate text-sm font-bold tracking-tight text-text">
+                    {heading}
+                  </h4>
+                  <span
+                    className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold tabular-nums text-accent-ink"
+                    style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}
+                    title={`${groupDone} of ${group.length} completed`}
+                  >
+                    {groupDone}/{group.length}
                   </span>
                 </div>
               )}
@@ -96,7 +103,7 @@ export function TopicDetails({
 
       {(topic.quizQuestionCount ?? 0) > 0 && (
         <QuizTeaser
-          href={`/topics/${topic.slug}/quiz`}
+          href={chapterQuizHref(topic)}
           title={`${topic.shortTitle} mock interview`}
           questionCount={topic.quizQuestionCount ?? 0}
           className="border-t border-outline/50"

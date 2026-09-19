@@ -5,6 +5,8 @@ import { Menu } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { AccountMenu } from "./auth/AccountMenu";
 import { ProductMark } from "./ProductMark";
+import { DEFAULT_ML_DOMAIN_PATH } from "@/lib/mlDomains";
+import { CODING_PATH } from "@/lib/codingPaths";
 
 export function TopBar({
   activeTrack,
@@ -25,7 +27,7 @@ export function TopBar({
           <Menu size={22} />
         </button>
       )}
-      <Link href="/" className="flex items-center gap-2.5">
+      <Link href={CODING_PATH} className="flex items-center gap-2.5">
         <ProductMark size={28} />
         <span className="hidden text-[15px] font-semibold tracking-tight text-text md:inline">
           Interview study workspace
@@ -34,7 +36,7 @@ export function TopBar({
       <div className="flex-1" />
       <div className="flex items-center gap-1 rounded-lg border border-outline/75 bg-surface p-0.5">
         <Link
-          href="/"
+          href={CODING_PATH}
           className={`rounded-md px-3 py-1.5 text-[13px] font-bold ${
             activeTrack === "leetcode" ? "bg-accent-blue/15 text-accent-blue" : "text-text-muted"
           }`}
@@ -42,7 +44,7 @@ export function TopBar({
           LeetCode
         </Link>
         <Link
-          href="/ml"
+          href={DEFAULT_ML_DOMAIN_PATH}
           className={`rounded-md px-3 py-1.5 text-[13px] font-bold ${
             activeTrack === "ml" ? "bg-accent-blue/15 text-accent-blue" : "text-text-muted"
           }`}
