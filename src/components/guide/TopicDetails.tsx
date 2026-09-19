@@ -8,6 +8,7 @@ import { ChevronDown, ChevronUp, Link as LinkIcon } from "lucide-react";
 import type { StudyTopic, StudyProblem } from "@/lib/studyData";
 import { getIcon } from "@/lib/icons";
 import { ProgressRing } from "@/components/ProgressRing";
+import { QuizTeaser } from "@/components/quiz/QuizTeaser";
 import { ProblemRow } from "./ProblemRow";
 
 export function TopicDetails({
@@ -94,14 +95,12 @@ export function TopicDetails({
       </div>
 
       {(topic.quizQuestionCount ?? 0) > 0 && (
-        <div className="border-t border-outline/50 px-5 py-4">
-          <Link
-            href={`/topics/${topic.slug}/quiz`}
-            className="text-sm font-semibold text-[var(--accent)] hover:underline"
-          >
-            Practice the {topic.shortTitle} mock interview quiz →
-          </Link>
-        </div>
+        <QuizTeaser
+          href={`/topics/${topic.slug}/quiz`}
+          title={`${topic.shortTitle} mock interview`}
+          questionCount={topic.quizQuestionCount ?? 0}
+          className="border-t border-outline/50"
+        />
       )}
     </details>
   );

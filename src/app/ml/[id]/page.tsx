@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ClipboardCheck } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { mlParts, mlTopicsById, mlPartIdForTopic, mlPartsById } from "@/lib/mlStudyData";
 import { lessonExists } from "@/lib/getLessonBlocks";
 import { TopBar } from "@/components/TopBar";
 import { LessonView } from "@/components/lesson/LessonView";
 import { InlineMarkdown } from "@/components/lesson/InlineMarkdown";
 import { LessonCompleteToggle } from "@/components/ml/LessonCompleteToggle";
+import { QuizTeaser } from "@/components/quiz/QuizTeaser";
 
 export function generateStaticParams() {
   return mlParts.flatMap((part) => part.topics.map((topic) => ({ id: topic.id })));
@@ -105,13 +106,12 @@ export default async function MlLessonPage({
         <LessonView topicId={topic.id} />
 
         {part.quizQuestionCount > 0 && (
-          <Link
+          <QuizTeaser
             href={`/ml/${part.id}/quiz`}
-            className="mt-8 flex items-center justify-center gap-2 rounded-lg border border-[var(--accent)] px-4 py-3 text-sm font-semibold text-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]"
-          >
-            <ClipboardCheck size={17} /> Finished this chapter? Test yourself with the mock
-            interview quiz →
-          </Link>
+            title={`Test yourself: Chapter ${part.number} mock interview`}
+            questionCount={part.quizQuestionCount}
+            className="mt-8 rounded-xl border border-outline"
+          />
         )}
       </main>
     </div>

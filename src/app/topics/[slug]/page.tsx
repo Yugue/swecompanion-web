@@ -4,10 +4,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ClipboardCheck, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { studyTopics, studyTopicsBySlug, leetCodeUrl } from "@/lib/studyData";
 import { getIcon } from "@/lib/icons";
 import { TopBar } from "@/components/TopBar";
+import { QuizTeaser } from "@/components/quiz/QuizTeaser";
 
 export function generateStaticParams() {
   return studyTopics.map((topic) => ({ slug: topic.slug }));
@@ -99,12 +100,12 @@ export default async function TopicLandingPage({
         </div>
 
         {(topic.quizQuestionCount ?? 0) > 0 && (
-          <Link
+          <QuizTeaser
             href={`/topics/${topic.slug}/quiz`}
-            className="mt-6 flex items-center justify-center gap-2 rounded-lg border border-[var(--accent)] px-4 py-3 text-sm font-semibold text-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]"
-          >
-            <ClipboardCheck size={17} /> Practice the {topic.shortTitle} mock interview quiz →
-          </Link>
+            title={`${topic.shortTitle} mock interview`}
+            questionCount={topic.quizQuestionCount ?? 0}
+            className="mt-6 rounded-xl border border-outline"
+          />
         )}
       </main>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lock, Sparkles, Eye, EyeOff, Mic } from "lucide-react";
+import { Check, Lock, Sparkles, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { usePremium } from "@/lib/usePremium";
 import { useQuiz } from "@/lib/useQuiz";
@@ -12,12 +12,15 @@ export function QuizSection({
   title,
   covers,
   questionCount,
+  proof,
 }: {
   quizId: string;
   title: string;
   /** One-line description of what the quiz covers, shown even to non-premium visitors. */
   covers: string;
   questionCount: number;
+  /** Optional one-line credibility statement shown in the unlock card. */
+  proof?: string;
 }) {
   const { user } = useAuth();
   const { premium, loading: premiumLoading } = usePremium();
@@ -56,36 +59,83 @@ export function QuizSection({
 
       {!unlocked && (
         <>
-          <p className="mb-4 text-sm leading-relaxed text-text-muted">{covers}</p>
-          <div className="flex flex-col items-start gap-4 rounded-lg border border-outline bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <div
-                className="flex size-11 shrink-0 items-center justify-center rounded-full"
-                style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)" }}
-              >
-                <Mic size={20} style={{ color: "var(--accent)" }} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-text">
-                  {questionCount} question{questionCount === 1 ? "" : "s"}, written to match a real
-                  L4–L6 interview
+          <p className="mb-5 text-sm leading-relaxed text-text-muted">
+            Covers: {covers}
+          </p>
+
+          <div className="grid gap-4 md:grid-cols-[1.25fr_1fr]">
+            <div className="rounded-lg border border-outline bg-surface p-5">
+              <h4 className="mb-3 text-base font-bold leading-snug text-text">
+                {questionCount} questions designed to reflect real interview questions
+              </h4>
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  "Phrased the way real L4–L6 interviewers probe this topic: open-ended prompts, follow-ups, and trade-offs - not definition trivia.",
+                  "A model answer for every question, so you hear what a clear, concise answer sounds like and can grade yourself honestly.",
+                  "Built like a mock interview: read the question, answer out loud, then reveal - the same pressure as the real thing.",
+                ].map((line) => (
+                  <li key={line} className="flex items-start gap-2.5 text-sm leading-relaxed text-text-muted">
+                    <span
+                      className="mt-0.5 flex size-[18px] shrink-0 items-center justify-center rounded-full"
+                      style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)" }}
+                    >
+                      <Check size={12} strokeWidth={3} style={{ color: "var(--accent)" }} />
+                    </span>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+              {proof && (
+                <p className="mt-4 border-t border-outline/60 pt-3.5 text-[13px] font-semibold leading-relaxed text-text">
+                  {proof}
                 </p>
-                <p className="mt-1 max-w-md text-sm leading-relaxed text-text-muted">
-                  These aren&apos;t generic trivia - they&apos;re phrased and paced the way an
-                  interviewer actually probes this topic, with model answers you can compare
-                  yourself against. Questions and answers are both premium.
-                </p>
-              </div>
+              )}
             </div>
+
+            <div className="flex flex-col gap-2" aria-hidden="true">
+              {Array.from({ length: Math.min(3, questionCount) }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2.5 rounded-lg border border-outline bg-surface p-3"
+                >
+                  <span
+                    className="flex size-6 shrink-0 items-center justify-center rounded text-xs font-extrabold"
+                    style={{
+                      color: "var(--accent)",
+                      background: "color-mix(in srgb, var(--accent) 14%, transparent)",
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="flex flex-1 flex-col gap-1.5">
+                    <span className="h-2.5 rounded bg-surface-high" style={{ width: `${88 - i * 14}%` }} />
+                    <span className="h-2.5 rounded bg-surface-high" style={{ width: `${56 - i * 8}%` }} />
+                  </span>
+                  <Lock size={15} className="shrink-0 text-text-muted" />
+                </div>
+              ))}
+              {questionCount > 3 && (
+                <p className="px-1 text-xs font-semibold text-text-muted">
+                  + {questionCount - 3} more, each with a model answer
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3 rounded-lg border border-outline bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm leading-relaxed text-text-muted">
+              <span className="font-bold text-text">Free to sign up.</span> Your account also saves
+              your progress across devices.
+            </p>
             <button
               type="button"
               onClick={() => (user ? undefined : setDialogOpen(true))}
               disabled={user !== null && (premiumLoading || premium)}
-              className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+              className="flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-5 py-3 text-sm font-bold text-white shadow-sm transition-[filter] hover:brightness-110 disabled:opacity-60"
               style={{ background: "var(--accent)" }}
             >
               <Lock size={16} />
-              {!user ? "Sign in to unlock" : premiumLoading ? "Checking access…" : "Upgrade to unlock"}
+              {!user ? "Sign in to unlock the mock interview" : premiumLoading ? "Checking access…" : "Upgrade to unlock"}
             </button>
           </div>
           {user && !premiumLoading && !premium && (

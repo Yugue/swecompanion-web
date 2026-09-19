@@ -46,8 +46,8 @@ export default async function MlChapterQuizPage({
           {part.title} mock interview quiz
         </h1>
         <p className="mb-6 text-base leading-relaxed text-text-muted">
-          The questions your interviewer actually asks about {part.title.toLowerCase()} - answer
-          like you&apos;re in the room.
+          {part.quizQuestionCount} questions designed to reflect real interview questions on{" "}
+          {part.title.toLowerCase()} - answer like you&apos;re in the room.
         </p>
 
         <QuizSection
@@ -55,6 +55,7 @@ export default async function MlChapterQuizPage({
           title={`Chapter ${part.number} quiz`}
           covers={part.description}
           questionCount={part.quizQuestionCount}
+          proof="Written by people who passed the ML domain interview using this guide."
         />
       </main>
     </div>

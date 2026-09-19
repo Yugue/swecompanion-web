@@ -46,8 +46,8 @@ export default async function TopicQuizPage({
           {topic.title} mock interview quiz
         </h1>
         <p className="mb-6 text-base leading-relaxed text-text-muted">
-          The questions your interviewer actually asks about {topic.title.toLowerCase()} - answer
-          like you&apos;re in the room.
+          {topic.quizQuestionCount} questions designed to reflect real interview questions on{" "}
+          {topic.title.toLowerCase()} - answer like you&apos;re in the room.
         </p>
 
         <QuizSection
