@@ -72,15 +72,17 @@ export function TopicDetails({
 
       <div className="border-t-[3px]" style={{ borderColor: "var(--accent)" }} />
 
-      <div>
+      <div className="py-1">
         {problems.map((problem, i) => {
           const showHeading = problem.subcategory && problem.subcategory !== problems[i - 1]?.subcategory;
           return (
-            <div key={problem.id}>
+            <div key={problem.id} className={i > 0 ? "border-t border-outline/40" : undefined}>
               {showHeading && (
-                <div className="flex items-center gap-2 px-5 pb-1.5 pt-4.5">
-                  <span className="size-1.5 rounded-full" style={{ background: "var(--accent)" }} />
-                  <span className="text-sm font-extrabold uppercase tracking-wide text-[var(--accent)]">
+                <div className="flex items-center gap-3.5 px-5 pb-1 pt-4">
+                  <span className="flex w-11 shrink-0 justify-center">
+                    <span className="size-1.5 rounded-full" style={{ background: "var(--accent)" }} />
+                  </span>
+                  <span className="text-[13px] font-extrabold uppercase tracking-wide text-[var(--accent)]">
                     {problem.subcategory}
                   </span>
                 </div>

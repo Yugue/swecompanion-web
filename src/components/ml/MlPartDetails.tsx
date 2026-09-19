@@ -4,8 +4,8 @@
    heuristic but isn't. */
 
 import Link from "next/link";
-import { ChevronDown, ChevronUp, ClipboardCheck } from "lucide-react";
-import type { MlPart } from "@/lib/mlStudyData";
+import { ChevronDown, ChevronRight, ChevronUp, ClipboardCheck } from "lucide-react";
+import { mlPartsById, type MlPart } from "@/lib/mlStudyData";
 import { getIcon } from "@/lib/icons";
 import { ProgressRing } from "@/components/ProgressRing";
 
@@ -59,32 +59,51 @@ export function MlPartDetails({
 
       <div className="border-t-[3px]" style={{ borderColor: "var(--accent)" }} />
 
-      <div>
-        {part.topics.map((topic, i) => (
-          <div
-            key={topic.id}
-            className="flex items-center gap-3 border-t border-outline/40 px-5 py-2.5 first:border-t-0"
-          >
-            <input
-              type="checkbox"
-              checked={completed.has(topic.id)}
-              onChange={() => onToggleTopic(topic.id)}
-              className="size-[18px] shrink-0 accent-[var(--accent)]"
-              aria-label={`Mark ${topic.title} completed`}
-            />
-            <span className="w-9 shrink-0 text-right text-xs font-bold text-text-muted">
-              {part.number}.{i + 1}
-            </span>
-            <Link
-              href={`/ml/${topic.id}`}
-              className={`flex-1 text-[15px] leading-snug hover:underline ${
-                completed.has(topic.id) ? "text-text-muted line-through" : "text-text"
+      <div className="py-1">
+        {part.topics.map((topic, i) => {
+          const isDone = completed.has(topic.id);
+          // Number by position in the full chapter, so search/filter doesn't renumber lessons.
+          const position = (mlPartsById[part.id]?.topics.findIndex((t) => t.id === topic.id) ?? i) + 1;
+          return (
+            <div
+              key={topic.id}
+              className={`flex items-center gap-3.5 px-5 transition-colors hover:bg-surface-high/50 ${
+                i > 0 ? "border-t border-outline/40" : ""
               }`}
             >
-              {topic.title}
-            </Link>
-          </div>
-        ))}
+              <span className="flex w-11 shrink-0 justify-center">
+                <input
+                  type="checkbox"
+                  checked={isDone}
+                  onChange={() => onToggleTopic(topic.id)}
+                  className="size-[18px] cursor-pointer accent-[var(--accent)]"
+                  aria-label={`Mark ${topic.title} completed`}
+                />
+              </span>
+              <Link
+                href={`/ml/${topic.id}`}
+                className="flex min-w-0 flex-1 items-center gap-3.5 py-2.5"
+              >
+                <span
+                  className="w-11 shrink-0 text-sm font-bold tabular-nums"
+                  style={{ color: isDone ? "var(--color-text-muted)" : "var(--accent)" }}
+                >
+                  {part.number}.{position}
+                </span>
+                <span
+                  className={`min-w-0 flex-1 text-[15px] leading-snug ${
+                    isDone ? "text-text-muted line-through decoration-text-muted" : "text-text"
+                  }`}
+                >
+                  {topic.title}
+                </span>
+                <span className="flex w-9 shrink-0 justify-center text-text-muted sm:w-11">
+                  <ChevronRight size={17} />
+                </span>
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
       {part.quizQuestionCount > 0 && (

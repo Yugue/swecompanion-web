@@ -76,12 +76,12 @@ export function MlHero() {
           </div>
           <DialogueLine
             speaker="Candidate"
-            text="Recall asks: of all the real positive cases, how many did we catch? Missing a cancer case can be especially costly, so recall may matter more there; in spam filtering, wrongly hiding a legitimate email can make precision important. I can walk through an example from a project where we chose the metric and threshold around those trade-offs."
+            text="Sure! Recall is basically: out of all the cases that were actually positive, how many did we catch? So if 100 patients really have cancer and our model flags 90 of them, recall is 90%, and the 10 we missed are the false negatives. It only cares about missed positives, not false alarms, so on its own it's easy to game: flagging everyone gives 100% recall. I'd lean on recall when missing a real case is the expensive mistake, like cancer screening, where we'd happily take a few false alarms to catch as many real cases as we can. Spam filtering is the opposite. A spam email slipping through is just annoying, but a legitimate email, like a job offer, landing in spam really hurts, so precision matters more there. And if we want one number that balances both, we can use F1."
           />
           <p className="mt-2.5 text-sm leading-relaxed text-text-muted">
             The key concept in this example is recall. Explain what it measures, why missed
-            positives matter, the trade-offs, and a concrete project example. Spending time on
-            unrelated concepts does not help. If coding comes up, expect simple implementation or
+            positives matter, and the trade-offs. Spending time on unrelated concepts does not
+            help. If coding comes up, expect simple implementation or
             pseudocode rather than building a Transformer from scratch.
           </p>
         </div>

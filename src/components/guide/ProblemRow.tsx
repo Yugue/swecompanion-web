@@ -9,6 +9,11 @@ const DIFFICULTY_COLOR: Record<string, string> = {
   Hard: "#EA4335",
 };
 
+/**
+ * Columns line up with the topic card header above: the checkbox is centered in a 44px box under
+ * the header's icon tile, the problem number starts where the header title starts, and the link
+ * icon is centered in a 44px box under the progress ring.
+ */
 export function ProblemRow({
   problem,
   complete,
@@ -19,22 +24,24 @@ export function ProblemRow({
   onToggle: (id: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-3.5 border-t border-outline/40 px-5 py-2.5 first:border-t-0">
-      <input
-        type="checkbox"
-        checked={complete}
-        onChange={() => onToggle(problem.id)}
-        className="size-[18px] shrink-0 accent-[var(--accent)]"
-        aria-label={`Mark ${problem.title} complete`}
-      />
+    <label className="flex cursor-pointer items-center gap-3.5 px-5 py-2 transition-colors hover:bg-surface-high/50">
+      <span className="flex w-11 shrink-0 justify-center">
+        <input
+          type="checkbox"
+          checked={complete}
+          onChange={() => onToggle(problem.id)}
+          className="size-[18px] cursor-pointer accent-[var(--accent)]"
+          aria-label={`Mark ${problem.title} complete`}
+        />
+      </span>
       <span
-        className="w-12 shrink-0 text-right text-sm font-bold tabular-nums"
+        className="w-11 shrink-0 text-sm font-bold tabular-nums"
         style={{ color: complete ? "var(--color-text-muted)" : "var(--accent)" }}
       >
         {problem.id}
       </span>
       <span
-        className={`flex-1 text-[15px] leading-snug ${
+        className={`min-w-0 flex-1 text-[15px] leading-snug ${
           complete ? "text-text-muted line-through decoration-text-muted" : "text-text"
         }`}
       >
@@ -42,7 +49,7 @@ export function ProblemRow({
       </span>
       {problem.difficulty && (
         <span
-          className="shrink-0 rounded px-1.5 py-1 text-[11px] font-bold"
+          className="shrink-0 rounded px-1.5 py-1 text-center text-[11px] font-bold sm:w-16"
           style={{
             color: DIFFICULTY_COLOR[problem.difficulty],
             background: `color-mix(in srgb, ${DIFFICULTY_COLOR[problem.difficulty]} 13%, transparent)`,
@@ -56,10 +63,10 @@ export function ProblemRow({
         target="_blank"
         rel="noreferrer"
         title={`Open ${problem.title} on LeetCode`}
-        className="flex size-9 shrink-0 items-center justify-center rounded-md text-[var(--accent)] hover:bg-surface-high"
+        className="flex h-8 w-9 shrink-0 items-center justify-center rounded-md text-[var(--accent)] hover:bg-surface-high sm:w-11"
       >
-        <ExternalLink size={18} />
+        <ExternalLink size={17} />
       </a>
-    </div>
+    </label>
   );
 }
