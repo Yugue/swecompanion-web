@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { studyTopics } from "@/lib/studyData";
 import { mlParts } from "@/lib/mlStudyData";
+import { amlParts } from "@/lib/amlStudyData";
 
 export const dynamic = "force-static";
 
@@ -10,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, priority: 1 },
     { url: `${siteUrl}/ml`, priority: 1 },
+    { url: `${siteUrl}/aml`, priority: 1 },
   ];
 
   for (const topic of studyTopics) {
@@ -25,6 +27,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
     if (part.quizQuestionCount > 0) {
       entries.push({ url: `${siteUrl}/ml/${part.id}/quiz`, priority: 0.6 });
+    }
+  }
+
+  for (const part of amlParts) {
+    for (const topic of part.topics) {
+      entries.push({ url: `${siteUrl}/aml/${topic.id}`, priority: 0.8 });
+    }
+    if (part.quizQuestionCount > 0) {
+      entries.push({ url: `${siteUrl}/aml/${part.id}/quiz`, priority: 0.6 });
     }
   }
 
