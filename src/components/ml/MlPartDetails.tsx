@@ -9,6 +9,7 @@ import { mlPartsById, type MlPart } from "@/lib/mlStudyData";
 import { getIcon } from "@/lib/icons";
 import { ProgressRing } from "@/components/ProgressRing";
 import { QuizTeaser } from "@/components/quiz/QuizTeaser";
+import { DEEP_LEARNING_PATH } from "@/lib/mlDomains";
 
 export function MlPartDetails({
   part,
@@ -16,7 +17,7 @@ export function MlPartDetails({
   open,
   onToggle,
   onToggleTopic,
-  basePath = "/ml",
+  basePath = DEEP_LEARNING_PATH,
   partsById = mlPartsById,
 }: {
   part: MlPart;

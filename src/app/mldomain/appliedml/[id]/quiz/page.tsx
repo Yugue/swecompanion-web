@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { amlParts, amlPartsById } from "@/lib/amlStudyData";
 import { TopBar } from "@/components/TopBar";
+import { APPLIED_ML_PATH } from "@/lib/mlDomains";
 import { QuizSection } from "@/components/quiz/QuizSection";
 
 export function generateStaticParams() {
@@ -21,7 +22,7 @@ export async function generateMetadata({
   return {
     title: `${part.title} Mock Interview Quiz`,
     description: `${part.quizQuestionCount} realistic interview-style questions covering applied ML ${part.title.toLowerCase()}, written to match a real L4-L6 interview. Premium.`,
-    alternates: { canonical: `/aml/${id}/quiz` },
+    alternates: { canonical: `${APPLIED_ML_PATH}/${id}/quiz` },
   };
 }
 
@@ -38,7 +39,7 @@ export default async function AppliedMlChapterQuizPage({
     <div className="flex min-h-screen flex-col" style={{ "--accent": part.color } as React.CSSProperties}>
       <TopBar activeTrack="ml" />
       <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8">
-        <Link href={`/aml#${part.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
+        <Link href={`${APPLIED_ML_PATH}#${part.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
           <ArrowLeft size={16} /> Chapter {part.number} — {part.title}
         </Link>
 

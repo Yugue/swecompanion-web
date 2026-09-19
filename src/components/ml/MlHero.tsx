@@ -1,20 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, MessageSquare, Target, Mic } from "lucide-react";
 import { mlTopicCount, mlParts } from "@/lib/mlStudyData";
-
-/** `href` is set only for domains that have a guide; the rest render as non-interactive chips. */
-const DOMAINS: { name: string; href?: string }[] = [
-  { name: "Agentic AI Development" },
-  { name: "Applied Machine Learning → Basics of ML", href: "/aml" },
-  { name: "Recommendations / Ranking / Predictions (RRP)" },
-  { name: "Computer Vision (CV) / Image Processing" },
-  { name: "Natural Language Processing / Understanding (NLP / NLU)" },
-  { name: "Speech / Audio" },
-  { name: "Deep Learning / Neural Networks", href: "/ml" },
-  { name: "Reinforcement Learning" },
-  { name: "Distributed Machine Learning" },
-  { name: "Generative AI → Large Language Models (LLM)" },
-];
+import { ML_DOMAINS } from "@/lib/mlDomains";
 
 const mlQuizCount = mlParts.reduce((n, p) => n + p.quizQuestionCount, 0);
 
@@ -119,7 +106,7 @@ export function MlHero({
           domain is the guide currently presented on this page; select another to switch guides.
         </p>
         <div className="flex flex-wrap gap-2">
-          {DOMAINS.map(({ name, href }) => {
+          {ML_DOMAINS.map(({ name, href }) => {
             const selected = name === domain;
             const style = `rounded-md border px-2.5 py-1.5 text-[12.5px] font-semibold ${
               selected

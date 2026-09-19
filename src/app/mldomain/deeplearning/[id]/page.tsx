@@ -2,16 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { amlParts, amlTopicsById, amlPartIdForTopic, amlPartsById } from "@/lib/amlStudyData";
+import { mlParts, mlTopicsById, mlPartIdForTopic, mlPartsById } from "@/lib/mlStudyData";
 import { lessonExists } from "@/lib/getLessonBlocks";
 import { TopBar } from "@/components/TopBar";
+import { DEEP_LEARNING_PATH } from "@/lib/mlDomains";
 import { LessonView } from "@/components/lesson/LessonView";
 import { InlineMarkdown } from "@/components/lesson/InlineMarkdown";
 import { LessonCompleteToggle } from "@/components/ml/LessonCompleteToggle";
 import { QuizTeaser } from "@/components/quiz/QuizTeaser";
 
 export function generateStaticParams() {
-  return amlParts.flatMap((part) => part.topics.map((topic) => ({ id: topic.id })));
+  return mlParts.flatMap((part) => part.topics.map((topic) => ({ id: topic.id })));
 }
 
 export async function generateMetadata({
@@ -20,26 +21,26 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const topic = amlTopicsById[id];
+  const topic = mlTopicsById[id];
   if (!topic) return {};
   return {
     title: topic.title,
     description: topic.summary,
-    alternates: { canonical: `/aml/${id}` },
+    alternates: { canonical: `${DEEP_LEARNING_PATH}/${id}` },
     openGraph: { title: topic.title, description: topic.summary },
   };
 }
 
-export default async function AppliedMlLessonPage({
+export default async function MlLessonPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const topic = amlTopicsById[id];
-  if (!topic || !lessonExists(id, "aml")) notFound();
-  const partId = amlPartIdForTopic[id];
-  const part = amlPartsById[partId];
+  const topic = mlTopicsById[id];
+  if (!topic || !lessonExists(id)) notFound();
+  const partId = mlPartIdForTopic[id];
+  const part = mlPartsById[partId];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -51,7 +52,7 @@ export default async function AppliedMlLessonPage({
     isPartOf: {
       "@type": "Course",
       name: `Chapter ${part.number} — ${part.title}`,
-      url: `/aml#${part.id}`,
+      url: `${DEEP_LEARNING_PATH}#${part.id}`,
     },
   };
 
@@ -61,14 +62,14 @@ export default async function AppliedMlLessonPage({
       <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-        <Link href={`/aml#${part.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
+        <Link href={`${DEEP_LEARNING_PATH}#${part.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
           <ArrowLeft size={16} /> Chapter {part.number} — {part.title}
         </Link>
 
         <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-text">{topic.title}</h1>
 
         <div className="mb-6 flex items-center gap-3">
-          <LessonCompleteToggle topicId={topic.id} accent={part.color} track="aml" />
+          <LessonCompleteToggle topicId={topic.id} accent={part.color} />
         </div>
 
         <div
@@ -103,11 +104,11 @@ export default async function AppliedMlLessonPage({
           <div className="h-px flex-1 bg-outline/55" />
         </div>
 
-        <LessonView topicId={topic.id} track="aml" />
+        <LessonView topicId={topic.id} />
 
         {part.quizQuestionCount > 0 && (
           <QuizTeaser
-            href={`/aml/${part.id}/quiz`}
+            href={`${DEEP_LEARNING_PATH}/${part.id}/quiz`}
             title={`Test yourself: Chapter ${part.number} mock interview`}
             questionCount={part.quizQuestionCount}
             className="mt-8 rounded-xl border border-outline"

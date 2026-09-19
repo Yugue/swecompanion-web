@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { mlParts, mlPartsById } from "@/lib/mlStudyData";
 import { TopBar } from "@/components/TopBar";
+import { DEEP_LEARNING_PATH } from "@/lib/mlDomains";
 import { QuizSection } from "@/components/quiz/QuizSection";
 
 export function generateStaticParams() {
@@ -21,7 +22,7 @@ export async function generateMetadata({
   return {
     title: `${part.title} Mock Interview Quiz`,
     description: `${part.quizQuestionCount} realistic interview-style questions covering ${part.title.toLowerCase()}, written to match a real L4-L6 interview. Premium.`,
-    alternates: { canonical: `/ml/${id}/quiz` },
+    alternates: { canonical: `${DEEP_LEARNING_PATH}/${id}/quiz` },
   };
 }
 
@@ -38,7 +39,7 @@ export default async function MlChapterQuizPage({
     <div className="flex min-h-screen flex-col" style={{ "--accent": part.color } as React.CSSProperties}>
       <TopBar activeTrack="ml" />
       <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8">
-        <Link href={`/ml#${part.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
+        <Link href={`${DEEP_LEARNING_PATH}#${part.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
           <ArrowLeft size={16} /> Chapter {part.number} — {part.title}
         </Link>
 

@@ -9,6 +9,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { MlHero } from "@/components/ml/MlHero";
 import { MlSidebar } from "@/components/ml/MlSidebar";
 import { MlPartDetails } from "@/components/ml/MlPartDetails";
+import { APPLIED_ML_PATH } from "@/lib/mlDomains";
 
 const DOMAIN = "Applied Machine Learning → Basics of ML";
 const QUIZ_COUNT = amlParts.reduce((n, p) => n + p.quizQuestionCount, 0);
@@ -140,7 +141,7 @@ export default function AppliedMlHubPage() {
                     open={openId === part.id}
                     onToggle={() => setOpenId((cur) => (cur === part.id ? null : part.id))}
                     onToggleTopic={toggle}
-                    basePath="/aml"
+                    basePath={APPLIED_ML_PATH}
                     partsById={amlPartsById}
                   />
                 ))}
