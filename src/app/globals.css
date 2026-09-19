@@ -58,10 +58,29 @@ body {
     sans-serif;
 }
 
+/* Tailwind v4 preflight no longer gives buttons a pointer cursor, so restore it
+   for every clickable control. In the base layer so utilities can still override. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label:has(input[type="checkbox"], input[type="radio"]),
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="submit"]:not(:disabled),
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
 /* Custom disclosure triangle so <summary> can host our own chevron icon. */
 summary {
   list-style: none;
-  cursor: pointer;
 }
 summary::-webkit-details-marker {
   display: none;
