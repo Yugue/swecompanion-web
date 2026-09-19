@@ -28,18 +28,15 @@ export function QuizTeaser({
           className="flex size-9 items-center justify-center rounded-full"
           style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)" }}
         >
-          <Mic size={17} style={{ color: "var(--accent)" }} />
+          <Mic size={17} className="text-accent-ink" />
         </span>
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
           <span className="text-sm font-bold text-text">{title}</span>
           <span
-            className="rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide"
-            style={{
-              color: "var(--accent)",
-              background: "color-mix(in srgb, var(--accent) 15%, transparent)",
-            }}
+            className="rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-accent-ink"
+            style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)" }}
           >
             PREMIUM
           </span>
@@ -50,8 +47,7 @@ export function QuizTeaser({
         </span>
       </span>
       <span
-        className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-white transition-transform group-hover:translate-x-0.5"
-        style={{ background: "var(--accent)" }}
+        className="flex shrink-0 items-center gap-1.5 rounded-lg bg-accent-solid px-3 py-2 text-sm font-semibold text-white transition-transform group-hover:translate-x-0.5"
       >
         <span className="hidden sm:inline">Try it</span> <ArrowRight size={16} />
       </span>

@@ -72,3 +72,15 @@ summary::-webkit-details-marker {
   overflow-y: hidden;
   padding: 0.25rem 0;
 }
+
+/* Chapter accent colors are tuned for the dark theme, so on the light theme they are pastels (down
+   to 1.4:1 against white). These derive readable variants from the current --accent:
+   - bg-accent-solid: a fill that carries white text (>= 4.5:1 for every accent in the app).
+   - text-accent-ink: small text/icons on a surface. It mixes toward --color-text, so it stays
+     readable in both themes (>= 4.8:1 on white, >= 7.8:1 on the dark surface). */
+.bg-accent-solid {
+  background-color: color-mix(in srgb, var(--accent) 55%, #000);
+}
+.text-accent-ink {
+  color: color-mix(in srgb, var(--accent) 45%, var(--color-text));
+}

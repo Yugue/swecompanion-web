@@ -131,8 +131,7 @@ export function QuizSection({
               type="button"
               onClick={() => (user ? undefined : setDialogOpen(true))}
               disabled={user !== null && (premiumLoading || premium)}
-              className="flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-5 py-3 text-sm font-bold text-white shadow-sm transition-[filter] hover:brightness-110 disabled:opacity-60"
-              style={{ background: "var(--accent)" }}
+              className="flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-accent-solid px-5 py-3 text-sm font-bold text-white shadow-sm transition-[filter] hover:brightness-110 disabled:opacity-60"
             >
               <Lock size={16} />
               {!user ? "Sign in to unlock the mock interview" : premiumLoading ? "Checking access…" : "Upgrade to unlock"}
