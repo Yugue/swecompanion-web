@@ -18,9 +18,14 @@ import { getFirestore } from "firebase-admin/firestore";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const keyPath = join(__dirname, "serviceAccountKey.json");
 
+// applicationDefault() alone takes its project from whatever the local Google credentials are
+// bound to, which is not necessarily this app - so pin it to the project in .firebaserc.
+const projectId = JSON.parse(readFileSync(join(__dirname, "..", ".firebaserc"), "utf8")).projects
+  .default as string;
+
 const app = existsSync(keyPath)
   ? initializeApp({ credential: cert(JSON.parse(readFileSync(keyPath, "utf8"))) })
-  : initializeApp({ credential: applicationDefault() });
+  : initializeApp({ credential: applicationDefault(), projectId });
 
 const db = getFirestore(app);
 const quizzes = JSON.parse(readFileSync(join(__dirname, "quizzes.json"), "utf8")) as Record<
@@ -30,6 +35,7 @@ const quizzes = JSON.parse(readFileSync(join(__dirname, "quizzes.json"), "utf8")
 
 async function main() {
   const entries = Object.entries(quizzes);
+  console.log(`Seeding ${entries.length} quiz documents into Firestore project "${app.options.projectId ?? projectId}"`);
   for (const [quizId, quiz] of entries) {
     await db.collection("quizzes").doc(quizId).set(quiz);
     console.log(`Seeded ${quizId} (${quiz.questions.length} questions)`);

@@ -129,6 +129,188 @@
       "Fine-tuning overwrites useful pretrained behavior. Mitigate it with a smaller learning rate, freezing, PEFT, or mixing broader data."
     ]
   },
+  "aml-foundations": {
+    "questions": [
+      "When is a hand-written rule the better answer than a model?",
+      "What makes a task self-supervised rather than unsupervised?",
+      "Softmax or independent sigmoids for tagging an article with any number of topics?",
+      "Your fraud model is 99.2% accurate. What do you compute next?",
+      "Is k in k-means a parameter or a hyperparameter?",
+      "What are the three splits for?",
+      "Why is a random split wrong for time-ordered data?",
+      "The same user appears in train and test. What breaks?",
+      "What makes a label definition usable?",
+      "Define one training row for a delivery-ETA model."
+    ],
+    "answers": [
+      "When the rule is short, stable, and auditable. ML earns its cost only when the rules are unknown, too numerous to maintain, or keep changing.",
+      "The target is constructed from the input itself - mask a word, hide a column - so it trains like supervised learning without any human labels.",
+      "Independent sigmoids. Several labels can be true at once, and softmax would force them to compete for one unit of probability.",
+      "The majority-class baseline. At a ~1% positive rate, predicting 'never fraud' also scores ~99%, so report precision and recall against that baseline instead.",
+      "A hyperparameter. The centroids are the learned parameters; k is a choice you make before fitting, and there is no validation label to tune it against.",
+      "Train fits the parameters, validation compares candidates and tunes hyperparameters, and test estimates generalization exactly once.",
+      "It lets the model train on the future. Split chronologically, and leave a gap as long as the label delay.",
+      "The model can recognize that user rather than the pattern, so the test score measures memorization. Split by the entity with a grouped split.",
+      "It names the event, the window, the exclusions, and when the outcome becomes observable - so two engineers building the label table get the same rows.",
+      "The unit is one order at placement time; x is everything knowable at that instant; y is the realized delivery duration, observable about 40 minutes later."
+    ]
+  },
+  "aml-data-and-features": {
+    "questions": [
+      "Income is missing for 30% of rows. What is your first question?",
+      "Which model families actually need feature scaling?",
+      "Why does scaling not change a decision tree?",
+      "40,000 zip codes with gradient boosting - which encoding?",
+      "What breaks if target encoding is computed over the whole training set?",
+      "Why encode hour-of-day with sine and cosine?",
+      "Name the four kinds of leakage.",
+      "AUC jumps from 0.82 to 0.99 after one new feature. First hypothesis?",
+      "What does PCA optimize, and why is that a risk?",
+      "Why prefer a rate over a raw count?"
+    ],
+    "answers": [
+      "Whether the missingness itself predicts the label. If it does, that is signal - keep an is-missing indicator instead of imputing it away.",
+      "Distance-based models (k-NN, k-means, RBF SVM), regularized linear models, anything fitted by gradient descent, and PCA. Trees and tree ensembles do not.",
+      "A split is a threshold, and any monotone rescaling keeps every row on the same side of the same split, so the tree is unchanged.",
+      "Out-of-fold target encoding with smoothing. One-hot would add 40,000 sparse columns, which boosted trees split badly, one level at a time.",
+      "Each row's own label leaks into its own feature. Training performance jumps, validation does not, and the column looks like a brilliant feature.",
+      "Hour-of-day is cyclic. As a raw integer the model is told that hour 23 and hour 0 are 23 apart; two trigonometric columns make midnight adjacent to 11pm.",
+      "Target (a feature caused by the label), preprocessing (statistics computed before splitting), temporal (a window crossing the prediction time), and group (the same entity in both splits).",
+      "Leakage, not a breakthrough. Check when that feature is populated relative to the prediction timestamp, and whether the gain survives a chronological split.",
+      "Variance, not predictive value - so it can discard the low-variance direction the label actually depends on. It also needs scaled inputs and destroys interpretability.",
+      "Rates transfer to entities the model has never seen. Fifty failed logins means something very different out of 52 attempts than out of 5,000."
+    ]
+  },
+  "aml-supervised-algorithms": {
+    "questions": [
+      "Coefficients flip sign when you add a correlated feature. Why?",
+      "Why log loss instead of squared error for logistic regression?",
+      "What does exponentiating a logistic regression coefficient give you?",
+      "What does k control in k-NN?",
+      "Why is k-NN hard to serve at 10k QPS?",
+      "Naive Bayes outputs 0.9999. Is it really that confident?",
+      "Which points define an SVM's boundary?",
+      "What does a small C do in an SVM?",
+      "Why does a random forest subsample features at each split?",
+      "Bagging and boosting each attack which kind of error?"
+    ],
+    "answers": [
+      "Multicollinearity. Many weight combinations give nearly identical predictions, so individual coefficients are poorly determined. Prediction can be fine; interpretation has broken.",
+      "Log loss is the Bernoulli maximum-likelihood objective and is convex in the weights. Squared error through a sigmoid is non-convex and gives weak gradients exactly where the model is confidently wrong.",
+      "An odds ratio: the factor the odds multiply by per one-unit increase in that feature - which is why the model survives in regulated settings.",
+      "The bias-variance trade-off directly. Small k gives a noisy, low-bias boundary; large k smooths it toward the majority class.",
+      "There is no trained model - every request searches the stored training set, so cost grows with n and d. Use an approximate nearest-neighbor index, reduce dimensionality, or pick a model that pays at training time.",
+      "No. Correlated features are multiplied as if they were independent evidence, so the posterior saturates. The ranking is usable; the probability needs calibration.",
+      "Only the support vectors, the points on or inside the margin. Delete every other training point and the solution is unchanged.",
+      "It widens the margin and tolerates more training violations - small C is stronger regularization, not weaker.",
+      "Averaging only cancels errors that are independent. With bootstrapping alone every tree splits on the same dominant feature, so the trees stay correlated and the variance floor never drops.",
+      "Bagging reduces variance by averaging deep, unstable trees. Boosting reduces bias by sequentially fitting the errors the ensemble still makes with shallow trees."
+    ]
+  },
+  "aml-training-and-generalization": {
+    "questions": [
+      "Why can you not train directly on F1?",
+      "What does MAE estimate that MSE does not?",
+      "Being late costs more than being early. Which loss?",
+      "When is the closed form for linear regression the wrong choice?",
+      "Which classical models have a convex loss, and why does it matter?",
+      "62% train accuracy, 61% validation. Will more data help?",
+      "What does a learning curve over training-set size tell you?",
+      "L1 or L2 for 5,000 features and 800 rows?",
+      "Why must feature selection live inside the cross-validation fold?",
+      "Grid or random search for six hyperparameters and a 30-run budget?"
+    ],
+    "answers": [
+      "F1 comes from hard TP/FP/FN counts behind a threshold - a step function with no usable gradient. Train on log loss, then tune the threshold to maximize F1 on validation.",
+      "The conditional median rather than the conditional mean, which is exactly why it is robust to outliers.",
+      "Quantile (pinball) loss at q > 0.5, and serve that quantile instead of the mean - optimizing the mean is optimizing the wrong thing under asymmetric cost.",
+      "When d is large (the inverse is O(d³)), the data does not fit in memory, or XᵀX is singular from collinear features. Ridge or gradient descent handles those cases.",
+      "Linear regression, logistic regression, and the linear SVM. It means one global optimum: the fit is reproducible and initialization is irrelevant. k-means and neural networks are not convex.",
+      "No. The gap is tiny, so this is high bias or a broken pipeline - the model fails on data it has already seen. More rows of the same kind change nothing; fix features, capacity, or the bug.",
+      "Whether more data would help at all. Converged, low curves mean bias; a persistent gap with validation still rising means variance and more data pays.",
+      "L1 or elastic net. With d far larger than n, expect only a few relevant features - L1 zeroes the rest. Elastic net if the features come in correlated groups.",
+      "Selecting on the full dataset uses every label, including the held-out fold's, so the fold is no longer held out. On pure noise this can produce a strong-looking CV score.",
+      "Random search, sampling scale-free parameters like learning rate log-uniformly. Only a couple of dimensions matter, and random search gets many distinct values of each."
+    ]
+  },
+  "aml-evaluation": {
+    "questions": [
+      "Give precision and recall in one sentence each.",
+      "Why is F1 a harmonic mean rather than an arithmetic one?",
+      "0.95 ROC-AUC on 0.3% positives, and the product team says it is useless. Explain both.",
+      "What does ROC-AUC actually mean?",
+      "How do you choose the production threshold?",
+      "RMSE is 6 minutes and MAE is 3. What does that gap tell you?",
+      "Can a model rank perfectly and still be badly calibrated?",
+      "When does calibration stop being optional?",
+      "You oversample positives 50x. What happens to the predicted probabilities?",
+      "Model B beats model A by 0.4% AUC. Do you ship it?"
+    ],
+    "answers": [
+      "Precision: of everything we flagged, how much was right. Recall: of everything that was really positive, how much did we catch.",
+      "Because it punishes a lopsided pair. Precision 1.0 with recall 0.0 gives an arithmetic mean of 0.5 but an F1 of 0, which is the honest summary.",
+      "Both are true. FPR is divided by an enormous number of negatives, so the ROC curve hugs the top-left while precision at the operating point is a few percent. Switch to PR-AUC against the 0.003 baseline.",
+      "The probability that a randomly chosen positive is scored above a randomly chosen negative. 0.5 is random; it is threshold-free and insensitive to class balance.",
+      "From cost, not from 0.5. Sweep the threshold and minimize C_FP·FP + C_FN·FN, or fix it by the review team's capacity - then re-validate it after every retrain.",
+      "The errors are not uniform: most predictions are close and a few are badly wrong, because RMSE squares large misses and MAE does not. Go read the worst cases before tuning.",
+      "Yes. Halving every score leaves the ordering, and therefore the AUC, untouched while making every probability wrong. Ranking and calibration are independent properties.",
+      "The moment the probability is multiplied by something - expected loss, pricing, another probability - or shown to a human. Pure ranking does not need it.",
+      "They are inflated toward the resampled base rate, so a raw 0.5 no longer means 50% in the real world. Recalibrate on a held-out set with the original distribution, and always evaluate on that distribution.",
+      "Not on that evidence. Compare paired per-fold differences or bootstrap the test set for a confidence interval, account for how many variants were tried, and weigh serving cost and maintenance before shipping."
+    ]
+  },
+  "aml-unsupervised": {
+    "questions": [
+      "Why does k-means need multiple restarts?",
+      "What cluster shape does k-means assume?",
+      "What do DBSCAN's two parameters replace, and what do you get for it?",
+      "When does DBSCAN fail?",
+      "What does a GMM responsibility of 0.5 tell you?",
+      "How is k-means a special case of a Gaussian mixture?",
+      "Why can you not choose k by minimizing inertia?",
+      "What is the strongest evidence that a clustering is real?",
+      "When is anomaly detection the better framing than classification?",
+      "What sets an anomaly detector's threshold in practice?"
+    ],
+    "answers": [
+      "Its objective is non-convex, so it converges to a local optimum that depends on the initial centroids. k-means++ spreads the starts and n_init keeps the best of several runs.",
+      "Roughly spherical clusters of similar size and density, separated by straight boundaries - it minimizes Euclidean distance to centroids, so it cannot draw anything else.",
+      "eps and min_samples replace k: density defines both the number and the shape of clusters, and sparse points are explicitly labelled noise rather than forced into one.",
+      "When cluster densities differ a lot - a single global eps either merges the dense clusters or turns the sparse one into noise. HDBSCAN varies the threshold hierarchically.",
+      "The point sits genuinely between two components rather than belonging to one. That is a natural candidate for human review instead of an automatic action.",
+      "It is a GMM with hard assignments and spherical, equal covariances - which is exactly why it cannot represent elongated or differently-sized clusters.",
+      "Inertia decreases monotonically with k and hits zero at k = n, so there is no minimum to find - only an elbow. Silhouette is comparable across k, and BIC works for a GMM.",
+      "Stability. If the same points keep clustering together across resamples - measured with the adjusted Rand index - the structure is real rather than invented by the algorithm.",
+      "When positives are too few, too varied, or too unlabelled to learn a pattern - when you can describe what normal looks like but not what bad looks like.",
+      "Review capacity. The flag rate times the traffic is the alert volume a human team has to work through, and an unstaffed detector just generates ignored alerts."
+    ]
+  },
+  "aml-applied-practice": {
+    "questions": [
+      "What is your first move on any 'design an ML system' prompt?",
+      "50k rows, 40 tabular features, 20ms budget. Which model?",
+      "Why is tree impurity importance misleading?",
+      "A declined loan applicant asks why. What do you show them?",
+      "Batch or online serving for a weekly churn score?",
+      "Offline AUC 0.89, online far worse, no code changes. First check?",
+      "How do you prevent train/serve skew structurally?",
+      "Name the three kinds of drift.",
+      "What must you re-tune after every retrain?",
+      "What is a feedback loop in a deployed model?"
+    ],
+    "answers": [
+      "Name the decision the prediction feeds, then the unit of prediction, the label definition, and when that label becomes observable. The metric and the model follow from those.",
+      "Gradient-boosted trees, with regularized logistic regression as the baseline and fallback. Deep learning rarely wins on tabular data at that size, and inference is well under a millisecond - the feature fetch is the real latency risk.",
+      "It favors high-cardinality and continuous features because they offer more split points, it is computed on training data, and it splits credit arbitrarily among correlated features. Use permutation importance on a validation set.",
+      "The top factors that pushed that individual prediction toward decline, from local SHAP values, in their terms. And not as a causal promise - it explains the model's behavior, not the world.",
+      "Batch. Nothing in the prediction depends on the last few minutes, so precomputing avoids putting a model and a feature fetch in the request path.",
+      "Train/serve skew. Diff the features as computed offline against those logged at serving time on the same requests - null handling, timezones, and rounding are the usual culprits, and they raise no errors.",
+      "One implementation of each feature shared by both paths, or a feature store that owns the definition - plus training on the features as they were logged at serving, so the two paths cannot diverge unnoticed.",
+      "Covariate shift changes P(x), label shift changes P(y), and concept drift changes P(y|x). Only the last cannot be fixed by retraining on old labels - it needs fresh ground truth.",
+      "The decision threshold. The score distribution moves with every retrain, so the previous operating point no longer delivers the same precision and recall.",
+      "The model's own decisions shape the data it later trains on - a recommender only observes clicks on what it chose to show, and a blocked segment never proves it was fine. Hold out a small random control, or add exploration."
+    ]
+  },
   "lc-hashmap-frequency-and-top-k": {
     "questions": [
       "Walk me through your approach to Two Sum — start with the brute force, then optimize.",
