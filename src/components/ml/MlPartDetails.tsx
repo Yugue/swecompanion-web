@@ -16,12 +16,16 @@ export function MlPartDetails({
   open,
   onToggle,
   onToggleTopic,
+  basePath = "/ml",
+  partsById = mlPartsById,
 }: {
   part: MlPart;
   completed: Set<string>;
   open: boolean;
   onToggle: () => void;
   onToggleTopic: (id: string) => void;
+  basePath?: string;
+  partsById?: Record<string, MlPart>;
 }) {
   const Icon = getIcon(part.icon);
   const done = part.topics.filter((t) => completed.has(t.id)).length;
@@ -64,7 +68,7 @@ export function MlPartDetails({
         {part.topics.map((topic, i) => {
           const isDone = completed.has(topic.id);
           // Number by position in the full chapter, so search/filter doesn't renumber lessons.
-          const position = (mlPartsById[part.id]?.topics.findIndex((t) => t.id === topic.id) ?? i) + 1;
+          const position = (partsById[part.id]?.topics.findIndex((t) => t.id === topic.id) ?? i) + 1;
           return (
             <div
               key={topic.id}
@@ -82,7 +86,7 @@ export function MlPartDetails({
                 />
               </span>
               <Link
-                href={`/ml/${topic.id}`}
+                href={`${basePath}/${topic.id}`}
                 className="flex min-w-0 flex-1 items-center gap-3.5 py-2.5"
               >
                 <span
@@ -109,7 +113,7 @@ export function MlPartDetails({
 
       {part.quizQuestionCount > 0 && (
         <QuizTeaser
-          href={`/ml/${part.id}/quiz`}
+          href={`${basePath}/${part.id}/quiz`}
           title={`Chapter ${part.number} mock interview`}
           questionCount={part.quizQuestionCount}
           className="border-t border-outline/50"

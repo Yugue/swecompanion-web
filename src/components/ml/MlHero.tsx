@@ -1,22 +1,39 @@
+import Link from "next/link";
 import { CheckCircle2, MessageSquare, Target, Mic } from "lucide-react";
 import { mlTopicCount, mlParts } from "@/lib/mlStudyData";
 
-const DOMAINS = [
-  "Agentic AI Development",
-  "Applied Machine Learning → Basics of ML",
-  "Recommendations / Ranking / Predictions (RRP)",
-  "Computer Vision (CV) / Image Processing",
-  "Natural Language Processing / Understanding (NLP / NLU)",
-  "Speech / Audio",
-  "Deep Learning / Neural Networks",
-  "Reinforcement Learning",
-  "Distributed Machine Learning",
-  "Generative AI → Large Language Models (LLM)",
+/** `href` is set only for domains that have a guide; the rest render as non-interactive chips. */
+const DOMAINS: { name: string; href?: string }[] = [
+  { name: "Agentic AI Development" },
+  { name: "Applied Machine Learning → Basics of ML", href: "/aml" },
+  { name: "Recommendations / Ranking / Predictions (RRP)" },
+  { name: "Computer Vision (CV) / Image Processing" },
+  { name: "Natural Language Processing / Understanding (NLP / NLU)" },
+  { name: "Speech / Audio" },
+  { name: "Deep Learning / Neural Networks", href: "/ml" },
+  { name: "Reinforcement Learning" },
+  { name: "Distributed Machine Learning" },
+  { name: "Generative AI → Large Language Models (LLM)" },
 ];
 
-const quizCount = mlParts.reduce((n, p) => n + p.quizQuestionCount, 0);
+const mlQuizCount = mlParts.reduce((n, p) => n + p.quizQuestionCount, 0);
 
-export function MlHero() {
+/**
+ * Shared hero for every ML-domain guide. The "how the interview works" explanation is identical
+ * across domains (the candidate picks one domain, the format is the same), so only the domain
+ * name, the one-line "Covers" blurb and the two counts are per-track.
+ */
+export function MlHero({
+  domain = "Deep Learning / Neural Networks",
+  covers = "Deep Learning / Neural Networks fundamentals",
+  lessonCount = mlTopicCount,
+  quizCount = mlQuizCount,
+}: {
+  domain?: string;
+  covers?: string;
+  lessonCount?: number;
+  quizCount?: number;
+}) {
   return (
     <div className="mb-6 rounded-2xl border border-outline/70 bg-surface p-6 sm:p-8">
       <span className="mb-4 inline-block rounded-md border border-accent-blue/35 bg-accent-blue/15 px-2.5 py-1.5 text-xs font-bold tracking-wide text-accent-blue-soft">
@@ -32,8 +49,8 @@ export function MlHero() {
       </p>
       <p className="mb-4 text-base leading-relaxed text-text-muted">
         <span className="font-bold text-text">Covers: </span>
-        Deep Learning / Neural Networks fundamentals, with carefully organized explanations,
-        diagrams, formulas, tables, and mock-interview quizzes.
+        {covers}, with carefully organized explanations, diagrams, formulas, tables, and
+        mock-interview quizzes.
       </p>
 
       <div className="mb-5 flex items-start gap-2.5 rounded-md border border-accent-green/35 bg-accent-green/10 p-3">
@@ -99,31 +116,44 @@ export function MlHero() {
         </div>
         <p className="mb-3.5 text-sm leading-relaxed text-text-muted">
           Candidates pre-select one of the following areas before the interview. The highlighted
-          domain is the guide currently presented on this page.
+          domain is the guide currently presented on this page; select another to switch guides.
         </p>
         <div className="flex flex-wrap gap-2">
-          {DOMAINS.map((domain) => {
-            const selected = domain === "Deep Learning / Neural Networks";
+          {DOMAINS.map(({ name, href }) => {
+            const selected = name === domain;
+            const style = `rounded-md border px-2.5 py-1.5 text-[12.5px] font-semibold ${
+              selected
+                ? "border-accent-blue/65 bg-accent-blue/15 text-accent-blue"
+                : "border-outline/45 bg-bg/50 text-text-muted"
+            }`;
+            if (!href || selected) {
+              return (
+                <span key={name} aria-current={selected ? "page" : undefined} className={style}>
+                  {name}
+                </span>
+              );
+            }
             return (
-              <span
-                key={domain}
-                className={`rounded-md border px-2.5 py-1.5 text-[12.5px] font-semibold ${
-                  selected
-                    ? "border-accent-blue/65 bg-accent-blue/15 text-accent-blue"
-                    : "border-outline/45 bg-bg/50 text-text-muted"
-                }`}
+              <Link
+                key={name}
+                href={href}
+                className={`${style} transition-colors hover:border-accent-blue/45 hover:text-text`}
               >
-                {domain}
-              </span>
+                {name}
+              </Link>
             );
           })}
         </div>
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2.5 text-[13px] font-medium text-text">
-        <span className="rounded-md bg-surface-high/60 px-3 py-2">{mlTopicCount} full lessons</span>
+        <span className="rounded-md bg-surface-high/60 px-3 py-2">{lessonCount} full lessons</span>
         <span className="rounded-md bg-surface-high/60 px-3 py-2">Interview prompts</span>
-        <span className="rounded-md bg-surface-high/60 px-3 py-2">{quizCount} mock-interview questions (premium)</span>
+        {quizCount > 0 && (
+          <span className="rounded-md bg-surface-high/60 px-3 py-2">
+            {quizCount} mock-interview questions (premium)
+          </span>
+        )}
       </div>
     </div>
   );

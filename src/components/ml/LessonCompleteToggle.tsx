@@ -3,8 +3,16 @@
 import { CheckCircle2 } from "lucide-react";
 import { useProgress } from "@/lib/useProgress";
 
-export function LessonCompleteToggle({ topicId, accent }: { topicId: string; accent: string }) {
-  const { completed, toggle } = useProgress("ml", []);
+export function LessonCompleteToggle({
+  topicId,
+  accent,
+  track = "ml",
+}: {
+  topicId: string;
+  accent: string;
+  track?: "ml" | "aml";
+}) {
+  const { completed, toggle } = useProgress(track, []);
   const done = completed.has(topicId);
 
   return (

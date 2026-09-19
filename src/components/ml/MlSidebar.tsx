@@ -12,11 +12,17 @@ export function MlSidebar({
   completed,
   onJump,
   onResetProgress,
+  domain = "Deep Learning / Neural Networks",
+  totalTopics = mlTopicCount,
+  accent = "#4285F4",
 }: {
   parts: MlPart[];
   completed: Set<string>;
   onJump: (id: string) => void;
   onResetProgress: () => void;
+  domain?: string;
+  totalTopics?: number;
+  accent?: string;
 }) {
   const doneCount = parts.reduce((n, p) => n + p.topics.filter((t) => completed.has(t.id)).length, 0);
 
@@ -28,8 +34,8 @@ export function MlSidebar({
       </div>
 
       <div className="mx-3.5 mb-3 flex items-center gap-3 rounded-lg px-3 py-2.5">
-        <span className="flex-1 text-sm font-semibold text-text">Deep Learning / Neural Networks</span>
-        <ProgressRing done={doneCount} total={mlTopicCount} color="#4285F4" size={38} />
+        <span className="flex-1 text-sm font-semibold text-text">{domain}</span>
+        <ProgressRing done={doneCount} total={totalTopics} color={accent} size={38} />
       </div>
 
       <div className="px-5 pb-2 text-xs font-bold tracking-wide text-text-muted">CURRICULUM</div>
