@@ -2,7 +2,9 @@
 
 **Recommenders go stale faster than almost any other kind of model,** because the catalogue, the users, and what is fashionable all move continuously.
 
-### 1. Why staleness bites harder here
+---
+
+## 1. Why staleness bites harder here
 
 ```text
 a fraud model       the definition of fraud shifts over months
@@ -20,7 +22,7 @@ An item uploaded today has no embedding until the next training run and no index
 
 ---
 
-### 2. Different parts refresh at different speeds
+## 2. Different parts refresh at different speeds
 
 ```text
 counters and features      seconds to minutes   streaming
@@ -30,11 +32,13 @@ ranker model               daily                full retrain, or incremental
 two-tower retrieval        daily to weekly      expensive; both towers must agree
 ```
 
+### Common issue
+
 Note the constraint hiding in the last row: if you retrain the item tower, every stored item vector is now in a different space and the whole index must be rebuilt. The towers and the index move together or not at all.
 
 ---
 
-### 3. The three kinds of drift
+## 3. The three kinds of drift
 
 | Type | What moved | Example | Does retraining help? |
 |---|---|---|---|
@@ -42,11 +46,13 @@ Note the constraint hiding in the last row: if you retrain the item tower, every
 | Catalogue | what is available | a seasonal inventory turnover | yes |
 | Behavioral | what a signal means | a UI change alters click rates | only with new data after the change |
 
+### Core intuition
+
 The third is the dangerous one. After a layout change, historical clicks describe a product that no longer exists, so retraining on them rebuilds the old world. Deliberately re-weighting toward post-change data is the usual response.
 
 ---
 
-### 4. Monitoring, when quality signals arrive late
+## 4. Monitoring, when quality signals arrive late
 
 Purchases confirm in days and retention in weeks, so quality metrics cannot be your alarm. Watch the fast proxies:
 
@@ -62,13 +68,15 @@ That last one is specific to this domain and worth naming.
 
 ---
 
-### 5. Every retrain is a deploy
+## 5. Every retrain is a deploy
 
 ```text
 train → validate offline → shadow → small % → ramp → full
                                     ↑
             and RE-TUNE the threshold and blending weights afterwards
 ```
+
+### Rule of thumb
 
 The score distribution moves with every retrain, so any fixed threshold or blend weight now means something different. Skipping that step causes a surprising share of post-retrain incidents. Keep the previous model loadable so rollback is a config change.
 

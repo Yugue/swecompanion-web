@@ -2,7 +2,9 @@
 
 You cannot debug what you did not record, and agents produce failures that are invisible in ordinary application logs. Tracing an agent means capturing every step with enough structure to query it later - and enough versioning to attribute a regression.
 
-### 1. The trace model
+---
+
+## 1. The trace model
 
 ```text
 trace (one run)
@@ -22,11 +24,38 @@ Per span, record at minimum:
  "status": "ok", "ts": "..."}
 ```
 
+### Core intuition
+
 The three version fields are what make attribution possible. Without them, "quality dropped after Tuesday's deploy" cannot be resolved into which of the three changes did it.
 
 ---
 
-### 2. Operational metrics that lead quality metrics
+## 2. Reading a deploy from the traces
+
+Three things shipped on Tuesday: a prompt edit, a new tool, and a model upgrade. Quality dropped. The traces, grouped by version:
+
+```text
+                       steps/run   cost/run   cache hit   tool errors   success
+Mon  prompt v6           8.1       $0.21        88%          1.2%        91%
+Tue  prompt v7           8.3       $0.58         4%          1.2%        90%
+                                      ↑           ↑
+                                 3× the cost   cache collapsed
+```
+
+The success rate barely moved, so a quality dashboard would show almost nothing. But cost tripled and the cache hit rate fell off a cliff - which points at exactly one of the three changes. The prompt edit put something volatile near the top of the prefix.
+
+```text
+diff prompt v6 → v7:
++  "Current date and time: 2026-03-17 14:32:08"      ← in the system block
+```
+
+Without the version fields on each span you cannot make that attribution at all; you are reduced to reverting changes one at a time in production.
+
+This is also why operational metrics carry the alerting. Steps per run, cost per successful task, and cache hit rate moved **the same day**. Success rate would have taken a week to show significance.
+
+---
+
+## 3. Operational metrics that lead quality metrics
 
 | Metric | Why it matters |
 |---|---|
@@ -43,7 +72,7 @@ The three version fields are what make attribution possible. Without them, "qual
 
 ---
 
-### 3. Make traces queryable, not just viewable
+## 4. Make traces queryable, not just viewable
 
 ```sql
 -- where is the budget going?
@@ -52,11 +81,13 @@ FROM spans WHERE run_ts > now() - interval '1 day'
 GROUP BY tool ORDER BY 3 DESC;
 ```
 
+### Rule of thumb
+
 A viewer is for reading one trace. A queryable store is for finding the pattern across ten thousand. Both are needed; teams usually build only the first.
 
 ---
 
-### 4. Redact at capture time
+## 5. Redact at capture time
 
 Traces contain prompts, user data, retrieved documents, and tool arguments - and they are the most widely shared artifact in an agent system, pasted into tickets and chat. So:
 
@@ -66,11 +97,13 @@ scope trace access by tenant
 set a retention TTL and honor deletion requests
 ```
 
+### Common issue
+
 Redacting at read time means the raw data is already stored, which is the wrong place to discover a compliance problem.
 
 ---
 
-### 5. Close the loop
+## 6. Close the loop
 
 ```text
 trace ──► flagged by detector ──► human review ──► eval case ──► fix ──► regression suite

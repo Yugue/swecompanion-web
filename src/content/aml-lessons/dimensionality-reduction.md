@@ -4,7 +4,9 @@
 
 More columns are not automatically better. Past a point they make distances meaningless, models unstable, and training slow, so reduction trades away a little information for a lot of stability.
 
-### 1. The curse of dimensionality
+---
+
+## 1. The curse of dimensionality
 
 As d grows, data becomes sparse: the volume of the space explodes, and any fixed number of points covers less and less of it.
 
@@ -22,18 +24,20 @@ Every point becomes roughly equidistant from every other, which quietly destroys
 
 ---
 
-### 2. Two different remedies
+## 2. Two different remedies
 
 ```text
 feature selection → keep a subset of the original columns   (interpretable)
 feature extraction → build new combined columns             (compact, opaque)
 ```
 
+### Intuition
+
 Selection keeps "income" as "income". Extraction gives you "0.3 × income − 0.7 × tenure + ...", which is compact but cannot be explained to a regulator.
 
 ---
 
-### 3. PCA
+## 3. PCA
 
 PCA finds the orthogonal directions of maximum variance and projects onto the first k of them.
 
@@ -54,11 +58,13 @@ Three requirements people forget:
 2. **Fit on training data only**, then transform validation and test with the same rotation.
 3. **It is unsupervised** - it maximizes variance, not usefulness. The direction that explains the most variance is not necessarily the one that predicts the label.
 
+### Common issue
+
 That third point is a good interview line: PCA can throw away the exact low-variance direction the label depends on.
 
 ---
 
-### 4. When PCA actually helps
+## 4. When PCA actually helps
 
 | Situation | Why it helps |
 |---|---|
@@ -68,11 +74,13 @@ That third point is a good interview line: PCA can throw away the exact low-vari
 | Latency or memory pressure | Fewer features to compute and serve |
 | Noise reduction | Low-variance components are often mostly noise |
 
+### Rule of thumb
+
 And when it does not: few features, tree models (which handle correlated and irrelevant features well), or any setting where you must explain individual feature effects.
 
 ---
 
-### 5. Feature selection alternatives
+## 5. Feature selection alternatives
 
 | Method | Idea | Caveat |
 |---|---|---|
@@ -84,13 +92,15 @@ And when it does not: few features, tree models (which handle correlated and irr
 
 ---
 
-### 6. t-SNE and UMAP are not feature extractors
+## 6. t-SNE and UMAP are not feature extractors
 
 They produce beautiful 2-D plots and are used constantly for exploration - but:
 
 - they optimize *local* neighborhood structure, so global distances and cluster sizes in the plot are not meaningful,
 - they have no simple transform for new points (t-SNE has none at all),
 - distances in the embedding are not stable across runs.
+
+### Rule of thumb
 
 Use them to look at your data. Do not feed their output to a downstream model.
 

@@ -9,91 +9,90 @@
 "which of our customers behave alike?"       → groups      → clustering
 ```
 
-Picking the shape commits you to everything downstream - what the model is trained to minimize, how you score it, and what decision the product makes.
+Picking the shape commits you to everything downstream — what the model minimizes, how you score it, and what decision the product makes.
 
-### 1. The four shapes
+---
+
+## 1. The four shapes
 
 | Task | Output | Scored on |
 |---|---|---|
 | Regression | a number | how far off the number is, on average |
-| Classification | one of C categories (or a probability) | how often it is right, and which kind of mistake it makes |
+| Classification | one of C categories (or a probability) | how often it is right, and which mistake it makes |
 | Ranking | an ordering over candidates | whether the good items reached the top |
 | Clustering | a group assignment | how tight and how separated the groups are |
 
-> **New to this?** Each of those scoring ideas has a proper name - MSE, log loss, NDCG, silhouette - and its own lesson later. Chapter 1 covers the classification and regression ones; ranking and clustering scores come in Chapters 5 and 6. For now, only the shape of the output matters.
+> **New to this?** Each scoring idea has a proper name — MSE, log loss, NDCG, silhouette — and its own lesson later. For now only the shape matters.
 
 ---
 
-### 2. Binary, multiclass, multilabel
+## 2. Binary, multiclass, and multilabel
 
-These are three different problems and candidates blur them constantly.
+Three different problems that candidates blur constantly.
 
 ```text
-binary      : exactly two options            "spam" or "not spam"
-multiclass  : one of many, pick exactly one  a photo is a cat OR a dog OR a bird
-multilabel  : any number can be true at once an article is politics AND economics
+binary      exactly two options            "spam" or "not spam"
+multiclass  one of many, pick exactly one  a photo is a cat OR a dog OR a bird
+multilabel  any number true at once        an article is politics AND economics
 ```
 
-The difference that matters is whether the categories **compete**. Multiclass says they do, so the model's probabilities are forced to add up to 1 - more confidence in "cat" must mean less in "dog". Multilabel says they do not, so each label gets its own independent yes/no decision and its own threshold.
+### Core intuition
 
-The machinery for this is a pair of functions called **sigmoid** (squashes one score into a probability) and **softmax** (turns C scores into C probabilities that sum to 1). Both are covered properly in the logistic regression lesson in Chapter 3.
+The difference is whether the categories **compete**.
+
+Multiclass says they do, so the probabilities are forced to sum to 1 — more confidence in "cat" must mean less in "dog". Multilabel says they do not, so each label gets its own yes/no decision and its own threshold.
 
 ### Rule of thumb
 
 > If two labels can be true at once, you cannot use softmax.
 
----
-
-### 3. Regression or classification?
-
-The same business question can often be framed either way.
-
-"How likely is this customer to churn next month?"
-
-- **Binary classification**: y = 1 if they churned within 30 days. Simple, gives a probability, needs a fixed window.
-- **Regression on time-to-event**: predict days until churn. More informative, but every customer who has not churned yet has no usable answer - you only know they lasted *at least* this long, not how long they will last. Statisticians call that a **censored** label, and it needs special handling.
-- **Ranking**: order customers by risk so the retention team works the top 500. Only the ordering has to be right, so the scores never have to be believable as probabilities.
-
-The deciding question is always:
-
-> What decision does the output feed?
-
-If the team can only call 500 people, ranking is the honest framing - and the metric should be recall@500, not accuracy.
+The machinery is **sigmoid** (one score → one probability) and **softmax** (C scores → C probabilities summing to 1), covered in logistic regression in Chapter 3.
 
 ---
 
-### 4. Ranking is not classification with sorting
+## 3. The same question, framed three ways
 
-This distinction is worth knowing cold.
+> "How likely is this customer to churn next month?"
 
-A ranking model only has to get the **order** right. Its scores can be systematically too high and it loses nothing.
+- **Binary classification** — y = 1 if they churned within 30 days. Simple, gives a probability, needs a fixed window.
+- **Regression on time-to-event** — predict days until churn. More informative, but a customer who has not churned has no usable answer; you only know they lasted *at least* this long. That is a **censored** label and needs special handling.
+- **Ranking** — order customers by risk so the team works the top 500. Only the ordering has to be right.
+
+### Rule of thumb
+
+> The deciding question is always: what decision does the output feed?
+
+If the team can only call 500 people, ranking is the honest framing — and the metric is recall@500, not accuracy.
+
+---
+
+## 4. Ranking is not classification with sorting
 
 \[
 \text{ranking cares about } s_i > s_j, \text{ not about } s_i \approx P(y_i = 1)
 \]
 
-So:
+### Intuition
 
-- a ranking-only system does not care whether the scores are believable as probabilities,
-- a system that multiplies the score by a dollar amount **does** - if the model says 0.7, the thing had better happen about 70% of the time. That property is called **calibration**, and it gets its own lesson in Chapter 5.
+A ranking model only has to get the **order** right. Its scores can be systematically too high and it loses nothing.
+
+So a ranking-only system does not care whether the scores are believable as probabilities — but a system that multiplies the score by a dollar amount **does**. If the model says 0.7, the thing had better happen about 70% of the time. That property is **calibration**, and it gets its own lesson in Chapter 5.
 
 ---
 
-### 5. Clustering is a different kind of object
+## 5. Clustering is a different kind of object
 
 Clustering has no y, so it has no correctness. Two analysts can produce different, equally valid clusterings of the same data.
 
-That means:
-
-- you cannot "validate" it against a held-out label,
-- you judge it by stability under resampling and by usefulness downstream,
-- and the number of clusters is a hyperparameter someone has to choose and defend.
+```text
+you cannot validate against a held-out label
+you judge it by stability under resampling, and usefulness downstream
+the number of clusters is a choice someone has to defend
+```
 
 ---
 
-### 6. Picking the framing in an interview
-
-A clean way to talk through it:
+## 6. Picking the framing
 
 ```text
 business question
@@ -105,10 +104,10 @@ what output shape does that decision need?
 task type → loss → metric → threshold
 ```
 
-Example, food delivery ETA:
+Worked example — food delivery ETA:
 
 - the decision is a number shown to the user → regression,
-- but the cost is asymmetric (10 minutes late hurts far more than 10 minutes early), so plain MSE is wrong,
+- but the cost is asymmetric (10 minutes late hurts far more than 10 early), so plain MSE is wrong,
 - so use a quantile loss and show the 80th percentile, not the mean.
 
 ### Rule of thumb

@@ -2,7 +2,9 @@
 
 A tree asks a sequence of yes/no questions, each chosen to make the resulting groups as pure as possible. It is the base learner behind random forests and gradient boosting, so understanding it precisely pays off twice.
 
-### 1. How a tree is built
+---
+
+## 1. How a tree is built
 
 ```text
                 [all data]
@@ -15,11 +17,13 @@ A tree asks a sequence of yes/no questions, each chosen to make the resulting gr
                  [group B]     [group C]  ← 91% fraud
 ```
 
+### Core intuition
+
 At each node, the algorithm tries every feature and every threshold, and keeps the split that most reduces impurity. It then recurses. This is **greedy**: the best split now may not lead to the best tree overall, and no practical algorithm searches globally.
 
 ---
 
-### 2. Impurity
+## 2. Impurity
 
 For classification, with \(p_c\) the proportion of class c in a node:
 
@@ -33,11 +37,13 @@ Both are 0 for a pure node and maximal for a uniform mix. The split score is the
 \Delta = I(\text{parent}) - \sum_{k}\frac{n_k}{n} I(\text{child}_k)
 \]
 
+### Rule of thumb
+
 Gini and entropy almost always choose the same splits; Gini is cheaper (no logarithm) and is the usual default. For regression, the criterion is variance (equivalently, MSE) reduction.
 
 ---
 
-### 3. Why an unconstrained tree overfits
+## 3. Why an unconstrained tree overfits
 
 Nothing stops the tree from splitting until every leaf holds one example:
 
@@ -65,15 +71,27 @@ Controls, roughly in order of usefulness:
 
 ---
 
-### 4. High variance is the defining weakness
+## 4. High variance is the defining weakness
 
-Change a handful of rows and the top split can change, which changes every split beneath it, which changes the whole tree. The predictions of two trees trained on 90% samples of the same data can differ substantially.
+Because the tree is built greedily from the top, a small change near the root changes everything below it:
 
-This instability is precisely what bagging and random forests exist to fix - averaging many unstable models cancels the noise (see **bagging and random forests**).
+```text
+sample A                         sample B  (5% of rows differ)
+  amount > 500?                    account_age < 7d?     ← DIFFERENT top split
+   ├── no  → safe                   ├── no  → ...
+   └── yes → account_age < 7d?      └── yes → amount > 500?
+              └── 91% fraud                    └── ...
+```
+
+The two trees may make similar predictions overall, but they are different models with different logic, and on individual rows they can disagree completely. Two trees trained on 90% samples of the same data routinely differ.
+
+### Intuition
+
+That instability has a name - variance - and one standard cure: build many unstable trees and average them, so the wobble cancels while the signal survives. That is exactly what **bagging and random forests** do, and it is why the weakest property of a single tree is also what makes it the best base learner for an ensemble.
 
 ---
 
-### 5. What trees are good at
+## 5. What trees are good at
 
 - **No scaling needed** - splits are thresholds, invariant to monotone transforms.
 - **Mixed feature types**, including categoricals (with sensible encoding) and, in modern implementations, missing values.
@@ -88,11 +106,7 @@ And what they are bad at:
 - stability, as above,
 - high-cardinality categoricals, where splits can isolate individual levels and overfit.
 
----
-
-### 6. Feature importance from a tree
-
-The built-in `feature_importances_` sums each feature's impurity reduction. It is convenient and **biased**: it favors high-cardinality and continuous features simply because they offer more possible split points. Prefer permutation importance on a validation set when the answer matters (see **interpretability**).
+**Feature importance from a tree.** The built-in `feature_importances_` sums each feature's impurity reduction. It is convenient and **biased**: it favors high-cardinality and continuous features simply because they offer more possible split points. Prefer permutation importance on a validation set when the answer matters (see **interpretability**).
 
 ---
 

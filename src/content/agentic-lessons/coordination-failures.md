@@ -4,7 +4,9 @@
 
 It hands you a fluent, confident report assembled from pieces that never actually fit together, and nothing in the output shows the seam.
 
-### 1. The five characteristic failures
+---
+
+## 1. The five characteristic failures
 
 ```text
 1. duplication     overlapping briefs → three workers do the same search
@@ -14,11 +16,13 @@ It hands you a fluent, confident report assembled from pieces that never actuall
 5. blowup          slowest worker sets latency; every worker pays full overhead
 ```
 
+### Core intuition
+
 Failures 2, 3 and 4 are invisible in the output. That is what makes them the dangerous ones.
 
 ---
 
-### 2. Error amplification, drawn
+## 2. Error amplification, drawn
 
 ```text
   w1: "ACME has 400 employees"   (misread a 2019 page, no source recorded)
@@ -49,7 +53,7 @@ With `as_of` and `source` present, the merge step can reject or flag it. Without
 
 ---
 
-### 3. Ownership prevents duplication and gaps
+## 3. Ownership prevents duplication and gaps
 
 ```text
 subtask 1 → owner w1   (exclusive)
@@ -58,11 +62,13 @@ subtask 3 → owner w3   (exclusive)
              ↑ orchestrator asserts coverage: every plan step has exactly one owner
 ```
 
+### Rule of thumb
+
 Make the orchestrator check the partition explicitly before dispatch: every plan step assigned once, no step unassigned. This is a cheap deterministic check that removes two of the five failure modes.
 
 ---
 
-### 4. The merge step is where quality is won or lost
+## 4. The merge step is where quality is won or lost
 
 ```text
 merge:
@@ -72,15 +78,19 @@ merge:
   4. verify the deliverable answers the original goal, not the subtasks
 ```
 
+### Common issue
+
 Point 4 catches a specific and common failure: every subtask succeeded and the deliverable does not answer the question that was asked.
 
 ---
 
-### 5. Budgets must be global
+## 5. Budgets must be global
 
 ```text
 per-worker cap: 10 steps each × 6 workers = 60 steps, with no global stop
 ```
+
+### Rule of thumb
 
 Caps that exist only per worker do not bound the system. Enforce a run-level step, token, dollar, and wall-clock budget in the orchestrator, and make exhaustion a defined outcome - report what is known plus the gaps - rather than an exception.
 

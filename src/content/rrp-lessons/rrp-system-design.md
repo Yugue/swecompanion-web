@@ -2,7 +2,9 @@
 
 **"Design the home feed for a video app" is an open prompt,** and the interviewer is watching how you structure one rather than waiting for a specific architecture.
 
-### 1. The skeleton
+---
+
+## 1. The skeleton
 
 ```text
 1. goal + metric      what decision, what success, what you refuse to lose
@@ -19,31 +21,117 @@ Steps 6 to 8 are what separate someone who has shipped one of these from someone
 
 ---
 
-### 2. Worked example, compressed
+## 2. Worked example: the home feed for a video app
 
-**Goal.** Help people find something worth watching. Primary metric: satisfied watch time per user per week. Guardrails: complaint rate, new-creator impression share, p95 latency.
-
-**The row.** One impression: user, video, context, features as served, position, propensity. Labels: click, watch fraction, like, hide/report. Click is known in seconds, watch in minutes, so retraining daily is feasible.
-
-**Retrieval.** ~800 candidates from five sources - a two-tower embedding index, item-item co-occurrence over the user's recent watches, subscriptions and history, trending in the user's region, and a fresh-content pool. Each capped, deduplicated, tagged with its source. Target recall@800 measured against what users eventually watched.
+**Step 1 — Goal and metric.** Before any model, say what decision is made and what success means. The metric has two halves and candidates usually give only the first.
 
 ```text
-10M videos → 5 sources → 800 candidates → rank → 50 → re-rank → 10 shown
+primary     satisfied watch time per user per week
+guardrails  complaint rate, new-creator impression share, p95 latency
+            ↑ things you refuse to lose, whatever the primary does
 ```
 
-**Ranking.** A multi-task model over shared embeddings, with heads for click, watch fraction, like, and hide. Features: user long-term interests, recent-session sequence with attention over the last 50 watches, video content and quality, creator affinity, and cross features for this user's history with this creator and category. Score is a weighted combination, negative weight on predicted hide.
-
-**Re-ranking.** Cap per creator, enforce category variety, guarantee a fresh-content slot, apply policy filters as hard rules, place one exploration slot low on the page.
-
-**Evaluation.** Offline with a chronological split and position-bias correction, quoted against a popularity-in-region baseline, sliced by new users and new creators. Online: user-randomized A/B, run past novelty, primary and guardrails pre-registered. A long-horizon holdback for the retention question.
-
-**Cost.** 800 candidates × ~10k requests/sec is 8M scores/sec; that drives the candidate cap, the model size, and a precomputed slate for the heaviest users. Latency budget 50ms, with feature fetching the largest slice.
-
-**Top failure mode.** New creators never getting impressions, which drains supply. Caught by new-creator impression share as a guardrail, and addressed by the fresh-content source and the exploration slot.
+Naming guardrails out loud is the clearest signal you have shipped one of these, because guardrails only ever get invented after something went wrong.
 
 ---
 
-### 3. Where candidates lose points
+**Step 2 — The training row and the label.**
+
+```text
+one row  = one impression
+           user, video, context, features AS SERVED, position, propensity
+labels   = click (seconds), watch fraction (minutes), like, hide (minutes)
+```
+
+Two details do real work. **Features as served** - not recomputed later from the warehouse - is what prevents train/serve skew. **Position and propensity** cost nothing to log today and are the only thing that makes position-bias correction and counterfactual evaluation possible next quarter.
+
+Label timing sets the cadence: clicks arrive in seconds, so daily retraining is feasible.
+
+---
+
+**Step 3 — Retrieval.** ~800 candidates from five sources, each capped, deduplicated, and tagged with its provenance:
+
+```text
+two-tower embedding index    semantic match, plus new videos via item features
+item-item co-occurrence      "people who watched this also watched"
+subscriptions and history    the obvious next thing
+trending in region           today's events, which no trained model has seen
+fresh-content pool           guarantees new uploads get a chance
+```
+
+Measure it on its own - recall@800 against what users eventually watched. If the right video was never a candidate, nothing downstream can recover it.
+
+---
+
+**Step 4 — Ranking.**
+
+```text
+multi-task model over shared embeddings
+  heads: P(click), E[watch fraction], P(like), P(hide)
+
+features
+  user     long-term interests, language, subscriptions
+  item     category, creator, length, age, quality signals
+  context  device, hour, surface, position (held constant at serving)
+  cross    this user × this creator, this user × this category   ← personalization
+  session  attention over the last 50 watches                    ← what they want NOW
+
+score = w₁·click + w₂·watch + w₃·like − w₄·hide
+```
+
+That negative term is not decoration. Without it, optimization finds clickbait - reliably, and quickly.
+
+---
+
+**Step 5 — Re-ranking**, where the whole list finally exists:
+
+```text
+cap per creator        no single channel owning the page
+category variety       relevance minus similarity to what is already chosen
+one fresh slot         new uploads get impressions they have not yet earned
+policy filters         HARD rules, applied as filters rather than score penalties
+one exploration slot   placed low, where attention is cheapest
+```
+
+---
+
+**Step 6 — Evaluation.**
+
+```text
+offline   chronological split, position-bias corrected,
+          quoted against popularity-in-region,
+          sliced by new users and new creators
+online    user-randomized A/B, run past the novelty effect,
+          primary metric and guardrails pre-registered
+long-run  a holdback on a fixed policy, for the retention question
+```
+
+---
+
+**Step 7 — Cost and latency.** Do the arithmetic out loud; it is what turns the funnel's shape into a decision rather than a default.
+
+```text
+800 candidates × 10,000 req/sec = 8,000,000 scores/sec
+   → drives the candidate cap, the model size,
+     and precomputed slates for the heaviest users
+
+50ms budget:  retrieve 10 · fetch features 15 · score 15 · re-rank 5 · slack 5
+              ↑ feature fetching, not inference, is the biggest slice
+```
+
+---
+
+**Step 8 — Failure modes.** Name the one you actually expect, and what catches it.
+
+```text
+most likely    new creators never get impressions → supply leaves
+caught by      new-creator impression share, tracked as a guardrail
+addressed by   the fresh-content retrieval source and the exploration slot
+```
+
+---
+
+## 3. Where candidates lose points
 
 ```text
 ✗  naming a model architecture before naming the metric
@@ -61,7 +149,7 @@ Steps 6 to 8 are what separate someone who has shipped one of these from someone
 
 ---
 
-### 4. Adapting to the surface
+## 4. Adapting to the surface
 
 The skeleton holds; the emphasis moves:
 

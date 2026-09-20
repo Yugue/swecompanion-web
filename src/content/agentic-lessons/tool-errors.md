@@ -2,7 +2,9 @@
 
 Tool failure is the normal case, not the exception. What separates an agent that recovers from one that spirals is almost entirely **how the error is worded** and **whether retrying is safe**.
 
-### 1. Errors are observations the model must act on
+---
+
+## 1. Errors are observations the model must act on
 
 ```text
 ✗  "Error: 422"
@@ -22,7 +24,36 @@ A good error names what was wrong, what the valid form is, and what to do next -
 
 ---
 
-### 2. Classify before retrying
+## 2. The same failure, worded two ways
+
+The agent passes a bad date. Here is what each version of the error does to the next three steps:
+
+```text
+BAD                                        GOOD
+────────────────────────────────────       ──────────────────────────────────────
+obs: {"error": "ValidationError"}          obs: {"error": "invalid_date",
+                                                 "message": "Expected YYYY-MM-DD,
+                                                  got '3rd of May'. Resolve relative
+                                                  dates before calling.",
+                                                 "retryable": true}
+
+step n+1: search(date="3rd of May")        step n+1: search(date="2026-05-03")
+          ← identical call, it has                   ← fixed, first try
+            no idea what was wrong
+step n+2: search(date="3rd of May")        step n+2: (done)
+step n+3: search(date="May 3rd")
+          ← now it is guessing
+```
+
+Three wasted steps, each one re-sending the full context, versus zero. The model is not being stupid in the left column - it was told a class name, which contains no information about what to do differently.
+
+### Rule of thumb
+
+A usable error answers three questions: **what was wrong**, **what the valid form is**, and **whether to try again**.
+
+---
+
+## 3. Classify before retrying
 
 | Class | Examples | Agent should |
 |---|---|---|
@@ -31,11 +62,13 @@ A good error names what was wrong, what the valid form is, and what to do next -
 | Semantic | not found, empty result | Change approach - different tool or query |
 | Terminal | 403, policy violation, quota exhausted | Stop and report; never retry |
 
+### Common issue
+
 Transient retries belong in the runtime, below the model - burning an agent step on a 503 wastes a full context re-send. Input errors belong to the model, because fixing them requires understanding.
 
 ---
 
-### 3. Idempotency
+## 4. Idempotency
 
 Any tool with side effects needs a caller-supplied key:
 
@@ -54,11 +87,13 @@ charge() ──► request sent ──► charge succeeds ──► response tim
                               retries ──► charged twice
 ```
 
+### Core intuition
+
 The agent cannot distinguish "failed" from "succeeded but I didn't hear back." Only the tool can, and only if it has a key to deduplicate on. Say this out loud in an interview - it is a systems answer, not a prompting one.
 
 ---
 
-### 4. Bound the retries
+## 5. Bound the retries
 
 ```text
 per call:   max 2 model-level retries
@@ -66,11 +101,13 @@ per tool:   max 5 failures per run
 per run:    global step + cost cap
 ```
 
+### Common issue
+
 Without caps, a transient outage becomes a run that spends its entire budget retrying, at growing context size each time. Escalate to a human on exhaustion rather than returning a confident partial answer.
 
 ---
 
-### 5. Partial failure needs a shape
+## 6. Partial failure needs a shape
 
 When an operation half-succeeds, say so precisely:
 
@@ -80,6 +117,8 @@ When an operation half-succeeds, say so precisely:
  "failed": [{"id": "48813", "reason": "already refunded"}],
  "safe_to_retry": ["48814"]}
 ```
+
+### Intuition
 
 An agent given this can finish the job. An agent given `"Error"` will either redo the successful work or abandon the whole batch.
 

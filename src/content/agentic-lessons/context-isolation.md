@@ -2,7 +2,9 @@
 
 The main engineering benefit of subagents is that each one gets a clean window. It is worth being precise about why that helps, because the arithmetic is counter-intuitive: the system uses **more** total tokens and the expensive context gets **smaller**.
 
-### 1. The compression argument
+---
+
+## 1. The compression argument
 
 ```text
 worker:  reads 60 documents  ≈ 180,000 tokens consumed inside its own run
@@ -23,7 +25,7 @@ Without isolation, those 180,000 tokens would sit in the parent's window and be 
 
 ---
 
-### 2. It is also a privilege boundary
+## 2. It is also a privilege boundary
 
 ```text
 ┌────────────── parent (trusted) ──────────────┐
@@ -37,11 +39,13 @@ Without isolation, those 180,000 tokens would sit in the parent's window and be 
         └───────────────────────┘
 ```
 
+### Core intuition
+
 If untrusted content contains instructions, the agent that read it has nothing worth stealing and no way to send anything. This is the most practical structural defense against indirect prompt injection, and it comes free with a decomposition you probably wanted anyway.
 
 ---
 
-### 3. Decide the return schema before dispatch
+## 3. Decide the return schema before dispatch
 
 Isolation only holds if the boundary is enforced:
 
@@ -50,11 +54,13 @@ Isolation only holds if the boundary is enforced:
 ✓  worker returns {findings: [...5 max], gaps: [...], cost: {...}}
 ```
 
+### Rule of thumb
+
 Cap the size and type the shape. A worker whose return grows with what it read has no compression at all - you have just moved the context, not reduced it.
 
 ---
 
-### 4. Over-isolation has its own cost
+## 4. Over-isolation has its own cost
 
 ```text
 three workers, no shared facts
@@ -62,11 +68,13 @@ three workers, no shared facts
   → all three miss a constraint the parent knew but didn't pass
 ```
 
+### Common issue
+
 Share a small, explicit **common context**: the goal in one sentence, hard constraints, and a short glossary of entities. Keep it under a few hundred tokens and pass it to every worker. This is cheap and removes most duplicate discovery.
 
 ---
 
-### 5. What you lose
+## 5. What you lose
 
 - **Cross-cutting insight.** A fact in worker A's context that would have changed worker B's search never reaches it.
 - **Debuggability.** You now read N traces plus the seams.

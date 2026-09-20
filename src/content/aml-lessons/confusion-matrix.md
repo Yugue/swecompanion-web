@@ -1,6 +1,6 @@
 ## Confusion matrix, precision, and recall
 
-**Once a model makes a yes/no call, only four things can happen.** It can say yes and be right, say yes and be wrong, say no and be right, or say no and be wrong.
+**Once a model makes a yes/no call, only four things can happen.**
 
 ```text
                             the truth
@@ -9,105 +9,143 @@
     says yes  │  FALSE ALARM    │  correct "yes" │
 ```
 
-The two capitalized cells are the mistakes, and they are not interchangeable - missing a tumour is not the same kind of wrong as a false alarm on a spam filter.
+The two capitalized cells are the mistakes, and they are not interchangeable — missing a tumour is not the same kind of wrong as a false alarm on a spam filter.
 
-Every classification metric you will meet is a different summary of those four counts. Knowing which summary to choose, and saying *why* in terms of cost, is the most frequently tested skill in this domain.
+---
 
-### 1. The four counts
-
-```text
-                  predicted
-                neg        pos
-actual  neg  │  TN   │    FP   │  ← false alarm
-        pos  │  FN   │    TP   │  ← FN = the one we missed
-```
+## 1. The four counts
 
 \[
 \text{precision} = \frac{TP}{TP+FP}, \qquad \text{recall} = \frac{TP}{TP+FN}
 \]
 
-In words, and this is the phrasing to use out loud:
+### Core intuition
 
-- **Precision**: of everything we flagged, how much was right? (Cost of a false alarm.)
-- **Recall**: of everything that was really positive, how much did we catch? (Cost of a miss.)
+Say them in words, and the formulas stop needing memorizing:
+
+```text
+precision   of everything we FLAGGED, how much was right?   → cost of a false alarm
+recall      of everything REALLY positive, how much did
+            we catch?                                       → cost of a miss
+```
 
 ---
 
-### 2. Why accuracy is usually the wrong headline
+## 2. A worked example
+
+A fraud model reviews 10,000 transactions. 100 are genuinely fraudulent. It flags 180:
+
+```text
+                        actually fraud    actually fine
+   model says fraud            80              100        ← flagged 180
+   model says fine             20            9,800
+                              ───            ─────
+                              100            9,900
+```
+
+\[
+\text{precision} = \tfrac{80}{180} = 0.44 \qquad
+\text{recall} = \tfrac{80}{100} = 0.80 \qquad
+\text{accuracy} = \tfrac{9880}{10000} = 0.988
+\]
+
+### Intuition
+
+Three numbers, three different stories. Recall says we catch four fifths of the fraud. Precision says that when we block someone we are wrong more often than right — 100 real customers blocked to catch 80 frauds.
+
+### Rule of thumb
+
+Whether that is good depends entirely on what a blocked customer costs relative to a missed fraud. No metric decides that for you.
+
+---
+
+## 3. Why accuracy is usually the wrong headline
 
 \[
 \text{accuracy} = \frac{TP+TN}{TP+TN+FP+FN}
 \]
 
-With a 0.8% positive rate, "always predict negative" scores 99.2% accuracy and catches nothing. Accuracy is only informative when classes are roughly balanced **and** both errors cost the same - which is rare in the problems interviewers choose.
+### Common issue
+
+With a 0.8% positive rate, "always predict negative" scores **99.2%** and catches nothing.
+
+Accuracy only informs when classes are roughly balanced **and** both errors cost the same — which is rare in the problems interviewers choose.
 
 ---
 
-### 3. The trade-off is a threshold, not a model change
-
-The model produces a score; the threshold turns it into a decision:
+## 4. The trade-off is a threshold, not a different model
 
 ```text
 threshold ↓ 0.2   → flag more → recall ↑, precision ↓
 threshold ↑ 0.8   → flag less → precision ↑, recall ↓
 ```
 
-Both can be gamed in isolation: flag everything for 100% recall, flag only the single most confident case for near-perfect precision. That is why they are always quoted as a pair, or combined.
+### Intuition
+
+Both are trivially gamed alone: flag everything for 100% recall, or flag only the single surest case for near-perfect precision. That is why they are always quoted as a pair.
 
 ---
 
-### 4. F1 and its relatives
+## 5. F1, and weighting one side
 
 \[
 F_1 = 2\cdot\frac{\text{precision}\cdot\text{recall}}{\text{precision}+\text{recall}}
 \]
 
-The **harmonic** mean punishes imbalance: precision 1.0 with recall 0.0 gives an arithmetic mean of 0.5 but an F1 of 0. That is the desired behavior.
+### Core intuition
 
-\(F_\beta\) lets you state the asymmetry explicitly - \(\beta = 2\) weights recall twice as heavily as precision:
+The **harmonic** mean punishes imbalance. Precision 1.0 with recall 0.0 gives an arithmetic mean of 0.5 and an F1 of **0** — which is the desired behavior.
 
 \[
-F_\beta = (1+\beta^2)\cdot\frac{\text{precision}\cdot\text{recall}}{\beta^2\cdot\text{precision}+\text{recall}}
+F_\beta = (1+\beta^2)\cdot\frac{\text{precision}\cdot\text{recall}}{\beta^2\,\text{precision}+\text{recall}}
 \]
+
+### Rule of thumb
+
+\(\beta = 2\) weights recall twice as heavily as precision. Use \(F_\beta\) rather than F1 whenever the two errors genuinely differ in cost.
 
 ---
 
-### 5. Choosing by cost
+## 6. Choosing by what the mistake costs
 
 | Problem | Expensive error | Metric that leads |
 |---|---|---|
-| Cancer screening | Missing a real case (FN) | Recall (a false alarm means another test) |
-| Spam filtering | A real email in the spam folder (FP) | Precision (a spam in the inbox is mild) |
-| Fraud blocking | Both - blocking good customers vs losses | Precision at a fixed recall, or expected cost |
-| Search / recommendations | Irrelevant results at the top | Precision@k |
-| Triage for human review | Missing a case the team could have handled | Recall at the capacity the team has |
-
-The strongest version of this answer names the **dollar cost** of each error and compares expected costs, rather than picking a metric by habit.
+| Cancer screening | Missing a real case | Recall |
+| Spam filtering | A real email quarantined | Precision |
+| Fraud blocking | Both | Precision at fixed recall, or expected cost |
+| Search / recommendations | Irrelevant results on top | Precision@k |
+| Triage for human review | Missing what the team could have handled | Recall at their capacity |
 
 ### Rule of thumb
 
 > Name which mistake hurts more, and the metric picks itself.
 
+The strongest version names the **dollar cost** of each error and compares expected costs.
+
 ---
 
-### 6. Multiclass averaging
+## 7. Multiclass: which average you report
 
 | Averaging | How | Effect |
 |---|---|---|
-| Macro | Compute per class, take the unweighted mean | Every class counts equally - rare classes matter |
-| Weighted | Per class, weighted by support | Dominated by frequent classes |
-| Micro | Pool all TP/FP/FN, then compute | Equals accuracy for single-label problems |
+| Macro | per class, unweighted mean | every class counts equally |
+| Weighted | per class, weighted by support | dominated by frequent classes |
+| Micro | pool all TP/FP/FN | equals accuracy for single-label |
 
-With imbalanced classes, macro and micro can tell opposite stories - macro-F1 collapses if a rare class is handled badly, micro barely moves. Say which one you are reporting.
+### Common issue
+
+With imbalanced classes macro and micro tell opposite stories — macro-F1 collapses if a rare class is handled badly, micro barely moves. Always say which one you are reporting.
 
 ---
 
-### 7. Other counts worth knowing
+## 8. Other counts worth recognizing
 
-- **Specificity** = TN/(TN+FP): recall for the negative class.
-- **False positive rate** = 1 − specificity: the x-axis of the ROC curve.
-- **Balanced accuracy**: the mean of recall and specificity - a fair "accuracy" under imbalance.
-- **Matthews correlation coefficient**: a single number that uses all four cells and behaves well when classes are skewed.
+```text
+specificity           TN/(TN+FP)    recall for the negative class
+false positive rate   1 − specificity   the x-axis of the ROC curve
+balanced accuracy     mean of recall and specificity
+Matthews correlation  uses all four cells, behaves well under skew
+```
 
 ---
 

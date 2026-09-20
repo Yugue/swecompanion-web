@@ -4,7 +4,9 @@
 
 The classic arrangement (usually called RAG, retrieval-augmented generation) looks things up **once**, before answering. An agent instead treats retrieval as an **action it can repeat**: read what came back, notice it is not enough, and search again with better words. That fixes the single-shot query's biggest weakness and costs you round trips.
 
-### 1. The two shapes
+---
+
+## 1. The two shapes
 
 ```text
 classic RAG:     query ──► retrieve ──► generate ──► answer
@@ -30,7 +32,47 @@ The agent can decompose a multi-part question, search different sources for diff
 
 ---
 
-### 2. What the retrieval tool must return
+## 2. One question, two architectures
+
+*"Why was my last order more expensive than usual?"*
+
+```text
+CLASSIC RAG (one shot)
+  embed the whole question → search → generate
+  retrieved: three help-centre articles about pricing
+  answer:    a generic explanation of how pricing works
+             ← it never found out anything about THIS user's orders
+```
+
+```text
+AGENTIC (retrieval as an action)
+  step 1  "last" and "usual" are not searchable. Resolve them first.
+          search_orders(user="u_8812", limit=5)
+          → [{id:441, total:64.00, date:"2026-03-02"},
+             {id:438, total:41.50, date:"2026-02-11"}, ...]
+
+  step 2  "So the last one is $64 against a usual ~$42. What changed?"
+          get_order_lines(order_id=441)
+          → [{sku:"A-22", qty:2, unit:18.00}, {sku:"SHIP-EXP", amount:28.00}]
+
+  step 3  "Expedited shipping is $28 of the difference. Was it chosen, or defaulted?"
+          get_policy(topic="expedited_shipping")
+          → {auto_applied_when:"delivery_under_48h", ...}
+
+  answer  "$28 of it is expedited shipping, applied automatically because you
+           chose delivery within 48 hours. The items themselves cost $36, in
+           line with your usual orders."
+```
+
+The loop wins here for one specific reason: **the second query could not be written before seeing the first result.** No amount of query rewriting up front gets you to `get_order_lines(441)`, because `441` did not exist until step 1 ran.
+
+### Rule of thumb
+
+That is also the test for when the loop is worth its extra round trips. If the whole question can be answered by one well-formed search, the loop is just a more expensive way to do it.
+
+---
+
+## 3. What the retrieval tool must return
 
 ```json
 {"results": [
@@ -46,11 +88,13 @@ Three non-negotiables:
 2. **The query actually used**, so the trace shows what was searched.
 3. **An explicit empty result**: `{"results": [], "message": "No matches for X. Try broader terms or a different source."}`
 
+### Common issue
+
 That third one is where hallucination starts. An empty string leaves the model to produce the most plausible continuation, which is an invented citation.
 
 ---
 
-### 3. Query reformulation is the real win
+## 4. Query reformulation is the real win
 
 ```text
 user: "why was my last order more expensive than usual?"
@@ -61,11 +105,13 @@ agent: search_orders(customer, limit=2)        ← resolve "last" and "usual"
        → a promotional price on the earlier order
 ```
 
+### Intuition
+
 Note that the first "retrieval" is a structured lookup, not a search by meaning. Agents that can only search by meaning will turn "more expensive than usual" into a numeric fingerprint (an **embedding** - two lessons from here) and retrieve nothing useful, because the phrase does not resemble any stored text. Give the agent both structured filters and semantic search.
 
 ---
 
-### 4. Grounding the answer
+## 5. Grounding the answer
 
 ```text
 answer must cite ──► citations checked against retrieved passages ──► fail ⇒ revise
@@ -73,11 +119,7 @@ answer must cite ──► citations checked against retrieved passages ──�
 
 A cheap post-check - does every cited source appear in what was actually retrieved, and does the quoted text exist in it - catches the most damaging class of RAG error at almost no cost. This is grounded reflection, and it belongs in any production answer.
 
----
-
-### 5. Knowing when to stop searching
-
-Give the agent a stopping rule and a budget. Something like: stop once two independent sources agree, or after four searches - then say what you could not find.
+**Knowing when to stop searching.** Give the agent a stopping rule and a budget. Something like: stop once two independent sources agree, or after four searches - then say what you could not find.
 
 Without one you get the search-forever failure. Every query looks defensible, and none of them conclude.
 

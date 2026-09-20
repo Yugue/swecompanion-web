@@ -2,7 +2,9 @@
 
 Boosting builds trees **sequentially**, each one correcting what the current ensemble still gets wrong. On tabular data it is the strongest default model, which makes it a very common interview subject.
 
-### 1. The idea
+---
+
+## 1. The idea
 
 ```text
 F0(x) = a constant (the mean, or the log-odds of the base rate)
@@ -17,7 +19,40 @@ Each \(h_m\) is a **shallow** tree (depth 3-6). Individually they are weak; the 
 
 ---
 
-### 2. Why "gradient"
+## 2. Watching it work, on three rows
+
+Before the general version, here is the whole algorithm on a tiny regression problem. Predict house price; start by predicting the average.
+
+```text
+              truth    F0 (mean)   residual = what's still wrong
+  house A      300        250            +50
+  house B      200        250            −50
+  house C      250        250              0
+```
+
+Tree 1 is fitted **to the residual column**, not to the price. Say it learns "bigger houses are underpriced by about 50" and predicts +40, −40, 0. With a learning rate of 0.1 we add only a tenth of it:
+
+```text
+              F1 = F0 + 0.1×h1     new residual
+  house A      250 + 4 = 254           +46
+  house B      250 − 4 = 246           −46
+  house C      250 + 0 = 250             0
+```
+
+Tree 2 is now fitted to *that* residual column. And so on, several hundred times. Each tree is weak, each correction is small, and the sum creeps toward the truth.
+
+```text
+F0 → +η·h1 → +η·h2 → +η·h3 → ... → F_m
+     each tree fits what the SUM SO FAR still gets wrong
+```
+
+### Intuition
+
+Two things fall out of this picture immediately. The trees must be **shallow**, because each one only has to capture a small remaining correction. And more trees can **overfit**, because the residuals eventually contain nothing but noise and the model will happily fit that too.
+
+---
+
+## 3. Why "gradient"
 
 For squared error, "what is still wrong" is the residual \(y - F(x)\). Gradient boosting generalizes this: each tree fits the **negative gradient of the loss** with respect to the current predictions.
 
@@ -29,11 +64,13 @@ r_i^{(m)} = -\left[\frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}\right]_{F = F
 F_m(x) = F_{m-1}(x) + \eta\, h_m(x)
 \]
 
+### Core intuition
+
 That framing is what lets the same algorithm optimize log loss, Huber, quantile, or a ranking objective - it is gradient descent, but in function space, taking one tree-shaped step at a time.
 
 ---
 
-### 3. Learning rate and number of trees
+## 4. Learning rate and number of trees
 
 These two hyperparameters are a single trade-off:
 
@@ -51,11 +88,13 @@ GradientBoostingClassifier(learning_rate=0.05, n_estimators=2000, max_depth=3,
                            validation_fraction=0.1, n_iter_no_change=50)
 ```
 
+### Common issue
+
 Unlike a random forest, **more trees can overfit here** - the ensemble keeps reducing training error and will eventually start fitting noise.
 
 ---
 
-### 4. Bias vs variance, one more time
+## 5. Bias vs variance, one more time
 
 | | Random forest | Gradient boosting |
 |---|---|---|
@@ -63,11 +102,13 @@ Unlike a random forest, **more trees can overfit here** - the ensemble keeps red
 | Mechanism | average away variance | add capacity to reduce bias |
 | Direction | parallel | sequential |
 
+### Rule of thumb
+
 Saying this cleanly - *bagging attacks variance, boosting attacks bias* - is one of the highest-value sentences in this chapter.
 
 ---
 
-### 5. The modern implementations
+## 6. The modern implementations
 
 | Library | Distinguishing idea |
 |---|---|
@@ -81,7 +122,7 @@ Key hyperparameters worth naming: `learning_rate`, `n_estimators` (with early st
 
 ---
 
-### 6. Strengths and limits
+## 7. Strengths and limits
 
 **Strengths**: state of the art on tabular problems; handles mixed types, missing values, and nonlinear interactions; supports many losses; feature importance and SHAP come easily.
 

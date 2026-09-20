@@ -9,7 +9,9 @@ shared workspace  → nothing is lost, but they can overwrite each other
 
 Each has a characteristic failure mode, and naming both is what makes a design answer credible.
 
-### 1. The two models
+---
+
+## 1. The two models
 
 ```text
 message passing:            shared state:
@@ -30,7 +32,7 @@ message passing:            shared state:
 
 ---
 
-### 2. What a handoff must carry
+## 2. What a handoff must carry
 
 ```json
 {"goal": "...",
@@ -49,7 +51,7 @@ message passing:            shared state:
 
 ---
 
-### 3. Typed messages, always
+## 3. Typed messages, always
 
 ```text
 ✗  free text: "hey can you double check the pricing thing"
@@ -57,11 +59,13 @@ message passing:            shared state:
      "source": "...", "requested_by": "w1", "deadline_steps": 5}
 ```
 
+### Common issue
+
 Free-form inter-agent chatter is unparseable, unloggable, and unfixable. It also drifts: agents start negotiating about the task instead of doing it. A closed set of message types keeps the protocol testable.
 
 ---
 
-### 4. Making a shared workspace safe
+## 4. Making a shared workspace safe
 
 ```text
 1. ownership     one writer per file or per record
@@ -73,11 +77,7 @@ Free-form inter-agent chatter is unparseable, unloggable, and unfixable. It also
 
 Note these are ordinary distributed-systems controls. Agents are concurrent writers with unusually poor judgment, so the standard tools apply, more strictly.
 
----
-
-### 5. Don't let agents read everything
-
-The shared workspace reintroduces the context problem if every agent loads the whole thing. Give agents a **query** interface - read the section you need - rather than a dump, exactly as you would with retrieval.
+**Don't let agents read everything.** The shared workspace reintroduces the context problem if every agent loads the whole thing. Give agents a **query** interface - read the section you need - rather than a dump, exactly as you would with retrieval.
 
 ---
 

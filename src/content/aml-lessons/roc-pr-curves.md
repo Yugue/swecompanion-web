@@ -4,7 +4,9 @@
 
 Precision and recall therefore describe **one** cut-off. The curves in this lesson describe every cut-off at once, which makes them the right tool for comparing two models and the wrong tool for deciding where to actually set the dial.
 
-### 1. The ROC curve
+---
+
+## 1. The ROC curve
 
 Sweep the threshold from 1 to 0 and plot:
 
@@ -24,11 +26,35 @@ TPR │      ╭──────── good model
 
 > ROC-AUC is the probability that a randomly chosen positive is scored above a randomly chosen negative.
 
+### Core intuition
+
 0.5 is random, 1.0 is perfect, below 0.5 means the scores are inverted. It is threshold-free and invariant to the class balance, which is both its strength and its trap.
 
 ---
 
-### 2. Why ROC-AUC flatters imbalanced problems
+## 2. Watching one model as the threshold moves
+
+The model does not change. Only the cut-off does:
+
+```text
+threshold   flagged   TP    FP    precision   recall
+   0.9         40      35     5      0.88       0.35
+   0.7        120      75    45      0.63       0.75
+   0.5        260      90   170      0.35       0.90
+   0.3        800      98   702      0.12       0.98
+```
+
+(100 true positives in total.)
+
+Every row is the *same model*. Drop the threshold and you catch more of the real positives - recall climbs from 0.35 to 0.98 - while the proportion of your flags that are correct collapses from 0.88 to 0.12.
+
+### Intuition
+
+That is why a single precision/recall pair describes an operating point rather than a model, and why comparing two models needs a curve that covers all the rows at once.
+
+---
+
+## 3. Why ROC-AUC flatters imbalanced problems
 
 FPR has TN in the denominator, and under heavy imbalance TN is enormous.
 
@@ -38,11 +64,13 @@ FPR has TN in the denominator, and under heavy imbalance TN is enormous.
 but if we flagged 12,000 in total → precision = 0.17  ← the team sees 5 junk cases per real one
 ```
 
+### Common issue
+
 The ROC curve hugs the top-left and reports 0.95 while the product experience is poor. Nothing is wrong with the number; it is answering a question nobody asked.
 
 ---
 
-### 3. The precision-recall curve
+## 4. The precision-recall curve
 
 Plot precision against recall over the same threshold sweep. The baseline is not 0.5 - it is the **positive rate**:
 
@@ -59,7 +87,7 @@ Also note: **PR-AUC changes with the class balance**, so it cannot be compared a
 
 ---
 
-### 4. Average precision vs interpolated PR-AUC
+## 5. Average precision vs interpolated PR-AUC
 
 `average_precision_score` is the recommended summary of the PR curve - it is a proper weighted mean of precisions and avoids the optimistic interpolation that trapezoidal PR-AUC can produce.
 
@@ -70,7 +98,7 @@ average_precision_score(y_true, y_score)
 
 ---
 
-### 5. Choosing the operating point
+## 6. Choosing the operating point
 
 AUC compares models. It does not run in production - a threshold does.
 
@@ -90,19 +118,17 @@ Sweep the threshold, compute the expected cost at each, and take the minimum. If
 p, r, thr = precision_recall_curve(y_val, scores)
 ```
 
----
-
-### 6. Thresholds drift
-
-The optimal operating point depends on the score distribution, and that distribution moves as the data moves.
+**Thresholds drift.** The optimal operating point depends on the score distribution, and that distribution moves as the data moves.
 
 > Re-validate the threshold after every retrain, and monitor the flag rate in production.
+
+### Rule of thumb
 
 A sudden change in the proportion of flagged traffic is often the earliest visible sign of drift - usually before any labelled ground truth arrives.
 
 ---
 
-### 7. Which curve for which job
+## 7. Which curve for which job
 
 | Goal | Use |
 |---|---|

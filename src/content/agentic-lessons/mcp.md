@@ -2,7 +2,9 @@
 
 MCP standardizes how an agent discovers and calls external capabilities. The value is an integration-math argument, and the cost is a change to your threat model. Both belong in the answer.
 
-### 1. The problem it solves
+---
+
+## 1. The problem it solves
 
 ```text
 without a standard:            with a standard:
@@ -16,11 +18,13 @@ without a standard:            with a standard:
  N × M integrations
 ```
 
+### Core intuition
+
 Every agent writing its own connector to every system is quadratic work that is re-done whenever an API changes. A protocol makes each integration write-once.
 
 ---
 
-### 2. What a server exposes
+## 2. What a server exposes
 
 | Primitive | Meaning | Controlled by |
 |---|---|---|
@@ -28,11 +32,13 @@ Every agent writing its own connector to every system is quadratic work that is 
 | Resources | Readable context - files, records, pages | The application selects |
 | Prompts | Reusable templates for common tasks | The user invokes |
 
+### Rule of thumb
+
 The tools/resources split matters: tools are *model-driven*, resources are *application-driven*. Exposing something as a resource means your code decides when it enters the context, which is a meaningful control.
 
 ---
 
-### 3. Discovery at runtime
+## 3. Discovery at runtime
 
 ```text
 client ──list_tools()──► server
@@ -41,11 +47,13 @@ client ◄──schemas───────  server
         └─► schemas injected into the model's context
 ```
 
+### Common issue
+
 The tool surface can change without redeploying your agent. That is the convenience. It is also the risk: a third party can change what your agent can do, and what text sits inside your prompt, between one run and the next.
 
 ---
 
-### 4. The threat model shift
+## 4. The threat model shift
 
 ```text
 third-party server
@@ -68,11 +76,7 @@ Controls worth naming:
 
 > Connecting a tool server is installing a dependency that can also write into your prompt.
 
----
-
-### 5. Namespace collisions
-
-Two servers can both expose `search`. The model then picks between identically named tools by description alone. Namespace them (`github.search`, `drive.search`) and keep the combined catalogue small - the selection problem is covered next.
+**Namespace collisions.** Two servers can both expose `search`. The model then picks between identically named tools by description alone. Namespace them (`github.search`, `drive.search`) and keep the combined catalogue small - the selection problem is covered next.
 
 ---
 

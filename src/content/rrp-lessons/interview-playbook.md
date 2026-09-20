@@ -2,7 +2,9 @@
 
 **The graded skill is narrowing a broad prompt to one part of the funnel and explaining that part concretely** - not surveying everything you know about recommenders.
 
-### 1. The shape of an answer
+---
+
+## 1. The shape of an answer
 
 ```text
 1. one-sentence definition
@@ -14,11 +16,13 @@
 7. stop
 ```
 
+### Core intuition
+
 Step 3 is specific to this domain and it is the highest-value habit here. Retrieval, ranking, and re-ranking have different constraints, different metrics, and different models. An answer that does not say which one it is about will sound muddled however good the content is.
 
 ---
 
-### 2. Pin down the row and the label early
+## 2. Pin down the row and the label early
 
 Most vague answers are vague because nobody said what one example is.
 
@@ -38,7 +42,7 @@ That sentence settles the loss, the metric, the pipeline, and the retraining cad
 
 ---
 
-### 3. Always quote a baseline
+## 3. Always quote a baseline
 
 ```text
 weak:    "recall@100 was 0.31"
@@ -46,11 +50,13 @@ strong:  "recall@100 was 0.31, against 0.24 for popularity-in-context -
           so the personalization is worth about 7 points"
 ```
 
+### Rule of thumb
+
 Popularity is the floor in this domain (Chapter 1), and quoting against it is the fastest way to sound like you have measured something rather than reported a number.
 
 ---
 
-### 4. Raise the biases before they do
+## 4. Raise the biases before they do
 
 Interviewers in this area are listening for whether you know the data is not a clean sample:
 
@@ -61,11 +67,13 @@ feedback loops   the system trains on data it generated
 popularity bias  unnormalized similarity surfaces bestsellers everywhere
 ```
 
+### Common issue
+
 Naming one of these unprompted, in the right place, is one of the strongest signals available. Naming all four unprompted sounds like a recitation - pick the one that bears on the question.
 
 ---
 
-### 5. Phrases that land
+## 5. Phrases that land
 
 ```text
 "Which stage are we talking about - retrieval or ranking? The constraints
@@ -77,11 +85,7 @@ Naming one of these unprompted, in the right place, is one of the strongest sign
 "Offline that's a hypothesis; I'd want it in an A/B test with guardrails."
 ```
 
----
-
-### 6. When you do not know
-
-Say what you do know, name the boundary, reason forward:
+**When you do not know.** Say what you do know, name the boundary, reason forward:
 
 > "I have not used that particular architecture. The problem it solves is learning feature interactions over very sparse ids, which I would otherwise approach with a factorization machine or explicit cross layers - so what I would want to know is how it handles the embedding table size, because that is usually the binding constraint."
 

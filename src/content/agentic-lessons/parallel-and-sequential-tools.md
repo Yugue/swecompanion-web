@@ -2,7 +2,9 @@
 
 Latency in an agent is dominated by round trips. Recognizing which calls are independent - and running those at the same time - is usually the largest wall-clock win available, and it is a planning decision, not an infrastructure one.
 
-### 1. The win
+---
+
+## 1. The win
 
 ```text
 sequential:   ──call A──► ──call B──► ──call C──►     3 × (model + tool)
@@ -11,11 +13,13 @@ parallel:     ──call A──┐
               ──call C──┘
 ```
 
+### Core intuition
+
 Three lookups at 800 ms each become one 800 ms step. Just as important: it is **one** model turn instead of three, so you also save two full context re-sends.
 
 ---
 
-### 2. When a call is parallelizable
+## 2. When a call is parallelizable
 
 A set of calls can run concurrently only if:
 
@@ -38,7 +42,7 @@ Reads fan out freely. Writes to shared state should be serialized even when they
 
 ---
 
-### 3. What the runtime must do
+## 3. What the runtime must do
 
 ```python
 results = await asyncio.gather(*[execute(c) for c in calls],
@@ -55,7 +59,7 @@ Three requirements hide in those four lines:
 
 ---
 
-### 4. When the model gets it wrong
+## 4. When the model gets it wrong
 
 If the model emits three calls in one turn and the third needs the second's result, it has mis-planned - it produced a dependency it cannot satisfy, and will fill the missing argument with a guess.
 
@@ -67,11 +71,7 @@ Fixes, in order of preference:
 
 Note that all three are structural. "Remember to call them in order" is not a fix.
 
----
-
-### 5. The cost side
-
-Parallel calls cut latency, not tokens: three observations still enter the context. If each returns 3,000 tokens, you saved seconds and spent the window. Pair fan-out with compact returns, or with a subagent that reads all three and returns a summary.
+**The cost side.** Parallel calls cut latency, not tokens: three observations still enter the context. If each returns 3,000 tokens, you saved seconds and spent the window. Pair fan-out with compact returns, or with a subagent that reads all three and returns a summary.
 
 ---
 

@@ -9,7 +9,9 @@ your code:     is this allowed?  →  run it  →  hand the result back
 
 So the single most important sentence here is: **the model does not execute anything.** Every security property of an agent lives in that gap.
 
-### 1. What actually happens
+---
+
+## 1. What actually happens
 
 ```text
 1.  tool schemas are serialized into the prompt
@@ -20,11 +22,49 @@ So the single most important sentence here is: **the model does not execute anyt
 6.  model reads the observation and decides again
 ```
 
+### Core intuition
+
 Steps 3 and 4 are ordinary backend engineering. The model has no more privilege than a form submission from an untrusted client.
 
 ---
 
-### 2. Tools live in the prompt
+## 2. What crosses the wire
+
+The model does not call anything. It emits text in a structured shape, and your runtime does the rest:
+
+```text
+1. you send                  [system][tool schemas][conversation]
+
+2. model returns             {"tool_calls": [{
+                                "id": "call_a7",
+                                "name": "issue_refund",
+                                "arguments": {"order_id":"48812","amount":240.00}
+                             }]}
+                             ↑ this is DATA. nothing has happened yet.
+
+3. YOUR RUNTIME decides      is this user allowed to refund this order?
+                             is 240.00 within policy?
+                             has verify_identity run in this session?
+                             → any of these may reject the call outright
+
+4. you execute               refunds.issue(order_id, amount, key=...)
+
+5. you append the result     {"role":"tool","tool_call_id":"call_a7",
+                              "content":"{\"status\":\"refunded\"}"}
+                             ↑ bound back to call_a7, not just appended
+
+6. model sees it next turn   and decides what to do
+```
+
+Step 3 is the entire security story. The model's output is a *request from an untrusted client* that happens to be well formatted - and your runtime is the only thing standing between that request and your database.
+
+### Common issue
+
+Step 5 matters more than it looks: results carry the call id because parallel calls come back out of order, and appending by completion order silently attributes one tool's output to a different call.
+
+---
+
+## 3. Tools live in the prompt
 
 Tool definitions are not a side channel. They are text prepended to every request:
 
@@ -44,7 +84,7 @@ Three consequences worth stating in an interview:
 
 ---
 
-### 3. The security boundary
+## 4. The security boundary
 
 | Enforced in the prompt | Enforced in the runtime |
 |---|---|
@@ -60,7 +100,7 @@ The left column is a suggestion with a good success rate. The right column is a 
 
 ---
 
-### 4. Binding results to calls
+## 5. Binding results to calls
 
 Each call carries an id, and the observation must be attached to that id:
 
@@ -72,13 +112,11 @@ call_id c3 → search    → error   ┘
 
 If results are appended in completion order without ids, the model silently attributes one tool's output to another. This is a real and hard-to-spot bug in hand-rolled loops.
 
----
-
-### 5. What the model is actually good and bad at
-
-Good: picking a plausible tool, filling arguments that appear in the context, following enum constraints.
+**What the model is actually good and bad at.** Good: picking a plausible tool, filling arguments that appear in the context, following enum constraints.
 
 Bad: inventing values not present in context (IDs, dates, amounts), knowing whether a tool has side effects, and judging whether it is permitted to run.
+
+### Rule of thumb
 
 That last item is why the answer to "how do you stop it doing X" is never "tell it not to."
 

@@ -2,14 +2,16 @@
 
 Agent scaffolding cannot create ability that the base model does not have. It can only **redistribute** the model's existing ability across more steps. Knowing exactly which limits are structural - and therefore not fixable by prompting - is what stops you from spending a week on the wrong layer.
 
-### 1. What you can rely on
+---
+
+## 1. What you can rely on
 
 - Instruction following, including multi-part formatting rules.
 - Broad prior knowledge up to the training cutoff.
 - Plausible decomposition of tasks that resemble things people have written about.
 - Sticking to a required output format, especially with constrained decoding - a sampling trick covered two lessons from now.
 
-### 2. What is structurally missing
+## 2. What is structurally missing
 
 | Limit | Why it exists | What actually fixes it |
 |---|---|---|
@@ -19,11 +21,13 @@ Agent scaffolding cannot create ability that the base model does not have. It ca
 | Unreliable arithmetic | Digits are tokens, not numbers | A code or calculator tool |
 | Confident gap-filling | Under-specification is resolved by plausibility | Constrain the input, verify the output |
 
+### Common issue
+
 The last row is the one that produces agent incidents. When a tool returns nothing and the prompt requires an order ID, the model does not stop - it produces the most plausible-looking order ID.
 
 ---
 
-### 3. The plausibility failure, drawn
+## 3. The plausibility failure, drawn
 
 ```text
 retrieval → [ ] empty
@@ -50,7 +54,7 @@ Nothing in the model's objective distinguishes "the right ID" from "an ID-shaped
 
 ---
 
-### 4. The capability ceiling test
+## 4. The capability ceiling test
 
 Before adding steps, a self-review pass, or subagents - helper agents with their own context, covered in Chapter 3 - run the diagnostic:
 
@@ -64,17 +68,21 @@ scaffolding will help              scaffolding will not help
  problem)                            a tool, or a smaller task)
 ```
 
+### Rule of thumb
+
 Agent frameworks are very good at hiding the second case behind twelve retries.
 
 ---
 
-### 5. Where model choice actually shows up
+## 5. Where model choice actually shows up
 
 Agents amplify small per-step differences. If each step succeeds with probability \(p\), a 10-step task succeeds at roughly:
 
 \[
 p^{10}
 \]
+
+### Core intuition
 
 So 95% per step gives about 60% end to end, and 99% per step gives about 90%. Two models a few points apart on a benchmark can be far apart as agents - which is why agent quality must be measured end to end, not from per-call benchmarks.
 

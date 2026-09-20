@@ -10,7 +10,9 @@ trending / fresh     ──┤
 business inventory   ──┘
 ```
 
-### 1. What each source is there to catch
+---
+
+## 1. What each source is there to catch
 
 | Source | Catches | Would be missed by |
 |---|---|---|
@@ -20,11 +22,13 @@ business inventory   ──┘
 | Trending / fresh | news, live events, today's release | anything trained on last week's data |
 | Business inventory | promoted, sponsored, must-show stock | all learned sources |
 
+### Core intuition
+
 The point of listing them is that each row is a *reason* an item might deserve a slot. A single model has one notion of relevance; the union has several.
 
 ---
 
-### 2. Merging
+## 2. Merging
 
 ```text
 1. run sources in parallel (they are independent)
@@ -41,7 +45,7 @@ The cap matters. Without it, one prolific source - usually the embedding index -
 
 ---
 
-### 3. Provenance pays for itself
+## 3. Provenance pays for itself
 
 Tagging every candidate with its source lets you answer questions you otherwise cannot:
 
@@ -51,11 +55,13 @@ which source is contributing candidates nobody ever ranks highly?
 did recall drop because a source broke, or because the model changed?
 ```
 
+### Rule of thumb
+
 A source whose candidates are never ranked into the top is pure cost, and you only find that out if you logged where they came from.
 
 ---
 
-### 4. Adding a source is a cheap win
+## 4. Adding a source is a cheap win
 
 When the ranker is already good, adding a retrieval source is often the highest-return change available:
 
@@ -69,7 +75,7 @@ It is also low-risk: sources are independent, so a new one can be added behind a
 
 ---
 
-### 5. The failure to watch for
+## 5. The failure to watch for
 
 ```text
 all sources are trained on the same logs
@@ -78,6 +84,8 @@ they all learn the same popularity bias
         ↓
 "five sources" produce nearly the same 500 items
 ```
+
+### Common issue
 
 Diversity of *sources* is not the same as diversity of *candidates*. Measure the overlap between sources; if two of them return the same items 80% of the time, you are paying for one of them twice.
 

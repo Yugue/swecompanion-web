@@ -2,7 +2,9 @@
 
 Cleaning looks like housekeeping before the real work. It is not. **How you handle a missing value is a modelling decision**, and it is one interviewers use to check whether you think about data or only about algorithms.
 
-### 1. Ask why the value is missing
+---
+
+## 1. Ask why the value is missing
 
 Three mechanisms, and they need different treatments:
 
@@ -12,7 +14,9 @@ Three mechanisms, and they need different treatments:
 | Missing at random | Explained by other observed features | Older users skip the profile photo field |
 | Missing not at random | Explained by the missing value itself, or by the label | High earners decline to state income |
 
-The third case is the dangerous one. If income is missing precisely because it is high, then "income is missing" carries signal - and imputing the mean destroys it.
+### Core intuition
+
+The third case is the dangerous one. If income is missing precisely *because* it is high, then "income is missing" carries signal — and imputing the mean destroys it.
 
 ### Rule of thumb
 
@@ -24,7 +28,7 @@ X["income_missing"] = X["income"].isna().astype(int)
 
 ---
 
-### 2. Imputation options
+## 2. Imputation options
 
 | Strategy | When it fits | Cost |
 |---|---|---|
@@ -35,7 +39,7 @@ X["income_missing"] = X["income"].isna().astype(int)
 | Model-based (kNN, iterative) | Strong correlations between features | Expensive, easy to leak, must be refit per fold |
 | Leave it as NaN | Gradient-boosted trees handle it natively | Not an option for linear models or k-NN |
 
-The critical rule, regardless of choice:
+### Rule of thumb
 
 > Fit the imputer on the training split only, then apply it. Computing a median over the whole dataset before splitting leaks test information into training.
 
@@ -43,11 +47,13 @@ The critical rule, regardless of choice:
 Pipeline([("impute", SimpleImputer(strategy="median")), ("clf", LogisticRegression())])
 ```
 
-A Pipeline is not a style preference here - it is what makes the fit-on-train rule hold automatically inside cross-validation.
+### Common issue
+
+A Pipeline is not a style preference here — it is what makes the fit-on-train rule hold automatically inside cross-validation.
 
 ---
 
-### 3. Outliers
+## 3. Outliers
 
 An extreme value is one of three things, and you cannot treat them the same way:
 
@@ -57,7 +63,9 @@ heavy tail       → real, rare, and informative. Keep, maybe transform.
 the target event → the fraud you are trying to catch. NEVER drop.
 ```
 
-Deleting outliers reflexively is the failure mode. In a fraud or anomaly problem, the outliers *are* the positive class.
+### Common issue
+
+Deleting outliers reflexively is the failure mode. In a fraud or anomaly problem, the outliers **are** the positive class.
 
 Options that are usually better than deletion:
 
@@ -72,7 +80,7 @@ Options that are usually better than deletion:
 
 ---
 
-### 4. Duplicates
+## 4. Duplicates
 
 Exact duplicates inflate whatever they duplicate and, worse, split across train and test:
 
@@ -86,7 +94,7 @@ Sometimes repetition is real - the same customer genuinely made ten identical pu
 
 ---
 
-### 5. The order of operations
+## 5. The order of operations
 
 ```text
 split first

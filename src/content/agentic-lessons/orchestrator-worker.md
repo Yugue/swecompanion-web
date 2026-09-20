@@ -2,7 +2,9 @@
 
 The dominant multi-agent shape: one agent holds the goal and the plan, and dispatches bounded subtasks to workers that return compact, structured results. It works because the information asymmetry is deliberate.
 
-### 1. The shape
+---
+
+## 1. The shape
 
 ```text
                     ┌──────────────┐
@@ -20,11 +22,13 @@ The dominant multi-agent shape: one agent holds the goal and the plan, and dispa
                     └──────────────┘
 ```
 
+### Core intuition
+
 Only the orchestrator ever has the whole picture. That is the point - it is what keeps every worker's context small.
 
 ---
 
-### 2. The brief is the product
+## 2. The brief is the product
 
 A worker cannot ask a clarifying question of a context it never saw, so an ambiguous brief is silently converted into confident irrelevant work.
 
@@ -43,7 +47,7 @@ A worker cannot ask a clarifying question of a context it never saw, so an ambig
 
 ---
 
-### 3. Returns must be small and typed
+## 3. Returns must be small and typed
 
 ```text
 ✗  worker returns its transcript      → the orchestrator's window fills with
@@ -51,11 +55,13 @@ A worker cannot ask a clarifying question of a context it never saw, so an ambig
 ✓  worker returns findings + gaps + cost
 ```
 
+### Rule of thumb
+
 Always include **gaps**. A worker that found three of five tiers and says so lets the orchestrator dispatch a follow-up; one that silently returns three implies five don't exist.
 
 ---
 
-### 4. What the orchestrator must do at merge time
+## 4. What the orchestrator must do at merge time
 
 Not concatenate. Reconcile:
 
@@ -66,11 +72,13 @@ Not concatenate. Reconcile:
 4. budget?           stop if the global cap is reached, even with gaps
 ```
 
+### Common issue
+
 A merge step that just pastes findings together is where fabricated numbers enter final reports.
 
 ---
 
-### 5. Where it fits and where it doesn't
+## 5. Where it fits and where it doesn't
 
 ```text
 ✓  research and analysis        (fan out over sources)
@@ -81,6 +89,8 @@ A merge step that just pastes findings together is where fabricated numbers ente
 ✗  tightly sequential work      (no parallelism to win)
 ✗  shared mutable artifact      (workers overwriting each other)
 ```
+
+### Rule of thumb
 
 If two workers need to talk to each other to finish, they were one task that has been split incorrectly.
 

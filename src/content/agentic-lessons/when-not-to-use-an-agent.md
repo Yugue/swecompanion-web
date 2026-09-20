@@ -4,7 +4,9 @@
 
 Proposing an agent where a workflow would do is one of the fastest ways to look inexperienced in a design interview. Most production "agents" are - correctly - workflows with one agentic step.
 
-### 1. The decision, in one diagram
+---
+
+## 1. The decision, in one diagram
 
 ```text
 Is the sequence of steps the same every time?
@@ -19,11 +21,13 @@ Is the sequence of steps the same every time?
                                               retry logic      agent
 ```
 
+### Core intuition
+
 Three of the four leaves are not agents.
 
 ---
 
-### 2. What each option actually costs
+## 2. What each option actually costs
 
 | Design | Latency | Cost per request | Debuggability | Handles the unforeseen |
 |---|---|---|---|---|
@@ -32,11 +36,13 @@ Three of the four leaves are not agents.
 | Workflow + one agentic step | Mostly fixed | Bounded | Good | In that one stage |
 | Autonomous agent | Variable | Variable, unbounded without caps | Traces only | Yes |
 
+### Common issue
+
 The "variable" entries are the real story. A product with a p50 of 4 seconds and a p99 of 90 seconds is a different product than one that always takes 6.
 
 ---
 
-### 3. Cases that are not agents
+## 3. Cases that are not agents
 
 - **Classify, extract, rewrite, summarize** - one transformation, one call.
 - **Fixed pipeline** - parse, then enrich, then validate, then format. Write the four steps.
@@ -49,7 +55,7 @@ The "variable" entries are the real story. A product with a p50 of 4 seconds and
 
 ---
 
-### 4. What genuinely justifies an agent
+## 4. What genuinely justifies an agent
 
 All three should hold, not just one:
 
@@ -57,11 +63,13 @@ All three should hold, not just one:
 2. The step count is **unknown in advance** - it might be 2 or 20.
 3. Recovery requires **judgment** - a failure has several reasonable responses, and choosing needs context.
 
+### Rule of thumb
+
 Debugging a failing test, investigating an alert, and open-ended research all satisfy all three. "Process invoices" usually satisfies none of them.
 
 ---
 
-### 5. The three questions to ask the PM
+## 5. The three questions to ask the PM
 
 ```text
 1. "Walk me through three real examples end to end."
@@ -76,11 +84,7 @@ Debugging a failing test, investigating an alert, and open-ended research all sa
 
 Asking these is itself part of what's being graded - it shows you cost a design before building it.
 
----
-
-### 6. Start low, and move the dial with evidence
-
-Begin at the lowest autonomy that could plausibly work: few tools, small step cap, approval on side effects. Then let traces tell you which dial to turn. Every increase should be traceable to a specific run that the previous setting could not handle.
+**Start low, and move the dial with evidence.** Begin at the lowest autonomy that could plausibly work: few tools, small step cap, approval on side effects. Then let traces tell you which dial to turn. Every increase should be traceable to a specific run that the previous setting could not handle.
 
 ---
 

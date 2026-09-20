@@ -2,7 +2,9 @@
 
 A deployed model decays. Not because the code changed, but because the world did. Monitoring exists so that you notice before the business does.
 
-### 1. Monitor three layers
+---
+
+## 1. Monitor three layers
 
 ```text
 1. INPUTS       feature distributions, null rates, cardinality, freshness
@@ -16,7 +18,7 @@ The single most useful cheap alarm: **the flag rate**. If a model that normally 
 
 ---
 
-### 2. The three kinds of drift
+## 2. The three kinds of drift
 
 | Type | What changes | Example | Retraining helps? |
 |---|---|---|---|
@@ -24,11 +26,40 @@ The single most useful cheap alarm: **the flag rate**. If a model that normally 
 | Label shift | P(y) | The fraud base rate triples | Yes, plus recalibration |
 | Concept drift | P(y \| x) | Fraudsters change tactics; the same behavior now means something different | Only with **new labels** |
 
+### Common issue
+
 Concept drift is the hard case: the relationship itself has changed, so retraining on old labels rebuilds the old, now-wrong model. You need fresh ground truth first.
 
 ---
 
-### 3. Detecting input drift
+## 3. The same failure, seen at three layers
+
+A feature pipeline breaks on the 3rd. Here is when each layer notices:
+
+```text
+day    inputs                    predictions            quality
+ 3     null rate 2% → 31%        flag rate 2.0% → 0.7%  (labels not mature)
+ 4     still broken              flag rate 0.6%         (labels not mature)
+ 7     noticed by an engineer    flag rate 0.6%         (labels not mature)
+...
+33     -                         -                      recall 0.44 → 0.19
+```
+
+The input layer knew on day 3. The quality metric - the one everybody actually cares about - confirmed it on day 33, by which point a month of fraud went uncaught.
+
+That thirty-day gap is the entire argument for monitoring inputs and predictions rather than waiting for the outcome:
+
+```text
+inputs       null rate, range, cardinality, staleness       today
+predictions  the FLAG RATE, and the score distribution      today
+quality      precision, recall, business outcome            when labels mature
+```
+
+**The flag rate is the single most useful cheap alarm.** It needs no labels, it moves immediately, and it catches upstream breakage, population shift, and pipeline bugs alike. A model that normally flags 2% of traffic and suddenly flags 0.6% or 9% is telling you something changed - today, not next month.
+
+---
+
+## 4. Detecting input drift
 
 Compare a recent window against the training distribution, per feature:
 
@@ -47,22 +78,26 @@ PSI < 0.1   stable
 - **KS test** for continuous features, **chi-square** for categorical ones,
 - simple guardrails that catch more real incidents than any statistic: null rate, min/max range, cardinality, and **staleness** of each feature.
 
+### Common issue
+
 Beware the multiple-testing trap: with 200 features and a p-value threshold, something is always "significant". Use effect sizes like PSI and alert on the features the model actually relies on.
 
 ---
 
-### 4. Label delay decides your cadence
+## 5. Label delay decides your cadence
 
 ```text
 event ────────────── label observable ────── retrain possible
   t                    t + 60 days              t + 60 days + training
 ```
 
+### Core intuition
+
 With a 60-day chargeback delay, quality metrics are always two months behind, and a regression can hide for that long. This is what makes input and prediction monitoring essential rather than optional - and it is the constraint that shapes the whole retraining schedule.
 
 ---
 
-### 5. Retraining triggers
+## 6. Retraining triggers
 
 | Trigger | Mechanism | Fits |
 |---|---|---|
@@ -71,13 +106,15 @@ With a 60-day chargeback delay, quality metrics are always two months behind, an
 | Event-based | A product launch, a new market, a policy change | Known discontinuities |
 | Continuous / online | Incremental updates | Fast-moving, high-volume, well-labelled problems |
 
+### Rule of thumb
+
 Scheduled retraining with threshold-based alarms on top is the common, defensible default.
 
 > Automated retraining needs automated validation. A pipeline that retrains and deploys without a quality gate will happily ship a model trained on a broken upstream table.
 
 ---
 
-### 6. Rolling out a retrain
+## 7. Rolling out a retrain
 
 Treat every retrain as a deploy, not a refresh:
 
@@ -88,11 +125,13 @@ new model → offline eval on a fresh holdout   (must beat the incumbent)
           → full rollout, with rollback ready
 ```
 
+### Common issue
+
 And re-tune the **threshold** afterwards. The score distribution moves with every retrain, so the previous operating point no longer corresponds to the same precision and recall. Skipping this step causes a surprising number of post-retrain incidents.
 
 ---
 
-### 7. Feedback loops
+## 8. Feedback loops
 
 If the model's decisions change the data it later trains on, it can reinforce its own mistakes:
 

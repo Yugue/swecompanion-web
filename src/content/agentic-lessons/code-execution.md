@@ -2,7 +2,9 @@
 
 Giving an agent a sandbox collapses an unbounded set of operations into one tool. It is the single largest capability jump available, and the single largest security surface. A good interview answer argues both sides.
 
-### 1. Why it is so effective
+---
+
+## 1. Why it is so effective
 
 ```text
 without code:  parse CSV tool, filter tool, join tool, aggregate tool,
@@ -18,7 +20,7 @@ Two distinct gains:
 
 ---
 
-### 2. It also compresses context
+## 2. It also compresses context
 
 ```text
 tool returns 50,000 rows ──► into the context ──► window gone
@@ -26,11 +28,13 @@ tool returns 50,000 rows ──► into the context ──► window gone
 code reads 50,000 rows ──► prints 3 numbers ──► into the context
 ```
 
+### Core intuition
+
 Letting the agent write code that processes data *outside* the window, and return only the result, is one of the most effective context-engineering techniques there is.
 
 ---
 
-### 3. The sandbox is the control
+## 3. The sandbox is the control
 
 Generated code is untrusted input. The prompt cannot restrict it, so the environment must.
 
@@ -49,7 +53,7 @@ Generated code is untrusted input. The prompt cannot restrict it, so the environ
 
 ---
 
-### 4. The specific risk that makes people nervous
+## 4. The specific risk that makes people nervous
 
 ```text
 untrusted document ──► agent reads it ──► document contains instructions
@@ -59,11 +63,13 @@ untrusted document ──► agent reads it ──► document contains instruct
                           code has network + credentials ──► exfiltration
 ```
 
+### Rule of thumb
+
 The sandbox breaks the chain at the last link: no credentials in the environment and no outbound network means the worst case is a wasted run. This is why "no network, no secrets" is the default and not a hardening step.
 
 ---
 
-### 5. Code vs. many narrow tools
+## 5. Code vs. many narrow tools
 
 | | Code tool | Narrow tools |
 |---|---|---|
@@ -75,11 +81,7 @@ The sandbox breaks the chain at the last link: no credentials in the environment
 
 The common production shape uses both: narrow, permissioned tools for anything with side effects, and a sandboxed code tool for computation over the data those tools return.
 
----
-
-### 6. Make it debuggable
-
-Log the source, stdout, stderr, exit code, and wall time for every execution. Generated code is the part of a trace you will most often need to read, and an agent that "computed the total" without a visible program is not auditable.
+**Make it debuggable.** Log the source, stdout, stderr, exit code, and wall time for every execution. Generated code is the part of a trace you will most often need to read, and an agent that "computed the total" without a visible program is not auditable.
 
 ---
 

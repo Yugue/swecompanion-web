@@ -2,7 +2,9 @@
 
 **The entire funnel has to finish in the time a page takes to load.** That budget, not model quality, is what fixes the shape of the system.
 
-### 1. A worked budget
+---
+
+## 1. A worked budget
 
 ```text
 50ms total for recommendations
@@ -14,11 +16,13 @@
 └──  2ms  slack
 ```
 
+### Core intuition
+
 Two things surprise people about this. First, **feature fetching usually costs more than inference**. Second, the budget is not spent evenly - and knowing where it actually goes is the difference between fixing the problem and shrinking the model for no reason.
 
 ---
 
-### 2. Why feature fetching dominates
+## 2. Why feature fetching dominates
 
 ```text
 500 candidates × 40 item features   → a lot of lookups
@@ -42,7 +46,7 @@ shrink the candidate set   fewer candidates is the bluntest lever
 
 ---
 
-### 3. Precompute whatever does not depend on the request
+## 3. Precompute whatever does not depend on the request
 
 ```text
 nightly / hourly        item embeddings, the ANN index, item-item lists,
@@ -51,11 +55,13 @@ per user, periodically  long-term interest vectors, heavy users' full slates
 at request time         only what genuinely needs the live context
 ```
 
+### Rule of thumb
+
 For very heavy users, computing the whole recommendation list offline and serving a lookup is often much cheaper than ranking live - and it is a legitimate answer to a scaling question.
 
 ---
 
-### 4. Every stage needs a timeout and a fallback
+## 4. Every stage needs a timeout and a fallback
 
 ```text
 retrieval source times out   → use the others, log it
@@ -64,11 +70,13 @@ ranker unavailable           → fall back to the popularity list (Chapter 1)
 everything fails             → show a sensible static list, never an error
 ```
 
+### Common issue
+
 The product requirement is that the page renders. A worse list is always better than a broken page, and the fallback chain should be explicit rather than accidental.
 
 ---
 
-### 5. Caching
+## 5. Caching
 
 ```text
 per user     the computed slate, for a short window - careful, it freezes the feed

@@ -2,7 +2,9 @@
 
 **A list can be individually accurate and collectively terrible.** Relevance metrics cannot see that, so these systems need a second family of measures.
 
-### 1. Four different things people mean
+---
+
+## 1. Four different things people mean
 
 ```text
 diversity    are the items in THIS list different from each other?
@@ -11,11 +13,13 @@ serendipity  was it surprising AND good?        ← the hard one
 coverage     what fraction of the CATALOGUE ever gets shown to anyone?
 ```
 
+### Common issue
+
 They get conflated constantly. Diversity is about one list, novelty is about one user's history, coverage is about the whole system.
 
 ---
 
-### 2. Measuring them
+## 2. Measuring them
 
 ```text
 diversity    average pairwise dissimilarity within one shown list
@@ -31,11 +35,13 @@ serendipity  relevant AND unexpected - needs a definition of "expected",
              usually "what a popularity baseline would have shown"
 ```
 
+### Rule of thumb
+
 Serendipity is the one everyone wants and nobody measures cleanly, because "usefully surprising" resists definition. It is fine to say that.
 
 ---
 
-### 3. Why they trade against engagement
+## 3. Why they trade against engagement
 
 ```text
 show the most likely click        → highest short-term engagement
@@ -52,7 +58,7 @@ The cost is immediate and measurable; the benefit is delayed and hard to attribu
 
 ---
 
-### 4. Coverage is a business metric in a marketplace
+## 4. Coverage is a business metric in a marketplace
 
 ```text
 10,000,000 listings
@@ -65,11 +71,13 @@ they stop listing
 the catalogue stops growing
 ```
 
+### Core intuition
+
 For a two-sided platform this is not an aesthetic concern. Supply leaves. That makes coverage a metric the business should track even when engagement looks fine - and a legitimate reason to escalate.
 
 ---
 
-### 5. Where each is enforced
+## 5. Where each is enforced
 
 ```text
 diversity     re-ranking stage (Chapter 4) - only there does the list exist

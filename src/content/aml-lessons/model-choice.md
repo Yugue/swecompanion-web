@@ -2,7 +2,9 @@
 
 The best model is the one that satisfies **accuracy, latency, data, and explainability at once**. Interviewers ask this to see whether you can defend a choice instead of reciting a ranking.
 
-### 1. Start from the data modality
+---
+
+## 1. Start from the data modality
 
 | Data | Default choice | Why |
 |---|---|---|
@@ -19,7 +21,9 @@ The best model is the one that satisfies **accuracy, latency, data, and explaina
 
 ---
 
-### 2. Then apply the constraints
+## 2. Then apply the constraints
+
+### Rule of thumb
 
 Accuracy is one axis out of six:
 
@@ -34,7 +38,7 @@ Accuracy is one axis out of six:
 
 ---
 
-### 3. Latency shapes more than the model
+## 3. Latency shapes more than the model
 
 A 20ms budget constrains the **whole path**, not just inference:
 
@@ -51,15 +55,11 @@ Feature retrieval usually dominates. A smaller model rarely fixes a latency prob
 
 Levers when you are over budget: fewer or cheaper features, precomputed embeddings, a smaller model, quantization or distillation, caching hot predictions, or moving part of the work to a batch job.
 
----
-
-### 4. Explainability is a hard constraint, not a preference
-
-In credit, insurance, hiring, and healthcare, "the model said so" is not an acceptable answer, and a required explanation can outrank a point of AUC. Options in decreasing order of transparency: linear/logistic with monotonic constraints, shallow trees, monotone-constrained GBMs, and finally a black box with SHAP - which is an approximation, and worth saying so.
+**Explainability is a hard constraint, not a preference.** In credit, insurance, hiring, and healthcare, "the model said so" is not an acceptable answer, and a required explanation can outrank a point of AUC. Options in decreasing order of transparency: linear/logistic with monotonic constraints, shallow trees, monotone-constrained GBMs, and finally a black box with SHAP - which is an approximation, and worth saying so.
 
 ---
 
-### 5. Data volume as a filter
+## 4. Data volume as a filter
 
 ```text
 < 1k rows      → linear/logistic, heavy regularization, careful CV; question the project
@@ -68,21 +68,13 @@ In credit, insurance, hiring, and healthcare, "the model said so" is not an acce
 > 10M          → deep learning becomes competitive even on tabular; distributed training matters
 ```
 
----
-
-### 6. Defending the choice
-
-A good answer names the alternative and why it lost:
+**Defending the choice.** A good answer names the alternative and why it lost:
 
 > "Gradient-boosted trees, because the data is tabular with 50k rows and mixed types. A neural network has more capacity but needs more data and more tuning to match GBMs here, and it would be harder to explain. Logistic regression is my baseline and my fallback if the explainability requirement hardens - I would expect it to cost a few points of AUC."
 
 That structure - choice, reason, alternative, fallback - works for almost any model question.
 
----
-
-### 7. Simplicity has real value
-
-The simpler model is faster to train, faster to serve, easier to debug, easier to explain, cheaper to monitor, and less likely to break when a feature goes missing. Those are engineering benefits, not aesthetic ones.
+**Simplicity has real value.** The simpler model is faster to train, faster to serve, easier to debug, easier to explain, cheaper to monitor, and less likely to break when a feature goes missing. Those are engineering benefits, not aesthetic ones.
 
 > Ship the simplest model that clears the bar, and keep the complex one as a documented experiment.
 

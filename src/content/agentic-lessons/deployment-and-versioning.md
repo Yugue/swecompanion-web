@@ -2,7 +2,9 @@
 
 Prompts, tool schemas, and model choice are production dependencies. They change behavior as surely as code does, and they need the same discipline: version control, pinning, canaries, and a cheap rollback.
 
-### 1. What is versioned
+---
+
+## 1. What is versioned
 
 ```json
 {"agent": "refunds",
@@ -21,7 +23,7 @@ All five belong in source control and in every trace. The most common gap is a p
 
 ---
 
-### 2. Model upgrades are breaking changes
+## 2. Model upgrades are breaking changes
 
 A newer model that scores higher on public benchmarks can still be worse **for your agent**. It may be more verbose, more cautious about a tool you rely on, format arguments differently, or need a different thinking budget.
 
@@ -33,11 +35,13 @@ before switching:
   4. compare quality AND cost AND latency AND step count
 ```
 
+### Rule of thumb
+
 Pin model versions explicitly. Being auto-upgraded underneath a production agent is the scenario this discipline exists to prevent.
 
 ---
 
-### 3. Roll out behind a flag
+## 3. Roll out behind a flag
 
 ```text
 1%  canary   → watch step count, cost, tool error rate, escalations
@@ -45,11 +49,13 @@ Pin model versions explicitly. Being auto-upgraded underneath a production agent
 50% / 100%   → keep the old config warm for one release cycle
 ```
 
+### Core intuition
+
 Watch operational metrics during the canary, not just quality: step count and cost move faster and with less noise than success rate, so they surface a bad rollout first.
 
 ---
 
-### 4. Rollback must be cheap
+## 4. Rollback must be cheap
 
 ```text
 ✗  prompt is a string literal in the service → rollback = full deploy = 25 min
@@ -58,11 +64,7 @@ Watch operational metrics during the canary, not just quality: step count and co
 
 If reverting takes a deploy pipeline, you will hesitate at exactly the moment you shouldn't. Rollback also has to consider in-flight runs: either let them finish on the old config (they were started under it) or make resumption pin the config version recorded in the run.
 
----
-
-### 5. Changing tools is riskier than changing prompts
-
-Removing or renaming a tool breaks running agents and invalidates prompt caches. Prefer additive changes, deprecate with an overlap period, and keep the old tool answering with a deprecation note in its observation so the agent is nudged rather than broken.
+**Changing tools is riskier than changing prompts.** Removing or renaming a tool breaks running agents and invalidates prompt caches. Prefer additive changes, deprecate with an overlap period, and keep the old tool answering with a deprecation note in its observation so the agent is nudged rather than broken.
 
 ---
 

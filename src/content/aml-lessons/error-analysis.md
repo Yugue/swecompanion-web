@@ -2,7 +2,9 @@
 
 Aggregate metrics tell you *how much* the model is wrong. Error analysis tells you *what is wrong*, which is the only thing you can act on. It is also the answer interviewers hope for when they ask "the model is 90% accurate - what now?"
 
-### 1. Read the errors
+---
+
+## 1. Read the errors
 
 Before touching the model, take a sample - 50 to 100 - of false positives and false negatives and read them by hand.
 
@@ -10,11 +12,13 @@ Before touching the model, take a sample - 50 to 100 - of false positives and fa
 errors = df[df.pred_label != df.label].sample(100, random_state=0)
 ```
 
+### Rule of thumb
+
 This is unglamorous and it consistently beats architecture shopping. It is also the one thing candidates rarely propose, which makes proposing it a differentiator.
 
 ---
 
-### 2. Sort every mistake into a bucket
+## 2. Sort every mistake into a bucket
 
 Each error belongs to one of a small number of causes, and each cause has a different fix:
 
@@ -27,11 +31,13 @@ Each error belongs to one of a small number of causes, and each cause has a diff
 | Genuine ambiguity | Two humans would disagree | Irreducible - stop optimizing |
 | Real model limitation | The pattern is learnable and the model missed it | More capacity, better model |
 
+### Common issue
+
 The honest finding is often that a large share of "model errors" are label errors - which caps what any model can achieve and redirects the work to data.
 
 ---
 
-### 3. Slice the metrics
+## 3. Slice the metrics
 
 An 88% average can hide a 60% on a segment that generates most of the revenue.
 
@@ -53,7 +59,7 @@ Slice by whatever the business cares about:
 
 ---
 
-### 4. Confidence-band analysis
+## 4. Confidence-band analysis
 
 Group predictions by score band and inspect each:
 
@@ -64,11 +70,13 @@ score band   n      precision   what it means
 0.5-0.7    3,100      0.38      barely better than a coin flip
 ```
 
+### Intuition
+
 This often reshapes the product rather than the model: auto-approve the top band, route the middle to review, ignore the bottom. That is a better outcome than a 1% metric gain.
 
 ---
 
-### 5. Prioritize like an engineer
+## 5. Prioritize like an engineer
 
 For each error bucket estimate:
 
@@ -76,11 +84,13 @@ For each error bucket estimate:
 \text{priority} = \text{frequency} \times \text{fixability} \times \text{business impact}
 \]
 
+### Rule of thumb
+
 A cause covering 30% of errors that needs one parsing fix beats a cause covering 5% that needs a new data source. Rank the work; do not chase the most intellectually interesting failure.
 
 ---
 
-### 6. Fairness is a slice too
+## 6. Fairness is a slice too
 
 Check performance across groups where a systematic gap would be a problem - and know that "we did not use that attribute as a feature" is not a defense, because correlated features reproduce it anyway.
 
@@ -90,11 +100,13 @@ Useful framings:
 - equal treatment: does the same score lead to the same action?
 - who bears the cost of the errors, and is that acceptable?
 
+### Common issue
+
 Naming the trade-off - you generally cannot satisfy every fairness definition at once - is a mature answer.
 
 ---
 
-### 7. Make it a habit, not an event
+## 7. Make it a habit, not an event
 
 - keep a fixed **error set** that you re-check after every change,
 - track per-slice metrics in the same dashboard as the aggregate,

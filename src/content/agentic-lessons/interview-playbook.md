@@ -2,7 +2,9 @@
 
 The domain interview is not a vocabulary test. The graded skill is narrowing a broad prompt to one concept and explaining that concept clearly - with mechanism, tradeoff, and a concrete example. This lesson is the script.
 
-### 1. The shape of an answer
+---
+
+## 1. The shape of an answer
 
 ```text
 1. one-sentence definition           show you know the term
@@ -14,11 +16,13 @@ The domain interview is not a vocabulary test. The graded skill is narrowing a b
 7. stop                              silence is fine
 ```
 
+### Common issue
+
 Steps 2 and 7 are where most candidates lose time. Surveying everything you know is read as an inability to prioritize.
 
 ---
 
-### 2. Grounding in mechanism
+## 2. Grounding in mechanism
 
 Agentic answers are strongest when they describe what is physically in the system:
 
@@ -32,11 +36,13 @@ strong: "The tool checks authorization against the session identity before
          executing, so the rule holds even if the model is adversarial."
 ```
 
+### Core intuition
+
 Every strong version names the context window, the tool boundary, or the loop. That vocabulary is the tell that you have built one.
 
 ---
 
-### 3. Tradeoffs to have ready
+## 3. Tradeoffs to have ready
 
 | Question | Tradeoff to name |
 |---|---|
@@ -52,7 +58,7 @@ Every strong version names the context window, the tool boundary, or the loop. T
 
 ---
 
-### 4. Phrases that land
+## 4. Phrases that land
 
 ```text
 "Let me check what 'done' means here before I design the loop."
@@ -64,11 +70,7 @@ Every strong version names the context window, the tool boundary, or the loop. T
 
 Each one signals production experience in a sentence.
 
----
-
-### 5. What to do when you don't know
-
-Say what you do know, name the boundary, and reason forward:
+**What to do when you don't know.** Say what you do know, name the boundary, and reason forward:
 
 > I haven't used that specific framework, but the problem it solves is coordinating subagents with isolated contexts, which I'd approach as an orchestrator with typed briefs and structured returns. What matters is the handoff contract, so I'd want to know how it handles that.
 

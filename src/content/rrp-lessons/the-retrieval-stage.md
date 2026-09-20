@@ -8,7 +8,9 @@
                     anything good"                   order right"
 ```
 
-### 1. It is judged on recall, not order
+---
+
+## 1. It is judged on recall, not order
 
 Because the ranker will re-sort everything anyway, the order retrieval produces is thrown away. What cannot be recovered is an item it left out.
 
@@ -30,7 +32,7 @@ recall@500 = of the items users eventually clicked,
 
 ---
 
-### 2. The budget is brutal
+## 2. The budget is brutal
 
 ```text
 50ms page budget
@@ -49,17 +51,15 @@ a cached list per user segment          → key lookup
 
 Everything expensive happened last night in a batch job.
 
----
+**Precision barely matters here.** A retrieval stage with 5% precision and 95% recall is doing its job well. The ranker discards the junk.
 
-### 3. Precision barely matters here
-
-A retrieval stage with 5% precision and 95% recall is doing its job well. The ranker discards the junk.
+### Rule of thumb
 
 That inverts the usual instinct, and it has a practical consequence: **widen retrieval before you narrow it.** Returning 1,000 candidates instead of 500 costs the ranker time but raises the ceiling on everything downstream.
 
 ---
 
-### 4. What good retrieval looks like
+## 3. What good retrieval looks like
 
 | Property | Why |
 |---|---|
@@ -73,7 +73,7 @@ That last row is common enough to deserve its own lesson at the end of this chap
 
 ---
 
-### 5. Diagnosing the funnel
+## 4. Diagnosing the funnel
 
 A useful decomposition when engagement is flat:
 
@@ -84,6 +84,8 @@ was it ranked into the top 6?    no  → ranking problem (features, model)
                                  yes ↓
 was it shown and ignored?             → the item was not actually good
 ```
+
+### Core intuition
 
 Being able to attribute a failure to a stage is the difference between debugging and guessing.
 

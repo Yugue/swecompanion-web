@@ -2,7 +2,9 @@
 
 Cross-validation buys a lower-variance estimate of generalization by rotating which slice of the data is held out. It trades compute for reliability, and it is the standard tool whenever data is limited.
 
-### 1. k-fold
+---
+
+## 1. k-fold
 
 ```text
 fold 1: [test][    train    ]
@@ -22,7 +24,36 @@ print(scores.mean(), scores.std())
 
 ---
 
-### 2. The variants, and when each is required
+## 2. What the fold scores actually look like
+
+Five folds on the same model and data:
+
+```text
+fold       1      2      3      4      5
+AUC      0.842  0.871  0.836  0.859  0.848      mean 0.851, std 0.014
+```
+
+That spread is the point. Now suppose a colleague reports a new model at 0.860 and calls it an improvement. It sits comfortably inside one standard deviation of the old model's fold-to-fold noise, so nothing has been demonstrated.
+
+```text
+model A   0.851 ± 0.014
+model B   0.860 ± 0.016      ← the difference is smaller than the noise
+```
+
+The right comparison uses the **same folds** for both models and looks at the per-fold differences, which cancels the shared fold-to-fold variation:
+
+```text
+fold          1       2       3       4       5
+B − A      +0.004  +0.012  −0.003  +0.019  +0.013    mean +0.009
+```
+
+### Core intuition
+
+Four of five folds favour B, consistently and by a similar amount. That is much stronger evidence than comparing two means, and it costs nothing except fixing the random seed for the splits.
+
+---
+
+## 3. The variants, and when each is required
 
 | Variant | Use when | What it protects |
 |---|---|---|
@@ -32,11 +63,13 @@ print(scores.mean(), scores.std())
 | `TimeSeriesSplit` | Time-ordered data | never trains on the future |
 | `RepeatedStratifiedKFold` | Small data, noisy estimates | averages over several shufflings |
 
+### Common issue
+
 Stratification is the default for classification, and it matters most exactly where people forget it: with a 1% positive rate, an unstratified fold can contain almost no positives, and its score is meaningless.
 
 ---
 
-### 3. Time-series cross-validation
+## 4. Time-series cross-validation
 
 Standard k-fold is invalid when the data has a time order, because most folds train on data that comes after the test slice.
 
@@ -47,11 +80,13 @@ TimeSeriesSplit:
   train [████████████████]    test [██]
 ```
 
+### Rule of thumb
+
 Training sets grow forward; the test slice is always in the future. Add a **gap** the length of your label delay - if a label matures after 30 days, training data must stop 30 days before the test window begins.
 
 ---
 
-### 4. Everything fitted goes inside the fold
+## 5. Everything fitted goes inside the fold
 
 This is where cross-validation is most often invalidated:
 
@@ -76,7 +111,7 @@ Feature selection is the worst offender. Selecting the 20 features most correlat
 
 ---
 
-### 5. What CV is and is not
+## 6. What CV is and is not
 
 | Cross-validation gives you | It does not give you |
 |---|---|
@@ -84,11 +119,13 @@ Feature selection is the worst offender. Selecting the 20 features most correlat
 | Comparable scores for competing models | Protection against leakage in the features |
 | A spread that tells you if a difference is real | A final model - you refit on all the data at the end |
 
+### Common issue
+
 Once hyperparameters are chosen by CV, the CV score is optimistic for the *selected* configuration. Report the test set, or use nested CV.
 
 ---
 
-### 6. Nested cross-validation
+## 7. Nested cross-validation
 
 ```text
 outer fold  → hold out a test slice
@@ -101,6 +138,8 @@ repeat → an honest estimate of "my whole procedure"
 inner = GridSearchCV(pipe, grid, cv=5)
 scores = cross_val_score(inner, X, y, cv=5)   # k_outer × k_inner fits
 ```
+
+### Rule of thumb
 
 Expensive, and the right answer when someone asks "how well does this model really do" after heavy tuning on a small dataset.
 

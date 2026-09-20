@@ -2,7 +2,9 @@
 
 **Every neighbourhood method comes down to one question: what counts as "similar"?** That choice is the model. Get it wrong and your "related items" widget shows the same three bestsellers on every page.
 
-### 1. The raw signal, and why it fails
+---
+
+## 1. The raw signal, and why it fails
 
 The obvious measure is co-occurrence - how many people engaged with both items:
 
@@ -26,7 +28,7 @@ Raw counts measure popularity, not similarity. This is the classic bug behind "e
 
 ---
 
-### 2. Normalizing
+## 2. Normalizing
 
 **Cosine similarity** divides out the overall magnitude, so a heavy item does not automatically look similar to everything:
 
@@ -46,11 +48,13 @@ Raw counts measure popularity, not similarity. This is the classic bug behind "e
 \text{PMI}(A,B) = \log \frac{P(A, B)}{P(A)\,P(B)}
 \]
 
+### Common issue
+
 PMI is the sharpest at surfacing genuinely surprising pairs, and the noisiest for rare items - so it is usually damped or floored by a minimum count.
 
 ---
 
-### 3. Picking one
+## 3. Picking one
 
 | Situation | Reach for |
 |---|---|
@@ -59,11 +63,13 @@ PMI is the sharpest at surfacing genuinely surprising pairs, and the noisiest fo
 | You want surprising, non-obvious pairs | PMI, with a minimum-count floor |
 | Heavy popularity skew | PMI, or cosine with extra popularity damping |
 
+### Rule of thumb
+
 None of these is subtle. The mistake is skipping the normalization step, not choosing the wrong formula.
 
 ---
 
-### 4. Similarity inherits every bias in the log
+## 4. Similarity inherits every bias in the log
 
 ```text
 the system showed A and B together on the same page
@@ -79,11 +85,7 @@ That is a feedback loop dressed up as a similarity score. It is a real reason "r
 
 Practical guards: a minimum interaction count before an item may enter a similarity list, a cap on how often any single item may appear across lists, and periodic recomputation from a window rather than from all history.
 
----
-
-### 5. Beyond co-occurrence
-
-Co-occurrence is one way to get a similarity. The next lesson gets one by *learning* a vector per item, which handles sparsity far better - two items can end up close even if no single person engaged with both, as long as they relate to the same third things.
+**Beyond co-occurrence.** Co-occurrence is one way to get a similarity. The next lesson gets one by *learning* a vector per item, which handles sparsity far better - two items can end up close even if no single person engaged with both, as long as they relate to the same third things.
 
 That is the step from counting to learning, and it is the point of the rest of this chapter.
 

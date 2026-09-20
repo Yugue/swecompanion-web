@@ -4,7 +4,9 @@
 
 For an agent builder that changes the job: less prompt choreography, more **budget allocation** - deciding which steps deserve the expensive thinking and which do not.
 
-### 1. What is different
+---
+
+## 1. What is different
 
 ```text
 standard model:    prompt → answer                      (fixed compute per token)
@@ -19,7 +21,7 @@ The model learned when and how to think, rather than being instructed to. Two pr
 
 ---
 
-### 2. Where it pays
+## 2. Where it pays
 
 | Task | Reasoning model | Why |
 |---|---|---|
@@ -36,7 +38,7 @@ The model learned when and how to think, rather than being instructed to. Two pr
 
 ---
 
-### 3. Routing inside one agent
+## 3. Routing inside one agent
 
 The strongest production pattern is mixed models within a single run:
 
@@ -51,11 +53,13 @@ diagnose        → reasoning model, high budget
 format output   → fast model
 ```
 
+### Core intuition
+
 Two expensive steps out of twenty cost far less than twenty, and usually measure no worse. That is a claim to verify on your eval set, not one to assume.
 
 ---
 
-### 4. Tuning the budget
+## 4. Tuning the budget
 
 Treat the thinking budget as a hyperparameter with a measurable curve:
 
@@ -71,9 +75,7 @@ accuracy
 
 Sweep it per task type on your eval set, plot accuracy against cost and p95 latency, and pick the knee. Reporting this curve is a strong interview answer because it shows the decision was measured rather than asserted.
 
----
-
-### 5. Interaction with agent loops
+**Interaction with agent loops**
 
 - Reasoning traces occupy context afterward; consider dropping them during compaction while keeping decisions and observations.
 - Latency is the binding constraint in interactive products - a 12-second thinking step is fine in a batch pipeline and unusable in a chat.

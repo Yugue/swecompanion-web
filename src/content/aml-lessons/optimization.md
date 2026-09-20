@@ -2,7 +2,9 @@
 
 Fitting a model means minimizing its loss. A few classical models have an exact solution; everything else steps downhill.
 
-### 1. Closed form
+---
+
+## 1. Closed form
 
 For least squares, setting the gradient to zero gives an exact answer:
 
@@ -19,11 +21,13 @@ Adding L2 regularization fixes the singularity, which is one of the quiet virtue
 w = (X^{\top}X + \lambda I)^{-1}X^{\top}y
 \]
 
+### Common issue
+
 Most problems - logistic regression, SVMs, trees, anything with a non-quadratic loss - have no closed form at all.
 
 ---
 
-### 2. Gradient descent
+## 2. Gradient descent
 
 Move opposite the gradient:
 
@@ -44,11 +48,13 @@ The learning rate \(\eta\) is the critical choice:
 η just right → steady decrease, flattening out
 ```
 
+### Rule of thumb
+
 Diagnose it by plotting the loss. A loss that goes up is almost always a learning rate that is too high.
 
 ---
 
-### 3. Batch, stochastic, mini-batch
+## 3. Batch, stochastic, mini-batch
 
 | Variant | Gradient computed on | Per-step cost | Behavior |
 |---|---|---|---|
@@ -62,11 +68,13 @@ The noise in SGD is not only a cost: it lets the parameters escape narrow region
 SGDClassifier(loss="log_loss", learning_rate="optimal")
 ```
 
+### Rule of thumb
+
 Use SGD when the dataset does not fit in memory, when data arrives as a stream, or when you need one pass over billions of rows.
 
 ---
 
-### 4. Convexity
+## 4. Convexity
 
 A convex loss has a single global minimum - no local minima to get stuck in.
 
@@ -92,13 +100,26 @@ This is why classical models are pleasant: the fit is reproducible, initializati
 
 ---
 
-### 5. Conditioning and why scaling matters here too
+## 5. Why scaling matters for the descent itself
 
-When features have wildly different scales, the loss surface becomes a long narrow valley, and gradient descent zig-zags across it instead of running down it. Standardizing the features makes the contours rounder and the descent direct - the same reason scaling is listed as mandatory for gradient-fitted models.
+When features have wildly different scales, the loss surface becomes a long narrow valley and descent zig-zags across it instead of running down it:
+
+```text
+unscaled features               scaled features
+   ╭────────────────╮              ╭──────╮
+   │ ↗↘↗↘↗↘↗↘↗↘↗↘  │              │  ↘   │
+   ╰────────────────╯              ╰──────╯
+  many tiny steps across        a direct path to the bottom
+  a narrow valley
+```
+
+The gradient points perpendicular to the contour lines, and when those contours are long thin ellipses that direction is almost never toward the minimum. Standardizing makes them closer to circles, so the gradient points roughly where you want to go.
+
+This is the same argument as the one in **feature scaling**, seen from the optimizer's side - and it is why every gradient-fitted model lists scaling as mandatory.
 
 ---
 
-### 6. Beyond plain gradient descent
+## 6. Beyond plain gradient descent
 
 - **Momentum** accumulates past steps to push through flat regions.
 - **Adam / RMSProp** adapt a per-parameter step size; ubiquitous in deep learning, occasionally used here.

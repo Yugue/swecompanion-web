@@ -2,7 +2,9 @@
 
 Non-determinism is a reason to test differently, not a reason to skip testing. The three techniques that make agents testable are **mocked tools**, **trace replay**, and **property assertions over repeated runs**.
 
-### 1. The test pyramid for agents
+---
+
+## 1. The test pyramid for agents
 
 ```text
         ╱ end-to-end, real tools ╲      slow, flaky, few - run before release
@@ -10,11 +12,13 @@ Non-determinism is a reason to test differently, not a reason to skip testing. T
     ╱  unit tests with mocked tools ╲   fast, deterministic - run on every commit
 ```
 
+### Common issue
+
 The bottom layer is where most of the value is, and it is the layer teams skip because "you can't unit-test an LLM." You can test everything around it.
 
 ---
 
-### 2. Unit tests with mocked tools
+## 2. Unit tests with mocked tools
 
 ```python
 def test_verifies_identity_before_refund():
@@ -25,11 +29,13 @@ def test_verifies_identity_before_refund():
     assert tools.calls["issue_refund"][0]["amount"] == 240.00
 ```
 
+### Rule of thumb
+
 These are fast and deterministic **in the parts that matter**: ordering, argument construction, error handling, and refusal behavior. Add a mock that returns an error, a timeout, and an empty result - the error paths are where agents actually break and where tests are cheapest.
 
 ---
 
-### 3. Replay
+## 3. Replay
 
 ```text
 recorded production traces
@@ -41,11 +47,13 @@ recorded production traces
 
 Replay answers the question you actually have before a change: *what would this have done differently?* It is the most practical model-upgrade tool there is, because it uses real inputs rather than a curated set.
 
+### Common issue
+
 Caveat: once the new run diverges, the recorded observations no longer match the new calls. Either mock by `(tool, args)` lookup with a fallback to live calls, or accept that replay validates the early steps most reliably.
 
 ---
 
-### 4. Assert properties, not strings
+## 4. Assert properties, not strings
 
 ```text
 ✗  assert output == "I've issued your refund of $240.00."
@@ -64,12 +72,14 @@ The negative assertions - nothing forbidden happened, nothing was sent, nothing 
 
 ---
 
-### 5. Gate on pass rate
+## 5. Gate on pass rate
 
 ```python
 results = [run_case(c) for _ in range(5)]
 assert pass_rate(results) >= 0.95     # not "it passed once"
 ```
+
+### Core intuition
 
 Running each case once turns a flaky change into a green build. Five runs and a threshold catches regressions that single runs hide - and it makes the cost of the suite explicit, which is a real constraint worth budgeting.
 

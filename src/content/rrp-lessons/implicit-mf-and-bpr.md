@@ -7,7 +7,9 @@ ratings:   1★ 2★ 3★ 4★ 5★     positives AND negatives, both observed
 clicks:    ✓  ✓  ✓            positives only; everything else is a blank
 ```
 
-### 1. The trap at both extremes
+---
+
+## 1. The trap at both extremes
 
 ```text
 treat every blank as a 0   →  claims the user rejected 10 million items
@@ -18,11 +20,40 @@ ignore every blank         →  the model has nothing to push down, so it
                               learns "everything is good" and ranks nothing.
 ```
 
+### Core intuition
+
 Neither works. The two standard fixes take opposite routes out.
 
 ---
 
-### 2. Route one: weighted, with confidence
+## 2. Why the obvious approaches both fail
+
+One user, five items. They watched two:
+
+```text
+item        watched?    "treat blanks as 0"      "ignore blanks"
+  A            ✓            target 1                target 1
+  B            ✓            target 1                target 1
+  C            ·            target 0   ← claims      (not in the loss at all)
+  D            ·            target 0      they        (not in the loss)
+  E            ·            target 0      disliked    (not in the loss)
+                                          these
+```
+
+**Blanks as zeros.** The user has seen maybe 40 of a 10-million catalogue. You have just asserted 9,999,958 rejections they never made. The model dutifully learns that almost everything is bad, and the items it is most confident are bad are the ones nobody has got around to showing yet - which is the unpopular tail.
+
+**Ignore blanks.** Now every target in the loss is 1. There is nothing to push down, so the model's best solution is to score everything highly. It has learned that things people watch are things people watch.
+
+The two fixes take opposite routes out of that, and both are honest about what a blank means:
+
+```text
+weighted     keep the blanks, but say you are not sure about them
+pairwise     never score a blank at all - only claim A ranks above C
+```
+
+---
+
+## 3. Route one: weighted, with confidence
 
 Treat all cells as observed, but say how much you trust each one.
 
@@ -37,11 +68,13 @@ not interacted →  target 0,  LOW  confidence
 
 where confidence grows with how much the user engaged - watched once versus watched ten times. The blanks still pull the score down, but gently, which is the honest statement of what a blank actually means.
 
+### Rule of thumb
+
 This is what "implicit ALS" refers to, and it is a workhorse.
 
 ---
 
-### 3. Route two: learn from comparisons
+## 4. Route two: learn from comparisons
 
 Do not predict a value at all. Predict an **order**.
 
@@ -64,7 +97,7 @@ Only the *difference* matters, so the model never has to claim that an un-clicke
 
 ---
 
-### 4. Which j do you compare against?
+## 5. Which j do you compare against?
 
 The un-clicked item is sampled, and how you sample it changes what the model learns:
 
@@ -78,7 +111,7 @@ This is the same question that dominates retrieval training, where it gets a ful
 
 ---
 
-### 5. Choosing between the two
+## 6. Choosing between the two
 
 | | Weighted / confidence | Pairwise ranking |
 |---|---|---|
@@ -86,6 +119,8 @@ This is the same question that dominates retrieval training, where it gets a ful
 | Scales by | passes over all cells, parallelizes well | sampled pairs |
 | Output score | closer to a calibrated value | ordering only |
 | Reach for it when | you want a solid batch retrieval model | you care only about rank order |
+
+### Common issue
 
 Both are still fitted with regularization, and both still learn one vector per id - so both still have the cold-start problem from the previous lesson.
 

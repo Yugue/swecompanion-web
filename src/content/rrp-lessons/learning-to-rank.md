@@ -8,7 +8,9 @@ pairwise    compare two items in the same list     "is A better than B?"
 listwise    score the whole ordering at once       "is this list good?"
 ```
 
-### 1. Pointwise
+---
+
+## 1. Pointwise
 
 Train an ordinary classifier or regressor on each item independently, then sort by the score.
 
@@ -24,7 +26,7 @@ Train an ordinary classifier or regressor on each item independently, then sort 
 
 ---
 
-### 2. Pairwise
+## 2. Pairwise
 
 Train on comparisons drawn from within the same list.
 
@@ -43,9 +45,11 @@ objective:          score(item₁) > score(item₂)
 
 ---
 
-### 3. Listwise
+## 3. Listwise
 
 Optimize a whole-list metric - NDCG from Chapter 1 - directly.
+
+### Common issue
 
 The obstacle is that ranking metrics are not differentiable: sorting is a step function, so nudging a score a little usually changes the metric by exactly nothing, and occasionally by a jump. Listwise methods work around this with smooth approximations or by weighting gradients by the metric change a swap would cause.
 
@@ -54,7 +58,38 @@ The obstacle is that ranking metrics are not differentiable: sorting is a step f
 
 ---
 
-### 4. So why is pointwise still everywhere?
+## 4. The same list, scored three ways
+
+One query, four candidates. ✓ marks what the user actually clicked.
+
+```text
+            true      pointwise      pairwise
+            label     predicts       learns
+  item A      ✓         0.82          A > B, A > C, A > D
+  item B      ✗         0.79          D > B,  D > C
+  item C      ✗         0.31
+  item D      ✓         0.64
+```
+
+**Pointwise** spends effort on the values. It is penalized for predicting 0.82 instead of 1.0 for item A - even though the ordering is already correct and nothing downstream would change.
+
+**Pairwise** only sees the comparisons. It is penalized only where the order is wrong - here, that B (0.79) outranks D (0.64) when D was the click. It does not care that A scored 0.82 rather than 0.95.
+
+That difference matters most when the list is long:
+
+```text
+pointwise   spends as much effort on items 40 and 41 as on items 1 and 2
+listwise    weights each pair by how much swapping them would move NDCG
+            → items 1 and 2 matter enormously, 40 and 41 barely at all
+```
+
+### Core intuition
+
+Which is the case for listwise: it is the only one of the three whose loss knows that the top of the list is where the value is.
+
+---
+
+## 5. So why is pointwise still everywhere?
 
 ```text
 the score is consumed by something else
@@ -72,7 +107,7 @@ A pairwise model's scores are only meaningful *relative to each other within one
 
 ---
 
-### 5. Choosing
+## 6. Choosing
 
 | Situation | Approach |
 |---|---|

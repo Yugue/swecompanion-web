@@ -10,7 +10,38 @@ Cara  watched  A     C
 Ben has not watched C, and the people most like Ben did.  →  recommend C
 ```
 
-### 1. Two directions
+---
+
+## 1. Working it out by hand
+
+Five users, five films. `·` means they have not watched it.
+
+```text
+            Heat   Alien   Amélie   Up    Ratatouille
+   Ann        1      1        ·      ·         ·
+   Ben        1      1        ·      ·         ·
+   Cara       1      ·        ·      ·         ·
+   Dan        ·      ·        1      1         1
+   Eve        ·      ·        1      1         ·
+```
+
+**What should we recommend to Cara?**
+
+User-based: who resembles Cara? She watched Heat. Ann and Ben also watched Heat, so they are her neighbours. What did they watch that she has not? **Alien.**
+
+Item-based: what is watched alongside Heat? Heat and Alien co-occur twice (Ann, Ben); Heat and Amélie co-occur zero times. So Alien is the nearest item to Heat. **Recommend Alien.**
+
+Same answer, different route - and notice that nothing in this calculation knows what either film is *about*. No genre, no cast, no description. The signal came entirely from who watched what.
+
+**And for Eve?** She watched Amélie and Up. Dan watched both plus Ratatouille, so **recommend Ratatouille**. The system has discovered two clusters of taste without ever being told they exist.
+
+### Core intuition
+
+That is the property content-based filtering cannot reproduce, and it is why these two methods are complements rather than competitors.
+
+---
+
+## 2. Two directions
 
 **User-based** - find people similar to you, recommend what they liked.
 
@@ -28,7 +59,7 @@ They sound symmetric. In production they are not.
 
 ---
 
-### 2. Why production uses item-based
+## 3. Why production uses item-based
 
 | | User-based | Item-based |
 |---|---|---|
@@ -45,7 +76,7 @@ The stability point is the one to say out loud. Your taste changes every session
 
 ---
 
-### 3. What makes it powerful
+## 4. What makes it powerful
 
 It finds relationships that no attribute captures.
 
@@ -55,11 +86,13 @@ collaborative  : "people who buy this printer       ← invisible in any attribu
                   also buy that specific cable"        but completely real
 ```
 
+### Intuition
+
 That is the whole appeal. You get patterns out of behavior that nobody thought to encode.
 
 ---
 
-### 4. What breaks it
+## 5. What breaks it
 
 ```text
 new item      → nobody has interacted with it → it appears in no co-occurrence → invisible
@@ -69,11 +102,7 @@ popular items → co-occur with everything      → they swamp every similarity 
 
 The first is the mirror image of content-based filtering's strength, which is why real systems run both. The third is a real, common bug and it gets its own treatment in the next lesson.
 
----
-
-### 5. The shape that survives today
-
-Neighbourhood methods are simple and are still used, mostly as a **retrieval source**: for each item, precompute its top few hundred co-occurring items, store the list, look it up when that item appears in the user's history.
+**The shape that survives today.** Neighbourhood methods are simple and are still used, mostly as a **retrieval source**: for each item, precompute its top few hundred co-occurring items, store the list, look it up when that item appears in the user's history.
 
 It is cheap, it is explainable, it needs no training in the usual sense, and it covers cases the learned models miss. That is why a modern system still has it, sitting alongside the embedding index from Chapter 3.
 

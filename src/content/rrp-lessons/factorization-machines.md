@@ -4,7 +4,9 @@
 
 That sentence is the whole contribution. It sits exactly between matrix factorization, which only knows ids, and a general feature-based model.
 
-### 1. The problem it solves
+---
+
+## 1. The problem it solves
 
 A plain linear model scores each feature on its own:
 
@@ -21,11 +23,13 @@ The obvious fix - one weight per pair of features - does not survive contact wit
 and almost every pair appears zero or one times in the logs
 ```
 
+### Core intuition
+
 You cannot estimate a weight from zero observations.
 
 ---
 
-### 2. The trick
+## 2. The trick
 
 Give every feature its own short vector, and define an interaction as the dot product of two of them:
 
@@ -47,7 +51,7 @@ That last point is the payoff. The model can score a user-category pair it has *
 
 ---
 
-### 3. Why this generalizes matrix factorization
+## 3. Why this generalizes matrix factorization
 
 Feed a factorization machine exactly two features - a user id and an item id, both one-hot - and the interaction term becomes:
 
@@ -63,17 +67,13 @@ matrix factorization  =  a factorization machine with only two id features
 
 That is a clean thing to be able to say in an interview.
 
----
-
-### 4. Where it sits today
-
-Factorization machines and their field-aware variants were the standard for click-through prediction for years, and they are still a strong baseline. Modern deep rankers in Chapter 4 do the same job with more capacity: embed the sparse features, then learn interactions with explicit crossing layers.
+**Where it sits today.** Factorization machines and their field-aware variants were the standard for click-through prediction for years, and they are still a strong baseline. Modern deep rankers in Chapter 4 do the same job with more capacity: embed the sparse features, then learn interactions with explicit crossing layers.
 
 The concept did not go away. It moved inside the neural network.
 
 ---
 
-### 5. Practical notes
+## 4. Practical notes
 
 - **Vector length** trades capacity against overfitting; small (8-32) is normal for very sparse features.
 - **Regularize**, because rare features will otherwise get large vectors fitted from a handful of rows.

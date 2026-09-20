@@ -2,8 +2,8 @@
 
 **There are two different ways for a model to be bad, and the cure for one makes the other worse.**
 
-- It can be **too simple** to capture the pattern, so it is wrong in much the same way every time. That is **bias**.
-- It can be **so flexible that it memorized** the particular examples it was shown, so it swings wildly on data it has not seen. That is **variance**.
+- Too **simple** to capture the pattern, so it is wrong the same way every time → **bias**.
+- So **flexible it memorized** the examples it saw, so it swings wildly on new data → **variance**.
 
 ```text
    too simple              about right            too flexible
@@ -13,23 +13,25 @@
   shape entirely           actual shape        in the training data
 ```
 
-This is the single most useful mental model in the domain: it turns "the model is bad" into "the model is bad *in this specific way*, so here is the fix that targets it."
+---
 
-### 1. The decomposition
-
-For squared error, expected test error at a point decomposes into:
+## 1. Where the error comes from
 
 \[
 \mathbb{E}\big[(y - \hat f(x))^2\big] = \underbrace{\text{Bias}^2}_{\text{wrong assumptions}} + \underbrace{\text{Variance}}_{\text{sensitivity to the sample}} + \underbrace{\sigma^2}_{\text{irreducible noise}}
 \]
 
-- **Bias**: the error from the model being unable to represent the true relationship. Systematic, repeatable.
-- **Variance**: how much the fitted function would change if you trained on a different sample of the same size.
-- **Irreducible noise**: ambiguity in the labels themselves. No model beats it, ever.
+### Core intuition
+
+```text
+bias        error from the model being unable to represent the truth.  Systematic.
+variance    how much the fit would change on a different sample.       Random.
+noise       ambiguity in the labels themselves.  No model ever beats it.
+```
 
 ---
 
-### 2. The two failure modes
+## 2. Telling the two apart
 
 ```text
 HIGH BIAS (underfitting)          HIGH VARIANCE (overfitting)
@@ -38,13 +40,9 @@ val error     high                val error     much higher
 gap           small               gap           large
 ```
 
-The gap is the diagnostic. Two numbers - training score and validation score - identify the failure mode before you touch anything.
+### Core intuition
 
-| | High bias | High variance |
-|---|---|---|
-| Cause | Model too simple, over-regularized, poor features | Model too flexible for the data volume, noisy labels |
-| More data helps? | **No** | **Yes** |
-| First fix | More capacity, better features, less regularization | Regularize, simplify, get more data |
+**The gap is the diagnostic.** Two numbers identify the failure mode before you change anything.
 
 ### Rule of thumb
 
@@ -52,7 +50,59 @@ The gap is the diagnostic. Two numbers - training score and validation score - i
 
 ---
 
-### 3. The dartboard picture
+## 3. A worked example
+
+Same data, same features — only capacity changes:
+
+```text
+                        train    validation   gap    diagnosis
+depth-2 tree             0.71       0.70      0.01   high bias
+depth-8 tree             0.88       0.85      0.03   about right
+depth-30 tree            1.00       0.72      0.28   high variance
+```
+
+### Intuition
+
+The depth-2 tree is bad at data it has **already seen**, so the problem cannot be generalization. The depth-30 tree is perfect on what it saw and poor on anything else — memorization.
+
+```text
+depth-2   →  more capacity, better features, LESS regularization
+             more data will NOT help
+depth-30  →  regularize, simplify, or get more data
+             more data WILL help
+```
+
+### Common issue
+
+The most frequent mistake in practice is reaching for regularization while looking at the first row.
+
+---
+
+## 4. Why more data only helps variance
+
+### Core intuition
+
+Variance is how much the fit would change on a different sample. More data makes every sample look like every other sample, so the wobble shrinks.
+
+```text
+100 rows    →  two samples give two quite different models
+100,000     →  two samples give nearly the same model
+```
+
+Bias does not work that way. It is the error left when the model is fitted **perfectly**, and it comes from the model's shape:
+
+```text
+        ╱╲  ← the true relationship
+   ────────  ← the best straight line, at ANY sample size
+```
+
+### Rule of thumb
+
+> "Should we collect more data?" is answered by the gap, not by the absolute score.
+
+---
+
+## 5. The dartboard picture
 
 ```text
 low bias, low variance    →  tight cluster on the bullseye
@@ -61,41 +111,43 @@ high bias, low variance   →  tight cluster, off to one side
 high bias, high variance  →  scattered, and off to one side
 ```
 
-Low variance is worthless if it is centered in the wrong place, which is why "stable model" is not by itself good news.
+### Intuition
+
+Low variance is worthless if it is centered in the wrong place — which is why "the model is stable" is not by itself good news.
 
 ---
 
-### 4. What moves you along the curve
+## 6. What moves you along the curve
 
 | Lever | Bias | Variance |
 |---|---|---|
-| More capacity (depth, features, degree) | ↓ | ↑ |
-| More regularization (L1/L2, pruning, dropout) | ↑ | ↓ |
+| More capacity | ↓ | ↑ |
+| More regularization | ↑ | ↓ |
 | More training data | — | ↓ |
 | Better features | ↓ | usually ↓ |
-| Ensembling by averaging (bagging) | — | ↓ |
-| Ensembling by boosting | ↓ | ↑ (slightly) |
+| Bagging (averaging) | — | ↓ |
+| Boosting | ↓ | slightly ↑ |
 
-Two rows are worth memorizing: **more data only helps variance**, and **regularization buys variance reduction by paying in bias**. Regularization is not free - too much of it produces underfitting.
+### Rule of thumb
+
+Two rows are worth memorizing: **more data only helps variance**, and **regularization buys variance reduction by paying in bias**.
 
 ---
 
-### 5. Where the classic models sit
+## 7. Where the classic models sit
 
 ```text
 high bias ──────────────────────────────── high variance
 linear/logistic   naive Bayes   boosted trees   deep tree   1-NN
 ```
 
-This is why a linear model on a complex problem plateaus no matter how much data you add (bias-limited), and why 1-NN is unstable no matter how careful you are (variance-limited).
+### Intuition
 
----
+This is why a linear model plateaus no matter how much data you add, and why 1-NN is unstable no matter how careful you are.
 
-### 6. The modern caveat
+### Common issue
 
-The textbook U-shaped curve - error falls, then rises with capacity - is a good default intuition but is not the whole story. Very large models trained on very large datasets with strong regularization often generalize well despite enormous capacity.
-
-For this interview you do not need double descent. You do need to avoid claiming "a bigger model always overfits more", which is too strong.
+Avoid the overclaim that "a bigger model always overfits more". Very large, well-regularized models trained on very large data often generalize well despite enormous capacity.
 
 ---
 

@@ -4,7 +4,9 @@
 
 The reason to use one is not that specialists are smarter - it is the same model either way. It is that the subagent reads all the messy material inside *its own* context window and returns a paragraph, so the main agent never has to carry that material around. Decomposition is a **context management** technique first.
 
-### 1. The actual benefit
+---
+
+## 1. The actual benefit
 
 ```text
 single agent:     reads 40 documents → all 40 sit in the context → window gone by step 12
@@ -24,7 +26,7 @@ The secondary benefit is parallelism: independent subtasks run concurrently.
 
 ---
 
-### 2. The handoff is where information dies
+## 2. The handoff is where information dies
 
 ```text
 parent ──► brief ──► subagent ──► findings ──► parent
@@ -42,11 +44,13 @@ A subagent cannot ask a clarifying question of a context it never saw. So the br
  "already_tried": ["queries that returned nothing"]}
 ```
 
+### Rule of thumb
+
 `already_tried` is the field people omit, and it is what prevents three subagents from re-running the same failed search.
 
 ---
 
-### 3. Returns must be compressed and typed
+## 3. Returns must be compressed and typed
 
 ```text
 ✗  the subagent's whole transcript          → you've undone the isolation
@@ -55,11 +59,13 @@ A subagent cannot ask a clarifying question of a context it never saw. So the br
      "cost": {"steps": 9, "tokens": 41000}}
 ```
 
+### Core intuition
+
 Carry **provenance** on every claim. Once findings are merged, a claim without a source cannot be checked, and that is exactly how a fabricated number ends up in a confident report.
 
 ---
 
-### 4. Decompose along real seams
+## 4. Decompose along real seams
 
 ```text
 ✓  by data source       (each subagent owns one system)
@@ -70,15 +76,19 @@ Carry **provenance** on every claim. Once findings are merged, a claim without a
 ✗  by persona           ("you're the skeptic")
 ```
 
+### Rule of thumb
+
 If two subtasks need to negotiate with each other mid-flight, they were one task.
 
 ---
 
-### 5. When it isn't worth it
+## 5. When it isn't worth it
 
 - The task fits comfortably in one context - decomposition adds latency and coordination risk for nothing.
 - Subtasks are sequentially dependent - you get the overhead without the parallelism.
 - The work needs shared evolving state - the handoff cost exceeds the context saving.
+
+### Common issue
 
 Cost note: each subagent pays its own system prompt and tool schemas, so five subagents is far more than five times one call in total tokens. It wins anyway when the alternative is a parent that can't fit the work - but say the tradeoff out loud.
 

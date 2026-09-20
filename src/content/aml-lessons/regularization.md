@@ -4,17 +4,21 @@
 
 You add a penalty to the training objective that grows as the model's coefficients grow. The model then deliberately fits the training data *worse* in exchange for doing better on data it has never seen - the variance half of the bias-variance trade.
 
-### 1. The objective
+---
+
+## 1. The objective
 
 \[
 L_{\text{total}} = \underbrace{L_{\text{data}}(w)}_{\text{fit the data}} + \lambda\,\underbrace{R(w)}_{\text{stay simple}}
 \]
 
+### Common issue
+
 \(\lambda\) is the exchange rate. In scikit-learn's linear models it appears as `alpha` (larger = more regularization) and in logistic regression and SVMs as `C = 1/λ` (smaller = more regularization). Mixing those two up is a common slip.
 
 ---
 
-### 2. L2 (ridge)
+## 2. L2 (ridge)
 
 \[
 R(w) = \sum_j w_j^2
@@ -31,7 +35,7 @@ Ridge(alpha=1.0)  |  LogisticRegression(penalty="l2", C=1.0)
 
 ---
 
-### 3. L1 (lasso)
+## 3. L1 (lasso)
 
 \[
 R(w) = \sum_j \lvert w_j\rvert
@@ -52,7 +56,35 @@ L1 (diamond)              L2 (circle)
 
 ---
 
-### 4. Elastic net
+## 4. Seeing the difference on real coefficients
+
+Same data, same features, three settings. Watch what happens to the coefficients:
+
+```text
+feature          no penalty      L2 (ridge)     L1 (lasso)
+─────────────────────────────────────────────────────────────
+income              4.81            2.10           1.94
+income_usd          4.79            2.08           0.00   ← duplicate, dropped
+tenure             −1.22           −0.95          −0.88
+tenure_months      −1.19           −0.93           0.00   ← duplicate, dropped
+n_logins            0.31            0.22           0.07
+random_noise_1      0.88            0.11           0.00   ← noise, dropped
+random_noise_2     −0.79           −0.09           0.00   ← noise, dropped
+```
+
+Three things to read off it.
+
+**Without a penalty, noise gets real coefficients.** The two random columns picked up weights of 0.88 and −0.79 by fitting whatever accident was in the training sample.
+
+**L2 shrank everything and zeroed nothing.** Notice the two duplicate pairs: ridge split the weight roughly evenly between them (2.10 and 2.08). That is the behaviour you want when correlated features are both genuinely informative.
+
+### Intuition
+
+**L1 zeroed six of nine.** It kept one of each duplicate pair and discarded the other - and *which* one it kept is essentially arbitrary. That is the instability that makes lasso a poor choice when you need to explain which features matter.
+
+---
+
+## 5. Elastic net
 
 \[
 R(w) = \rho\sum_j\lvert w_j\rvert + (1-\rho)\sum_j w_j^2
@@ -66,7 +98,7 @@ ElasticNet(alpha=0.1, l1_ratio=0.5)
 
 ---
 
-### 5. Choosing
+## 6. Choosing
 
 | Situation | Penalty |
 |---|---|
@@ -79,11 +111,13 @@ ElasticNet(alpha=0.1, l1_ratio=0.5)
 Two non-negotiables:
 
 1. **Scale the features first.** The penalty is on raw coefficient size, so without scaling you punish features by their unit of measurement.
+### Rule of thumb
+
 2. **Tune λ by cross-validation.** It is not a constant you can guess; `RidgeCV`/`LassoCV` exist for exactly this.
 
 ---
 
-### 6. Regularization outside linear models
+## 7. Regularization outside linear models
 
 The idea is universal; only the mechanism changes:
 
@@ -99,11 +133,13 @@ The idea is universal; only the mechanism changes:
 
 ---
 
-### 7. Regularization trades bias for variance
+## 8. Regularization trades bias for variance
 
 \[
 \text{variance} \downarrow \quad\text{while}\quad \text{bias} \uparrow
 \]
+
+### Core intuition
 
 That trade is favorable only up to a point. Too much regularization gives you a flat, underfitting model - which is why the strength must be tuned, and why adding regularization to a model that is already underfitting makes things worse.
 

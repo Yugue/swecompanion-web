@@ -11,7 +11,9 @@
 
 You have to tell it k - the algorithm will never discover that there are really three groups rather than five. It is the default clustering algorithm: simple, fast, and built on assumptions that are easy to state and easy to violate.
 
-### 1. The algorithm
+---
+
+## 1. The algorithm
 
 ```text
 1. choose k initial centroids
@@ -30,22 +32,26 @@ J = \sum_{k}\sum_{x \in C_k}\lVert x - \mu_k\rVert^2
 KMeans(n_clusters=8, init="k-means++", n_init=10).fit(X_scaled)
 ```
 
+### Core intuition
+
 Each step provably decreases J, so it always converges - but only to a **local** optimum.
 
 ---
 
-### 2. Initialization matters
+## 2. Initialization matters
 
 Because the objective is non-convex, a bad start gives a bad answer:
 
 - **k-means++** spreads the initial centroids out by choosing each new one with probability proportional to its squared distance from the nearest existing centroid. It is the default and it matters.
 - **n_init** restarts the whole algorithm several times and keeps the lowest inertia.
 
+### Intuition
+
 This is the concrete example of "non-convex optimization is sensitive to initialization" from the **optimization** lesson.
 
 ---
 
-### 3. The assumptions it makes
+## 3. The assumptions it makes
 
 k-means implicitly assumes clusters that are:
 
@@ -66,24 +72,22 @@ works well                fails
 
 ---
 
-### 4. Non-negotiable preprocessing
+## 4. Non-negotiable preprocessing
 
 - **Scale the features.** Distance is scale-dependent; an unscaled income column decides everything.
 - **Reduce dimensionality** if d is large - distances concentrate and clusters stop being meaningful.
 - **Handle outliers.** Centroids are means, so a single extreme point drags one. `KMedoids`, or clipping, is the defense.
 - **Think about categoricals.** One-hot columns in Euclidean space make every category pair equidistant; k-modes or Gower distance exist for mixed data.
 
----
+**Cost and scale.** Per iteration: \(O(n \cdot k \cdot d)\). Linear in n, which is why k-means remains the practical default on large datasets where hierarchical methods are impossible.
 
-### 5. Cost and scale
-
-Per iteration: \(O(n \cdot k \cdot d)\). Linear in n, which is why k-means remains the practical default on large datasets where hierarchical methods are impossible.
+### Rule of thumb
 
 `MiniBatchKMeans` uses random subsets per update and handles millions of rows with a small quality loss.
 
 ---
 
-### 6. Choosing k
+## 5. Choosing k
 
 There is no label to validate against, so k is chosen by internal criteria plus judgement - covered fully in the **choosing k and evaluating clusters** lesson. The short version:
 
@@ -94,7 +98,7 @@ There is no label to validate against, so k is chosen by internal criteria plus 
 
 ---
 
-### 7. What it is actually used for
+## 6. What it is actually used for
 
 | Use | Notes |
 |---|---|

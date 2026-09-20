@@ -4,15 +4,15 @@
 
 Without one, "the model gets 87%" means nothing. You cannot tell whether 87% is a triumph or whether always guessing "no" would have scored 86%.
 
-### 1. The trivial baseline
+---
 
-Before any model, compute what a system with no intelligence achieves:
+## 1. The trivial baseline
 
 | Task | Trivial baseline |
 |---|---|
 | Classification | always predict the majority class |
-| Imbalanced classification | predict all-negative, and report precision/recall, not accuracy |
-| Regression | always predict the training mean (or median) |
+| Imbalanced classification | predict all-negative, then report precision/recall |
+| Regression | always predict the training mean or median |
 | Time series | predict the last observed value |
 | Ranking | rank by popularity, or keep the current order |
 
@@ -20,7 +20,9 @@ Before any model, compute what a system with no intelligence achieves:
 DummyClassifier(strategy="most_frequent").fit(X_train, y_train).score(X_test, y_test)
 ```
 
-For a fraud dataset with a 0.8% positive rate, that dummy scores **99.2% accuracy**. So does a model that has learned nothing. This is the single most common interview trap in this domain, and the baseline is what exposes it.
+### Intuition
+
+On a fraud dataset with a 0.8% positive rate, that dummy scores **99.2% accuracy** — and so does a model that has learned nothing.
 
 ### Rule of thumb
 
@@ -28,37 +30,42 @@ For a fraud dataset with a 0.8% positive rate, that dummy scores **99.2% accurac
 
 ---
 
-### 2. The rule-based baseline
+## 2. The rule-based baseline
 
-The second baseline is whatever the business does today:
+Whatever the business does today:
 
-- the hand-written fraud rules,
-- the analyst's spreadsheet,
-- "sort by most recent",
-- the vendor's off-the-shelf score.
+```text
+the hand-written fraud rules
+the analyst's spreadsheet
+"sort by most recent"
+the vendor's off-the-shelf score
+```
 
-This one matters most, because it is the thing your model has to replace. If the model beats the dummy but only matches the existing rules, the project has produced nothing except a new maintenance burden.
+### Core intuition
+
+This is the one that matters most, because it is the thing your model has to **replace**. Beating the dummy but only matching the existing rules means the project produced nothing except a new maintenance burden.
 
 ---
 
-### 3. The simple-model baseline
-
-The third baseline is a model you can build in an hour:
+## 3. The simple-model baseline
 
 ```python
 Pipeline([("scale", StandardScaler()), ("clf", LogisticRegression())]).fit(X_train, y_train)
 ```
 
-or gradient-boosted trees with default settings for tabular data.
+### Intuition
 
-This baseline is useful in two directions:
+Useful in two directions:
 
-- if the complex model barely beats it, ship the simple one,
-- if the simple model is *terrible*, suspect the features or the labels before reaching for capacity.
+```text
+complex model barely beats it  →  ship the simple one
+simple model is TERRIBLE       →  suspect the features or the labels,
+                                   not the capacity
+```
 
 ---
 
-### 4. Reading the gaps
+## 4. Reading the gaps
 
 ```text
 dummy        0.50 AUC
@@ -68,37 +75,43 @@ boosted tree 0.89 AUC   ← the extra 0.03 has a cost
 deep model   0.895 AUC  ← probably noise
 ```
 
-> **AUC** is a single score for how well a classifier separates the two classes: 0.5 is coin-flipping, 1.0 is perfect. It gets a full lesson in Chapter 5; here it is just a yardstick that stays the same down the ladder.
+> **AUC** is a single score for how well a classifier separates the two classes: 0.5 is coin-flipping, 1.0 is perfect. Chapter 5 covers it properly; here it is just a consistent yardstick.
 
-The shape of that ladder is the real finding. Most of the value usually arrives with the first honest model; everything after is an engineering trade against latency, explainability, and maintenance.
+### Core intuition
+
+The shape of that ladder is the real finding. Most of the value arrives with the first honest model; everything after is an engineering trade against latency, explainability, and maintenance.
 
 ### Rule of thumb
 
-> The value of ML is the gap between the model and the best simple alternative - not the model's absolute score.
+> The value of ML is the gap between the model and the best simple alternative — not the model's absolute score.
 
 ---
 
-### 5. When not to use ML at all
+## 5. When not to use ML at all
 
 Say no when:
 
-- the rule is short, stable, and auditable ("block transactions over $10,000 from accounts under one day old"),
+- the rule is short, stable, and auditable,
 - the cost of a wrong answer is unacceptable and the rule is legally required,
 - there is not enough data, or the labels do not exist and cannot be obtained,
-- nobody will own the monitoring and retraining after launch.
+- **nobody will own the monitoring and retraining after launch.**
+
+### Common issue
 
 That last one is the adult answer. A model with no owner degrades silently, and a degraded model is worse than the rule it replaced because everyone still trusts it.
 
 ---
 
-### 6. Baselines also protect you during the project
+## 6. Baselines protect you during the project
 
 A baseline is a permanent control:
 
-- it catches pipeline bugs (if your model cannot beat the mean, something is broken),
-- it bounds how much a new feature is really worth,
-- it gives you something to fall back to when the model fails in production,
-- and it is cheap to keep running in shadow mode.
+```text
+catches pipeline bugs      if you cannot beat the mean, something is broken
+bounds a feature's value   how much is this really worth?
+gives a fallback           when the model service fails in production
+is cheap to keep running   in shadow mode, as a canary
+```
 
 ---
 

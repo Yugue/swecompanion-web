@@ -2,7 +2,9 @@
 
 The context window is the only memory the model has. It is rebuilt from scratch on every single turn, it is finite, and it is the resource that most often decides whether an agent is fast, cheap, and correct. Context is an engineering budget, not an afterthought.
 
-### 1. What gets re-sent every turn
+---
+
+## 1. What gets re-sent every turn
 
 ```text
 turn 1:  [system][tools][user]
@@ -19,11 +21,13 @@ So the input tokens for a run are not the sum of the steps - they are the sum of
 \text{input tokens} \approx \sum_{i=1}^{n} \big(\text{base} + \textstyle\sum_{j<i} s_j\big) \;=\; O(n^2)
 \]
 
+### Intuition
+
 A 40-step run with 1,500-token observations sends roughly a million input tokens, even though the "conversation" is only 60,000 tokens long.
 
 ---
 
-### 2. The two separate costs
+## 2. The two separate costs
 
 | Cost | Scales with | Felt as |
 |---|---|---|
@@ -39,7 +43,7 @@ The third row is the one people miss. A long context does not merely cost more -
 
 ---
 
-### 3. Budget the window by line item
+## 3. Budget the window by line item
 
 Decide the shape before you write the retriever:
 
@@ -55,21 +59,56 @@ Decide the shape before you write the retriever:
                          headroom  4k     for the next observation
 ```
 
+### Rule of thumb
+
 Explicit headroom matters: an agent that fills its window has no room for the observation that would have told it what to do.
 
 ---
 
-### 4. Three levers when you run out
+## 4. The quadratic, with real numbers
+
+A 20-step run. Base prompt 3k, each step adds a 1.5k observation:
+
+```text
+turn    what is re-sent                              input tokens
+  1     base                                            3,000
+  5     base + 4 steps                                   9,000
+ 10     base + 9 steps                                  16,500
+ 15     base + 14 steps                                 24,000
+ 20     base + 19 steps                                 31,500
+                                                       ───────
+                              total across all turns   345,000
+```
+
+The conversation itself is only 33,000 tokens long. You paid for 345,000, because turn 20 re-reads everything turns 1 through 19 produced.
+
+That ratio gets worse as runs get longer:
+
+```text
+ 5 steps   →   ~2.0× the transcript length
+20 steps   →  ~10.5×
+40 steps   →  ~20.5×
+```
+
+### Core intuition
+
+So the cost of a step is not the step - it is the step plus its contribution to every step after it. An observation you trim at step 3 saves tokens seventeen more times.
+
+---
+
+## 5. Three levers when you run out
 
 1. **Select** - retrieve fewer, better passages instead of more.
 2. **Compact** - summarize old turns, keeping identifiers verbatim.
 3. **Externalize** - write findings to a file or state store and keep a pointer.
 
+### Rule of thumb
+
 Externalizing is the most under-used and usually the best: a 20-line path plus summary replaces 30,000 tokens of raw output, and the full content is still retrievable.
 
 ---
 
-### 5. Order matters for caching
+## 6. Order matters for caching
 
 Put stable content first and volatile content last:
 
@@ -77,6 +116,8 @@ Put stable content first and volatile content last:
 [system][tools][static docs]  ←── identical every turn, cacheable
 [history][current turn]       ←── changes every turn
 ```
+
+### Common issue
 
 A timestamp in the system prompt invalidates the entire cached prefix on every call. This is covered fully under prompt caching.
 

@@ -4,7 +4,9 @@
 
 Logistic regression asks "what line makes this data most likely?". An SVM asks "what line leaves the widest empty corridor between the two groups?" - and only the handful of points sitting closest to that corridor matter at all.
 
-### 1. The margin
+---
+
+## 1. The margin
 
 Among all separating hyperplanes, the SVM picks the one that maximizes the distance to the nearest training points.
 
@@ -18,11 +20,13 @@ Among all separating hyperplanes, the SVM picks the one that maximizes the dista
 
 The points that touch the margin are the **support vectors**. They alone define the boundary: delete every other training point and the solution is unchanged. That is a memorable, true, and interview-ready fact.
 
+### Core intuition
+
 The intuition for why a wide margin is good: a boundary far from all training points is less likely to flip when new points arrive - it is a geometric form of regularization.
 
 ---
 
-### 2. Soft margin and C
+## 2. Soft margin and C
 
 Real data is not separable, so the SVM allows violations with a penalty:
 
@@ -45,7 +49,7 @@ Real data is not separable, so the SVM allows violations with a penalty:
 
 ---
 
-### 3. Hinge loss
+## 3. Hinge loss
 
 The SVM's loss ignores examples that are already comfortably correct:
 
@@ -59,11 +63,13 @@ correct but inside the margin  → small loss
 wrong side                     → linearly growing loss
 ```
 
+### Intuition
+
 Compare with log loss, which is never exactly zero: logistic regression keeps pushing every point further from the boundary, while the SVM stops caring once a point is safe. That difference is why the SVM solution depends only on the support vectors.
 
 ---
 
-### 4. The kernel trick
+## 4. The kernel trick
 
 To handle nonlinear boundaries, map x into a higher-dimensional space where the classes become separable. The trick is that the optimization only ever needs **inner products**, and a kernel computes those without constructing the space:
 
@@ -85,7 +91,7 @@ SVC(kernel="rbf", C=1.0, gamma="scale")
 
 ---
 
-### 5. Practical constraints
+## 5. Practical constraints
 
 | Property | Consequence |
 |---|---|
@@ -97,7 +103,7 @@ SVC(kernel="rbf", C=1.0, gamma="scale")
 
 ---
 
-### 6. SVM vs logistic regression
+## 6. SVM vs logistic regression
 
 They often produce similar boundaries, and the honest comparison is:
 

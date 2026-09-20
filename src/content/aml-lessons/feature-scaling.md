@@ -2,7 +2,9 @@
 
 Scaling is a small transformation with a sharp rule attached: it is **essential for some model families and irrelevant for others**, and knowing which is which is a standard interview check.
 
-### 1. The three transforms
+---
+
+## 1. The three transforms
 
 **Standardization** (z-score) - the default:
 
@@ -30,9 +32,13 @@ x' = \frac{x - \text{median}}{\text{IQR}}
 StandardScaler()  |  MinMaxScaler()  |  RobustScaler()
 ```
 
+### Rule of thumb
+
+Standardize by default. Reach for robust scaling when outliers are present, and remember min-max is squashed by a single extreme value.
+
 ---
 
-### 2. Who needs it and who does not
+## 2. Who needs it and who does not
 
 | Model | Needs scaling? | Why |
 |---|---|---|
@@ -53,7 +59,7 @@ StandardScaler()  |  MinMaxScaler()  |  RobustScaler()
 
 ---
 
-### 3. Why unscaled features break distance models
+## 3. Why unscaled features break distance models
 
 Consider two features: annual income (30,000-200,000) and years at the company (0-40).
 
@@ -61,21 +67,21 @@ Consider two features: annual income (30,000-200,000) and years at the company (
 d = \sqrt{(\text{income}_1-\text{income}_2)^2 + (\text{years}_1-\text{years}_2)^2}
 \]
 
-A $10,000 income difference contributes 10,000² to the distance; a 10-year tenure difference contributes 100. Tenure is effectively invisible - k-NN is clustering by income alone, without telling you.
+### Intuition
 
----
+A $10,000 income difference contributes 10,000² to the distance; a 10-year tenure difference contributes 100. Tenure is effectively invisible — k-NN is clustering by income alone, and never tells you.
 
-### 4. Why it changes regularized linear models
-
-L2 penalizes \(\sum w_j^2\). A feature measured in dollars needs a tiny coefficient to have a normal-sized effect, and a tiny coefficient is barely penalized. A feature measured in units of 0-1 needs a large coefficient, which is heavily penalized.
+**Why it changes regularized linear models.** L2 penalizes \(\sum w_j^2\). A feature measured in dollars needs a tiny coefficient to have a normal-sized effect, and a tiny coefficient is barely penalized. A feature measured in units of 0-1 needs a large coefficient, which is heavily penalized.
 
 > Without scaling, the regularizer punishes features according to their unit of measurement rather than their usefulness.
 
-This is why `LogisticRegression` in scikit-learn - which regularizes by default - should essentially always sit behind a scaler.
+### Common issue
+
+This is why `LogisticRegression` in scikit-learn — which regularizes by default — should essentially always sit behind a scaler.
 
 ---
 
-### 5. Fit on train, apply everywhere
+## 4. Fit on train, apply everywhere
 
 ```python
 scaler = StandardScaler().fit(X_train)   # μ and σ come from TRAIN only
@@ -87,9 +93,7 @@ Fitting the scaler on all the data before splitting leaks the test distribution'
 
 The same statistics must also be shipped to production: the serving path applies the *stored* μ and σ, never recomputes them from live traffic.
 
----
-
-### 6. Related transforms that are not scaling
+**Related transforms that are not scaling**
 
 - **Log / Box-Cox / Yeo-Johnson**: change the *shape* of a skewed distribution, not just its scale.
 - **Quantile transform**: forces a feature to a uniform or normal distribution; powerful and lossy.

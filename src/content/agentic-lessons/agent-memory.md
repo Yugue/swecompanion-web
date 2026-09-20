@@ -2,7 +2,9 @@
 
 "The model remembers" is always false. Within a run, memory is the transcript you resend. Across runs, memory is a **store you deliberately write to and read from**. Everything else is an illusion produced by those two mechanisms.
 
-### 1. Three kinds, with different lifetimes
+---
+
+## 1. Three kinds, with different lifetimes
 
 | Kind | Lives in | Lifetime | Example |
 |---|---|---|---|
@@ -10,11 +12,54 @@
 | Episodic | A store, keyed by session | Across runs | "Last week we tried plan A and it failed" |
 | Semantic | A store, keyed by entity | Indefinite | "This user's timezone is CET" |
 
+### Rule of thumb
+
 Procedural knowledge - how this agent does things - lives in the system prompt and tools, not in memory. Keeping that separate avoids the common design where a memory store slowly becomes an un-versioned second prompt.
 
 ---
 
-### 2. Writing is the hard part
+## 2. What "remembering" actually is
+
+A user says something in one session and expects it to hold in the next. Here is what has to happen, because none of it is automatic:
+
+```text
+SESSION 1, Tuesday
+  user:   "I'm vegetarian, don't suggest meat dishes."
+          ↓
+  YOU write a record:
+          {type:"preference", subject:"user:8812", key:"diet",
+           value:"vegetarian", source:"run:441:turn:3",
+           confidence:"stated", updated:"2026-03-02"}
+
+  --- the session ends. the model retains NOTHING. ---
+
+SESSION 2, Friday
+  user:   "What should I cook tonight?"
+          ↓
+  YOU retrieve records relevant to this task → the diet preference
+          ↓
+  YOU put it in the context window
+          ↓
+  model:  now behaves as though it "remembered"
+```
+
+Every step marked YOU is code you wrote. Skip the write and the preference is gone forever. Skip the retrieval and it sits in a database being ignored.
+
+Now the same user in session 3: *"Actually I eat fish now."* The naive implementation appends a second record, and the next retrieval returns both:
+
+```text
+{diet: "vegetarian", updated: "2026-03-02"}
+{diet: "pescatarian", updated: "2026-03-09"}
+        ↑ two contradictory facts in the context, and the model picks one
+```
+
+### Common issue
+
+Which is worse than having no memory at all, because it is confidently inconsistent. A correction has to **supersede** the old value, not sit beside it - and that is a design decision in the store, not something the model can resolve.
+
+---
+
+## 3. Writing is the hard part
 
 Nothing persists unless you write it, and writing everything is as bad as writing nothing.
 
@@ -42,18 +87,20 @@ The `source` field is what lets you audit a wrong memory back to where it came f
 
 ---
 
-### 3. Reading is retrieval, not loading
+## 4. Reading is retrieval, not loading
 
 ```text
 ✗  load everything about this user into the context every run
 ✓  retrieve memories relevant to this task, capped, most recent first
 ```
 
+### Core intuition
+
 Loading everything reintroduces the exact problem memory was meant to solve - a full window of mostly irrelevant tokens. Retrieve by relevance to the current goal, cap the count, and prefer recent over old on ties.
 
 ---
 
-### 4. Memory needs a lifecycle
+## 5. Memory needs a lifecycle
 
 ```text
 write ──► read ──► CORRECT ──► EXPIRE ──► DELETE
@@ -65,11 +112,7 @@ write ──► read ──► CORRECT ──► EXPIRE ──► DELETE
 - **Expiry**: facts have different lifetimes. A shipping address is durable; "is currently debugging the payments service" is not.
 - **Deletion**: users can ask for their data to be removed, and the store must support it - including anything derived from it.
 
----
-
-### 5. Memory is a safety surface
-
-Two specific risks worth naming:
+**Memory is a safety surface.** Two specific risks worth naming:
 
 1. **Poisoning.** A memory written from untrusted content becomes a persistent instruction the agent reads on every future run. Never write memories derived from content the agent merely *read*; write from what the user *said* or what a tool authoritatively returned.
 2. **Leakage.** Memories must be scoped by user and tenant at the storage layer. Cross-user retrieval is a data breach, not a bug.

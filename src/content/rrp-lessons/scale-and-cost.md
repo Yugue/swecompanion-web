@@ -2,7 +2,9 @@
 
 **These are among the most expensive systems a company runs,** and the cost drivers are specific enough to name precisely.
 
-### 1. Where the money actually goes
+---
+
+## 1. Where the money actually goes
 
 ```text
 embedding tables      100M users × 128 floats  ≈  50GB
@@ -17,11 +19,13 @@ ANN index             memory-resident, rebuilt regularly
 training              distributed, with sharded embedding tables
 ```
 
+### Core intuition
+
 The network is almost never the problem. **The embedding tables and the number of scores are.**
 
 ---
 
-### 2. The scoring equation
+## 2. The scoring equation
 
 \[
 \text{cost} \;\propto\; \text{candidates per request} \times \text{requests} \times \text{cost per score}
@@ -41,7 +45,7 @@ cheaper per score    smaller model, quantization, distillation, early exit
 
 ---
 
-### 3. Shrinking embedding tables
+## 3. Shrinking embedding tables
 
 ```text
 hashing            map ids into a fixed number of buckets
@@ -58,11 +62,13 @@ smaller dimension  128 → 64
                    → linear saving, measurable quality loss
 ```
 
+### Rule of thumb
+
 Frequency pruning usually gives the best ratio, because id distributions have enormous tails: most users and items appear a handful of times and cannot support a well-fitted vector anyway.
 
 ---
 
-### 4. Precompute versus serve live
+## 4. Precompute versus serve live
 
 ```text
 heavy users     compute their whole slate offline → serve a lookup
@@ -73,11 +79,13 @@ hot contexts    cache popularity lists per country/device/surface
 long tail       serve live - too many combinations to precompute
 ```
 
+### Intuition
+
 Because usage distributions are so concentrated, precomputing for the head often removes most of the live traffic. This is a standard and underused answer to a scaling question.
 
 ---
 
-### 5. The cost conversation in an interview
+## 5. The cost conversation in an interview
 
 Be able to do rough arithmetic out loud:
 

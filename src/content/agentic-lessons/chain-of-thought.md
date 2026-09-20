@@ -2,7 +2,9 @@
 
 Letting a model write intermediate tokens before answering buys it **more computation per decision**. That is the entire mechanism. Everything true about chain of thought - what it helps, what it doesn't, and why you can't trust it as an explanation - follows from that one fact.
 
-### 1. The mechanism
+---
+
+## 1. The mechanism
 
 A forward pass does a fixed amount of work per token. Producing 200 reasoning tokens before the answer means the answer is computed after 200 extra passes, each conditioned on what came before.
 
@@ -11,11 +13,13 @@ direct:     question ──────────────────► a
 CoT:        question ──► t₁ t₂ ... tₙ ──► answer        (n extra passes, serialized)
 ```
 
+### Core intuition
+
 So chain of thought converts **tokens into serial computation**. It does not add knowledge, retrieve facts, or check anything against the world.
 
 ---
 
-### 2. What that predicts, and what is observed
+## 2. What that predicts, and what is observed
 
 | Task type | Helps? | Why |
 |---|---|---|
@@ -31,7 +35,36 @@ So chain of thought converts **tokens into serial computation**. It does not add
 
 ---
 
-### 3. The faithfulness problem
+## 3. Where the extra tokens help, and where they do not
+
+Two questions, same model, with and without reasoning:
+
+```text
+"What is the capital of Australia?"
+  direct     → "Canberra"                        correct
+  with CoT   → "Let me think. Australia's largest city is Sydney, but the
+                capital is a planned city... Canberra."   correct, 40× the tokens
+
+  → the fact was in the weights or it was not. Thinking added latency, nothing else.
+```
+
+```text
+"A refund window is 30 days. The order shipped on 2 March, was delivered on
+ 6 March, and the policy measures from delivery. Today is 3 April. Eligible?"
+  direct     → "Yes, it is within 30 days."       WRONG
+  with CoT   → "Measured from delivery: 6 March. 6 March + 30 days = 5 April.
+                Today is 3 April, which is before 5 April. Eligible."   correct
+```
+
+The second needs several dependent steps held in order - which date to measure from, add 30, compare. Producing intermediate tokens gives the model somewhere to put each step instead of collapsing the whole chain into one guess.
+
+### Rule of thumb
+
+That is the rule, and it generalizes: **reasoning tokens buy serial computation, so they help when the bottleneck is computation and do nothing when the bottleneck is knowledge.**
+
+---
+
+## 4. The faithfulness problem
 
 This is the part interviewers probe.
 
@@ -53,7 +86,7 @@ Practical consequences:
 
 ---
 
-### 4. The cost
+## 5. The cost
 
 Reasoning tokens are output tokens, generated serially, on every turn where you enable them.
 
@@ -65,9 +98,7 @@ Reasoning tokens are output tokens, generated serially, on every turn where you 
 
 That last line is often missed: reasoning from step 3 is still in the context at step 25, being re-sent and consuming window.
 
----
-
-### 5. Using it well in an agent
+**Using it well in an agent**
 
 - Make it **conditional**: short or no reasoning for routine steps, full reasoning for planning and diagnosis.
 - Keep it **short** - a few lines beat a page; length correlates with drift, not accuracy.

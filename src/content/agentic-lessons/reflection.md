@@ -2,7 +2,9 @@
 
 Reflection means the agent examines its own output and revises it. It is genuinely useful and routinely oversold. The distinguishing question: **does the critic know something the actor didn't?** If not, you are mostly paying for agreement.
 
-### 1. The two kinds
+---
+
+## 1. The two kinds
 
 ```text
 ungrounded:   "Review your answer. Are you confident?"
@@ -22,7 +24,7 @@ The difference is not prompt wording. It is whether new information entered the 
 
 ---
 
-### 2. Sources of grounding, cheapest first
+## 2. Sources of grounding, cheapest first
 
 | Signal | Cost | Catches |
 |---|---|---|
@@ -33,22 +35,26 @@ The difference is not prompt wording. It is whether new information entered the 
 | A different model as critic | Medium | Blind spots correlated with the first model |
 | Human review | High | Everything, at a price |
 
+### Common issue
+
 Start at the top. Most teams add an LLM critic before they add a linter, which is backwards.
 
 ---
 
-### 3. The actor-critic split
+## 3. The actor-critic split
 
 ```text
 actor:   full context, wrote the draft
 critic:  the draft + the criteria + NEW evidence, not the actor's reasoning
 ```
 
+### Core intuition
+
 Withholding the actor's reasoning from the critic matters - a critic that reads "I chose X because Y" tends to evaluate the argument rather than the artifact. Give it the artifact, the requirements, and the test output.
 
 ---
 
-### 4. Bound it
+## 4. Bound it
 
 ```python
 for attempt in range(MAX_REFLECTIONS):      # 1 or 2, not 5
@@ -64,11 +70,7 @@ Two failure modes make the cap non-negotiable:
 
 Empirically the first reflection round captures most of the gain; the third is usually noise.
 
----
-
-### 5. What it does not fix
-
-Reflection cannot supply missing knowledge. If the agent doesn't know the refund window is 30 days, no amount of self-critique will discover it - only retrieval will. Diagnose first: is this a **knowledge** gap (retrieve), a **computation** gap (code tool), or a **care** gap (reflection)?
+**What it does not fix.** Reflection cannot supply missing knowledge. If the agent doesn't know the refund window is 30 days, no amount of self-critique will discover it - only retrieval will. Diagnose first: is this a **knowledge** gap (retrieve), a **computation** gap (code tool), or a **care** gap (reflection)?
 
 ---
 

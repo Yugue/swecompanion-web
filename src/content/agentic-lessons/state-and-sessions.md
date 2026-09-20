@@ -2,7 +2,9 @@
 
 The context window is *derived*. The durable truth of a run is a record in your store: what the goal was, what has been done, what was produced, and where it stopped. Designing that record is what makes an agent resumable, inspectable, and correctable.
 
-### 1. Separate the two kinds of state
+---
+
+## 1. Separate the two kinds of state
 
 ```text
 conversation state          task state
@@ -14,11 +16,13 @@ read by: the model          read by: humans, dashboards,
                             other services, the next run
 ```
 
+### Core intuition
+
 Systems that keep only conversation state can render a transcript and cannot answer "what has this agent actually done to my account?" Task state is the part the rest of your company needs.
 
 ---
 
-### 2. The run record
+## 2. The run record
 
 ```json
 {"run_id": "r_8812", "tenant": "acme", "user": "u_441",
@@ -42,7 +46,7 @@ Persist **after each step**, not at the end. A run that only writes on completio
 
 ---
 
-### 3. Resumption is not just "keep going"
+## 3. Resumption is not just "keep going"
 
 ```text
 crash at step 18
@@ -53,11 +57,13 @@ was step 18's side effect applied?
    └── unknown → query the external system; never guess
 ```
 
+### Rule of thumb
+
 This is why idempotency keys and a status-lookup tool matter: resumption correctness depends on being able to establish what actually happened, not on assuming.
 
 ---
 
-### 4. Make state inspectable and editable
+## 4. Make state inspectable and editable
 
 The highest-value operational feature in an agent platform is a human being able to open a running task, see the plan and findings, correct a wrong fact, and let the run continue. That requires state to be structured and addressable - not buried in a message list.
 
@@ -68,7 +74,7 @@ human marks finding[4] wrong →  it is excluded from the context
 
 ---
 
-### 5. Scope and hygiene from day one
+## 5. Scope and hygiene from day one
 
 - **Tenant and user scoping** on every record - retrofitting isolation is painful and risky.
 - **Retention** - runs contain user data, so set a TTL and honor deletion.

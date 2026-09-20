@@ -4,7 +4,9 @@
 
 Accuracy falls as the catalogue grows. Somewhere between twenty and a few dozen tools, picking the right one stops being a prompting problem and becomes a **retrieval** problem - you have to find the handful of plausible tools before you even ask.
 
-### 1. Why it degrades
+---
+
+## 1. Why it degrades
 
 Every tool schema sits in the prompt on every turn, so growth costs on three axes at once:
 
@@ -18,11 +20,13 @@ Every tool schema sits in the prompt on every turn, so growth costs on three axe
 - **Accuracy** falls, because near-duplicate descriptions become hard to distinguish.
 - **The window shrinks**, leaving less room for the evidence the agent actually needs.
 
+### Common issue
+
 Symptoms to name: two similar tools chosen at random across runs, and a rising rate of "called the right family, wrong tool."
 
 ---
 
-### 2. Retrieve tools, then expose them
+## 2. Retrieve tools, then expose them
 
 ```text
 task ──► embed ──► search tool index ──► top-k schemas ──► model sees only those
@@ -35,11 +39,13 @@ response = model(context, tools=[t.schema for t in candidates])
 
 The tool index is built from names, descriptions, and example invocations. This is ordinary retrieval, with the same failure modes - which is why tool descriptions should be written to be *retrievable* as well as readable.
 
+### Rule of thumb
+
 Keep a small set of **always-on** tools (search, finish, escalate) outside the retrieval so the agent is never stranded.
 
 ---
 
-### 3. Alternatives that work
+## 3. Alternatives that work
 
 | Approach | How | Best when |
 |---|---|---|
@@ -56,7 +62,7 @@ Consolidation is the step people skip. Traces usually show a long tail of tools 
 
 ---
 
-### 4. Measure selection on its own
+## 4. Measure selection on its own
 
 Task success hides where the failure is. Track separately:
 
@@ -66,11 +72,13 @@ argument accuracy    = right args given the right tool
 recall of candidates = true tool present in the retrieved top-k
 ```
 
+### Core intuition
+
 The third is the one that indicts your retriever: if the correct tool wasn't in the candidate set, no prompt change can help.
 
 ---
 
-### 5. The 300-API design
+## 5. The 300-API design
 
 ```text
 1. group APIs by system → one MCP-style server or namespace each

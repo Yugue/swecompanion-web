@@ -8,7 +8,9 @@ impression log  +  outcome log  →  joined on (user, item, time)  →  training
                         every decision about this join is a modelling decision
 ```
 
-### 1. The join, and its window
+---
+
+## 1. The join, and its window
 
 ```text
 impression at 14:00
@@ -25,11 +27,13 @@ too short   → slow conversions are labelled negative → model learns to chase
 too long    → credit goes to impressions that had nothing to do with it
 ```
 
+### Core intuition
+
 There is no correct answer. There is a decision, and it should be stated in the design rather than inherited from whoever wrote the pipeline first.
 
 ---
 
-### 2. Down-sampling negatives
+## 2. Down-sampling negatives
 
 ```text
 1% click rate → 99 negatives per positive
@@ -44,7 +48,7 @@ This is near-universal and almost free, provided you remember two things: the pr
 
 ---
 
-### 3. Label delay bounds everything
+## 3. Label delay bounds everything
 
 ```text
 click      seconds     → can retrain hourly
@@ -52,11 +56,13 @@ purchase   hours       → retrain daily
 return     14-30 days  → your freshest complete label is a month old
 ```
 
+### Common issue
+
 Systems with slow labels usually train on a fast proxy and correct with the slow one later, or accept that the slow objective responds slowly. Either way it belongs in the design discussion, because it caps how quickly the system can react to anything.
 
 ---
 
-### 4. What a row should carry
+## 4. What a row should carry
 
 ```text
 identifiers      user, item, request, session, timestamp
@@ -67,11 +73,13 @@ outcome          click, dwell, purchase, complaint - several labels, not one
 provenance       which retrieval source, which model version
 ```
 
+### Rule of thumb
+
 The last three are the ones people omit and then cannot add retrospectively. Logging propensity and position costs almost nothing today and is the difference between being able to correct for bias next quarter and not.
 
 ---
 
-### 5. The pipeline as a product
+## 5. The pipeline as a product
 
 ```text
 raw logs → dedupe → join impressions to outcomes → attribute

@@ -2,7 +2,9 @@
 
 **These systems fail in a small number of recognizable ways.** Naming the pattern turns a vague product complaint into a diagnosis.
 
-### 1. Popularity collapse
+---
+
+## 1. Popularity collapse
 
 ```text
 symptom   the same few items everywhere, on every page, for everyone
@@ -14,7 +16,7 @@ fix       normalize similarity, exposure caps, diversity in re-ranking
 
 ---
 
-### 2. Filter bubble
+## 2. Filter bubble
 
 ```text
 symptom   a user's feed narrows over time; sessions slowly shorten
@@ -23,11 +25,13 @@ check     intra-list diversity and category entropy, per user, over WEEKS
 fix       diversity constraints, novelty features, exploration
 ```
 
+### Common issue
+
 The reason this one is missed is that every individual step looks like the model getting better.
 
 ---
 
-### 3. Stale or invisible inventory
+## 3. Stale or invisible inventory
 
 ```text
 symptom   new items get almost no impressions; sellers complain
@@ -38,11 +42,13 @@ fix       content features in the item tower, a fresh index for new items,
           reserved exploration slots
 ```
 
+### Core intuition
+
 This is the failure with the clearest business consequence: supply leaves.
 
 ---
 
-### 4. Offline-online divergence
+## 4. Offline-online divergence
 
 ```text
 symptom   consistent offline gains that never appear in A/B tests
@@ -55,7 +61,7 @@ fix       position-bias correction, propensity logging, features-as-served
 
 ---
 
-### 5. The quiet ones
+## 5. The quiet ones
 
 ```text
 train/serve skew        performance decays with no code change (Ch.6)
@@ -73,7 +79,7 @@ The retrieval regression is worth calling out: every ranking metric stays health
 
 ---
 
-### 6. The diagnostic order
+## 6. The diagnostic order
 
 ```text
 1. is it infrastructure?   fallback rates, timeouts, null features, staleness
@@ -82,6 +88,8 @@ The retrieval regression is worth calling out: every ranking metric stays health
 4. is it the list?         diversity, duplication, policy filtering
 5. is it the objective?    the model is doing what you asked, and you asked wrong
 ```
+
+### Rule of thumb
 
 Working it in that order - cheapest and most common first - is the answer to "the feed feels worse", and it is what an interviewer is listening for.
 

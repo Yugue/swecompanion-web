@@ -4,7 +4,9 @@
 
 Not because "deep learning is better". If your features are a few dozen dense numbers, gradient-boosted trees are still extremely hard to beat.
 
-### 1. The id problem
+---
+
+## 1. The id problem
 
 ```text
 user_id     100,000,000 values
@@ -14,11 +16,13 @@ creator_id      500,000 values
 
 A tree splits on thresholds, which is meaningless for an id - there is no useful ordering of user 8812 and user 8813. One-hot encoding them produces a hundred million columns.
 
+### Core intuition
+
 Embedding is the answer: give each id a short learned vector, exactly as in Chapter 3, and let the network work with those. **This is the main thing neural rankers do that trees cannot.**
 
 ---
 
-### 2. The interaction problem
+## 2. The interaction problem
 
 A plain stack of layers can learn feature interactions in principle, and does it inefficiently in practice. So production architectures add explicit crossing:
 
@@ -41,7 +45,7 @@ That last one matters enough to get its own lesson next.
 
 ---
 
-### 3. The shape of a typical ranker
+## 3. The shape of a typical ranker
 
 ```text
 sparse ids ──► embeddings ──┐
@@ -49,11 +53,13 @@ sparse ids ──► embeddings ──┐
 dense features ─────────────┘
 ```
 
+### Rule of thumb
+
 Everything else - which crossing scheme, how deep, how wide - is tuning around that skeleton.
 
 ---
 
-### 4. Trees are still competitive, and here is when
+## 4. Trees are still competitive, and here is when
 
 | Reach for trees | Reach for a neural ranker |
 |---|---|
@@ -69,7 +75,7 @@ Everything else - which crossing scheme, how deep, how wide - is tuning around t
 
 ---
 
-### 5. What it costs
+## 5. What it costs
 
 ```text
 model size    embedding tables dominate - often >95% of parameters
@@ -78,6 +84,8 @@ latency       an embedding lookup per sparse feature, then a forward pass
 training      distributed, with the embedding tables sharded
 staleness     ids for new items have untrained vectors until retrained
 ```
+
+### Common issue
 
 The embedding tables, not the network, are the engineering problem. Chapter 6 covers hashing, pruning, and quantization as the standard responses.
 

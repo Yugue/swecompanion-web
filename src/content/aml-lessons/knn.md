@@ -2,7 +2,9 @@
 
 k-NN is the model with no model. It stores the training set and answers each query by looking at the k closest examples - which makes its trade-offs the exact opposite of everything else in this chapter.
 
-### 1. The algorithm
+---
+
+## 1. The algorithm
 
 ```text
 predict(x):
@@ -19,11 +21,13 @@ KNeighborsClassifier(n_neighbors=15, weights="distance").fit(X_train_scaled, y_t
 Training cost: **O(1)** - it just stores the data.
 Prediction cost: **O(n·d)** per query with a brute-force search.
 
+### Core intuition
+
 That inversion is the interesting property. Every other model pays up front and serves cheaply; k-NN pays on every request.
 
 ---
 
-### 2. k controls the bias-variance trade-off directly
+## 2. k controls the bias-variance trade-off directly
 
 ```text
 k = 1    → boundary wraps every point, including noise   (low bias, high variance)
@@ -39,7 +43,7 @@ Pick k by cross-validation. An odd k avoids ties in binary classification. Dista
 
 ---
 
-### 3. Everything depends on the distance metric
+## 3. Everything depends on the distance metric
 
 Because the prediction *is* the neighborhood, the metric is the model:
 
@@ -56,13 +60,24 @@ Consequences:
 
 ---
 
-### 4. The curse of dimensionality hits it hardest
+## 4. High dimensions hit it hardest
 
-In high dimensions, distances concentrate: nearest and farthest neighbors become nearly equally far, so "nearest" stops meaning "similar". k-NN degrades badly past a few dozen informative dimensions unless you reduce first (PCA, an embedding) or use a metric suited to the space.
+In high dimensions distances concentrate - the nearest and farthest neighbours become almost equally far, so "nearest" stops meaning "similar":
+
+```text
+    2 features      nearest 0.3, farthest 9.7    → the neighbourhood means something
+  100 features      nearest 8.9, farthest 11.2   → everything is about the same distance
+```
+
+Every model suffers from this, but k-NN suffers most, because the neighbourhood *is* the prediction - there is no other mechanism to fall back on. A tree simply never splits on a useless feature; k-NN has no way to ignore one.
+
+### Rule of thumb
+
+So past a few dozen informative dimensions, reduce first (PCA, or a learned embedding) or use a metric suited to the space.
 
 ---
 
-### 5. Making it servable
+## 5. Making it servable
 
 Brute-force search over millions of rows at 10k QPS is not viable. Options:
 
@@ -73,11 +88,13 @@ Brute-force search over millions of rows at 10k QPS is not viable. Options:
 | Prototype reduction | Keep a representative subset | Loses rare-region detail |
 | Vector database | Managed ANN index | An extra system to run |
 
+### Intuition
+
 This is why k-NN survives at scale mainly as **retrieval over embeddings** (recommendations, semantic search, dedup) rather than as a tabular classifier.
 
 ---
 
-### 6. When to actually use it
+## 6. When to actually use it
 
 Good fit:
 

@@ -2,7 +2,9 @@
 
 The graded skill in this interview is not how many definitions you can recite. It is **narrowing a vague prompt to one concept and explaining that concept clearly**. This lesson is the meta-skill that makes the other 45 useful.
 
-### 1. What the format actually is
+---
+
+## 1. What the format actually is
 
 - 45-60 minutes, 3-5 knowledge questions in the domain you pre-selected,
 - the prompts are deliberately broad ("tell me about overfitting", "how would you evaluate a model"),
@@ -11,7 +13,7 @@ The graded skill in this interview is not how many definitions you can recite. I
 
 ---
 
-### 2. The four-step shape of a good answer
+## 2. The four-step shape of a good answer
 
 ```text
 1. DEFINE   one or two sentences, plain language
@@ -20,11 +22,13 @@ The graded skill in this interview is not how many definitions you can recite. I
 4. TRADE    name the trade-off and when you would choose differently
 ```
 
+### Common issue
+
 Steps 2 and 3 are where candidates lose points - either by never asking, or by asking and then still listing everything.
 
 ---
 
-### 3. A worked example
+## 3. A worked example
 
 > **Interviewer**: "What is a loss function?"
 
@@ -46,19 +50,17 @@ Steps 2 and 3 are where candidates lose points - either by never asking, or by a
 
 That is a complete answer: definition, example with numbers, the failure mode, and the contrasting case.
 
----
-
-### 4. Use concrete numbers
-
-Vague: "accuracy is misleading when data is imbalanced."
+**Use concrete numbers.** Vague: "accuracy is misleading when data is imbalanced."
 
 Concrete: "With a 0.1% fraud rate, predicting 'never fraud' is 99.9% accurate and catches nothing - so I would report PR-AUC and recall at the review team's capacity instead."
+
+### Rule of thumb
 
 The second version proves you have actually done this. Keep a couple of worked numbers ready: the imbalanced-accuracy example, a precision/recall pair, and a train-vs-validation gap.
 
 ---
 
-### 5. Lead with the data
+## 4. Lead with the data
 
 For almost any "how would you build X" prompt, the strongest opening is not a model:
 
@@ -72,11 +74,7 @@ what does each kind of mistake cost?
 
 Mentioning leakage, the label definition, and the baseline before naming an algorithm signals experience more than any model choice does.
 
----
-
-### 6. Handling what you do not know
-
-Say what you do know, mark the boundary, and reason from principles:
+**Handling what you do not know.** Say what you do know, mark the boundary, and reason from principles:
 
 > "I have not worked with that directly. From first principles I would expect it to behave like a regularizer, because it restricts capacity - so I would check whether training error rises while validation improves."
 
@@ -84,7 +82,7 @@ That scores far better than bluffing, and much better than stopping at "I don't 
 
 ---
 
-### 7. Common failure modes
+## 5. Common failure modes
 
 | Mistake | Fix |
 |---|---|
@@ -97,7 +95,7 @@ That scores far better than bluffing, and much better than stopping at "I don't 
 
 ---
 
-### 8. A checklist you can carry in
+## 6. A checklist you can carry in
 
 - state the definition in one sentence a non-specialist could follow,
 - ask one clarifying question, then commit,

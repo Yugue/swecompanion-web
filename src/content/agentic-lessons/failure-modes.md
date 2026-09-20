@@ -2,7 +2,9 @@
 
 Agent failures repeat across systems and domains. Naming them turns debugging into diagnosis, and being able to list them with their detectors is a strong interview signal.
 
-### 1. Looping
+---
+
+## 1. Looping
 
 ```text
 get_status(id=42) → "pending"
@@ -10,11 +12,13 @@ get_status(id=42) → "pending"
 get_status(id=42) → "pending"   ...until the step cap
 ```
 
+### Core intuition
+
 The observation never changes the model's belief, so the same action stays optimal. **Detector:** hash `(tool, args)` and break on repetition. **Fixes:** make the tool return something conclusive ("still pending after 3 checks; expected resolution 4h"), add a wait/poll tool with backoff, or define what to do when a state doesn't change.
 
 ---
 
-### 2. Hallucinated tools and arguments
+## 2. Hallucinated tools and arguments
 
 ```text
 model calls: cancel_subscription(id="SUB-4471")
@@ -25,7 +29,7 @@ model calls: cancel_subscription(id="SUB-4471")
 
 ---
 
-### 3. Error cascades
+## 3. Error cascades
 
 ```text
 step 4:  wrong exchange rate retrieved (stale page)
@@ -38,7 +42,7 @@ step 14: report written from the totals
 
 ---
 
-### 4. Premature completion and goal drift
+## 4. Premature completion and goal drift
 
 ```text
 premature:  "I've updated the record."   (no write tool was ever called)
@@ -49,7 +53,7 @@ drift:      goal: reconcile March → agent is now tidying the April sheet
 
 ---
 
-### 5. Budget exhaustion
+## 5. Budget exhaustion
 
 ```text
 retry → retry → retry → context grows → each retry costs more → cap hit
@@ -63,7 +67,7 @@ retry → retry → retry → context grows → each retry costs more → cap hi
 
 ---
 
-### 6. The detector suite
+## 6. The detector suite
 
 ```python
 checks = [
@@ -75,6 +79,8 @@ checks = [
   budget_exhausted,            # runaway
 ]
 ```
+
+### Rule of thumb
 
 Run these over every production trace. They cost nothing, they catch the majority of real incidents, and they turn "the agent is flaky" into a ranked list.
 

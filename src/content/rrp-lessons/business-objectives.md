@@ -8,7 +8,9 @@ what the business actually wants retention, lifetime value, a healthy marketplac
                                  ↑ too slow and too diffuse to optimize directly
 ```
 
-### 1. Optimizing a proxy finds its flaws
+---
+
+## 1. Optimizing a proxy finds its flaws
 
 ```text
 optimize clicks         → clickbait
@@ -25,7 +27,7 @@ Each of these is the optimizer doing its job correctly. The proxy diverged from 
 
 ---
 
-### 2. Marketplaces have several parties
+## 2. Marketplaces have several parties
 
 ```text
 buyers      want relevance and good prices
@@ -35,11 +37,13 @@ platform    wants transactions, growth, and both sides to stay
 
 A ranker optimizing only buyer engagement will concentrate traffic on a few proven sellers, which raises short-term conversion and starves the supply side. Then listings dry up and the catalogue - the platform's real asset - stops growing.
 
+### Rule of thumb
+
 So marketplace ranking usually carries explicit supply-side terms: exposure floors for new sellers, caps on how much traffic one seller can take, and coverage as a tracked metric from Chapter 5.
 
 ---
 
-### 3. Long-term value is the real objective and cannot be trained on
+## 3. Long-term value is the real objective and cannot be trained on
 
 ```text
 retention      measurable in weeks   → far too slow for a training loop
@@ -54,11 +58,13 @@ combine with:  weights set from what correlates with long-term outcomes
 validate on:   long-horizon holdback experiments, run for months
 ```
 
+### Core intuition
+
 That last line is what serious teams do and what most candidates never mention: a small slice of traffic held on a fixed policy for a long period, so you can see the long-run effect of everything else.
 
 ---
 
-### 4. Guardrails are how you hold the line
+## 4. Guardrails are how you hold the line
 
 ```text
 primary metric     the thing you are trying to move
@@ -67,11 +73,13 @@ guardrails         the things you refuse to lose, at any primary gain
                      latency, new-item impression share
 ```
 
+### Rule of thumb
+
 The point of a guardrail is that it is **not** traded off. Once it becomes another weighted term, optimization will spend it. Declaring these before the experiment is what makes a mixed result decidable, as in Chapter 5.
 
 ---
 
-### 5. Answering the trade-off question
+## 5. Answering the trade-off question
 
 ```text
 "Engagement is up 5%, seller diversity down 20%."

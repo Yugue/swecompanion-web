@@ -11,7 +11,9 @@ same item, same user, different slot:
 
 Nothing about the item changed.
 
-### 1. Why it corrupts training
+---
+
+## 1. Why it corrupts training
 
 ```text
 old ranker puts item A at position 1
@@ -23,11 +25,43 @@ the new model learns "item A is great"
 it puts item A at position 1
 ```
 
+### Core intuition
+
 The model learns to reproduce the old ranker's placement decisions and calls it relevance. Left uncorrected, this is one of the main reasons a new model cannot outperform the one that generated its training data.
 
 ---
 
-### 2. The standard model of what happens
+## 2. The same item, five slots
+
+An A/B test rotates one item through different positions and records what happens:
+
+```text
+position     shown      clicked    click rate
+    1        10,000        820        8.2%
+    2        10,000        510        5.1%
+    3        10,000        380        3.8%
+    5        10,000        220        2.2%
+   10        10,000         90        0.9%
+```
+
+Identical item. Identical audience. The click rate falls by a factor of nine purely because of where it sat.
+
+So take two items from a normal log:
+
+```text
+item A   shown at position 1    click rate 6.0%
+item B   shown at position 8    click rate 2.5%
+```
+
+Which is better? You cannot tell. Correcting by the table above, item B's 2.5% at position 8 corresponds to roughly 2.5% ÷ 0.012 ≈ far above item A's 6% ÷ 0.082. B is probably the stronger item, and a model trained naively on these clicks would conclude the opposite - then keep A at the top, which keeps producing data that agrees.
+
+### Common issue
+
+That loop is why position bias is a training problem and not just a measurement quirk.
+
+---
+
+## 3. The standard model of what happens
 
 Separate *being looked at* from *being wanted*:
 
@@ -44,7 +78,7 @@ If you can estimate the first term, you can divide it out and recover the second
 
 ---
 
-### 3. Estimating the position effect
+## 4. Estimating the position effect
 
 | Method | How | Cost |
 |---|---|---|
@@ -61,7 +95,7 @@ Some randomization is what makes the estimate trustworthy. This is another reaso
 
 ---
 
-### 4. Correcting for it
+## 5. Correcting for it
 
 **Weight each example** by how likely it was to be examined - an example from position 10 counts for more than one from position 1, because it survived a harder test:
 
@@ -71,11 +105,13 @@ Some randomization is what makes the estimate trustworthy. This is another reaso
 
 **Or include position as a feature**, as in Chapter 4: train with the real position so the model can attribute part of the click to it, then serve with position fixed to a constant so every candidate is scored as if it were at the top.
 
+### Rule of thumb
+
 The second is simpler and very widely used. The first is more principled and connects directly to the next lesson.
 
 ---
 
-### 5. It is not only vertical position
+## 6. It is not only vertical position
 
 ```text
 above the fold vs below         a scroll is a bigger barrier than a slot
@@ -83,6 +119,8 @@ left vs right                   in a grid layout
 image size                      bigger tiles draw more attention
 device                          a phone shows two items, a TV shows twenty
 ```
+
+### Common issue
 
 "Position" means "how likely was this to be seen", and that depends on the whole layout. A correction fitted on desktop and applied to mobile will be wrong.
 

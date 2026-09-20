@@ -4,7 +4,9 @@
 
 The discipline is in choosing **what** to fix, and **which layer** to fix it in.
 
-### 1. The loop
+---
+
+## 1. The loop
 
 ```text
 production traces
@@ -20,7 +22,7 @@ production traces
 
 ---
 
-### 2. Cluster, then prioritize
+## 2. Cluster, then prioritize
 
 ```text
 ✗  fix the loudest bug in this week's escalations
@@ -40,7 +42,7 @@ The top two here are one-line fixes - add hybrid search, accept and normalize mo
 
 ---
 
-### 3. Escalate through the layers
+## 3. Escalate through the layers
 
 ```text
 1. tool descriptions / return shapes   cheapest, often the real cause
@@ -50,11 +52,13 @@ The top two here are one-line fixes - add hybrid search, accept and normalize mo
 5. fine-tuning                          highest effort; needs stable data
 ```
 
+### Common issue
+
 Work down the list. Most teams start at 3 and skip 1 and 2 entirely, which is why their system prompts are enormous and their tools are still returning raw API payloads.
 
 ---
 
-### 4. When fine-tuning is justified
+## 4. When fine-tuning is justified
 
 | Good fit | Poor fit |
 |---|---|
@@ -63,17 +67,21 @@ Work down the list. Most teams start at 3 and skip 1 and 2 entirely, which is wh
 | Cost reduction: small model matched to a stable task | Reasoning ability |
 | Tool-call formatting for a fixed toolset | A toolset that changes monthly |
 
+### Rule of thumb
+
 Fine-tuning freezes behavior, which is a benefit for stability and a cost every time requirements move. It is rarely the first answer in an interview, and naming the alternatives first is the signal.
 
 ---
 
-### 5. Every fix leaves a test
+## 5. Every fix leaves a test
 
 ```text
 bug found → minimal reproducing case → added to eval suite → fix → suite green
                                               ↑
                                     stays there forever
 ```
+
+### Core intuition
 
 Without this step, the loop is a treadmill: the same failure returns three prompt revisions later and nobody notices it was seen before.
 

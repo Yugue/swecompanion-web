@@ -12,7 +12,9 @@
 
 That is all. Closeness in the space *is* the prediction.
 
-### 1. Why numbers rather than categories
+---
+
+## 1. Why numbers rather than categories
 
 A category label tells you only whether two things are identical:
 
@@ -20,11 +22,13 @@ A category label tells you only whether two things are identical:
 "running shoes" vs "trainers"  →  different strings  →  no relationship at all
 ```
 
+### Core intuition
+
 A vector tells you *how* related they are, on a continuous scale, so the model can generalize from one to the other. That is what makes embeddings the basic currency of retrieval.
 
 ---
 
-### 2. Where the vectors come from
+## 2. Where the vectors come from
 
 | Source | Produces | Handles new items? |
 |---|---|---|
@@ -40,7 +44,7 @@ The distinction in the last column is the one that matters. A vector learned per
 
 ---
 
-### 3. How closeness is measured
+## 3. How closeness is measured
 
 ```text
 dot product      u · v                    bigger = more relevant; magnitude counts
@@ -48,11 +52,13 @@ cosine           u · v / (|u| |v|)        direction only; popularity damped
 euclidean        |u − v|                  straight-line distance
 ```
 
+### Common issue
+
 Cosine and normalized dot products are the usual choices. Whichever you train with, the index must use the same one - a mismatch between training and serving here is a real and confusing bug.
 
 ---
 
-### 4. Embeddings encode whatever you trained them on
+## 4. Embeddings encode whatever you trained them on
 
 This is the part people skip.
 
@@ -64,11 +70,13 @@ trained on text     → the space encodes what is described similarly
                       (two items can be described alike and behave nothing alike)
 ```
 
+### Rule of thumb
+
 So "these two items are close" always means "close with respect to the objective I trained on". When a similarity looks wrong, the objective is usually the reason.
 
 ---
 
-### 5. Practical notes
+## 5. Practical notes
 
 - **Dimension** is a capacity-versus-cost dial; 64-256 is typical. Bigger vectors cost memory in the index and time in the lookup.
 - **Freshness**: id-based vectors go stale as the catalogue turns over, which is a retraining driver in Chapter 6.

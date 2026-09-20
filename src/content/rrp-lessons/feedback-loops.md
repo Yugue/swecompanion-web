@@ -10,7 +10,9 @@
     └──────────────────────────────────────────────────────────────┘
 ```
 
-### 1. Popularity compounds
+---
+
+## 1. Popularity compounds
 
 ```text
 item is slightly more popular
@@ -30,11 +32,41 @@ item is never shown
    → continues to never be shown
 ```
 
+### Core intuition
+
 An item that would have been excellent is indistinguishable, in the logs, from one that is genuinely poor. **Absence of evidence becomes evidence of absence.**
 
 ---
 
-### 2. The same mechanism per user
+## 2. Four weeks of compounding
+
+Two items enter the catalogue equally good. One gets a slightly better start:
+
+```text
+week    item A                              item B
+        impressions   clicks   CTR          impressions   clicks   CTR
+  1        1,000        52     5.2%            1,000        48     4.8%
+  2        1,400        73     5.2%              700        34     4.8%
+  3        2,600       135     5.2%              340        16     4.7%
+  4        6,100       317     5.2%              120         6     5.0%
+```
+
+Their click rates never diverge - both hover around 5%. The items are, and remain, equally good.
+
+But by week 4 item A is getting **fifty times the exposure**, purely because a 0.4-point head start in week 1 earned it slightly more impressions, which produced slightly more evidence, which earned it more impressions.
+
+Now the damaging part. Item B's numbers are increasingly unreliable:
+
+```text
+week 1   48 clicks from 1,000 impressions   → a solid estimate
+week 4    6 clicks from   120 impressions   → almost no information
+```
+
+The system is most uncertain about exactly the items it has stopped showing, and it reads that uncertainty as low value. **Absence of evidence has become evidence of absence**, and nothing in the metrics will flag it - item A really does get clicked.
+
+---
+
+## 3. The same mechanism per user
 
 ```text
 you click a cooking video
@@ -51,7 +83,7 @@ Every step is locally correct. The model's metrics improve the whole way down. A
 
 ---
 
-### 3. Why offline metrics cannot detect it
+## 4. Why offline metrics cannot detect it
 
 The test set comes from the same logs as the training set, so it contains the same narrowing:
 
@@ -60,11 +92,13 @@ model narrows what it shows → logs narrow → test set narrows
         → model scores well on the narrowed test set
 ```
 
+### Rule of thumb
+
 You need metrics computed over the **catalogue and the user population**, not over the logs: coverage, intra-list diversity, and how those move over weeks. Trend lines matter more than levels here.
 
 ---
 
-### 4. What actually breaks the loop
+## 5. What actually breaks the loop
 
 | Defence | Mechanism |
 |---|---|
@@ -75,11 +109,13 @@ You need metrics computed over the **catalogue and the user population**, not ov
 | Coverage monitoring | notice the narrowing while it is still reversible |
 | Fresh-item quotas | guarantee new inventory some impressions |
 
+### Common issue
+
 Only the first genuinely adds information to the system. The others limit the damage; exploration is the one that fixes the cause.
 
 ---
 
-### 5. Saying this well in an interview
+## 6. Saying this well in an interview
 
 ```text
 "Recommenders train on data they generated, so biases compound. Popular

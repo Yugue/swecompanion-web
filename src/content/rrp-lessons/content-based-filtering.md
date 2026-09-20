@@ -12,7 +12,9 @@ recommend:    more Italian cooking videos
 
 No other user is involved. That is the defining property, and it is where both the strengths and the limits come from.
 
-### 1. How it works
+---
+
+## 1. How it works
 
 ```text
 1. describe each item by its features    → category, tags, text, price, creator
@@ -25,7 +27,7 @@ The profile is usually just an average of the feature vectors of the items they 
 
 ---
 
-### 2. What it is good at
+## 2. What it is good at
 
 | Strength | Why |
 |---|---|
@@ -34,11 +36,13 @@ The profile is usually just an average of the feature vectors of the items they 
 | Explainable | "Because you watched X, which is also Italian cooking" |
 | Niche tastes survive | Popularity plays no part in the score |
 
+### Core intuition
+
 That first row is the important one: content-based filtering has **no item cold-start problem at all**, which is exactly the weakness of the method in the next lesson.
 
 ---
 
-### 3. What it cannot do
+## 3. What it cannot do
 
 ```text
 you watched Italian cooking
@@ -61,7 +65,7 @@ Two further limits:
 
 ---
 
-### 4. Where the features come from
+## 4. Where the features come from
 
 ```text
 structured   category, price, brand, duration, language
@@ -74,11 +78,13 @@ Modern systems mostly use learned text and image representations rather than han
 
 ---
 
-### 5. When to reach for it
+## 5. When to reach for it
 
 - **A brand-new product** with almost no interaction data - it works on day one.
 - **A fast-turning catalogue** - news, listings, auctions - where most items are always new.
 - **As one retrieval source among several** (Chapter 3), specifically to cover new and niche items.
+
+### Rule of thumb
 
 In a mature system it is rarely the whole answer, and it is almost always one of the candidate sources.
 

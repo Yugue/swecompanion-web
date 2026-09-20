@@ -2,7 +2,9 @@
 
 The default classifier in industry, and the one worth knowing precisely: it is a **linear model of the log-odds**, not a regression on 0/1 labels.
 
-### 1. The model
+---
+
+## 1. The model
 
 \[
 z = w^{\top}x + b, \qquad p = \sigma(z) = \frac{1}{1+e^{-z}}
@@ -24,7 +26,7 @@ LogisticRegression(C=1.0).fit(X_train, y_train).predict_proba(X_test)[:, 1]
 
 ---
 
-### 2. The loss
+## 2. The loss
 
 Log loss (binary cross-entropy):
 
@@ -34,18 +36,38 @@ L = -\frac{1}{n}\sum_i \Big[ y_i\log p_i + (1-y_i)\log(1-p_i) \Big]
 
 If the truth is 1, the loss is \(-\log p\): predicting 0.99 costs almost nothing, predicting 0.01 costs a lot. It punishes **confident mistakes** hard, which is exactly the behavior you want from something that outputs probabilities.
 
+### Core intuition
+
 This loss is **convex** - it has one single lowest point, like a bowl, rather than several dips to get stuck in. So training always lands in the same place, and where it starts does not matter.
 
-### Why not squared error?
+## 3. Why not squared error?
 
-Two reasons, and the second is the better answer:
+This is a standard interview question and there are two answers, of increasing quality.
 
-1. Squared error with a sigmoid is non-convex in \(w\), so optimization can get stuck.
-2. Log loss is the maximum-likelihood objective for a Bernoulli outcome - minimizing it *is* fitting a probability model, while squared error is fitting a number that happens to lie in [0,1].
+**The optimization answer.** Squared error wrapped around a sigmoid is non-convex in \(w\), so there are local minima and the fit depends on where you started. Log loss with a sigmoid is convex - one bottom, always found.
+
+**The better answer: the two losses are fitting different things.**
+
+Log loss is the negative log-likelihood of a Bernoulli outcome, so minimizing it *is* maximum-likelihood estimation of a probability. Squared error is fitting a number that happens to live in [0, 1] and has no probabilistic meaning.
+
+You can see the practical difference in the gradients. Suppose the truth is 1 and the model says 0.01 - a confident, badly wrong prediction:
+
+```text
+squared error    loss = (0.01 − 1)² = 0.98      gradient is SMALL,
+                                                 because the sigmoid is flat out there
+                                                 → the model barely corrects
+
+log loss         loss = −log(0.01) = 4.6        gradient is LARGE
+                                                 → the model corrects hard
+```
+
+### Intuition
+
+Squared error's gradient vanishes exactly where the model is most wrong, because it is multiplied by the sigmoid's derivative, which is near zero at the extremes. Log loss cancels that term. So confident mistakes are punished in proportion to how confident and how mistaken they were - which is the behavior you want from something that outputs probabilities.
 
 ---
 
-### 3. Log-odds and the odds ratio
+## 4. Log-odds and the odds ratio
 
 Rearranging the sigmoid gives the reason this model is used in regulated industries:
 
@@ -57,11 +79,13 @@ So \(w_j\) is the change in **log-odds** per unit of \(x_j\), and \(e^{w_j}\) is
 
 > A coefficient of 0.7 means the odds multiply by e^0.7 ≈ 2 for each unit increase.
 
+### Rule of thumb
+
 That sentence - reportable, auditable, defensible - is why logistic regression survives in credit, insurance, and medicine regardless of what else is available.
 
 ---
 
-### 4. Regularization is on by default
+## 5. Regularization is on by default
 
 scikit-learn's `LogisticRegression` applies L2 with strength `C` (where **C is the inverse** of the penalty: small C = strong regularization). Two consequences:
 
@@ -72,7 +96,7 @@ Use `penalty="l1"` when you want sparse coefficients for feature selection.
 
 ---
 
-### 5. Multiclass
+## 6. Multiclass
 
 Two ways to extend past binary:
 
@@ -85,11 +109,13 @@ Two ways to extend past binary:
 p_c = \frac{e^{z_c}}{\sum_{k} e^{z_k}}
 \]
 
+### Common issue
+
 For **multilabel** problems (several labels can be true at once), use C independent sigmoids instead - softmax would force them to compete.
 
 ---
 
-### 6. Strengths and limits
+## 7. Strengths and limits
 
 | Strengths | Limits |
 |---|---|
@@ -97,6 +123,8 @@ For **multilabel** problems (several labels can be true at once), use C independ
 | Well-calibrated probabilities out of the box | Needs scaling, and sensitive to outliers in x |
 | Coefficients are explainable | Underperforms boosted trees on rich tabular data |
 | Convex - reproducible fits | Cannot capture interactions unless you add them |
+
+### Intuition
 
 The calibration point is underrated: logistic regression is a *probability* model, so its 0.7 usually means 70%. Random forests and SVMs do not give you that for free (see the **calibration** lesson).
 

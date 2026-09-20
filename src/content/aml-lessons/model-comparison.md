@@ -2,7 +2,9 @@
 
 A validation score is a **sample statistic**, not a fact. Declaring a winner requires knowing how much that number moves by chance - and most reported improvements are smaller than that.
 
-### 1. One number is not a result
+---
+
+## 1. One number is not a result
 
 ```text
 model A: 0.871
@@ -29,7 +31,7 @@ print(f"{scores.mean():.3f} ± {scores.std():.3f}")
 
 ---
 
-### 2. Compare on identical conditions
+## 2. Compare on identical conditions
 
 To compare models rather than splits, hold everything else fixed:
 
@@ -49,7 +51,7 @@ diff = b - a                 # per-fold paired differences
 
 ---
 
-### 3. The multiple-comparisons problem
+## 3. The multiple-comparisons problem
 
 Try 50 variants and keep the best validation score, and part of what you have selected is noise. The expected maximum of 50 noisy draws is above the true mean of the best model.
 
@@ -61,7 +63,7 @@ This is why:
 
 ---
 
-### 4. Is the difference real?
+## 4. Is the difference real?
 
 Practical options, in rough order of usefulness:
 
@@ -72,11 +74,13 @@ Practical options, in rough order of usefulness:
 | Bootstrap the test set, compute the metric each time | A confidence interval for the difference |
 | McNemar's test on paired predictions | A formal test for two classifiers on one test set |
 
+### Rule of thumb
+
 The bootstrap is the most generally useful: resample the test set with replacement a thousand times, recompute the metric difference, and look at the interval. If it includes zero, the improvement is not established.
 
 ---
 
-### 5. Accuracy is not the only axis
+## 5. Accuracy is not the only axis
 
 Two models are rarely equal on everything else. Compare across:
 
@@ -91,7 +95,7 @@ Two models are rarely equal on everything else. Compare across:
 
 ---
 
-### 6. Offline wins are hypotheses
+## 6. Offline wins are hypotheses
 
 Offline evaluation measures the *prediction*. The business cares about the *decision and its effect*, which offline data cannot show because the system's actions change what happens next.
 

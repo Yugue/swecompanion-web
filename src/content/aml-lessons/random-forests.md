@@ -2,7 +2,9 @@
 
 Bagging is a general recipe for reducing variance; a random forest is that recipe applied to decision trees, with one extra trick that makes it work much better.
 
-### 1. Bagging = bootstrap aggregating
+---
+
+## 1. Bagging = bootstrap aggregating
 
 ```text
 train set ──┬─ bootstrap sample 1 → model 1 ─┐
@@ -18,13 +20,15 @@ Why averaging helps: for B models each with variance \(\sigma^2\) and pairwise c
 \text{Var}(\bar f) = \rho\sigma^2 + \frac{1-\rho}{B}\sigma^2
 \]
 
+### Core intuition
+
 The second term vanishes as B grows. The first does not. So:
 
 > Averaging only helps to the extent the models are **decorrelated**. That is the whole design problem.
 
 ---
 
-### 2. The extra trick in a random forest
+## 2. The extra trick in a random forest
 
 Bagged trees are still highly correlated: if one feature is dominant, nearly every tree splits on it first and they all make similar mistakes.
 
@@ -37,11 +41,13 @@ random forest  : different rows, different features → decorrelated trees
 
 Typical defaults: \(\sqrt{d}\) features per split for classification, d/3 for regression.
 
+### Intuition
+
 This deliberately makes each individual tree *worse* and the ensemble better - a genuinely counter-intuitive idea and a favorite interview question.
 
 ---
 
-### 3. Out-of-bag evaluation
+## 3. Out-of-bag evaluation
 
 Each tree ignores ~37% of the rows. Predict each row using only the trees that did not see it, and you get a validation estimate for free:
 
@@ -49,11 +55,13 @@ Each tree ignores ~37% of the rows. Predict each row using only the trees that d
 RandomForestClassifier(n_estimators=500, oob_score=True).fit(X, y).oob_score_
 ```
 
+### Common issue
+
 Useful for small datasets where a separate holdout is expensive. It does **not** replace a proper test set when you are also tuning hyperparameters, and it assumes rows are independent - with grouped data it is as leaky as a random split.
 
 ---
 
-### 4. Hyperparameters that matter
+## 4. Hyperparameters that matter
 
 | Hyperparameter | Effect | Guidance |
 |---|---|---|
@@ -63,11 +71,13 @@ Useful for small datasets where a separate holdout is expensive. It does **not**
 | `max_depth` | Per-tree complexity | Often left unlimited; forests tolerate deep trees |
 | `class_weight` | Imbalance handling | `"balanced"` or `"balanced_subsample"` |
 
+### Rule of thumb
+
 Note the asymmetry with boosting: adding trees to a forest **cannot** cause overfitting (the average just stabilizes), while adding trees to a boosted model **can**.
 
 ---
 
-### 5. Strengths and costs
+## 5. Strengths and costs
 
 | Strengths | Costs |
 |---|---|
@@ -79,7 +89,7 @@ Note the asymmetry with boosting: adding trees to a forest **cannot** cause over
 
 ---
 
-### 6. Bagging vs boosting in one table
+## 6. Bagging vs boosting in one table
 
 | | Bagging / random forest | Boosting |
 |---|---|---|

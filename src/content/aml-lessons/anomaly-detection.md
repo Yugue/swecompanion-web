@@ -4,7 +4,9 @@
 
 It is the right framing when the positives are too rare, too varied, or too unlabelled for a classifier to learn from.
 
-### 1. When to use it instead of a classifier
+---
+
+## 1. When to use it instead of a classifier
 
 | Use anomaly detection | Use supervised classification |
 |---|---|
@@ -13,11 +15,13 @@ It is the right framing when the positives are too rare, too varied, or too unla
 | New kinds of anomaly keep appearing | The positive class is stable |
 | You can describe "normal" but not "bad" | Both classes are well represented |
 
+### Core intuition
+
 The decisive question is whether the positives have a *pattern to learn*. Ten thousand frauds that look alike is a classification problem; four hundred frauds that are each creative in their own way is an anomaly problem.
 
 ---
 
-### 2. Novelty vs outlier detection
+## 2. Novelty vs outlier detection
 
 ```text
 outlier detection : the training data already contains some anomalies,
@@ -26,11 +30,13 @@ novelty detection : the training data is clean "normal" data,
                     and you want to flag unseen deviations later
 ```
 
+### Common issue
+
 They need different validation setups, and scikit-learn splits the API accordingly (`fit_predict` vs `predict`).
 
 ---
 
-### 3. The main methods
+## 3. The main methods
 
 **Statistical / distance**
 
@@ -62,7 +68,7 @@ IsolationForest(contamination=0.001, random_state=0).fit(X_train)
 
 ---
 
-### 4. Everything hinges on the threshold
+## 4. Everything hinges on the threshold
 
 Each method outputs a score; `contamination` (or a percentile cut) turns it into a decision. That choice *is* your false-alarm rate.
 
@@ -78,7 +84,7 @@ With 10 million transactions a day, a 0.1% flag rate is 10,000 alerts - far beyo
 
 ---
 
-### 5. Evaluating it
+## 5. Evaluating it
 
 You almost never have full labels, so use what you can:
 
@@ -89,16 +95,14 @@ You almost never have full labels, so use what you can:
 
 Plain accuracy is meaningless here for the usual reason: predicting "all normal" scores 99.9%.
 
----
-
-### 6. Two failure modes worth naming
+**Two failure modes worth naming**
 
 1. **Anomalous does not mean bad.** A legitimate customer buying a car is an outlier. Without labels the system finds *unusual*, and someone must decide which unusual is *actionable*.
 2. **The training data is not clean.** If undetected fraud is present and unlabelled, the model learns it as normal - the same self-reinforcing problem as exposure bias in implicit labels.
 
 ---
 
-### 7. The common hybrid
+## 6. The common hybrid
 
 Real systems combine both, and saying so is a strong answer:
 
@@ -108,6 +112,8 @@ anomaly detector → surfaces unusual cases → human review → labels
                                         supervised model on the
                                         patterns that repeat
 ```
+
+### Rule of thumb
 
 Anomaly detection covers the unknown-unknowns and generates the labels; the supervised model handles the patterns that have become common. Rules cover the cases you already understand.
 

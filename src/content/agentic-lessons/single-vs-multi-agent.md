@@ -2,18 +2,22 @@
 
 Multi-agent architectures are proposed far more often than they are justified. There are exactly two solid reasons to use one, and "different agents have different personalities" is not among them.
 
-### 1. The two good reasons
+---
+
+## 1. The two good reasons
 
 ```text
 1. PARALLELISM        independent subtasks that can run at the same time
 2. CONTEXT ISOLATION  work that cannot fit in one window
 ```
 
+### Rule of thumb
+
 Both are mechanical properties of the task. You can check them before writing anything: are there subtasks whose inputs don't depend on each other, and would a single agent's context overflow?
 
 ---
 
-### 2. The bad reasons
+## 2. The bad reasons
 
 | Claim | Reality |
 |---|---|
@@ -28,7 +32,7 @@ Both are mechanical properties of the task. You can check them before writing an
 
 ---
 
-### 3. The cost is worse than linear
+## 3. The cost is worse than linear
 
 Each agent pays its own fixed overhead on every one of its turns:
 
@@ -38,11 +42,13 @@ five agents, 4 steps each: 5 × [4 × (system + tools + history)] + orchestratio
                                 ↑ system prompt and tool schemas re-paid per agent
 ```
 
+### Common issue
+
 Plus coordination turns, plus the briefs, plus the merge step. Multi-agent systems commonly use several times the tokens of a single agent for the same task - which is fine when it buys wall-clock or makes an impossible task possible, and pure waste otherwise.
 
 ---
 
-### 4. And the failure surface grows
+## 4. And the failure surface grows
 
 ```text
 single agent:  one trace, one context, one place the error is
@@ -51,11 +57,13 @@ multi-agent:   N traces, N contexts, plus the seams between them
                  adopted as a premise, a merge that hides contradictions
 ```
 
+### Common issue
+
 Debuggability is the quiet cost. Most teams underestimate it because the happy path demos well.
 
 ---
 
-### 5. The sequence to follow
+## 5. The sequence to follow
 
 ```text
 1. one agent, few tools, small step cap
@@ -65,6 +73,8 @@ Debuggability is the quiet cost. Most teams underestimate it because the happy p
    is it accuracy?           → fix tools, context, or model FIRST
 4. split along that one seam only
 ```
+
+### Core intuition
 
 Step 3's last line matters: splitting an inaccurate agent into three inaccurate agents produces an inaccurate system with a coordination problem.
 

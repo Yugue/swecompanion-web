@@ -2,7 +2,9 @@
 
 **A model is calibrated when its 0.7 means the thing happens 70% of the time.** Ranking does not need that. Several things downstream of ranking need it badly.
 
-### 1. Ranking survives any distortion of the score
+---
+
+## 1. Ranking survives any distortion of the score
 
 ```text
 true rates:     0.40   0.20   0.10
@@ -10,11 +12,13 @@ model says:     0.80   0.40   0.20      ← every number is doubled and WRONG
 ranking:        same order                ← completely unaffected
 ```
 
+### Core intuition
+
 Multiply every score by two, square them, take logs - as long as the transformation preserves order, the ranked list is identical. So a model can rank perfectly and be badly calibrated, and ranking metrics will never notice.
 
 ---
 
-### 2. Where it suddenly matters
+## 2. Where it suddenly matters
 
 ```text
 ads / auctions      expected value = predicted rate × bid
@@ -40,7 +44,41 @@ Advertising is the clearest case: the whole auction is arithmetic on predicted r
 
 ---
 
-### 3. The thing that breaks calibration here
+## 3. The same model, two jobs
+
+A ranker's predicted click rates, against what actually happened:
+
+```text
+item    predicted    actual     ranked correctly?
+  A       0.40        0.20            ✓ 1st
+  B       0.24        0.12            ✓ 2nd
+  C       0.10        0.05            ✓ 3rd
+```
+
+Every prediction is exactly **double** the truth. As a ranker this model is flawless - the order is perfect and NDCG, AUC, and precision@k are all unaffected.
+
+Now put the same numbers into an ad auction, where you charge based on expected value:
+
+```text
+                bid    predicted    expected value    TRUE value
+  advertiser A  $2.00     0.40          $0.80           $0.40
+  advertiser B  $4.00     0.24          $0.96           $0.48
+```
+
+The ranking still picks B, which is right. But every forecast, budget projection, and reserve price built on those numbers is 100% too high. You do not misrank anything - you misprice everything.
+
+```text
+ranking       cares about    order           → survives any monotone distortion
+auctions      care about     the number      → a 2× error is a 2× error
+```
+
+### Rule of thumb
+
+That is the entire distinction, and it is the most reliable follow-up question in this area.
+
+---
+
+## 4. The thing that breaks calibration here
 
 Down-sampling negatives is near-universal in this domain - a 1% click rate means 99 useless rows for every useful one, so you keep a fraction of them.
 
@@ -60,7 +98,7 @@ where \(w\) is the down-sampling rate for negatives. Applying that at serving ti
 
 ---
 
-### 4. Other sources of miscalibration
+## 5. Other sources of miscalibration
 
 | Source | Effect |
 |---|---|
@@ -70,11 +108,13 @@ where \(w\) is the down-sampling rate for negatives. Applying that at serving ti
 | Pairwise training | there is no meaningful scale at all |
 | Ensembling or blending | scales differ between components |
 
+### Common issue
+
 The last row is why blending and calibration are usually discussed together.
 
 ---
 
-### 5. Fixing it
+## 6. Fixing it
 
 ```text
 1. analytic correction     when you know the sampling rate      ← do this first
@@ -82,6 +122,8 @@ The last row is why blending and calibration are usually discussed together.
 3. isotonic regression     fit a flexible monotone mapping; needs more data
 4. per-segment calibration separate mappings per country, device, surface
 ```
+
+### Rule of thumb
 
 Two rules: fit the calibrator on **held-out** data the model did not train on, and **re-fit it after every retrain**, because the score distribution moves. Monitoring is simple and worth doing - compare the average predicted rate against the realized rate, daily.
 

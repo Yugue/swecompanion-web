@@ -2,7 +2,9 @@
 
 Human review is the strongest guardrail and the most expensive one. Designing it well means putting it where the cost of being wrong is high and the cost of checking is low - and making the review something a person can actually perform.
 
-### 1. Where the gate goes
+---
+
+## 1. Where the gate goes
 
 ```text
                  blast radius
@@ -25,7 +27,7 @@ The axes are properties of the **action**, not of the model. Gating on model con
 
 ---
 
-### 2. Make the review possible in seconds
+## 2. Make the review possible in seconds
 
 ```text
 ✗  "The agent wants to run issue_refund. Approve?"
@@ -37,17 +39,21 @@ The axes are properties of the **action**, not of the model. Gating on model con
    [Approve]  [Approve with edits]  [Reject + reason]
 ```
 
+### Rule of thumb
+
 The reviewer needs the action, the justification, the evidence, and the **full set of effects**. Hidden side effects are how approvals become meaningless.
 
 ---
 
-### 3. Approval fatigue is a real failure mode
+## 3. Approval fatigue is a real failure mode
 
 ```text
 20 approvals/hour ──► reviewer approves everything in 2 seconds
                  ──► false assurance: a gate that records consent
                       without providing review
 ```
+
+### Common issue
 
 This is worse than no gate, because the organization now believes the actions were checked. Mitigations:
 
@@ -58,7 +64,7 @@ This is worse than no gate, because the organization now believes the actions we
 
 ---
 
-### 4. Patterns beyond approve/reject
+## 4. Patterns beyond approve/reject
 
 ```text
 dry run:     show exactly what would change, then commit
@@ -70,11 +76,7 @@ undo:        cheaper than approval where the action supports it
 
 "Agent prepares, human commits" is often better than approve/reject: the human gets the artifact rather than a yes/no question, and can edit it.
 
----
-
-### 5. Approvals are training data
-
-Log the action, the justification, the decision, the editor's changes, and the reason for rejection. That log is the highest-quality eval set you will ever have, because it is real cases labelled by people with authority over the outcome. Feed it back into the eval suite and into the rules.
+**Approvals are training data.** Log the action, the justification, the decision, the editor's changes, and the reason for rejection. That log is the highest-quality eval set you will ever have, because it is real cases labelled by people with authority over the outcome. Feed it back into the eval suite and into the rules.
 
 ---
 

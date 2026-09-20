@@ -2,7 +2,9 @@
 
 Chunk boundaries decide what can ever be retrieved as a unit. Most "the retriever is bad" complaints are really "the chunks were wrong," and that is the more useful thing to say in an interview.
 
-### 1. Structure first, size second
+---
+
+## 1. Structure first, size second
 
 ```text
 ✗  fixed 512 tokens, ignoring the document
@@ -13,11 +15,13 @@ Chunk boundaries decide what can ever be retrieved as a unit. Most "the retrieve
    → sections, subsections, functions, table rows, log events
 ```
 
+### Rule of thumb
+
 Split on headings for documents, on functions or classes for code, on rows for tables, and only fall back to fixed sizes for unstructured prose.
 
 ---
 
-### 2. The size tradeoff
+## 2. The size tradeoff
 
 | Too small (~100 tokens) | Too large (~4,000 tokens) |
 |---|---|
@@ -33,17 +37,19 @@ Typical working range is 200-800 tokens with 10-20% overlap, but the honest answ
 
 ---
 
-### 3. Make chunks self-describing
+## 3. Make chunks self-describing
 
 ```text
 chunk text = "Refund Policy > 4.2 Exceptions > Final sale items\n\n" + body
 ```
 
+### Intuition
+
 Prepending the title and breadcrumb does two things: it improves the embedding, because the topic is now in the text, and it makes the retrieved passage readable to the agent without the surrounding document. Add a short contextual sentence generated at index time if the source is especially fragmentary.
 
 ---
 
-### 4. Index the metadata you will filter on
+## 4. Index the metadata you will filter on
 
 ```json
 {"text": "...", "embedding": [...],
@@ -58,11 +64,13 @@ Filtering usually beats a better embedding:
 - **Tenant and ACL** - must be enforced in the query, not after retrieval, or you leak.
 - **Doc type** - "policy only" removes a whole class of confusion.
 
+### Common issue
+
 Permissions in particular have to be a filter on the search itself. Retrieving then filtering means the passage already entered your pipeline.
 
 ---
 
-### 5. Diagnosing a retrieval miss, in order
+## 5. Diagnosing a retrieval miss, in order
 
 ```text
 1. Is the answer in the corpus at all?            → ingestion problem
@@ -72,6 +80,8 @@ Permissions in particular have to be a filter on the search itself. Retrieving t
 5. Is it retrieved but ranked 30th?               → need reranking
 6. Retrieved and ranked well, still unused?       → prompt/context assembly problem
 ```
+
+### Rule of thumb
 
 Working the list in order is the answer. Jumping to "fine-tune the embedding model" at step 1 is the mistake.
 

@@ -10,7 +10,9 @@ model  = ordinary binary classification
 
 Stated that way it is not exotic. What makes it its own subject is the data.
 
-### 1. The data has three awkward properties
+---
+
+## 1. The data has three awkward properties
 
 ```text
 1. positives are rare       1-5% click rate is normal, sometimes far lower
@@ -18,11 +20,46 @@ Stated that way it is not exotic. What makes it its own subject is the data.
 3. it is self-generated     only items the old system SHOWED appear at all
 ```
 
+### Core intuition
+
 The first changes your metric choice, the second changes your model choice, and the third is the bias that runs through the whole domain.
 
 ---
 
-### 2. The model progression
+## 2. What one training row looks like
+
+Nothing exotic - a wide, mostly-sparse row and a binary label:
+
+```text
+LABEL   clicked = 0
+
+user features        user_id=8812, country=DE, device=mobile,
+                     days_since_signup=412, sessions_7d=9
+item features        video_id=44031, creator_id=921, category=cooking,
+                     duration_s=612, age_hours=36, lifetime_ctr=0.041
+context features     hour=19, weekday=3, surface=home_feed, position=4
+cross features       user_creator_views_30d=2, user_category_ctr_90d=0.08,
+                     seconds_since_last_click=44
+```
+
+Most of those columns are **ids with millions of possible values** - user, video, creator - which is what makes this different from ordinary tabular classification and why embeddings show up in the progression below.
+
+Now stack ten million of those rows and note the shape of the problem:
+
+```text
+10,000,000 impressions
+   410,000 clicks                 → 4.1% base rate
+                                  → "always predict no" is 95.9% accurate
+                                  → so accuracy is out before you begin
+```
+
+### Common issue
+
+And one more property that catches people: every row is an impression the **old ranker chose to show**. There are no rows for the items it did not show, so the dataset is a record of past decisions rather than a sample of the world.
+
+---
+
+## 3. The model progression
 
 | Stage | Model | Why people moved on |
 |---|---|---|
@@ -31,11 +68,13 @@ The first changes your metric choice, the second changes your model choice, and 
 | 3 | Gradient-boosted trees | strong on dense numeric features, weak on huge sparse ids |
 | 4 | Deep models with embeddings | handles millions of ids, learns richer interactions |
 
+### Rule of thumb
+
 A notable practical point: logistic regression with good crossed features remains a serious baseline, and it is fast enough to serve at enormous scale.
 
 ---
 
-### 3. Rare positives change the metric
+## 4. Rare positives change the metric
 
 ```text
 1% click rate  →  "always predict no click" is 99% accurate and useless
@@ -51,7 +90,7 @@ Negatives are also usually down-sampled to keep the data manageable, which disto
 
 ---
 
-### 4. The bias you must name
+## 5. The bias you must name
 
 ```text
 the ranker chose what to show
@@ -63,11 +102,13 @@ the next model trains on them
 it learns to agree with the ranker that produced them
 ```
 
+### Core intuition
+
 This is why a model can be clearly better offline and do nothing live. The offline data is a record of the old policy's choices. Chapter 5 covers position bias and counterfactual evaluation, which are the two standard responses.
 
 ---
 
-### 5. What the score is used for
+## 6. What the score is used for
 
 ```text
 ranking only     → order is all that matters

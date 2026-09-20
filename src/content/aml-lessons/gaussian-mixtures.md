@@ -2,7 +2,9 @@
 
 A GMM treats the data as coming from several Gaussian distributions mixed together. It is the probabilistic generalization of k-means, and it gives **soft** cluster memberships.
 
-### 1. The model
+---
+
+## 1. The model
 
 \[
 p(x) = \sum_{k=1}^{K}\pi_k\,\mathcal{N}(x \mid \mu_k, \Sigma_k), \qquad \sum_k \pi_k = 1
@@ -16,7 +18,7 @@ GaussianMixture(n_components=5, covariance_type="full").fit(X)
 
 ---
 
-### 2. Soft assignment
+## 2. Soft assignment
 
 Instead of "point i is in cluster 3", a GMM gives a **responsibility**:
 
@@ -29,11 +31,13 @@ point A → [0.97, 0.02, 0.01]   clearly cluster 1
 point B → [0.48, 0.51, 0.01]   genuinely on a boundary
 ```
 
+### Core intuition
+
 Point B is the interesting one. A hard assignment hides that ambiguity; a responsibility of roughly 0.5 says "this customer sits between two segments" - which may be exactly what the business needs to know, and is a good reason to route it to a human.
 
 ---
 
-### 3. Fitting with EM
+## 3. Fitting with EM
 
 There is no closed form, so expectation-maximization alternates:
 
@@ -43,11 +47,13 @@ M-step: given γ, re-estimate π, μ, Σ as weighted averages
 repeat until the log-likelihood stops improving
 ```
 
+### Common issue
+
 Each iteration is guaranteed not to decrease the likelihood - but like k-means, EM converges to a **local** optimum, so initialization (usually from k-means) and multiple restarts matter.
 
 ---
 
-### 4. Covariance type is the capacity knob
+## 4. Covariance type is the capacity knob
 
 | `covariance_type` | Shape allowed | Parameters per component |
 |---|---|---|
@@ -64,7 +70,7 @@ Each iteration is guaranteed not to decrease the likelihood - but like k-means, 
 
 ---
 
-### 5. Choosing the number of components
+## 5. Choosing the number of components
 
 Because a GMM is a likelihood model, you can use information criteria - an advantage over k-means, where inertia always improves with k:
 
@@ -80,9 +86,7 @@ Both penalize parameter count p; pick the K that minimizes them.
 
 BIC penalizes complexity more heavily than AIC and usually gives the more conservative, more defensible answer.
 
----
-
-### 6. What it is good and bad at
+**What it is good and bad at**
 
 **Good**: elliptical clusters of different sizes and orientations; soft memberships; density estimation and anomaly detection via low likelihood; a principled criterion for K; sampling new data.
 

@@ -2,7 +2,9 @@
 
 **Ranking decides who gets attention,** which makes exposure something you are allocating whether or not you meant to.
 
-### 1. Two sides to it
+---
+
+## 1. Two sides to it
 
 ```text
 user-side     do different groups of users get equally good recommendations?
@@ -10,11 +12,13 @@ item-side     do different creators, sellers, or publishers get a fair chance
               at being seen?
 ```
 
+### Core intuition
+
 The second is easy to forget and often the one with commercial and regulatory weight. A system can be excellent for every user and still concentrate all exposure on a handful of suppliers.
 
 ---
 
-### 2. Popularity bias is the default outcome
+## 2. Popularity bias is the default outcome
 
 Nothing malicious has to happen:
 
@@ -31,7 +35,7 @@ Left alone, this concentrates attention until a small fraction of the catalogue 
 
 ---
 
-### 3. Where there are legal constraints
+## 3. Where there are legal constraints
 
 Some domains restrict what may be used to target or rank, and the restrictions are specific rather than general:
 
@@ -42,11 +46,13 @@ minors                            content and advertising restrictions
 regional content rules            availability varies by jurisdiction
 ```
 
+### Common issue
+
 Two practical consequences. First, "we did not use the protected attribute as a feature" is **not** a defence - correlated features reproduce it, and postcode is a well-known proxy. Second, these constraints usually apply to a specific surface or ad category, so the system needs the concept of a restricted context rather than one global rule.
 
 ---
 
-### 4. Policy is a filter, not a score
+## 4. Policy is a filter, not a score
 
 This is the part most worth getting right in an interview:
 
@@ -60,11 +66,13 @@ This is the part most worth getting right in an interview:
        → auditable: you can log exactly what was filtered and why
 ```
 
+### Rule of thumb
+
 Soft constraints belong in the score. Hard ones belong in a filter. Mixing them up is how a policy violation ships.
 
 ---
 
-### 5. Measuring it
+## 5. Measuring it
 
 ```text
 user-side     ranking quality sliced by user segment, looking at the worst slice

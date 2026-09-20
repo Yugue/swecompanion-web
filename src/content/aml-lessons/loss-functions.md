@@ -1,112 +1,238 @@
 ## Loss functions for classical models
 
-The loss is the number the optimizer minimizes. Every loss encodes an assumption about **how errors should be punished**, and choosing it is a modelling decision, not a default.
+A loss function answers one question:
 
-### 1. Loss vs metric
+> **How wrong is the model, and how much do we care?**
 
-```text
-loss   → what training minimizes.  Must be differentiable (or at least optimizable).
-metric → what you are judged on.   Can be anything: F1, recall@k, revenue.
+Training makes that number smaller. Nothing else about training has an opinion.
+
+```python
+loss = criterion(prediction, target)
 ```
 
-They are allowed to differ, and usually do. F1 depends on a hard threshold and is not differentiable, so you train with log loss and then *choose the threshold* to maximize F1.
-
-### Rule of thumb
-
-> Optimize a loss that produces a good score, then convert the score into a decision with a threshold tuned for the metric.
+Every loss encodes an assumption about **which mistakes matter more**. Choosing one is a modelling decision, not a default.
 
 ---
 
-### 2. Regression losses
+## 1. Loss vs metric
 
-| Loss | Formula | Punishes | Optimal constant prediction |
-|---|---|---|---|
-| MSE | \((\hat y - y)^2\) | large errors quadratically | the **mean** |
-| MAE | \(\lvert \hat y - y\rvert\) | all errors linearly | the **median** |
-| Huber | quadratic near 0, linear beyond δ | a compromise | between the two |
-| Quantile (pinball) | asymmetric linear | one direction more than the other | the **q-th quantile** |
+Two different numbers that get confused constantly.
 
-That last column is the underrated insight: your loss chooses which summary of the conditional distribution you are estimating. MSE gives the conditional mean; MAE gives the conditional median, which is why MAE is robust to outliers.
+```text
+loss    what training minimizes    must be optimizable
+metric  what you are judged on     can be anything - F1, revenue, recall@k
+```
 
-Quantile loss is the practical answer to asymmetric costs:
+They are allowed to differ, and usually do.
+
+### Intuition
+
+The optimizer needs a smooth surface to walk down. A business cares about a number that may have no gradient at all.
+
+### Rule of thumb
+
+Train on a loss that produces a good **score**, then turn the score into a **decision** with a threshold tuned for the metric.
+
+---
+
+## 2. Mean Squared Error — regression
+
+\[
+L = \frac{1}{N}\sum_i (\hat y_i - y_i)^2
+\]
+
+Example: true delivery time 34 minutes, predicted 30.
+
+\[
+(30-34)^2 = 16
+\]
+
+### Intuition
+
+Squaring does two things: it makes over- and under-prediction both count, and it punishes big misses far more than small ones.
+
+### Rule of thumb
+
+Use MSE when the target is continuous and a large error really is disproportionately bad.
+
+### Common issue
+
+One outlier can dominate the entire loss, dragging the fit toward it. MSE estimates the conditional **mean**, and means are pulled by extremes.
+
+---
+
+## 3. MAE and Huber — when outliers are noise
+
+\[
+\text{MAE} = \frac{1}{N}\sum_i |\hat y_i - y_i|
+\]
+
+Every error counts in proportion to its size, not its square.
+
+### Intuition
+
+MAE estimates the conditional **median**. A median does not move when one value goes to a million.
+
+**Huber** is the compromise: squared near zero, linear in the tail.
+
+\[
+L_\delta = \begin{cases} \tfrac{1}{2}e^2 & |e| \le \delta \\ \delta(|e| - \tfrac{1}{2}\delta) & |e| > \delta \end{cases}
+\]
+
+### Rule of thumb
+
+Outliers are signal → MSE. Outliers are noise → MAE. You want smoothness without handing the fit to one row → Huber.
+
+---
+
+## 4. The same errors, scored four ways
+
+One model, five predictions:
+
+```text
+truth    pred    error   |error|   error²   Huber(δ=2)
+  10     11.0    +1.0      1.0      1.0        0.5
+  20     18.0    −2.0      2.0      4.0        2.0
+  30     31.0    +1.0      1.0      1.0        0.5
+  40     39.0    −1.0      1.0      1.0        0.5
+ 100     60.0   −40.0     40.0   1600.0       78.0    ← the outlier
+                         ─────   ──────      ──────
+                  MAE =   9.0   MSE = 321   Huber = 16.3
+```
+
+### Intuition
+
+The outlier is 40 of 45 total absolute error — but **1600 of 1607 squared error**.
+
+Under MSE that single row is effectively the whole loss, so the model will get the other four rows slightly wrong in order to chase it.
+
+---
+
+## 5. Quantile loss — when late is worse than early
+
+Most business errors are asymmetric.
 
 \[
 L_q = \begin{cases} q\,(y-\hat y) & y \ge \hat y \\ (1-q)(\hat y - y) & y < \hat y \end{cases}
 \]
 
-For a delivery ETA where being late costs far more than being early, predict the 0.8 quantile rather than the mean.
+### Intuition
+
+Setting \(q = 0.8\) makes under-prediction four times as expensive as over-prediction, so the model learns to predict the 80th percentile rather than the mean.
+
+```python
+GradientBoostingRegressor(loss="quantile", alpha=0.8)
+```
+
+### Rule of thumb
+
+A delivery ETA that is 10 minutes late costs far more than one 10 minutes early. Predict a quantile, and say which one you serve.
 
 ---
 
-### 3. Classification losses
-
-**Log loss** (cross-entropy) - the default:
+## 6. Log loss — the classification default
 
 \[
 L = -\big[y\log p + (1-y)\log(1-p)\big]
 \]
 
-It is the negative log-likelihood of a Bernoulli outcome, so minimizing it is maximum-likelihood estimation. It punishes confident mistakes severely, and it is what makes logistic regression and boosted classifiers produce usable probabilities.
+### Core intuition
 
-**Hinge loss** - the SVM's:
+If the truth is 1, the loss is \(-\log p\):
 
-\[
-L = \max(0,\, 1 - y\,f(x))
-\]
+```text
+predict 0.99  →  loss 0.01    almost free
+predict 0.50  →  loss 0.69
+predict 0.01  →  loss 4.61    very expensive
+```
 
-Zero for anything already correct beyond the margin. It optimizes a decision boundary, not a probability - which is exactly why SVMs need Platt scaling to output probabilities.
+It punishes **confident mistakes** hardest, which is exactly what you want from something that outputs probabilities.
 
-**Focal loss** - a reweighted log loss that down-weights easy examples, used when the positive class is very rare:
+### Rule of thumb
 
-\[
-L = -(1-p_t)^{\gamma}\log p_t
-\]
+Log loss is the negative log-likelihood of a Bernoulli outcome — minimizing it *is* fitting a probability model.
 
 ---
 
-### 4. Weighted losses
-
-The simplest way to express "this mistake costs more":
+## 7. Hinge loss — the SVM's objective
 
 \[
-L = -\frac{1}{n}\sum_i w_{y_i}\big[y_i\log p_i + (1-y_i)\log(1-p_i)\big]
+L = \max(0,\; 1 - y\,f(x)), \qquad y \in \{-1, +1\}
+\]
+
+### Intuition
+
+```text
+correct and past the margin  →  loss exactly 0    contributes nothing
+correct but inside it        →  small loss
+wrong side                   →  grows linearly
+```
+
+Log loss is never exactly zero, so it keeps pushing every point further from the boundary. Hinge loss stops caring once a point is safe.
+
+### Common issue
+
+It optimizes a boundary, not a probability — which is why an SVM needs a separate calibration step to output one.
+
+---
+
+## 8. Weighted and focal loss — rare positives
+
+\[
+L = -\frac{1}{N}\sum_i w_{y_i}\big[y_i\log p_i + (1-y_i)\log(1-p_i)\big]
 \]
 
 ```python
-LogisticRegression(class_weight="balanced")   # w_c ∝ 1 / frequency of class c
+LogisticRegression(class_weight="balanced")
 ```
 
-Weighting changes the effective class distribution the model optimizes for, which shifts its probabilities away from the real base rate - so if you need calibrated probabilities afterwards, recalibrate (see **class imbalance** and **calibration**).
+### Intuition
+
+Weighting says "a mistake on the rare class costs more". **Focal loss** goes further and down-weights examples the model already gets right, so the gradient concentrates on the hard ones.
+
+### Common issue
+
+Weighting changes the class distribution the model optimizes for, which moves its probabilities off the true base rate. If you need calibrated output afterwards, recalibrate.
 
 ---
 
-### 5. Matching the loss to the cost structure
+## 9. Matching the loss to the cost structure
 
 Work backwards from the business consequence:
 
-| Business situation | Loss choice |
-|---|---|
-| Symmetric numeric error, clean data | MSE |
-| Numeric error with outliers | MAE or Huber |
-| Late is worse than early | Quantile loss at q > 0.5 |
-| Need a probability for expected-value math | Log loss |
-| Only the ordering matters | A ranking loss |
-| False negatives cost 10× false positives | Log loss + class weights, then tune the threshold |
+```text
+symmetric numeric error, clean data     →  MSE
+numeric error with outliers             →  MAE or Huber
+late is worse than early                →  quantile loss, q > 0.5
+need a probability for expected value   →  log loss
+only the ordering matters               →  a ranking loss
+false negatives cost 10× false positives→  log loss + weights, then tune the threshold
+```
+
+### Rule of thumb
+
+The loss comes from the cost of being wrong in each direction — not from what the library defaults to.
 
 ---
 
-### 6. Why you cannot train on F1 directly
+## 10. Why you cannot train on F1 directly
 
-F1 is computed from counts of TP/FP/FN, which come from thresholding a score. The threshold is a step function: its gradient is zero almost everywhere and undefined at the step. There is nothing for gradient descent to follow.
+F1 is computed from counts of TP, FP and FN, which come from **thresholding** a score.
 
-So the standard pattern is two-stage:
+### Intuition
+
+A threshold is a step function. Its gradient is zero almost everywhere and undefined at the step, so there is nothing for gradient descent to follow.
+
+### Rule of thumb
+
+Use the two-stage pattern:
 
 ```text
-train with log loss   → a well-ordered, well-calibrated score
-tune the threshold    → maximize F1 (or any metric) on validation
+train with log loss   →  a well-ordered, well-calibrated score
+tune the threshold    →  maximize F1 (or any metric) on validation
 ```
 
-Surrogate losses (soft-F1, approximations of AUC) exist, but the two-stage approach is simpler and usually just as good.
+Surrogate losses exist, but two stages is simpler and usually just as good.
 
 ---
 

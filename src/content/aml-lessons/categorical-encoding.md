@@ -2,7 +2,9 @@
 
 **Models do arithmetic, so every column has to be a number.** A column holding "red", "green", "blue" has to be converted first - and *how* you convert it decides what the model is **allowed to learn** about it.
 
-### 1. One-hot encoding
+---
+
+## 1. One-hot encoding
 
 One binary column per level:
 
@@ -19,13 +21,11 @@ OneHotEncoder(handle_unknown="ignore", min_frequency=20)
 - **Good**: makes no ordering assumption, works with every model, interpretable coefficients.
 - **Bad**: d columns for d levels. With 40,000 zip codes it becomes a sparse, high-dimensional problem, and trees in particular struggle - each split can only isolate one level at a time.
 
-`handle_unknown="ignore"` matters in production: a level that never appeared in training *will* show up at serve time, and the encoder must not crash.
+### Common issue
 
----
+`handle_unknown="ignore"` matters in production: a level that never appeared in training **will** show up at serve time, and the encoder must not crash.
 
-### 2. Ordinal / label encoding
-
-Map levels to integers: `small → 0, medium → 1, large → 2`.
+**Ordinal / label encoding.** Map levels to integers: `small → 0, medium → 1, large → 2`.
 
 This is correct **only when the order is real**. Mapping `red → 0, green → 1, blue → 2` tells a linear model that green sits between red and blue, and that blue is twice green. That is nonsense, and the model will dutifully learn from it.
 
@@ -35,7 +35,7 @@ This is correct **only when the order is real**. Mapping `red → 0, green → 1
 
 ---
 
-### 3. Target (mean) encoding
+## 2. Target (mean) encoding
 
 Replace each level with a statistic of the target for that level:
 
@@ -55,11 +55,13 @@ The \(\alpha \bar y\) term is **smoothing**: rare levels get pulled toward the g
 TargetEncoder(smooth="auto", cv=5)
 ```
 
+### Common issue
+
 Getting this wrong is a classic silent failure: training AUC jumps, validation AUC does not, and the encoded column looks like a brilliant feature.
 
 ---
 
-### 4. Hashing
+## 3. Hashing
 
 Apply a hash function and take it modulo a fixed number of buckets:
 
@@ -70,11 +72,13 @@ hash("zip_94043") % 1024 → column 317
 - **Good**: fixed memory, no vocabulary to store, handles unseen levels for free, streaming-friendly.
 - **Bad**: collisions - two unrelated levels share a column - and no interpretability at all.
 
-Use it when cardinality is huge and unbounded (URLs, user agents, search queries).
+### Rule of thumb
+
+Use hashing when cardinality is huge and unbounded — URLs, user agents, search queries — and you can live without interpretability.
 
 ---
 
-### 5. Embeddings
+## 4. Embeddings
 
 Learn a dense vector per level, trained jointly with the model:
 
@@ -86,7 +90,7 @@ This is the standard at scale - it gives similar levels similar vectors, which o
 
 ---
 
-### 6. Choosing
+## 5. Choosing
 
 | Cardinality | Model | Usual choice |
 |---|---|---|

@@ -2,7 +2,9 @@
 
 The trajectory - every thought, tool call, observation, and decision in order - is the primary artifact for debugging an agent. Reading traces is the highest-yield habit in this work, and it is a skill interviewers probe by describing a failure and watching how you narrow it.
 
-### 1. What you are looking for, per step
+---
+
+## 1. What you are looking for, per step
 
 ```text
 for each step, ask four questions:
@@ -12,11 +14,51 @@ for each step, ask four questions:
   4. progressing? is the agent closer to the goal than one step ago?
 ```
 
+### Common issue
+
 Question 3's qualifier matters. Judging a step by information that arrived later is the most common mistake in trace review and produces fixes for problems the agent did not have.
 
 ---
 
-### 2. The pathology checklist
+## 2. The same task, failing
+
+Here is the refund run from the agent-loop lesson going wrong. Bisecting finds the first bad step:
+
+```text
+step 1  call: search_orders(user_id="u_8812", limit=3)
+        obs:  []                                          ← EMPTY. no explanation.
+
+step 2  model: "I'll look up the order directly."
+        call:  get_order(order_id="48812")                ← where did 48812 come from?
+        obs:   {error: "not found"}
+
+step 3  call:  get_order(order_id="48813")                ← and now it is guessing
+        obs:   {error: "not found"}
+
+step 4  call:  get_policy(topic="damaged_goods")
+        obs:   {window_days:30, ...}
+
+step 5  final: "I've refunded your order. You should see it in 3-5 days."
+                                                          ← no refund call EVER happened
+```
+
+Read it backwards from the end. The final answer claims an action with no matching call, which is premature completion - but that is a *symptom*. Bisecting back, the first genuinely wrong step is **step 2**: the argument `48812` appears in no prior observation. The model needed an order id, the context did not contain one, and a plausible-looking id is the likely next token.
+
+So the root cause is **step 1's empty result**, which returned `[]` with no instruction about what to do next.
+
+```text
+fix the tool, not the prompt:
+  []                    →   {results: [], message: "No orders found for this user.
+                                       Ask the customer for an order number. Do not guess."}
+```
+
+### Core intuition
+
+That one change removes steps 2, 3 and 5. This is the general shape of trace debugging: the visible failure is usually several steps downstream of the cause, and the cause is usually an observation that did not tell the model what to do.
+
+---
+
+## 3. The pathology checklist
 
 | Pattern | Signature in the trace | Usual cause |
 |---|---|---|
@@ -35,7 +77,7 @@ The last row is the highest-value check you can automate: **every argument shoul
 
 ---
 
-### 3. Reading order
+## 4. Reading order
 
 ```text
 1. the outcome            what was produced vs. what was asked
@@ -45,11 +87,13 @@ The last row is the highest-value check you can automate: **every argument shoul
 5. classify               retrieval | selection | arguments | interpretation | stopping
 ```
 
+### Rule of thumb
+
 Bisecting beats reading forward. A 40-step trace read start to finish costs an hour; bisecting costs five minutes.
 
 ---
 
-### 4. Classify, then fix in the right layer
+## 5. Classify, then fix in the right layer
 
 ```text
 retrieval failure     → chunking, hybrid search, reranking
@@ -59,11 +103,13 @@ interpretation failure→ observation shape, compactness, explicit empties
 stopping failure      → stopping condition, checkpoints, loop detector
 ```
 
+### Common issue
+
 Note that almost none of these are "change the system prompt," which is where most teams reach first.
 
 ---
 
-### 5. Automate what you can
+## 6. Automate what you can
 
 ```python
 flags = {

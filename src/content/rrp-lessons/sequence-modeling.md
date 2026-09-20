@@ -11,7 +11,9 @@ last 10 minutes:    watched three car reviews
 
 A model that only knows the profile will keep serving pasta.
 
-### 1. Why order matters
+---
+
+## 1. Why order matters
 
 The simplest way to use history is a bag: average the embeddings of everything the user ever touched. That throws away the sequence, and the sequence is where intent lives.
 
@@ -20,11 +22,47 @@ bag:       {laptop, laptop case, laptop charger}  → "likes laptops"
 sequence:  laptop → laptop case → laptop charger  → "mid-purchase, accessories next"
 ```
 
+### Core intuition
+
 Same items, completely different prediction.
 
 ---
 
-### 2. Summarizing the history
+## 2. The same user, two sessions apart
+
+A user with two years of history, mostly cooking videos. Then today happens:
+
+```text
+long-term profile        cooking 71%, travel 14%, home repair 9%, other 6%
+last 12 minutes          "diagnosing a dishwasher leak"
+                         "replacing a dishwasher inlet valve"
+                         "dishwasher error code E24"
+```
+
+What should the next recommendation be?
+
+```text
+profile-only model     another cooking video          ← technically consistent, useless
+session-aware model    dishwasher part suppliers,
+                       or the next repair step        ← obviously right
+```
+
+The long-term profile is not wrong - this person really does mostly watch cooking. It is just irrelevant for the next ten minutes. Intent is short-lived and it overrides taste.
+
+Now the same principle in reverse, which is the part people miss:
+
+```text
+last 12 minutes    three dishwasher repair videos
+tomorrow           still mostly a cooking channel viewer
+```
+
+### Common issue
+
+A model that over-weights the session will spend a week recommending appliance repair to someone who had one bad evening. So real systems carry both, and the ranker learns how much to trust each - which is why the session vector is a *feature* alongside the profile, not a replacement for it.
+
+---
+
+## 3. Summarizing the history
 
 The model needs the recent history as a fixed-size vector it can use:
 
@@ -44,7 +82,7 @@ Three common ways to build that summary:
 
 ---
 
-### 3. Why attention fits this problem so well
+## 4. Why attention fits this problem so well
 
 Pooling and recurrence produce **one** summary of the history, used for every candidate. Attention produces a **different** summary per candidate:
 
@@ -62,7 +100,7 @@ That is exactly what you want: the relevant part of someone's history depends on
 
 ---
 
-### 4. Sessions, and anonymous users
+## 5. Sessions, and anonymous users
 
 For logged-out or first-time users, the session is the only personalization you have:
 
@@ -72,11 +110,13 @@ no user id, no history, no profile
   →  that is enough to be useful
 ```
 
+### Rule of thumb
+
 Session-based recommendation is not a niche case. On many sites most traffic is anonymous, so the model has to work from a handful of recent events and nothing else. This is also the fast fix for new users from Chapter 1.
 
 ---
 
-### 5. Practical constraints
+## 6. Practical constraints
 
 ```text
 history length   longer is better and costs latency; 50-200 recent items is typical
@@ -84,6 +124,8 @@ recency          truncating to recent events usually beats keeping everything
 latency          attention over history runs per candidate - expensive at ranking scale
 freshness        the last few events must be available within seconds, not hours
 ```
+
+### Common issue
 
 That last row is the one that bites. A "recent behavior" feature updated by a nightly batch job is not a recent-behavior feature, and it is the most common way this idea fails in production - see Chapter 6.
 

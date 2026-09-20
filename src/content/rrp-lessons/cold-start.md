@@ -2,7 +2,9 @@
 
 **Cold start is what happens when there is no history to learn from.** Every method built on interactions has nothing to work with, because the interactions do not exist yet.
 
-### 1. Three different problems
+---
+
+## 1. Three different problems
 
 ```text
 new ITEM    just uploaded, zero interactions      ← most common, most solvable
@@ -10,11 +12,38 @@ new USER    just signed up, zero history          ← common, partly solvable
 new SYSTEM  launching, no logs at all             ← rare, hardest
 ```
 
+### Rule of thumb
+
 They are usually lumped together and they have different fixes, so separating them is the first thing to say.
 
 ---
 
-### 2. New items: use what the item already tells you
+## 2. What each method can and cannot do on day one
+
+A video uploaded sixty seconds ago, zero interactions:
+
+```text
+method                        can it rank this video?   why
+collaborative filtering              NO                 appears in no co-occurrence
+matrix factorization                 NO                 no id vector was learned
+two-tower with ID-only towers        NO                 same problem
+two-tower with FEATURE towers        YES                title, category, creator exist
+content-based filtering              YES                same reason
+popularity                           NO                 no engagement yet
+creator's recent performance         YES                the creator is not cold
+```
+
+Read the "why" column. Every method that fails does so for one reason: **it learns a vector per id, and this id has no history.** Every method that works reads *features* instead.
+
+That is the concrete argument for feeding real features into the item tower, made earlier in Chapter 3 - it is not a refinement, it is what determines whether a day-old catalogue is reachable at all.
+
+### Core intuition
+
+And note the last row. A new video by a creator with 200 previous uploads is barely cold: you have a strong prior from the creator, the category, and the length before a single person watches it.
+
+---
+
+## 3. New items: use what the item already tells you
 
 An item has attributes from the moment it exists - title, description, category, creator, price, thumbnail. None of that needs history.
 
@@ -30,7 +59,7 @@ The creator or seller is often the single most useful attribute: a new video by 
 
 ---
 
-### 3. New users: context, onboarding, and speed
+## 4. New users: context, onboarding, and speed
 
 ```text
 minute 0    country, device, language, time, referrer   → popularity within that segment
@@ -46,7 +75,7 @@ The first session matters disproportionately, because within a few interactions 
 
 ---
 
-### 4. Cold start is also an exposure problem
+## 5. Cold start is also an exposure problem
 
 A new item cannot gather data unless it is shown. But a model with no data about it will rank it low. That is circular:
 
@@ -56,11 +85,13 @@ no data  →  ranked low  →  not shown  →  no data
 
 Breaking the loop requires deliberately giving new items impressions they have not earned - which is exploration, in Chapter 6. It costs a little engagement and it is the only thing that gets new inventory off the ground.
 
+### Common issue
+
 Marketplaces feel this hardest: if new listings never surface, sellers leave, and the catalogue stops growing.
 
 ---
 
-### 5. The practical pattern
+## 6. The practical pattern
 
 ```text
         item age

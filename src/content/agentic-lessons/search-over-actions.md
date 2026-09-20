@@ -4,7 +4,9 @@
 
 Whenever that is true you can trade compute for accuracy: generate several attempts and keep one that passes the check. The whole pattern lives or dies on the quality of that check.
 
-### 1. Best-of-N
+---
+
+## 1. Best-of-N
 
 ```text
           ┌── candidate 1 ──► verify ✗
@@ -19,11 +21,13 @@ Sampling at nonzero temperature gives genuinely different attempts. If each inde
 P(\text{at least one good}) = 1 - (1-p)^N
 \]
 
+### Common issue
+
 At \(p = 0.5\), five samples reach about 97%. That is the optimistic bound, and it assumes the verifier never passes a bad candidate.
 
 ---
 
-### 2. The verifier is the ceiling
+## 2. The verifier is the ceiling
 
 | Verifier | Strength | Domain |
 |---|---|---|
@@ -41,7 +45,7 @@ With a noisy verifier, larger \(N\) is actively bad: you are sampling harder for
 
 ---
 
-### 3. Search over sequences
+## 3. Search over sequences
 
 Best-of-N samples whole solutions. Tree search explores **action sequences**, expanding promising branches:
 
@@ -61,11 +65,13 @@ This needs three things that are common in puzzles and rare in production:
 2. Actions are **reversible**, so a branch can be abandoned.
 3. Exploration is **cheap** relative to the value of a better answer.
 
+### Common issue
+
 In a real environment, step 2 usually fails: you cannot un-send an email or un-charge a card. Search over irreversible actions has to happen in simulation, against mocked tools, or not at all.
 
 ---
 
-### 4. Where it pays in practice
+## 4. Where it pays in practice
 
 ```text
 ✓  code generation with tests       - perfect verifier, free rollback
@@ -75,11 +81,7 @@ In a real environment, step 2 usually fails: you cannot un-send an email or un-c
 ✗  subjective writing               - verifier is a judge with known biases
 ```
 
----
-
-### 5. Cost discipline
-
-N candidates cost roughly N times the tokens, though input caching softens it because the prompt prefix is shared. Two ways to keep it economical:
+**Cost discipline.** N candidates cost roughly N times the tokens, though input caching softens it because the prompt prefix is shared. Two ways to keep it economical:
 
 - **Escalate**: try once, sample more only when the first attempt fails verification.
 - **Prune early**: generate short plans, verify cheaply, and only expand the survivors into full solutions.

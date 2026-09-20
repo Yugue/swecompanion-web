@@ -2,7 +2,9 @@
 
 A model is **calibrated** when its 0.7 means the event happens 70% of the time. Ranking quality and calibration are independent properties, and confusing them is a common interview stumble.
 
-### 1. The definition
+---
+
+## 1. The definition
 
 \[
 P\big(y = 1 \mid \hat p = q\big) = q \quad \text{for every } q
@@ -10,11 +12,13 @@ P\big(y = 1 \mid \hat p = q\big) = q \quad \text{for every } q
 
 Take every case the model scored 0.30. If about 30% of them are positive, the model is calibrated at that score.
 
+### Core intuition
+
 A model can rank **perfectly** and be badly calibrated: multiply every score by 0.5 and the ordering - and therefore the AUC - is unchanged, while every probability is now wrong.
 
 ---
 
-### 2. When it matters, and when it does not
+## 2. When it matters, and when it does not
 
 | Output is used for | Calibration needed? |
 |---|---|
@@ -32,7 +36,38 @@ A model can rank **perfectly** and be badly calibrated: multiply every score by 
 
 ---
 
-### 3. Diagnosing: the reliability diagram
+## 3. What miscalibration looks like in a table
+
+Bucket the predictions and compare what the model claimed against what happened:
+
+```text
+predicted   count   actually positive   observed rate     verdict
+ 0.0-0.1    4,200          84               2.0%        about right
+ 0.1-0.3    1,900         361              19.0%        about right
+ 0.3-0.5      800         184              23.0%        over-confident
+ 0.5-0.7      400          96              24.0%        badly over-confident
+ 0.7-0.9      150          38              25.3%        badly over-confident
+ 0.9-1.0       50          14              28.0%        badly over-confident
+```
+
+Read the last two columns together. When this model says 0.8, the event happens 25% of the time. When it says 0.95, it happens 28% of the time. Above about 0.3 the number has stopped meaning anything.
+
+Now notice what is still true: **the ordering is perfect.** Every bucket has a higher observed rate than the one below it, so AUC, NDCG, and precision@k are all excellent. A ranking metric cannot see any of this.
+
+But feed it into an expected-value calculation:
+
+```text
+model says 0.80 × $500 loss  =  $400 expected     → block the transaction
+reality      0.25 × $500     =  $125 expected     → probably should not have
+```
+
+### Intuition
+
+Every decision built on the number is wrong by a factor of three, while every ranking-based dashboard says the model is healthy.
+
+---
+
+## 4. Diagnosing: the reliability diagram
 
 Bin the predictions, and plot the mean predicted probability against the observed frequency in each bin:
 
@@ -51,11 +86,13 @@ Summaries:
 \text{Brier} = \frac{1}{n}\sum_i (\hat p_i - y_i)^2
 \]
 
+### Rule of thumb
+
 Brier score combines calibration and discrimination in one number (lower is better). **Expected calibration error (ECE)** is the average gap between the two axes across bins and isolates calibration alone. Log loss also rewards calibration, since it punishes confident mistakes.
 
 ---
 
-### 4. Who is miscalibrated, and in which direction
+## 5. Who is miscalibrated, and in which direction
 
 | Model | Typical behavior |
 |---|---|
@@ -68,7 +105,7 @@ Brier score combines calibration and discrimination in one number (lower is bett
 
 ---
 
-### 5. Fixing it
+## 6. Fixing it
 
 Both methods fit a small mapping from raw score to probability, on **held-out** data:
 
@@ -88,19 +125,13 @@ CalibratedClassifierCV(base_model, method="isotonic", cv=5)
 
 The calibrator must never be fitted on the training data the model already saw - it would learn the model's training-set over-confidence, not its real-world behavior.
 
----
-
-### 6. Calibration after resampling
-
-This is the connection interviewers probe most often. If you oversampled the positive class 50×, the model has learned a training distribution with a 50× inflated base rate. Its 0.5 corresponds to a much smaller real-world probability.
+**Calibration after resampling.** This is the connection interviewers probe most often. If you oversampled the positive class 50×, the model has learned a training distribution with a 50× inflated base rate. Its 0.5 corresponds to a much smaller real-world probability.
 
 Either correct analytically for the known sampling ratio, or - simpler and more robust - fit a calibrator on a **held-out set with the original, untouched class distribution**.
 
----
+**Calibration drifts.** Calibration is a property of the model *and* the data distribution. When the base rate moves - a seasonal fraud spike, a new market - a previously calibrated model becomes systematically wrong even though its ranking is intact.
 
-### 7. Calibration drifts
-
-Calibration is a property of the model *and* the data distribution. When the base rate moves - a seasonal fraud spike, a new market - a previously calibrated model becomes systematically wrong even though its ranking is intact.
+### Common issue
 
 So: monitor the mean predicted probability against the realized positive rate, and recalibrate on recent data. Recalibration is cheap - it is a two-parameter fit - and it is often the right response to drift when a full retrain is not yet justified.
 

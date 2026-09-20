@@ -4,7 +4,9 @@
 
 Quality has to be argued instead - from the geometry of the groups, from whether they survive being re-run on slightly different data, and from whether anyone can actually use them. Being comfortable saying that is most of the answer.
 
-### 1. The elbow method
+---
+
+## 1. The elbow method
 
 Plot inertia (within-cluster sum of squares) against k:
 
@@ -17,11 +19,13 @@ inertia │●
         └──────────────────── k
 ```
 
+### Common issue
+
 Inertia always decreases as k grows - at k = n it is zero - so you are looking for the point of diminishing returns, not a minimum. Be honest about the weakness: on real data the elbow is often a gentle curve with no obvious corner.
 
 ---
 
-### 2. Silhouette
+## 2. Silhouette
 
 For each point, compare how close it is to its own cluster versus the nearest other cluster:
 
@@ -41,11 +45,13 @@ where a(i) is the mean distance to its own cluster and b(i) the mean distance to
 silhouette_score(X_scaled, labels)
 ```
 
+### Rule of thumb
+
 Unlike inertia, the silhouette score is comparable across values of k, so you can take the maximum. Plot the per-point distribution too, not just the mean - one collapsing cluster is visible there and invisible in the average.
 
 ---
 
-### 3. Other internal indices
+## 3. Other internal indices
 
 | Index | Idea | Direction |
 |---|---|---|
@@ -54,11 +60,13 @@ Unlike inertia, the silhouette score is comparable across values of k, so you ca
 | Gap statistic | compare inertia to what uniform random data would give | larger gap better |
 | BIC / AIC (GMM only) | likelihood penalized by parameter count | lower better |
 
+### Common issue
+
 They frequently disagree. Treat agreement across several as weak confirmation, not proof.
 
 ---
 
-### 4. Stability is the strongest internal evidence
+## 4. Stability is the strongest internal evidence
 
 Run the clustering on bootstrap samples or random 80% subsets and check whether the same points keep landing together (measured with the adjusted Rand index between runs):
 
@@ -73,7 +81,7 @@ k = 7 → ARI across resamples ≈ 0.31   ← the algorithm is inventing splits
 
 ---
 
-### 5. External indices, when some labels exist
+## 5. External indices, when some labels exist
 
 If a partial ground truth exists - known segments, a small labelled sample - compare partitions properly rather than by accuracy (cluster ids are arbitrary):
 
@@ -83,7 +91,9 @@ If a partial ground truth exists - known segments, a small labelled sample - com
 
 ---
 
-### 6. The test that actually decides it
+## 6. The test that actually decides it
+
+### Core intuition
 
 Internal indices measure geometry. The business question is usefulness:
 
@@ -94,7 +104,7 @@ Internal indices measure geometry. The business question is usefulness:
 
 ---
 
-### 7. A practical procedure
+## 7. A practical procedure
 
 ```text
 1. scale (and reduce dimensionality if d is large)

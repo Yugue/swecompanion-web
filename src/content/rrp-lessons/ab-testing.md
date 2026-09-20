@@ -2,7 +2,9 @@
 
 **The only measurement that settles the question is running both systems on real traffic.** Everything offline is preparation for this.
 
-### 1. Randomize by user, not by request
+---
+
+## 1. Randomize by user, not by request
 
 ```text
 ✗  by request:  the same person sees the old ranker, then the new one,
@@ -11,11 +13,38 @@
 ✓  by user:     a person is assigned once and stays assigned.
 ```
 
+### Common issue
+
 Request-level randomization contaminates the comparison and makes an inconsistent product. For anything with a learning or habit effect, user-level assignment is the only valid unit - and it must be sticky across sessions and devices where possible.
 
 ---
 
-### 2. Outlast the novelty effect
+## 2. How long is long enough
+
+The same experiment, read at three moments:
+
+```text
+             treatment    control    lift     what you would conclude
+day 2          +7.1%                 +7.1%    "ship it immediately"
+week 1         +3.4%                 +3.4%    "a solid win"
+week 3         +0.4%                 +0.4%    "inside the noise"
+week 6         −1.2%                 −1.2%    "this is worse"
+```
+
+Nothing changed except elapsed time. The early lift is people poking at something that looks different, and it decays. By week six the real effect - slightly negative - is visible.
+
+Reading this at day 2 and shipping is one of the most common ways a recommender gets worse while every dashboard says it improved.
+
+```text
+minimum duration = novelty decay + at least one full weekly cycle
+                 ≈ two to three weeks for most consumer surfaces
+```
+
+And the reverse case is just as real: a change people dislike at first can show a false negative in week one and be fine by week four.
+
+---
+
+## 3. Outlast the novelty effect
 
 ```text
 engagement
@@ -31,7 +60,7 @@ Any visible change lifts engagement briefly just by being different. Reading the
 
 ---
 
-### 3. Decide the metrics before you start
+## 4. Decide the metrics before you start
 
 ```text
 primary metric      the one thing that decides ship / no ship
@@ -47,7 +76,7 @@ Pre-registering this is what turns a launch decision from an argument into a rul
 
 ---
 
-### 4. Interleaving, when you are only comparing rankings
+## 5. Interleaving, when you are only comparing rankings
 
 Instead of splitting users, mix the two rankers' results into one list and see which side's items get clicked.
 
@@ -62,11 +91,13 @@ ranker B:  b1 b2 b3 ...                      → which side's items win clicks?
 −  only compares ORDERINGS; cannot measure retention, revenue, or any system-level effect
 ```
 
+### Rule of thumb
+
 The usual pattern is interleaving to triage many ranker candidates quickly, then a proper A/B test on the winner for the business metrics.
 
 ---
 
-### 5. Things that quietly invalidate the test
+## 6. Things that quietly invalidate the test
 
 | Problem | Symptom |
 |---|---|
@@ -75,6 +106,8 @@ The usual pattern is interleaving to triage many ranker candidates quickly, then
 | Marketplace interference | both arms compete for the same finite inventory |
 | Peeking | checking daily until it is significant, then stopping |
 | Too many metrics | with twenty metrics, one is "significant" by chance |
+
+### Common issue
 
 The marketplace row is specific to this domain and easy to miss: if the new ranker promotes an item, that item's stock or attention is no longer available to the control arm, so the arms are not independent.
 

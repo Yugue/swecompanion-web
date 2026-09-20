@@ -9,7 +9,9 @@ plan one step at a time  → adapts to surprises, wanders more, costs more
 
 Where you land is decided by how predictable the environment is, and by whether a human has to approve the work before it happens.
 
-### 1. The three shapes
+---
+
+## 1. The three shapes
 
 ```text
 plan-then-execute:   [ plan all steps ] → s1 → s2 → s3 → done
@@ -28,7 +30,44 @@ hierarchical:        [ coarse plan ] → { ReAct inside step 1 }
 
 ---
 
-### 2. Decomposition quality decides everything
+## 2. The same task, both ways
+
+*"Find out why our checkout conversion dropped last Tuesday."*
+
+```text
+PLAN FIRST
+  1. pull conversion metrics for the last 30 days
+  2. segment by device, browser, and region
+  3. correlate with deploy history
+  4. check payment provider status
+  5. write up the finding
+
+  step 1 returns: the drop is entirely in one payment method, in one country
+  → steps 2, 3 and 5 are now largely irrelevant
+  → and the agent tends to complete them anyway, because they are the plan
+```
+
+```text
+INTERLEAVED
+  Thought:  start broad - where is the drop concentrated?
+  Action:   conversion_by_segment(window="30d")
+  Obs:      −38% for iDEAL in NL. Everything else flat.
+  Thought:  That is a single payment method in a single country. Not a code deploy.
+  Action:   provider_status(method="iDEAL", date="last Tuesday")
+  Obs:      {incident: "partial outage 09:00-14:00 CET"}
+  Thought:  Found it. Confirm the timing lines up with the dip.
+  Action:   conversion_by_hour(method="iDEAL", date="last Tuesday")
+```
+
+Four steps instead of five, and the plan was never wrong because there was never a plan to be wrong. Investigation work has this shape: the first observation collapses the search space, so committing to five steps up front wastes four of them and anchors the agent to a hypothesis the data already ruled out.
+
+### Rule of thumb
+
+The mirror case is equally real. For "generate the monthly report from these six sources", the steps are known, independent, and parallelizable - planning first is strictly better.
+
+---
+
+## 3. Decomposition quality decides everything
 
 A plan is only as good as its subtasks. Three properties to check:
 
@@ -49,7 +88,7 @@ A plan is only as good as its subtasks. Three properties to check:
 
 ---
 
-### 3. Replanning needs a trigger
+## 4. Replanning needs a trigger
 
 Agents drift from their own plans quietly. Make replanning explicit:
 
@@ -61,11 +100,13 @@ trigger replanning when:
   - a new constraint appears (user message, policy result)
 ```
 
+### Common issue
+
 Without triggers you get one of two failures: rigid execution of a plan that reality has refuted, or continuous replanning that never finishes anything. Cap replans per run.
 
 ---
 
-### 4. Plans as artifacts, not prose
+## 5. Plans as artifacts, not prose
 
 Keep the plan in state, not only in the transcript:
 
@@ -80,11 +121,7 @@ Keep the plan in state, not only in the transcript:
 
 This gives you three things at once: a human can read and edit it, the runtime can parallelize on `depends_on`, and after compaction the plan survives even though the prose around it didn't.
 
----
-
-### 5. When an up-front plan hurts
-
-Investigation tasks, where step 1's result determines whether steps 2-5 make any sense at all. Debugging a failing test is the canonical example: planning five steps before reading the stack trace produces four steps you will discard, plus an anchoring effect that makes the agent reluctant to abandon them.
+**When an up-front plan hurts.** Investigation tasks, where step 1's result determines whether steps 2-5 make any sense at all. Debugging a failing test is the canonical example: planning five steps before reading the stack trace produces four steps you will discard, plus an anchoring effect that makes the agent reluctant to abandon them.
 
 ---
 

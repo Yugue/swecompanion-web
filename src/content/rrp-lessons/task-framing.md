@@ -9,7 +9,9 @@
 
 That sentence fixes the training rows, the label, the loss, and half the arguments that follow.
 
-### 1. The three decisions inside it
+---
+
+## 1. The three decisions inside it
 
 ```text
 1. the UNIT      what is one row?      per impression? per session? per user-item pair?
@@ -17,11 +19,13 @@ That sentence fixes the training rows, the label, the loss, and half the argumen
 3. the TIMING    when is the answer known? instantly? in 14 days?
 ```
 
+### Core intuition
+
 Get the unit wrong and the model learns the wrong thing. Get the timing wrong and you discover at launch that your freshest training data is two weeks old.
 
 ---
 
-### 2. The unit changes what is learnable
+## 2. The unit changes what is learnable
 
 | Unit | One row is | Good for |
 |---|---|---|
@@ -29,11 +33,13 @@ Get the unit wrong and the model learns the wrong thing. Get the timing wrong an
 | Session | one visit | intent, sequence, session-based recommendation |
 | User-item pair | a whole relationship | classical recommenders, affinity |
 
+### Rule of thumb
+
 Ranking a slate needs impression-level rows, because the same item shown in position 1 and position 9 is two different events with two different outcomes.
 
 ---
 
-### 3. Continuous targets are not free
+## 3. Continuous targets are not free
 
 "Predict watch time" sounds better than "predict a click", and it brings problems:
 
@@ -43,11 +49,13 @@ watch time is censored  → a video the user is still watching has no final valu
 watch time rewards long → the model learns to prefer long items
 ```
 
+### Common issue
+
 A common fix is to predict a bounded, well-behaved version instead - the probability of watching past a threshold - rather than the raw number.
 
 ---
 
-### 4. Label timing bounds everything
+## 4. Label timing bounds everything
 
 ```text
 click       → known in seconds        → retrain daily
@@ -63,7 +71,7 @@ If the label matures in 14 days, no amount of engineering makes the model react 
 
 ---
 
-### 5. Proxies are fine if you name them
+## 5. Proxies are fine if you name them
 
 You will almost never be able to train on the thing you actually care about. Long-term retention is the goal; a click is what you can measure this afternoon.
 

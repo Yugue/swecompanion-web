@@ -2,7 +2,9 @@
 
 You already know the definitions. The graded skill is **reading the evidence** and choosing a fix that targets the actual failure.
 
-### 1. Start with two numbers
+---
+
+## 1. Start with two numbers
 
 ```text
 train score   val score   reading
@@ -13,11 +15,40 @@ train score   val score   reading
   0.55          0.54      model or pipeline is broken
 ```
 
+### Rule of thumb
+
 Neither number alone is a diagnosis. A validation score of 0.80 is excellent next to 0.78 training and alarming next to 0.99.
 
 ---
 
-### 2. Learning curves over training-set size
+## 2. The same model, three diagnoses
+
+Three projects, each reporting "the model is not good enough":
+
+```text
+            train    val     gap      what is actually wrong
+ project A   0.72    0.70    0.02     underfitting - it cannot even fit what it has seen
+ project B   0.99    0.80    0.19     overfitting - or leakage, or a tiny val set
+ project C   0.55    0.54    0.01     broken - a coin flip on a balanced problem
+```
+
+The prescriptions are completely different, and two of them are the opposite of each other:
+
+```text
+ A  →  more capacity, better features, LESS regularization
+ B  →  more data, MORE regularization, simpler model
+ C  →  stop tuning. check the labels, the join, and the target column.
+```
+
+Project C is the one worth dwelling on. A score near chance is almost never a modelling problem - it is shuffled labels, a broken join, a target column that leaked away, or features that are all null. The overfit-100-rows check at the end of this lesson catches it in about a minute.
+
+### Common issue
+
+And the most common real mistake is treating project A like project B: seeing a disappointing number, reaching for regularization, and making a model that already could not fit the data fit it even less.
+
+---
+
+## 3. Learning curves over training-set size
 
 Train on 10%, 20%, ... 100% of the data and plot both scores:
 
@@ -32,11 +63,13 @@ score                     score
    more data won't help      val still rising → more data helps
 ```
 
+### Core intuition
+
 This is the single most informative plot in applied ML, and naming it in an interview is a strong signal. It answers the expensive question - "should we go collect more data?" - before anyone spends money.
 
 ---
 
-### 3. Validation curves over a hyperparameter
+## 4. Validation curves over a hyperparameter
 
 Fix the data, sweep one hyperparameter:
 
@@ -47,11 +80,13 @@ val:        0.73  0.80  0.86  0.84  0.79
                           ↑ best generalization
 ```
 
+### Intuition
+
 The peak is the capacity the data can support. Past it, training keeps improving and validation degrades - the textbook overfitting signature.
 
 ---
 
-### 4. Curves over training iterations
+## 5. Curves over training iterations
 
 For iteratively fitted models (boosting, SGD, neural networks):
 
@@ -70,7 +105,7 @@ Early stopping is the cheapest regularizer available: stop where validation stop
 
 ---
 
-### 5. A large gap is not automatically overfitting
+## 6. A large gap is not automatically overfitting
 
 Before adding regularization, rule out the impostors:
 
@@ -83,11 +118,13 @@ Before adding regularization, rule out the impostors:
 | Label noise in validation | Hand-check a sample of the "errors" |
 | Different preprocessing per split | Is everything inside one Pipeline? |
 
+### Common issue
+
 A tiny validation set is the most common false alarm: with 200 rows, ±3% is just resampling noise.
 
 ---
 
-### 6. The fixes, matched to the diagnosis
+## 7. The fixes, matched to the diagnosis
 
 **Underfitting**
 - increase capacity (depth, features, polynomial terms, a stronger model family),
@@ -104,7 +141,7 @@ A tiny validation set is the most common false alarm: with 200 rows, ±3% is jus
 
 ---
 
-### 7. The sanity check that catches bugs
+## 8. The sanity check that catches bugs
 
 Before any of this, verify the model can **overfit 100 examples**:
 
@@ -113,6 +150,8 @@ small = X_train[:100]
 model.fit(small, y_train[:100])
 model.score(small, y_train[:100])   # should be near 1.0
 ```
+
+### Rule of thumb
 
 If it cannot memorize 100 rows, you do not have a capacity problem. You have a bug - shuffled labels, a broken transform, a runaway learning rate, or a target column that is not what you think it is.
 

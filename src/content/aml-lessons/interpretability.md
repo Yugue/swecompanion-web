@@ -2,7 +2,9 @@
 
 Interpretability answers "why this prediction". It is needed for three different reasons - debugging, trust, and legal obligation - and the method you choose depends on which one you are serving.
 
-### 1. Intrinsic vs post-hoc
+---
+
+## 1. Intrinsic vs post-hoc
 
 ```text
 intrinsic : the model IS the explanation
@@ -11,22 +13,28 @@ post-hoc  : a separate method approximates a black box
             permutation importance, SHAP, LIME, partial dependence
 ```
 
+### Core intuition
+
 Post-hoc explanations are **approximations of the model**, not descriptions of reality. Saying this out loud is a mark of seriousness - a SHAP plot is a story about the model, and the model is a story about the data.
 
 ---
 
-### 2. Global vs local
+## 2. Global vs local
 
 | Scope | Question | Methods |
 |---|---|---|
 | Global | Which features drive the model overall? | Permutation importance, mean absolute SHAP, PDP |
 | Local | Why *this* prediction? | SHAP values, LIME, counterfactuals |
 
+### Rule of thumb
+
 Regulatory requirements ("why was I declined?") are local. Debugging and feature-pruning decisions are global. They need different tools and can disagree.
 
 ---
 
-### 3. Tree impurity importance is biased
+## 3. Tree impurity importance is biased
+
+### Common issue
 
 `feature_importances_` sums the impurity reduction attributable to each feature. It is free and it is misleading:
 
@@ -38,7 +46,7 @@ Regulatory requirements ("why was I declined?") are local. Debugging and feature
 
 ---
 
-### 4. Permutation importance
+## 4. Permutation importance
 
 Shuffle one feature's column and measure how much the **validation** score drops:
 
@@ -52,13 +60,15 @@ permutation_importance(model, X_val, y_val, n_repeats=10, scoring="roc_auc")
 
 ---
 
-### 5. SHAP
+## 5. SHAP
 
 SHAP assigns each feature a contribution to a single prediction, based on Shapley values from cooperative game theory:
 
 \[
 \hat f(x) = \phi_0 + \sum_{j=1}^{d}\phi_j
 \]
+
+### Intuition
 
 The prediction decomposes exactly into a base value plus per-feature contributions - which is what makes it usable as a local explanation.
 
@@ -69,7 +79,7 @@ The prediction decomposes exactly into a base value plus per-feature contributio
 
 ---
 
-### 6. Effect shape, not just magnitude
+## 6. Effect shape, not just magnitude
 
 Importance says *how much*; partial dependence says *in which direction*:
 
@@ -77,11 +87,11 @@ Importance says *how much*; partial dependence says *in which direction*:
 - **ICE**: one line per instance, which exposes heterogeneity a PDP average hides,
 - **Monotonic constraints**: rather than checking the shape afterwards, force it - "risk must not decrease as debt increases" is a constraint modern GBM libraries support directly, and it is often the cleanest way to satisfy a reviewer.
 
----
-
-### 7. The caveat that must be said
+**The caveat that must be said**
 
 > Importance is correlational, not causal. An important feature is one the model leans on, not a lever you can pull.
+
+### Common issue
 
 "Customers who contact support churn more" does not mean discouraging support contact reduces churn. Causal claims require an experiment or a causal design, and confusing the two is the most consequential mistake in this area.
 

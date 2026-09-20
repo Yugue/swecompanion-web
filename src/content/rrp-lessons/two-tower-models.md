@@ -14,7 +14,9 @@
          └──────────  score = u · v  ────────┘
 ```
 
-### 1. Why the towers must stay separate
+---
+
+## 1. Why the towers must stay separate
 
 This looks like an arbitrary restriction. It is the entire point.
 
@@ -33,7 +35,42 @@ If the two inputs mixed anywhere before the final dot product, you would have to
 
 ---
 
-### 2. What it therefore cannot do
+## 2. Why the separation buys so much
+
+Put a number on it. Ten million items, one request:
+
+```text
+ONE MODEL THAT SEES BOTH (a "cross-encoder")
+  score(user, item) must run once per item
+  10,000,000 forward passes per request
+  at 1 microsecond each → 10 seconds per request         ← impossible
+
+TWO TOWERS
+  offline, nightly:  item tower over 10M items → 10M vectors, stored
+  per request:       user tower runs ONCE      → 1 vector
+                     nearest-neighbour lookup  → ~500 candidates
+  total: 1 forward pass + an index query → about 5 milliseconds
+```
+
+That is the whole reason the architecture looks the way it does. It is not a modelling insight - it is an engineering constraint that forced a modelling decision.
+
+And it comes with a matching cost. The moment the towers are separate, no feature can depend on both sides:
+
+```text
+✓ in the user tower     this user's country, history, session
+✓ in the item tower     this item's category, creator, age
+✗ nowhere               "how many times has THIS user viewed THIS item"
+                        → impossible, because the item vector was computed
+                          last night without knowing who would ask for it
+```
+
+### Core intuition
+
+Which is exactly why the funnel has a second stage. Retrieval trades expressiveness for the ability to precompute; ranking spends milliseconds per candidate to buy that expressiveness back.
+
+---
+
+## 3. What it therefore cannot do
 
 ```text
 ✗  "how many times has THIS user viewed THIS item"
@@ -45,7 +82,7 @@ Every one of those needs both inputs at once. None of them can exist in a two-to
 
 ---
 
-### 3. What goes in each tower
+## 4. What goes in each tower
 
 | User tower | Item tower |
 |---|---|
@@ -54,11 +91,13 @@ Every one of those needs both inputs at once. None of them can exist in a two-to
 | context: device, time, query | category, creator, price |
 | demographics, language | item age, quality signals |
 
+### Rule of thumb
+
 Putting real **features** in the item tower - not just the id - is what lets a brand-new item be retrieved before anyone has touched it. A tower fed only ids inherits matrix factorization's cold-start problem exactly.
 
 ---
 
-### 4. How it is trained
+## 5. How it is trained
 
 ```text
 positives:  (user, item they actually engaged with)
@@ -71,7 +110,7 @@ Usually this is set up as a softmax over one positive and many sampled negatives
 
 ---
 
-### 5. Serving it
+## 6. Serving it
 
 ```text
 1. train both towers together
@@ -79,6 +118,8 @@ Usually this is set up as a softmax over one positive and many sampled negatives
 3. build an approximate nearest-neighbour index over those vectors
 4. at request time: run the user tower, query the index, get ~500 candidates
 ```
+
+### Common issue
 
 Steps 2 and 3 are a batch job, so a new item is only retrievable after the next index build - which is the index-freshness problem, and a real operational constraint in Chapter 6.
 

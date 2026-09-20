@@ -2,7 +2,9 @@
 
 Two alternatives to k-means, each dropping one of its constraints: hierarchical clustering does not need k up front, and DBSCAN does not assume cluster shape.
 
-### 1. Agglomerative (bottom-up) clustering
+---
+
+## 1. Agglomerative (bottom-up) clustering
 
 ```text
 start: every point is its own cluster
@@ -18,7 +20,7 @@ AgglomerativeClustering(n_clusters=None, distance_threshold=2.5, linkage="ward")
 
 ---
 
-### 2. Linkage decides the cluster shape
+## 2. Linkage decides the cluster shape
 
 "Closest" between two *clusters* has to be defined, and the definition changes the outcome more than anything else:
 
@@ -31,13 +33,13 @@ AgglomerativeClustering(n_clusters=None, distance_threshold=2.5, linkage="ward")
 
 Single linkage can find non-convex shapes but suffers from chaining, where a thin bridge of points merges two real clusters.
 
-### Cost
+### Common issue
 
-\(O(n^2)\) memory and \(O(n^2\log n)\) or worse in time - which restricts it to tens of thousands of points. That, not quality, is why k-means dominates at scale.
+**The cost is what limits it.** \(O(n^2)\) memory and \(O(n^2\log n)\) or worse in time, which restricts it to tens of thousands of points. That, not quality, is why k-means dominates at scale.
 
 ---
 
-### 3. DBSCAN
+## 3. DBSCAN
 
 Density-based: a cluster is a connected region where points are packed closely enough.
 
@@ -62,11 +64,13 @@ What it gives you that k-means cannot:
 2. **arbitrary shapes** - concentric rings, crescents, elongated blobs,
 3. **an explicit noise label** - points that belong to nothing.
 
+### Intuition
+
 That third property is genuinely useful: it is a built-in outlier detector.
 
 ---
 
-### 4. Where DBSCAN struggles
+## 4. Where DBSCAN struggles
 
 - **Varying density.** A single global eps cannot fit a dataset where one region is dense and another sparse: either the sparse cluster becomes noise, or the dense clusters merge. **HDBSCAN** fixes this by varying the density threshold hierarchically.
 - **High dimensionality**, where distances concentrate and eps stops separating anything.
@@ -75,7 +79,7 @@ That third property is genuinely useful: it is a built-in outlier detector.
 
 ---
 
-### 5. Choosing between the three
+## 5. Choosing between the three
 
 | Need | Algorithm |
 |---|---|
@@ -90,11 +94,7 @@ That third property is genuinely useful: it is a built-in outlier detector.
 
 > Hierarchical for exploration on small data, k-means for scale, DBSCAN when shape and noise matter.
 
----
-
-### 6. All three share the same prerequisites
-
-Scale the features, think hard about the distance metric, and reduce dimensionality when d is large. Every one of these algorithms is a statement about distances, so garbage distances give garbage clusters regardless of which one you pick.
+**All three share the same prerequisites.** Scale the features, think hard about the distance metric, and reduce dimensionality when d is large. Every one of these algorithms is a statement about distances, so garbage distances give garbage clusters regardless of which one you pick.
 
 ---
 

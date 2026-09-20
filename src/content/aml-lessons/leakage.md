@@ -2,15 +2,32 @@
 
 Leakage is information in the training data that **will not exist at prediction time**. It is the most expensive bug in applied ML, because it does not produce an error - it produces excellent numbers and a model that fails in production.
 
-### 1. The one-line test
+---
 
-> Could this value have been computed, exactly as it is, at the moment the prediction is made?
+## 1. The one-line test
 
-If no, it is leakage. Apply it to every column.
+> Could this value have been computed, **exactly as it is**, at the moment the prediction is made?
+
+If no, it is leakage. Apply it to every column, one at a time. The words "exactly as it is" are doing real work - a feature can exist at prediction time and still be leaky if its *value* was computed later.
+
+Run it on a churn model and it sorts the columns quickly:
+
+```text
+account_age_days           knowable at t?  yes   →  fine
+plan_tier                  knowable at t?  yes   →  fine
+logins_last_30d            knowable at t?  yes   →  fine, IF the window ends before t
+support_tickets_total      knowable at t?  ...   →  careful: total as of WHEN?
+cancellation_reason        knowable at t?  no    →  leakage, it only exists after churn
+days_until_cancellation    knowable at t?  no    →  leakage, it IS the label
+```
+
+### Common issue
+
+The middle row is where real systems go wrong. "Total support tickets" computed today includes tickets filed *after* the prediction date, so the same column is legitimate or leaky depending entirely on how the pipeline built it. Nothing in the column name tells you which.
 
 ---
 
-### 2. Target leakage
+## 2. Target leakage
 
 A feature that is a consequence of the label rather than a cause:
 
@@ -23,11 +40,13 @@ predicting conversion → feature "total_order_value"        (zero unless conver
 
 These features are wildly predictive and completely useless. The model learns to read the answer.
 
+### Common issue
+
 Symptom: a single feature dominates importance, and AUC is suspiciously close to 1.
 
 ---
 
-### 3. Preprocessing leakage
+## 3. Preprocessing leakage
 
 Any statistic computed over the full dataset before splitting:
 
@@ -42,11 +61,13 @@ Pipeline([("scale", StandardScaler()), ("clf", LogisticRegression())])
 
 The same applies to imputation medians, target encodings, feature selection, resampling, and PCA rotations. All of them learn something from the data, so all of them belong inside the pipeline.
 
+### Intuition
+
 This leak is small per-feature and enormous in aggregate - with feature selection on the full dataset it can manufacture a strong model out of pure noise.
 
 ---
 
-### 4. Temporal leakage
+## 4. Temporal leakage
 
 Any aggregate whose window extends past the prediction time:
 
@@ -69,7 +90,7 @@ Also temporal:
 
 ---
 
-### 5. Group leakage
+## 5. Group leakage
 
 The same entity in both train and test:
 
@@ -80,11 +101,13 @@ The same entity in both train and test:
 | Product photos | the product listing | Same item, different angle |
 | Duplicated rows | the row itself | Literally the same example |
 
+### Rule of thumb
+
 Fix with grouped splits (`GroupKFold`) keyed on the entity.
 
 ---
 
-### 6. How to catch it
+## 6. How to catch it
 
 ```text
 1. AUC jumps from 0.82 → 0.99 after adding a feature?     → suspect that feature
@@ -100,11 +123,7 @@ The most reliable defense is procedural, not statistical:
 - validate chronologically whenever time exists,
 - treat any large, sudden metric jump as a bug until proven otherwise.
 
----
-
-### 7. The subtle case: leakage from the future of *other* rows
-
-Target encoding computed over the whole training set leaks each row's own label into its own feature. Out-of-fold encoding fixes it.
+**The subtle case: leakage from the future of *other* rows.** Target encoding computed over the whole training set leaks each row's own label into its own feature. Out-of-fold encoding fixes it.
 
 A "number of transactions by this merchant" feature computed over the full history leaks tomorrow's transactions into today's row. Computing it as-of the prediction time fixes it.
 

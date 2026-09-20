@@ -2,7 +2,9 @@
 
 An applied ML project is a loop, not a pipeline. Knowing the order - and which steps people skip - is what separates an answer that sounds like a textbook from one that sounds like experience.
 
-### 1. The loop
+---
+
+## 1. The loop
 
 ```text
      ┌──────────────────────────────────────────────┐
@@ -17,87 +19,129 @@ Every arrow back is normal. Most real projects spend far more time between *data
 
 ---
 
-### 2. Frame the problem
+## 2. Frame the problem
 
-Before anything else, answer:
-
-- what **decision** does this change, who makes it, how often?
-- what is the **unit of prediction** - per user, per session, per item pair?
-- what is the **label**, operationally, and when does it become observable?
-- what does a mistake cost in each direction?
-- what would "good enough to ship" be?
-
-If those cannot be answered, no model will help. This is also where you decide whether ML is warranted at all.
-
----
-
-### 3. Data and split, before modelling
+Nothing else can be decided until these five are answered, and a project that cannot answer them is not ready for a model.
 
 ```text
-1. assemble the data at the right unit and point in time
-2. audit every feature against the prediction timestamp (leakage)
-3. split - chronological if time exists, grouped if entities repeat
-4. THEN start looking at the training data
+what DECISION does this change?       who acts on it, how often, with what alternative
+what is the UNIT of prediction?       per user? per session? per item pair?
+what is the LABEL, operationally?     the event, the window, the exclusions
+when does the label become KNOWN?     seconds, days, or a month
+what does a MISTAKE cost, each way?   a false alarm vs. a miss, in money or harm
 ```
 
-The split comes early on purpose. Exploring the full dataset first, then splitting, means your choices have already been informed by the test set.
-
----
-
-### 4. Baseline
-
-Two baselines, both cheap:
-
-- the **trivial** one - majority class, global mean, last value - which tells you what the metric means,
-- the **existing system** - the current rules or the manual process - which is what you must beat to justify the project.
-
-Then a simple model: logistic regression or gradient-boosted trees with defaults. This is often the last model too.
-
----
-
-### 5. Iterate with evidence
+**Worked example - a churn project.** The vague version is "predict which customers will churn". The framed version:
 
 ```text
-train → evaluate on validation → error analysis → decide the next change
+decision   the retention team calls 500 customers a week
+unit       one subscriber, scored every Monday
+label      y = 1 if zero sessions in the 30 days after the scoring date,
+           excluding involuntary cancellations from failed billing
+known      30 days later, so the freshest usable training data is a month old
+cost       a wasted call is ~$4; a churned customer is ~$180 of lifetime value
 ```
 
-The order matters: the next change comes from reading the errors, not from a list of algorithms. In practice the highest-yield moves are usually, in order:
+Look at what that already settles. The team can only call 500 people, so this is a **ranking** problem and the metric is recall@500 - not accuracy. The 45:1 cost ratio sets the threshold. The 30-day label delay means the model cannot react to anything that happened this month. None of that required choosing an algorithm.
 
-1. fix data and label problems,
-2. add a feature that carries new information,
-3. tune the model,
-4. change the model family.
-
-Most candidates propose them in reverse.
-
-### Rule of thumb
-
-> If two consecutive experiments moved the metric less than the fold-to-fold noise, stop tuning and go read the errors.
+This is also the point at which you decide whether ML is warranted at all.
 
 ---
 
-### 6. Evaluate for the decision, not for the leaderboard
+## 3. Data and split, before modelling
 
-- slice the metrics (segment, geography, time, confidence),
-- pick the threshold from the cost of each error, not from 0.5,
-- check calibration if the probability is consumed downstream,
-- compare against the baseline with a spread, not a single number.
+The split comes **before** you explore, and the ordering is not pedantry. If you look at the whole dataset first - plotting distributions, noticing outliers, picking features - your choices have already been informed by the test set, and its score is no longer honest.
+
+```text
+✓  load → split → explore the TRAINING split → build
+✗  load → explore everything → split → build      ← the test set has leaked into your head
+```
+
+Then make the split mimic deployment, using the rules from **train, validation, and test splits**:
+
+```text
+repeated entities?   group by user / patient / account
+time involved?       split chronologically, with a gap for label maturation
+rare positives?      stratify
+```
+
+For the churn example: chronological, with a 30-day gap, because the model will always be predicting forward in time.
 
 ---
 
-### 7. Deploy and close the loop
+## 4. Baseline
 
-Shipping is the start of the second half:
+Two baselines, both cheap, both mandatory:
 
-- serve it (batch, online, or hybrid) with the same feature computation as training,
-- version the model, features, and preprocessing together, and keep a rollback,
-- roll out gradually: shadow → small percentage → full,
-- monitor inputs, predictions, latency, and eventually quality,
-- define the retraining trigger *before* launch, not after the first incident.
+```text
+trivial      always predict the majority class, or the global mean
+             → tells you what the metric NUMBER means
+
+existing     the current rules, the analyst's spreadsheet, "sort by recency"
+             → this is what you must beat to justify the project at all
+```
+
+Then a simple model - logistic regression, or gradient-boosted trees on defaults. Very often this is also the final model.
+
+```text
+trivial (always "no churn")     recall@500 = 0.04
+current rules                   recall@500 = 0.19
+logistic regression             recall@500 = 0.31   ← most of the value is here
+tuned gradient boosting         recall@500 = 0.34
+```
+
+That ladder is the actual finding of the project. Most of the value arrives with the first honest model, and everything after it is a trade against latency, explainability, and maintenance.
 
 ---
 
-### 8. What to postpone deliberately
+## 5. Iterate with evidence
+
+The next change comes from reading the errors, not from a list of algorithms. In practice the highest-yield moves are, in order:
+
+```text
+1. fix data and label problems        ← usually the biggest single win
+2. add a feature carrying NEW information
+3. tune the model
+4. change the model family
+```
+
+Most candidates propose them in exactly the reverse order. The reason this order holds is that a label error caps what *any* model can achieve, while a model change only redistributes the errors you already have.
+
+Read a hundred mistakes by hand before deciding. Error analysis has its own lesson, and it is the difference between "let me try XGBoost" and "38% of our false positives are annual subscribers whose billing date moved, and the label is wrong for all of them."
+
+---
+
+## 6. Evaluate for the decision, not for the leaderboard
+
+```text
+slice the metrics          segment, geography, device, tenure, and especially RECENT data
+pick the threshold         from the cost ratio, not from 0.5
+check calibration          only if a probability is consumed downstream
+compare with a spread      mean ± fold-to-fold std, not a single number
+quote the baseline         every time
+```
+
+For churn: recall@500 by customer tier, because a model that works well on monthly subscribers and badly on annual ones is a model that will be switched off by whoever owns annual renewals.
+
+---
+
+## 7. Deploy and close the loop
+
+Shipping is the start of the second half, not the end of the first.
+
+```text
+serve it            batch or online, with the SAME feature computation as training
+version together    model + preprocessing + feature definitions + schema
+roll out gradually  shadow → 5% → 50% → full, with a rollback that is a config change
+monitor             inputs and predictions today; quality when labels mature
+define the trigger  what event or threshold causes a retrain - decided BEFORE launch
+```
+
+The last line is the one teams skip and then regret. A retraining policy invented during an incident is invented badly.
+
+---
+
+## 8. What to postpone deliberately
 
 Saying what you would *not* do first is a strong signal:
 

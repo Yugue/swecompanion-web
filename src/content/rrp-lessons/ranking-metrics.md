@@ -4,7 +4,9 @@
 
 That is the difference between these metrics and ordinary accuracy, and everything below follows from it.
 
-### 1. Precision@k and recall@k
+---
+
+## 1. Precision@k and recall@k
 
 Show `k` items. Of those, some are good ("relevant"):
 
@@ -27,18 +29,20 @@ Precision matters for the ranking stage, where slots are scarce. Recall matters 
 
 ---
 
-### 2. Position matters, and precision@k ignores it
+## 2. Position matters, and precision@k ignores it
 
 ```text
 list A:   ✓  ✓  ✓  ✗  ✗  ✗        precision@6 = 0.5
 list B:   ✗  ✗  ✗  ✓  ✓  ✓        precision@6 = 0.5
 ```
 
+### Core intuition
+
 Identical score, obviously different experience. So we need a metric that discounts lower positions.
 
 ---
 
-### 3. NDCG
+## 3. NDCG
 
 Normalized Discounted Cumulative Gain does exactly that. Each position gets a weight that falls as you go down:
 
@@ -47,18 +51,45 @@ position:   1      2      3      4      5      6
 weight:   1.00   0.63   0.50   0.43   0.39   0.36
 ```
 
-Add up (item's relevance × its position weight), then divide by the best score that list could possibly have achieved. That division is the "normalized" part, and it makes lists of different lengths and difficulties comparable.
+Add up (item's relevance × its position weight), then divide by the best score that list could possibly have achieved. That division is the "normalized" part, and it is what makes NDCG comparable across queries - one with a single relevant document and one with twenty are each scored out of their own maximum.
 
 ```text
 NDCG = 1.0  → the best possible ordering
 NDCG = 0.0  → nothing relevant anywhere
 ```
 
-NDCG is the default ranking metric when relevance has degrees - "very relevant", "somewhat", "not".
+---
+
+## 4. NDCG, worked through
+
+Grade each item 0-3 for relevance. Here are two orderings of the same six items:
+
+```text
+             rel   weight    rel×weight          rel   weight   rel×weight
+ pos 1        3     1.00        3.00               0    1.00       0.00
+ pos 2        3     0.63        1.89               1    0.63       0.63
+ pos 3        2     0.50        1.00               0    0.50       0.00
+ pos 4        0     0.43        0.00               2    0.43       0.86
+ pos 5        1     0.39        0.39               3    0.39       1.17
+ pos 6        0     0.36        0.00               3    0.36       1.08
+                             ───────                            ───────
+                      DCG =    6.28                       DCG =    3.74
+```
+
+The best possible ordering of those items - 3, 3, 2, 1, 0, 0 - scores 6.28, so:
+
+```text
+list A   NDCG = 6.28 / 6.28 = 1.00      perfect ordering
+list B   NDCG = 3.74 / 6.28 = 0.60      same items, the good ones buried
+```
+
+Note what precision@6 says about these two lists: **identical**, because the same four relevant items appear in both. NDCG separates them because it is the only one of the three that knows position 1 is worth nearly three times position 6.
+
+That is why NDCG is the default when relevance has degrees - "very relevant", "somewhat", "not".
 
 ---
 
-### 4. MRR, when there is one right answer
+## 5. MRR, when there is one right answer
 
 Mean Reciprocal Rank looks only at where the *first* correct item landed:
 
@@ -69,11 +100,13 @@ first correct at position 10 →  1/10 = 0.10
 nothing correct             →  0
 ```
 
+### Rule of thumb
+
 Average that over all queries. It suits problems with a single right answer - a lookup, a navigational search - and suits feeds badly, where many items are fine.
 
 ---
 
-### 5. Choosing
+## 6. Choosing
 
 | Situation | Metric |
 |---|---|
@@ -82,6 +115,8 @@ Average that over all queries. It suits problems with a single right answer - a 
 | One right answer | MRR |
 | Slots are scarce and all items are equal | precision@k |
 | Comparing against a business outcome | the online metric, always |
+
+### Rule of thumb
 
 Always quote the k. "NDCG improved" is not a result; "NDCG@10 improved from 0.41 to 0.44" is.
 

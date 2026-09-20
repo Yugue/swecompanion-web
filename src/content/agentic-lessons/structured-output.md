@@ -2,7 +2,9 @@
 
 An agent acts through machine-readable output. The schema is the contract between a probabilistic model and code that has to run. The interview point most candidates miss: a schema constrains **shape**, and shape has nothing to do with **truth**.
 
-### 1. Three ways to get structure
+---
+
+## 1. Three ways to get structure
 
 | Method | Guarantee | Cost |
 |---|---|---|
@@ -16,11 +18,30 @@ Constrained decoding works at sampling time: at each position, tokens that could
 grammar/schema ──► token mask ──► sample only from legal tokens
 ```
 
+### Core intuition
+
 With a few percent malformed rate and a 20-step agent, roughly one run in three would hit a parse failure. That is why this matters more for agents than for chat.
 
 ---
 
-### 2. Shape is not truth
+## 2. Why this matters more in an agent than in chat
+
+Suppose prompted JSON is malformed 3% of the time. In a chat product that is an occasional retry. In a 20-step agent:
+
+```text
+P(all 20 steps parse) = 0.97²⁰ = 0.54
+```
+
+**Nearly half of all runs hit a parse failure somewhere.** Each one costs a retry with a full context re-send, or kills the run. That is the argument for constrained decoding in one line - it moves the probability from "small" to "zero".
+
+```text
+prompted JSON        97% per step   →  54% of 20-step runs clean
+constrained decoding 100% per step  →  100% clean
+```
+
+---
+
+## 3. Shape is not truth
 
 ```text
 {
@@ -38,7 +59,7 @@ Every field validates. Nothing is true. Structured output moves the failure from
 
 ---
 
-### 3. Design schemas the model can satisfy honestly
+## 4. Design schemas the model can satisfy honestly
 
 The most common schema bug is a required field the model cannot know.
 
@@ -61,7 +82,7 @@ Other rules that pay off:
 
 ---
 
-### 4. Validate in two layers
+## 5. Validate in two layers
 
 ```text
 parse  ──► schema valid?  ──► semantically valid?  ──► act
@@ -69,17 +90,21 @@ parse  ──► schema valid?  ──► semantically valid?  ──► act
            retry                  reject / ask / halt
 ```
 
+### Rule of thumb
+
 Layer two is yours: does this order exist, is the amount within policy, is this recipient on the allowlist? For anything irreversible, layer two is mandatory.
 
 ---
 
-### 5. Failure handling is part of the design
+## 6. Failure handling is part of the design
 
 Decide up front what happens when validation fails:
 
 1. Retry with the validation error appended as an observation - usually effective, because the error is concrete.
 2. Fall back to a narrower schema or a simpler question.
 3. Escalate to a human.
+
+### Common issue
 
 An agent with no defined behavior on validation failure will do the worst of the three by accident.
 

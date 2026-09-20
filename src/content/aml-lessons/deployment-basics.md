@@ -9,7 +9,9 @@ online  → compute the prediction on demand, while the user waits
 
 Which one you pick decides your latency budget, where features come from, and how fresh the answer can be. It is also where the most expensive production bug lives.
 
-### 1. The three serving modes
+---
+
+## 1. The three serving modes
 
 ```text
 BATCH     nightly job scores every user  → write to a table → product reads it
@@ -33,7 +35,7 @@ A weekly churn score does not need an online model. A fraud decision at checkout
 
 ---
 
-### 2. The hybrid that most large systems use
+## 2. The hybrid that most large systems use
 
 ```text
 offline (batch)                 online (per request)
@@ -42,11 +44,13 @@ user/item embeddings    ──────→ dot product + light re-rank
 expensive aggregates    ──────→ combined with 2-3 live features
 ```
 
+### Intuition
+
 Precompute the expensive part, do something cheap at request time. This is how recommendation systems answer in tens of milliseconds over millions of items.
 
 ---
 
-### 3. Train/serve skew
+## 3. Train/serve skew
 
 The classic production bug: the same feature, computed two different ways.
 
@@ -79,7 +83,7 @@ Defenses:
 
 ---
 
-### 4. Version everything together
+## 4. Version everything together
 
 A deployment is not just model weights. It is the model, the preprocessing, the feature definitions, and the schema. If they can drift apart, they eventually will.
 
@@ -87,11 +91,13 @@ A deployment is not just model weights. It is the model, the preprocessing, the 
 model_v7 ── preprocessing_v7 ── feature_defs_v7 ── schema_v7
 ```
 
+### Rule of thumb
+
 Keep the previous version loadable, so rollback is a config change rather than a retrain.
 
 ---
 
-### 5. Rolling out safely
+## 5. Rolling out safely
 
 ```text
 shadow      → model scores live traffic, output is logged, not used
@@ -100,11 +106,13 @@ progressive → 25% → 50% → 100%
 rollback    → one flag, no retraining
 ```
 
+### Core intuition
+
 Shadow mode is the step that catches skew before any user is affected: you can diff online features and predictions against the offline pipeline on real traffic, at zero risk.
 
 ---
 
-### 6. Degrade gracefully
+## 6. Degrade gracefully
 
 Every online feature is a dependency that can be slow or missing. Decide, in advance, per feature:
 
@@ -112,6 +120,8 @@ Every online feature is a dependency that can be slow or missing. Decide, in adv
 - use a stale cached value, with a maximum age,
 - fall back to a simpler model or the previous rule,
 - fail closed (block) or fail open (allow) - a business decision, not an engineering one.
+
+### Rule of thumb
 
 A model that returns a 500 when the feature store times out is worse than a rule that always answers.
 

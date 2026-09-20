@@ -8,18 +8,56 @@ near-real-time seconds to minutes    "clicks in the last 10 minutes", live count
 request-time   now                   device, hour, query, page, position
 ```
 
-### 1. Recency is where the value is
+---
+
+## 1. Recency is where the value is
 
 ```text
 "this user's category affinity over 90 days"      useful
 "what this user clicked 4 minutes ago"            far more predictive
 ```
 
+### Common issue
+
 The catch is that the second is much harder to build. It needs a streaming pipeline, it must survive bursts, and it has to be correct within seconds. A "recent behavior" feature computed by a nightly job is not a recent-behavior feature - it is the most common way the sequence modelling from Chapter 4 quietly fails to deliver.
 
 ---
 
-### 2. Train/serve skew is the expensive bug
+## 2. Three clocks, one request
+
+What is actually available when the request arrives:
+
+```text
+BATCH (rebuilt nightly)                        age at request time: 0-24h
+  user_category_affinity_90d = 0.31
+  item_lifetime_ctr          = 0.041
+  creator_quality_score      = 0.78
+
+NEAR-REAL-TIME (streaming counters)            age: 2-30 seconds
+  user_clicks_last_10min     = 3
+  item_impressions_last_1h   = 14,203
+  item_ctr_last_1h           = 0.052          ← is this video suddenly going viral?
+
+REQUEST-TIME (computed now)                    age: 0
+  device = mobile, hour = 19, surface = home_feed
+```
+
+The middle block is where the value and the difficulty both live. `item_ctr_last_1h` is how a system notices that something is trending *today*, and it requires a streaming pipeline that survives traffic spikes and is correct within seconds.
+
+Get that wrong in the cheapest way - compute it nightly - and it silently becomes a batch feature with a misleading name:
+
+```text
+feature named  "clicks_last_10min"
+actually       "clicks in the 10 minutes before last night's 02:00 job"
+               → always 0 for anything that happened today
+               → the model learns to ignore it entirely
+```
+
+Nothing errors. The feature is present, typed correctly, and useless.
+
+---
+
+## 3. Train/serve skew is the expensive bug
 
 **The same feature computed two different ways** in training and serving.
 
@@ -41,7 +79,7 @@ serving path        a counter service, "clicks in the last 7 days"
 
 ---
 
-### 3. The defences, in order of effectiveness
+## 4. The defences, in order of effectiveness
 
 ```text
 1. log features AS SERVED, and train on those logs        ← the real fix
@@ -50,11 +88,13 @@ serving path        a counter service, "clicks in the last 7 days"
 4. contract tests on a fixed sample, asserting equality
 ```
 
+### Rule of thumb
+
 Option 1 makes skew structurally impossible for anything the model actually used, because the training data *is* the serving data. It costs storage and it is worth it.
 
 ---
 
-### 4. Point-in-time correctness
+## 5. Point-in-time correctness
 
 Even with one implementation, the training pipeline has to reconstruct what was true **at the moment of the impression**, not what is true now.
 
@@ -63,11 +103,13 @@ impression at 14:00, user's click count then    = 12
 same feature computed today                     = 47    ← includes the future
 ```
 
+### Core intuition
+
 Training on the second teaches the model to use information it will never have. It is leakage, and it is easy to introduce with an innocent-looking join. Logging as served avoids it entirely.
 
 ---
 
-### 5. What to monitor
+## 6. What to monitor
 
 ```text
 per feature:  null rate, mean, and distribution shift vs training
@@ -75,6 +117,8 @@ per feature:  null rate, mean, and distribution shift vs training
               coverage - what fraction of requests have it at all?
 system:       fallback rate per feature, and timeouts
 ```
+
+### Common issue
 
 A feature that silently starts arriving null for 30% of requests will degrade the model with no error anywhere. Null rate and staleness per feature catch more real incidents than any statistical drift test.
 

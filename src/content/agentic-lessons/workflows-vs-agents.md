@@ -2,7 +2,9 @@
 
 Most systems shipped as "agents" are workflows with one agentic stage, and that is usually the correct architecture. Knowing the standard workflow patterns by name - and where the autonomy actually belongs - is a strong signal in a design interview.
 
-### 1. The standard workflow patterns
+---
+
+## 1. The standard workflow patterns
 
 ```text
 chaining:      A ──► B ──► C            each step's output feeds the next
@@ -16,11 +18,13 @@ evaluator:     generate ──► evaluate ──► revise  (loop, bounded)
 orchestrator:  plan ──► dispatch subtasks ──► merge   (agentic at the edges)
 ```
 
+### Core intuition
+
 The first four have control flow written in code. They are testable, observable, and bounded by construction.
 
 ---
 
-### 2. Where autonomy belongs
+## 2. Where autonomy belongs
 
 ```text
 ┌─────────────────────────────────────────────────┐
@@ -39,7 +43,7 @@ Put the agent in the one stage where the path is genuinely unknown, and wrap it 
 
 ---
 
-### 3. Comparing honestly
+## 3. Comparing honestly
 
 | | Workflow | Autonomous agent |
 |---|---|---|
@@ -50,11 +54,13 @@ Put the agent in the one stage where the path is genuinely unknown, and wrap it 
 | Handles unforeseen cases | No | Yes |
 | Failure | Loud and localized | Quiet and diffuse |
 
+### Rule of thumb
+
 The last row is the strongest practical argument for workflows: when a workflow step breaks you get an exception at a known line, and when an agent goes wrong you get a fluent, confident, incorrect answer.
 
 ---
 
-### 4. The typical production shape
+## 4. The typical production shape
 
 ```text
 request
@@ -69,11 +75,7 @@ request
 
 Most traffic never reaches the agent. That is the design working, not a compromise.
 
----
-
-### 5. Migrating from agent to workflow
-
-Once you have traces, look at the actual trajectories. If 80% of runs follow the same three steps, promote those three steps into code and leave the agent for the remainder. This is the most reliable cost and latency win available in a mature agent system, and it comes from evidence rather than taste.
+**Migrating from agent to workflow.** Once you have traces, look at the actual trajectories. If 80% of runs follow the same three steps, promote those three steps into code and leave the agent for the remainder. This is the most reliable cost and latency win available in a mature agent system, and it comes from evidence rather than taste.
 
 ---
 

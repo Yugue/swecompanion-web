@@ -2,7 +2,9 @@
 
 **The dumbest recommender - show everyone the most popular thing - is much harder to beat than people expect.** Quoting your model against it is the first honest thing you can do.
 
-### 1. Why popularity is so strong
+---
+
+## 1. Why popularity is so strong
 
 Attention is extremely concentrated. In most catalogues a tiny fraction of items collects most of the engagement:
 
@@ -16,11 +18,13 @@ Attention is extremely concentrated. In most catalogues a tiny fraction of items
           the few                the long tail
 ```
 
+### Core intuition
+
 Guessing "the popular thing" is right surprisingly often, because the popular thing genuinely is what most people want.
 
 ---
 
-### 2. The ladder of baselines
+## 2. The ladder of baselines
 
 ```text
 1. most popular overall              ← the floor
@@ -38,7 +42,7 @@ Each rung is cheap and each is a real system that someone could ship. Your model
 
 ---
 
-### 3. Personal history is the underrated one
+## 3. Personal history is the underrated one
 
 For many products, "show them more of what they just looked at" is startlingly competitive:
 
@@ -47,11 +51,13 @@ user viewed  → running shoes
 recommend    → running shoes, running socks, the same shoes in another colour
 ```
 
+### Rule of thumb
+
 It requires no model at all. If a personalized system cannot clearly beat this, the personalization is not yet earning its infrastructure.
 
 ---
 
-### 4. Reading the gap
+## 4. Reading the gap
 
 ```text
 popularity              recall@100 = 0.24
@@ -70,11 +76,7 @@ And if a large model barely beats popularity, suspect one of three things:
 - the features do not carry the signal,
 - the metric is not measuring what the model improved.
 
----
-
-### 5. Baselines are also a safety net
-
-Keep the popularity list running in production. It is your fallback when the model service times out, your control in an A/B test, and your canary when something upstream breaks - if the model cannot beat popularity this morning, something is wrong today.
+**Baselines are also a safety net.** Keep the popularity list running in production. It is your fallback when the model service times out, your control in an A/B test, and your canary when something upstream breaks - if the model cannot beat popularity this morning, something is wrong today.
 
 ---
 

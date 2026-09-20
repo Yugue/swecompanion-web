@@ -4,7 +4,9 @@
 
 It scales to thousands of examples, which is the appeal. It also makes your measuring instrument a language model with its own biases - so the answer that lands is: **validate the judge before you trust it.**
 
-### 1. When to use one
+---
+
+## 1. When to use one
 
 ```text
 ✓  no programmatic check exists (summaries, explanations, tone, helpfulness)
@@ -12,11 +14,13 @@ It scales to thousands of examples, which is the appeal. It also makes your meas
 ✗  a test, schema, or database lookup could answer it  ← use that instead
 ```
 
+### Rule of thumb
+
 Reach for deterministic checks first. Teams routinely build an LLM judge for something a `assert` would have settled.
 
 ---
 
-### 2. Absolute scoring vs. pairwise
+## 2. Absolute scoring vs. pairwise
 
 ```text
 absolute:  "rate this answer 1-10"
@@ -34,7 +38,7 @@ Pairwise with randomized order is the default. If you need a single number, use 
 
 ---
 
-### 3. Known biases
+## 3. Known biases
 
 | Bias | Effect | Mitigation |
 |---|---|---|
@@ -46,7 +50,7 @@ Pairwise with randomized order is the default. If you need a single number, use 
 
 ---
 
-### 4. Validate against humans
+## 4. Validate against humans
 
 ```text
 1. label 100-200 examples by hand (two labellers, resolve disagreements)
@@ -56,11 +60,13 @@ Pairwise with randomized order is the default. If you need a single number, use 
 5. re-validate whenever the judge model or rubric changes
 ```
 
+### Core intuition
+
 The number you quote is judge-human agreement. Without it, "our judge says quality improved 8%" is a claim about the judge.
 
 ---
 
-### 5. Judging trajectories, not just outputs
+## 5. Judging trajectories, not just outputs
 
 For agents, a judge can also grade the path:
 
@@ -68,6 +74,8 @@ For agents, a judge can also grade the path:
 "Given the goal and this trace, was every tool call necessary and grounded
  in a prior observation? List any step that was not, with its number."
 ```
+
+### Rule of thumb
 
 Asking for **specific step numbers and evidence** makes the verdict checkable, which is the single biggest improvement you can make to any judge prompt.
 

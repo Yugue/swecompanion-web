@@ -2,7 +2,9 @@
 
 **A retrieval model learns by contrast: this item, not that one.** You have the positives from the logs. The negatives you have to invent - and what you invent decides what the model learns.
 
-### 1. Why it matters so much
+---
+
+## 1. Why it matters so much
 
 ```text
 positives:  items the user engaged with        → a few dozen
@@ -22,7 +24,40 @@ You cannot use all of them, so you sample. And the sample defines the question t
 
 ---
 
-### 2. The three sources
+## 2. What the model is actually being asked
+
+The same positive, contrasted against three different negatives:
+
+```text
+positive:  user u_8812 watched "30-minute weeknight pasta"
+
+vs a RANDOM negative
+   "Diesel engine rebuild, part 4"
+   → the model learns: cooking ≠ engines
+   → a distinction it could make from the category alone
+
+vs an IN-BATCH negative
+   "Top 10 celebrity moments 2026"   (popular, so it appears in many batches)
+   → the model learns: this user prefers cooking to trending clickbait
+   → useful, but it sees this item so often as a negative that it
+     learns to suppress popular items generally
+
+vs a HARD negative
+   "45-minute slow-braised ragu"
+   → the model learns: this user wants QUICK weeknight cooking,
+     not weekend projects
+   → this is the distinction that actually decides the ranking
+```
+
+Only the third teaches anything the ranker could not already work out. But notice the risk in it too: if u_8812 simply never *saw* the ragu video, you have just taught the model that a perfectly good recommendation is wrong.
+
+### Core intuition
+
+That is the tension in one example - hard negatives carry the most signal and the highest chance of being mislabelled positives.
+
+---
+
+## 3. The three sources
 
 **Random negatives** - sample uniformly from the catalogue.
 
@@ -50,7 +85,7 @@ You cannot use all of them, so you sample. And the sample defines the question t
 
 ---
 
-### 3. The popularity correction
+## 4. The popularity correction
 
 In-batch negatives are the standard, and they carry a specific bias worth being able to name:
 
@@ -64,11 +99,13 @@ the model over-penalizes it
 popular items get pushed out of retrieval
 ```
 
+### Rule of thumb
+
 The fix is to adjust each item's score by how likely it was to be sampled - subtracting a term based on its sampling frequency, commonly called a logQ correction. Without it, in-batch training systematically punishes exactly the items most people want.
 
 ---
 
-### 4. The practical recipe
+## 5. The practical recipe
 
 ```text
 mostly in-batch negatives       (cheap, scalable)
@@ -77,11 +114,13 @@ mostly in-batch negatives       (cheap, scalable)
 + the popularity correction     (or popular items are unfairly punished)
 ```
 
+### Common issue
+
 Hard negatives are usually mined from the model's own current top results - items it ranks highly that the user did not engage with. That has to be refreshed as the model changes, which makes it an ongoing pipeline rather than a one-off.
 
 ---
 
-### 5. The failure this explains
+## 6. The failure this explains
 
 ```text
 offline recall@500 is excellent

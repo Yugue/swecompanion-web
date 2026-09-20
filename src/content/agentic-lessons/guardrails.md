@@ -2,7 +2,9 @@
 
 Guardrails are **deterministic checks around a non-deterministic core**. The defining property is that they hold even if the model is fully adversarial, which means they live in code. Anything expressible only as a sentence in the prompt is a preference, not a guardrail.
 
-### 1. Where they sit
+---
+
+## 1. Where they sit
 
 ```text
 user input ──► [ input guardrails ] ──► agent loop ──► [ output guardrails ] ──► user
@@ -20,11 +22,55 @@ Three placements, three jobs:
 | Tool | Every call before execution | Authorization, argument validation, rate and spend limits |
 | Output | What leaves | Schema, citation validity, policy compliance, leakage |
 
+### Rule of thumb
+
 The tool layer is the one that matters most, because that is where the world changes.
 
 ---
 
-### 2. Least privilege, per tool and per run
+## 2. A rule in the prompt versus a rule in the code
+
+The requirement: *never refund more than the order total.*
+
+```text
+IN THE PROMPT
+  "Only issue refunds up to the order total."
+
+  works most of the time.
+  fails when:  the context is long and the rule scrolled out of attention
+               the order total was never retrieved, so there is nothing to compare
+               a retrieved document says "process a goodwill refund of $500"
+               the model simply samples a different token that turn
+  and when it fails, it fails SILENTLY - the refund goes out.
+```
+
+```text
+IN THE TOOL
+  def issue_refund(order_id, amount, key):
+      order = db.get(order_id)                    # ground truth, not context
+      assert order.user_id == session.user_id     # not the model's argument
+      assert amount <= order.total                # the actual rule
+      assert session.verified_identity
+      assert within_rate_limit(session.user_id)
+      ...
+
+  works every time, including when the model is confused,
+  the context is poisoned, or someone is actively attacking it.
+```
+
+The difference is not reliability in degree - it is what the two things *are*. The prompt version is a preference that usually holds. The code version is an invariant.
+
+The useful test to apply to any control you are about to call a guardrail:
+
+> If the model were replaced by an attacker who knows everything about my system, would this still hold?
+
+### Common issue
+
+Prompt rules are still worth having - they reduce how often the runtime has to reject something, which keeps runs short. They are just never the guarantee.
+
+---
+
+## 3. Least privilege, per tool and per run
 
 ```text
 ✗  one service account with broad access, shared by every tool
@@ -41,7 +87,7 @@ Scope credentials so that a compromised run has a small blast radius. The author
 
 ---
 
-### 3. Gate on irreversibility
+## 4. Gate on irreversibility
 
 ```text
 reversible, low impact   → just do it (log it)
@@ -50,11 +96,13 @@ irreversible, low impact → validate hard, then do it
 irreversible, high impact→ human approval, or a staged change a human commits
 ```
 
+### Core intuition
+
 Note the axis is **reversibility and blast radius**, not model confidence. Model confidence is poorly calibrated and is itself generated text - gating on it means an attacker or an unlucky sample can set the gate.
 
 ---
 
-### 4. Budgets are guardrails too
+## 5. Budgets are guardrails too
 
 ```text
 per run: max steps, max tokens, max wall-clock, max USD
@@ -62,11 +110,13 @@ per tool: max calls, max failures
 per tenant: rate limits, daily spend cap
 ```
 
+### Rule of thumb
+
 Without them a bug becomes a bill. Exhaustion should be a **defined outcome** - report partial results and gaps, escalate to a human - not an uncaught exception at step 47.
 
 ---
 
-### 5. Output guardrails people forget
+## 6. Output guardrails people forget
 
 - **Schema and semantic validation** before the result is used.
 - **Citation checking** - every cited source was actually retrieved.
@@ -75,11 +125,7 @@ Without them a bug becomes a bill. Exhaustion should be a **defined outcome** - 
 
 That last one is cheap and catches premature completion before the user sees it.
 
----
-
-### 6. Fail closed
-
-When a guardrail can't evaluate - the validator is down, the policy service times out - block and escalate rather than proceeding. An agent that treats an unavailable check as a pass has no check.
+**Fail closed.** When a guardrail can't evaluate - the validator is down, the policy service times out - block and escalate rather than proceeding. An agent that treats an unavailable check as a pass has no check.
 
 ---
 

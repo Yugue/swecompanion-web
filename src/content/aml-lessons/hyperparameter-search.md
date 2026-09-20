@@ -2,7 +2,9 @@
 
 Search is a budgeted experiment. The skill is not knowing that `GridSearchCV` exists - it is spending a fixed number of runs on the dimensions that matter and reporting the result honestly afterwards.
 
-### 1. Grid vs random
+---
+
+## 1. Grid vs random
 
 ```text
 GRID (3 values × 3 values)        RANDOM (9 draws)
@@ -21,7 +23,7 @@ RandomizedSearchCV(pipe, param_distributions, n_iter=30, cv=5, random_state=0)
 
 ---
 
-### 2. Sample the right way
+## 2. Sample the right way
 
 Scale-free hyperparameters must be sampled **log-uniformly**:
 
@@ -31,11 +33,13 @@ Scale-free hyperparameters must be sampled **log-uniformly**:
  "clf__max_depth": randint(2, 10)}
 ```
 
+### Common issue
+
 A uniform draw from (0.001, 1000) puts 99.9% of its mass above 1, so you would never test strong regularization at all.
 
 ---
 
-### 3. Which knobs are worth the budget
+## 3. Which knobs are worth the budget
 
 | Model | Tune first | Usually leave alone |
 |---|---|---|
@@ -45,11 +49,13 @@ A uniform draw from (0.001, 1000) puts 99.9% of its mass above 1, so you would n
 | SVM (RBF) | C and gamma, together | kernel cache, tol |
 | k-NN | k, metric, and the scaling | index parameters |
 
+### Rule of thumb
+
 And do not forget the preprocessing: imputation strategy, encoder choice, and whether to scale are hyperparameters of the pipeline and can be searched the same way.
 
 ---
 
-### 4. Smarter strategies when fits are expensive
+## 4. Smarter strategies when fits are expensive
 
 | Method | Idea | When |
 |---|---|---|
@@ -63,7 +69,7 @@ HalvingRandomSearchCV(pipe, params, factor=3, resource="n_estimators")
 
 ---
 
-### 5. Run it like an experiment
+## 5. Run it like an experiment
 
 - change **one hypothesis at a time** when investigating, even if the search itself is multidimensional,
 - log every run: configuration, CV mean, CV std, wall time, data version,
@@ -76,7 +82,7 @@ HalvingRandomSearchCV(pipe, params, factor=3, resource="n_estimators")
 
 ---
 
-### 6. Reporting honestly after tuning
+## 6. Reporting honestly after tuning
 
 Searching 300 configurations and reporting the best CV score is optimistic: you selected the maximum of 300 noisy numbers. Two acceptable answers:
 
@@ -87,11 +93,7 @@ Searching 300 configurations and reporting the best CV score is optimistic: you 
 scores = cross_val_score(GridSearchCV(pipe, grid, cv=5), X, y, cv=5)
 ```
 
----
-
-### 7. Know when to stop
-
-Diminishing returns arrive fast. If a full search moves validation by 0.4% while a single new feature moves it by 3%, the budget belongs in feature work or data quality, not in another sweep. Tuning is the cheapest thing to *do* and often the least valuable.
+**Know when to stop.** Diminishing returns arrive fast. If a full search moves validation by 0.4% while a single new feature moves it by 3%, the budget belongs in feature work or data quality, not in another sweep. Tuning is the cheapest thing to *do* and often the least valuable.
 
 ---
 

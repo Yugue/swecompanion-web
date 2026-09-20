@@ -1,6 +1,8 @@
 ## Features, labels, and a training example
 
-Training data is a table. **Each row is one thing you are predicting about, the columns are what you knew at the time, and one extra column is what actually happened.**
+Training data is a table.
+
+> **Each row is one thing you are predicting about, the columns are what you knew at the time, and one extra column is what actually happened.**
 
 ```text
         features - what we knew at the time        label - what happened
@@ -11,28 +13,27 @@ Training data is a table. **Each row is one thing you are predicting about, the 
  └──────────────────────────────────────────┘    └──────────────┘
 ```
 
-The features are written **x**, the label **y**. Said carefully: a row is a snapshot of everything the model will know at prediction time, paired with what actually happened afterwards. Getting that sentence right prevents most of the failures in this domain.
+Features are written **x**, the label **y**.
 
-### 1. The shapes
+---
+
+## 1. The shapes
 
 \[
 X \in \mathbb{R}^{n \times d}, \quad y \in \mathbb{R}^{n}
 \]
 
-```text
-X.shape == (n_samples, n_features)
-y.shape == (n_samples,)
-```
-
-- a **row** is one example (one user, one session, one transaction, one user-item pair),
+- a **row** is one example — one user, one session, one transaction, one user-item pair,
 - a **column** is one feature,
 - \(y_i\) is the outcome for row \(i\).
 
-Always state the unit of a row out loud. "Per user" and "per session" lead to completely different systems, and the interviewer is listening for whether you noticed.
+### Rule of thumb
+
+> Always state the unit of a row out loud. "Per user" and "per session" lead to completely different systems.
 
 ---
 
-### 2. The timeline is the whole game
+## 2. The timeline is the whole game
 
 Every row has an implicit prediction time \(t\):
 
@@ -42,26 +43,30 @@ Every row has an implicit prediction time \(t\):
      history                   prediction t                 outcome
 ```
 
-The rule:
+### Core intuition
 
-> A feature may only use information available strictly before \(t\). A label is only observable strictly after it.
+> A feature may only use information available strictly **before** \(t\). A label is only observable strictly **after** it.
 
-Breaking this rule is called **leakage** - the model gets shown something it could not possibly know yet, so it looks brilliant offline and is worthless in production. It is the single most common serious bug in applied ML, and it gets a full lesson in Chapter 2.
+### Common issue
+
+Breaking that rule is called **leakage** — the model is shown something it could not possibly know yet, so it looks brilliant offline and is worthless in production. It is the single most common serious bug in applied ML, and it gets a full lesson in Chapter 2.
 
 ---
 
-### 3. Defining a label operationally
+## 3. Defining a label two people would build the same way
 
-"Churned" is not a label. This is a label:
+"Churned" is not a label. This is:
 
 > y = 1 if the account had zero sessions in the 30 days following the prediction date, and was not cancelled for a billing failure.
 
-A usable definition names:
+A usable definition names four things:
 
-- the **event** (zero sessions),
-- the **window** (30 days after t),
-- the **exclusions** (billing failures are a different problem),
-- and **when it becomes observable** (30 days later - so your freshest training data is always 30 days stale).
+```text
+event        zero sessions
+window       30 days after t
+exclusions   billing failures are a different problem
+observable   30 days later → your freshest training data is always 30 days stale
+```
 
 ### Rule of thumb
 
@@ -69,7 +74,7 @@ A usable definition names:
 
 ---
 
-### 4. Where labels come from
+## 4. Where labels come from
 
 | Source | Cost | Noise | Delay |
 |---|---|---|---|
@@ -78,38 +83,51 @@ A usable definition names:
 | Downstream outcome (chargeback, return) | free | low | weeks to months |
 | Programmatic rule | free | high, systematic | instant |
 
-Implicit labels carry **exposure bias**: you only observe outcomes for items the current system chose to show. A recommender trained only on its own clicks slowly learns to agree with itself.
+### Common issue
+
+Implicit labels carry **exposure bias** — you only observe outcomes for items the current system chose to show. A recommender trained on its own clicks slowly learns to agree with itself.
 
 ---
 
-### 5. A worked example: delivery ETA
-
-- **Unit**: one order, at the moment the order is placed.
-- **x**: restaurant's median prep time over the last 7 days, current open orders at that restaurant, distance, hour-of-day, weather, courier supply in that area *right now*.
-- **y**: minutes between order placement and handover.
-- **Observable**: ~40 minutes later.
-
-Now test each feature against the timeline:
+## 5. A worked example: delivery ETA
 
 ```text
-"courier who accepted the order"      ← chosen AFTER t. Leakage.
-"restaurant prep time last 7 days"    ← available at t. Fine.
-"actual prep time for this order"     ← that is part of the label. Leakage.
+unit        one order, at the moment it is placed
+x           restaurant's median prep time last 7 days, open orders right now,
+            distance, hour, weather, courier supply in the area
+y           minutes between order placement and handover
+observable  ~40 minutes later
 ```
 
-Two of the three most predictive-looking features are illegal. That is typical.
+Now test each candidate against the timeline:
+
+```text
+"courier who accepted the order"      ← chosen AFTER t.  Leakage.
+"restaurant prep time last 7 days"    ← available at t.  Fine.
+"actual prep time for this order"     ← part of the label. Leakage.
+```
+
+### Intuition
+
+Two of the three most predictive-looking features are illegal. That is typical, not unlucky.
 
 ---
 
-### 6. Features are contracts with the serving system
+## 6. Features are contracts with the serving system
 
-A feature that exists in your training warehouse but cannot be computed in 20ms at request time is not a feature - it is a research artifact.
+A feature that exists in your warehouse but cannot be computed in 20ms at request time is not a feature — it is a research artifact.
 
-For each feature ask:
+For each one ask:
 
-- can it be computed **at all** at prediction time?
-- can it be computed **fast enough**?
-- will it be computed **identically** offline and online? (train/serve skew - see the **deployment** lesson.)
+```text
+can it be computed AT ALL at prediction time?
+can it be computed FAST ENOUGH?
+will it be computed IDENTICALLY offline and online?
+```
+
+### Common issue
+
+The third question is the expensive one. Two implementations of "the same" feature produce a model receiving inputs unlike the ones it learned on — and nothing errors.
 
 ---
 

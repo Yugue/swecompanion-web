@@ -2,7 +2,9 @@
 
 **A ranker's strength comes mostly from its features, and the ones that matter most describe the *relationship* between this user and this item.**
 
-### 1. The four families
+---
+
+## 1. The four families
 
 ```text
 USER      who they are            age of account, country, long-run interests
@@ -11,11 +13,13 @@ CONTEXT   the moment              device, hour, day, query, page, position
 CROSS     user × item             ← this is where personalization lives
 ```
 
+### Core intuition
+
 The first three are easy and everyone has them. The fourth is what separates a personalized system from a popularity chart.
 
 ---
 
-### 2. Cross features, concretely
+## 2. Cross features, concretely
 
 ```text
 how many videos by THIS creator has THIS user watched?          → 14
@@ -32,7 +36,26 @@ Note that none of these can exist in the two-tower retrieval model from Chapter 
 
 ---
 
-### 3. Counters over several windows
+## 3. Ranking the feature families by what they buy
+
+Add one family at a time and watch the metric:
+
+```text
+features in the model                          NDCG@10
+item only        (category, age, quality)       0.31     ← a popularity model
++ user           (country, tenure, interests)   0.34     ← who they are
++ context        (device, hour, surface)        0.36     ← the moment
++ CROSS          (user × creator, user × cat)   0.44     ← the big jump
++ session        (last 50 interactions)         0.49     ← what they want NOW
+```
+
+The two large jumps are both relationship features. Item, user, and context features together are worth +0.05; the cross and session features are worth +0.13 between them.
+
+The reason is that the first three can only ever express "this item is generally good" and "this user generally likes things like this" as *separate* statements. Only a cross feature can say "this user, specifically, watches this creator" - and that is what personalization actually is.
+
+---
+
+## 4. Counters over several windows
 
 Most behavioral features are a count or a rate over a time window, and the window length is part of the feature:
 
@@ -42,11 +65,13 @@ clicks on this category, last 7 days     → current interest
 clicks on this category, last 90 days    → durable taste
 ```
 
+### Intuition
+
 Including several lets the model compare them, which is how "this is unusual for this user" becomes learnable. Prefer rates to raw counts - a heavy user clicks more of everything, so raw counts mostly encode how active they are.
 
 ---
 
-### 4. Position is a feature, and a trap
+## 5. Position is a feature, and a trap
 
 The position an item was shown in strongly predicts whether it was clicked. Including it as a training feature is standard, and serving it is impossible - you do not know the position until after you rank.
 
@@ -60,7 +85,7 @@ This is one standard way of handling position bias; Chapter 5 covers the idea pr
 
 ---
 
-### 5. Every feature is a production commitment
+## 6. Every feature is a production commitment
 
 ```text
 can it be computed at request time, within budget?
@@ -68,6 +93,8 @@ is it computed IDENTICALLY offline and online?
 what happens when the service providing it is slow or down?
 will it still mean the same thing in six months?
 ```
+
+### Common issue
 
 The second question is the expensive one. A feature computed one way in the training pipeline and another way at serving time produces a model that quietly receives inputs unlike the ones it learned on - and nothing errors. Chapter 6 covers the defence, which is to log features exactly as served and train on those logs.
 

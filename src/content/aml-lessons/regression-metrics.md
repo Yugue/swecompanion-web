@@ -2,19 +2,21 @@
 
 **When the answer is a number, being wrong has a size.** Saying 32 minutes when it took 34 is a small miss. Saying 32 when it took 90 ruined someone's evening.
 
-So these metrics differ mainly in **how harshly they punish the big misses**, and in whether the result comes out in units a stakeholder can actually read.
+These metrics differ mainly in **how harshly they punish the big misses**, and whether the result comes out in units a stakeholder can read.
 
-### 1. The core four
+---
+
+## 1. The core four
 
 \[
 \text{MAE} = \frac{1}{n}\sum_i \lvert \hat y_i - y_i\rvert
+\qquad
+\text{MSE} = \frac{1}{n}\sum_i (\hat y_i - y_i)^2
 \]
 
 \[
-\text{MSE} = \frac{1}{n}\sum_i (\hat y_i - y_i)^2, \qquad \text{RMSE} = \sqrt{\text{MSE}}
-\]
-
-\[
+\text{RMSE} = \sqrt{\text{MSE}}
+\qquad
 R^2 = 1 - \frac{\sum_i (y_i-\hat y_i)^2}{\sum_i (y_i-\bar y)^2}
 \]
 
@@ -22,21 +24,23 @@ R^2 = 1 - \frac{\sum_i (y_i-\hat y_i)^2}{\sum_i (y_i-\bar y)^2}
 |---|---|---|---|
 | MAE | target units | robust | "typically off by 3 minutes" |
 | MSE | units² | very sensitive | hard to interpret directly |
-| RMSE | target units | sensitive | "off by about 6 minutes, with big misses weighted" |
-| R² | unitless | inherits MSE's sensitivity | "explains 74% of the spread in the data, vs predicting the mean" |
+| RMSE | target units | sensitive | "off by ~6 minutes, big misses weighted" |
+| R² | unitless | inherits MSE's sensitivity | "explains 74% of the spread vs predicting the mean" |
 
 ---
 
-### 2. RMSE vs MAE: the gap is information
+## 2. RMSE vs MAE — the gap is information
 
-RMSE ≥ MAE always, and the size of the gap tells you about the error distribution:
+RMSE ≥ MAE always. The **size of the gap** tells you about the error distribution:
 
 ```text
 MAE 3.0, RMSE 3.2  → errors are uniform in size; no dramatic misses
 MAE 3.0, RMSE 6.0  → most predictions are good, a few are very wrong
 ```
 
-If that gap is large, the aggregate hides a tail, and the right next step is to look at the worst errors rather than to tune the model.
+### Intuition
+
+A large gap means the aggregate is hiding a tail, and the right next step is to look at the worst errors rather than tune the model.
 
 ### Rule of thumb
 
@@ -44,78 +48,92 @@ If that gap is large, the aggregate hides a tail, and the right next step is to 
 
 ---
 
-### 3. R² and its traps
+## 3. R² and its traps
 
-R² compares your model to the trivial "always predict the mean" baseline - which is exactly why it feels informative. But:
+R² compares your model against "always predict the mean", which is why it feels informative.
 
-- it can be **negative** (worse than the mean),
-- it always increases when you add features, which is why **adjusted R²** exists,
-- it is scale-free, so it cannot tell you whether the error is acceptable to the business,
-- it depends on the variance of the test set, so it is not comparable across datasets.
+### Common issue
 
-"R² = 0.9" on a low-variance test slice can be worse in absolute terms than "R² = 0.6" on a hard one.
+```text
+it can be NEGATIVE                     worse than the mean
+it always rises with more features     hence adjusted R²
+it is scale-free                       says nothing about acceptable error
+it depends on the test set's variance  not comparable across datasets
+```
+
+R² = 0.9 on a low-variance slice can be worse in absolute terms than R² = 0.6 on a hard one.
 
 ---
 
-### 4. Percentage errors
+## 4. Percentage errors
 
 \[
 \text{MAPE} = \frac{100}{n}\sum_i \left\lvert\frac{y_i-\hat y_i}{y_i}\right\rvert
 \]
 
-Attractive because it is scale-free and every stakeholder understands "8% off". Three real problems:
+Attractive because it is scale-free and everyone understands "8% off".
 
-1. undefined when \(y_i = 0\), and explosive when y is small,
-2. **asymmetric**: over-prediction can exceed 100% error while under-prediction is capped at 100%, so minimizing MAPE biases predictions low,
-3. meaningless for targets that can be negative.
+### Common issue
 
-sMAPE and WAPE (total absolute error divided by total actuals) patch some of this; WAPE is the usual choice in demand forecasting.
+Three real problems:
+
+```text
+undefined at y = 0, and explosive when y is small
+ASYMMETRIC — over-prediction can exceed 100% error, under-prediction is capped
+meaningless for targets that can be negative
+```
+
+That asymmetry biases predictions **low**. WAPE — total absolute error over total actuals — is the usual fix in forecasting.
 
 ---
 
-### 5. Skewed targets
+## 5. Skewed targets
 
-When y spans orders of magnitude (prices, view counts, revenue), absolute error is dominated by the largest values. Evaluating in log space fixes the framing:
+When y spans orders of magnitude — prices, view counts, revenue — absolute error is dominated by the largest values.
 
 \[
 \text{RMSLE} = \sqrt{\frac{1}{n}\sum_i \big(\log(1+\hat y_i) - \log(1+y_i)\big)^2}
 \]
 
-This measures **ratio** error - being off by 2× costs the same whether the true value is 10 or 10,000 - which is usually how the error is actually experienced.
+### Intuition
+
+This measures **ratio** error: being off by 2× costs the same whether the truth is 10 or 10,000 — which is usually how the error is actually experienced.
 
 ---
 
-### 6. Asymmetric costs
+## 6. Asymmetric costs
 
-Most business regression problems are asymmetric:
+Most business regression is asymmetric:
 
-- an ETA that is 10 minutes late is far worse than 10 minutes early,
-- under-stocking loses a sale; over-stocking ties up capital,
-- under-predicting server load causes an outage.
-
-The fix is to evaluate (and train) with **quantile loss** and report the quantile you serve:
+```text
+an ETA 10 minutes late is far worse than 10 minutes early
+under-stocking loses a sale; over-stocking ties up capital
+under-predicting server load causes an outage
+```
 
 ```python
 GradientBoostingRegressor(loss="quantile", alpha=0.8)
 ```
 
-Predicting the 80th percentile rather than the mean is a modelling decision the metric has to reflect, or your evaluation will keep preferring the wrong model.
+### Rule of thumb
+
+Predicting the 80th percentile rather than the mean is a modelling decision, and the metric has to reflect it — or evaluation keeps preferring the wrong model.
 
 ---
 
-### 7. Also look at the residuals
-
-A single number cannot show structure. Plot residuals against the fitted value and against time:
+## 7. Also look at the residuals
 
 ```text
 residual
   │   .  . . .  .      ← healthy: a flat band around zero
 0 ├─────────────────
   │  . .  .  . .
-  │        ╱           ← fanning out: error grows with y → try log or a different loss
+  │        ╱           ← fanning out: error grows with y
 ```
 
-Systematic curvature means a missing nonlinearity; a widening fan means non-constant variance; drift over time means the relationship is changing.
+### Intuition
+
+A single number cannot show structure. Curvature means a missing nonlinearity; a widening fan means non-constant variance; drift over time means the relationship is changing.
 
 ---
 
