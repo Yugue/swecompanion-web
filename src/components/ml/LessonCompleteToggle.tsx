@@ -10,7 +10,7 @@ export function LessonCompleteToggle({
 }: {
   topicId: string;
   accent: string;
-  track?: "ml" | "aml";
+  track?: "ml" | "aml" | "agentic";
 }) {
   const { completed, toggle } = useProgress(track, []);
   const done = completed.has(topicId);
