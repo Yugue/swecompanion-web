@@ -499,6 +499,188 @@
       "For consistent formatting or style at scale, a narrow stable domain, or cost reduction on a stable task - not for adding knowledge, which is retrieval, or for reasoning."
     ]
   },
+  "rrp-foundations": {
+    "questions": [
+      "Why are 'predict the rating' and 'choose what to show' different problems?",
+      "Why does a recommender narrow the catalogue in stages instead of scoring everything?",
+      "A user never clicked a video. Give three explanations.",
+      "Why is a non-click much weaker evidence than a click?",
+      "What does 'you only see outcomes for what you showed' do to your training data?",
+      "What three things must a task-framing sentence pin down?",
+      "Precision@10 is flat and NDCG@10 improved. What changed?",
+      "When would you use MRR rather than NDCG?",
+      "Why is popularity such a hard baseline to beat?",
+      "Name the three cold-start problems and the fix for each."
+    ],
+    "answers": [
+      "The first is a regression problem scored on every prediction; the second is graded only on the handful of items you actually showed. A model can be excellent at the first and useless at the second.",
+      "Cost. Scoring ten million items with a good model cannot fit in a page-load budget, so retrieval cuts cheaply, ranking scores carefully, and re-ranking fixes the list.",
+      "They saw it and were not interested; they never saw it because it was never shown; or they saw it and were busy. Only the first is a real negative, and you cannot tell them apart.",
+      "A click is weak evidence of interest. A non-click confounds disinterest with never having been shown it, with position, and with hurry - so it cannot be treated as a negative label.",
+      "It makes the logs a record of the old system's choices as much as of the user, which is why offline gains routinely fail to appear online. This is exposure bias.",
+      "The unit (per impression, per session, per user-item pair), the target, and when the label becomes observable - the last one bounds how fresh training data can ever be.",
+      "The same number of good items are in the top 10, but they moved higher up it. NDCG discounts by position; precision@k does not care about order within k.",
+      "When there is a single right answer - a lookup or navigational search. MRR only looks at where the first correct item landed, which suits feeds badly.",
+      "Attention is extremely concentrated, so the popular item genuinely is what most people want. Any model must be quoted against it rather than in isolation.",
+      "New item - use content features, which exist before any interaction. New user - use context, onboarding, and speed to the first few interactions. New system - no logs at all, so start from content and rules."
+    ]
+  },
+  "rrp-classical-recommenders": {
+    "questions": [
+      "When is content-based filtering the right first system despite being weaker?",
+      "What can content-based filtering never do?",
+      "Why did production systems move from user-based to item-based collaborative filtering?",
+      "Your 'similar items' widget shows the same three bestsellers everywhere. Why?",
+      "What are the latent factors in matrix factorization, and what should you tell a PM about them?",
+      "What work do the bias terms do in matrix factorization?",
+      "Why can you not treat every unobserved cell as a zero?",
+      "What does a pairwise ranking objective claim that a pointwise one does not?",
+      "Why can a factorization machine learn an interaction seen only twice?",
+      "How is matrix factorization a special case of a factorization machine?"
+    ],
+    "answers": [
+      "When the catalogue turns over fast or the product is new - it works on day one because item features exist before any interaction, so it has no item cold-start problem.",
+      "Surprise anyone. It only recommends inside the region the user already explored, because nothing in the item features connects two things that are merely bought together.",
+      "Item-item similarities are stable over time, so they can be precomputed offline and looked up in microseconds; user similarities change every session. Item-based also explains itself better.",
+      "The similarity is built on raw co-occurrence counts, and popular items co-occur with everything. Normalize with cosine, Jaccard, or PMI.",
+      "Dimensions the model invented to fit the data. They are useful as a whole and meaningless one at a time, they change completely on retrain, and reading meaning into them is storytelling.",
+      "They capture the overall average, generally popular items, and generally active users. Only what remains after removing those three is genuine personalization.",
+      "It claims the user rejected ten million items they never saw. It is wildly wrong and it systematically buries everything unpopular.",
+      "Only that a clicked item should outrank an unclicked one - a much weaker and more defensible claim than asserting the unclicked item is bad.",
+      "Because pairs share strength through the per-feature vectors. Both features appear thousands of times elsewhere, so their vectors are well estimated even if that pair is rare.",
+      "Feed it exactly two one-hot features, a user id and an item id, and the interaction term becomes the dot product of a user vector and an item vector."
+    ]
+  },
+  "rrp-retrieval": {
+    "questions": [
+      "What metric does retrieval get, and why can the ranking metric not be used?",
+      "Why is low precision acceptable in retrieval?",
+      "What is the difference between an embedding learned per id and one computed from features?",
+      "Why must the two towers never see each other's input?",
+      "Name a feature a two-tower model cannot use, and say where it belongs.",
+      "Why are random negatives a problem?",
+      "What bias do in-batch negatives introduce, and what corrects it?",
+      "Your retrieval model has great offline recall and returns odd candidates live. Why?",
+      "How do you measure whether an approximate index is good enough?",
+      "Why run several retrieval sources, and what must you cap?"
+    ],
+    "answers": [
+      "Recall at large k - was the item the user eventually engaged with even a candidate? Ranking metrics measure order, and retrieval's order is discarded by the ranker.",
+      "The ranker discards the junk. What cannot be recovered is an item retrieval left out, so widening retrieval raises the ceiling for the whole funnel.",
+      "A per-id vector needs interaction history and so cannot cover new items. A vector computed from features exists the moment the item does, which is the concrete cold-start fix.",
+      "So every item vector can be computed in advance. If the inputs mixed before the dot product you would need one forward pass per item per request, which is impossible at catalogue scale.",
+      "Anything needing both together - 'how many times this user viewed this exact item'. It belongs in the ranker, which is why ranking is a separate stage.",
+      "They are almost always wildly irrelevant, so the model only learns coarse distinctions - it separates cooking from car repair but not a good cooking video from a poor one.",
+      "A bias toward popular items, because popular items appear in batches often and so are used as negatives constantly. Correct by adjusting scores for each item's sampling frequency.",
+      "It was trained only against easy negatives, so it never learned the fine distinctions. Offline evaluation scores it against a similarly easy set and agrees with itself.",
+      "Compare against exact search on a sample - what fraction of the exact top-k did the index return. Also check whether the items lost are random or systematically the new and niche ones.",
+      "Each source covers a different reason to show something, and the union covers cases none covers alone. Cap each source's contribution, or the most prolific one crowds out the others."
+    ]
+  },
+  "rrp-ranking": {
+    "questions": [
+      "Why is accuracy meaningless for click-through prediction?",
+      "Why can a CTR model be excellent offline and flat online?",
+      "Why do production rankers stay pointwise when pairwise matches the task better?",
+      "Which feature family carries the personalization, and why?",
+      "How is position handled between training and serving?",
+      "What two problems justify a neural ranker over gradient-boosted trees?",
+      "Why does attention over user history beat pooling it?",
+      "Why does optimizing clicks alone produce clickbait, and what fixes it?",
+      "You down-sampled negatives 10:1. What happened to your predicted rates?",
+      "Why can the ranking model not handle diversity?"
+    ],
+    "answers": [
+      "Click rates are a few percent, so always predicting 'no click' scores 95-99% and catches nothing. Use ranking metrics for the list and log loss for the score.",
+      "The training data is the old ranker's output, so offline evaluation rewards agreeing with it. Position bias and exposure bias both push the same way.",
+      "Because the score leaves the ranker. Auctions multiply it by a bid, blending combines it with other predictions, and thresholds need a stable meaning - all of which need a calibrated number.",
+      "Cross features - user by item. They describe the relationship, like how often this user engaged with this creator, and they are what a two-tower model structurally cannot express.",
+      "Included as a feature during training so the model can attribute part of the click to placement, then fixed to a constant at serving, since you cannot know position before you rank.",
+      "Huge sparse ids, which trees handle badly and embeddings handle well, and feature interactions, which a plain layer stack learns inefficiently.",
+      "Attention produces a different summary of the history per candidate, so scoring a pasta video weights past cooking videos heavily. Pooling produces one summary for every candidate and loses order.",
+      "The click is the easiest outcome in the chain to provoke and the least connected to satisfaction. Predict several objectives - watch, like, share, complaint - and combine them with a negative weight on complaints.",
+      "They are inflated - a 1% true rate becomes about 9% in training. The sampling rate is known, so the correction is arithmetic and applied at serving.",
+      "Redundancy depends on the other items already chosen, which a per-item score cannot see. It needs a stage where the whole list exists."
+    ]
+  },
+  "rrp-evaluation": {
+    "questions": [
+      "Why must offline splits be chronological?",
+      "Why does offline evaluation favour models that agree with the old ranker?",
+      "Give three explanations for offline up and online flat.",
+      "Write the standard decomposition of a click, and say which part you want.",
+      "How do you estimate the position effect?",
+      "What must the serving system log for counterfactual evaluation to be possible?",
+      "Why is inverse-propensity weighting hard to use in practice?",
+      "Why randomize an A/B test by user rather than by request?",
+      "What is interleaving good for and what can it not measure?",
+      "How can a recommender look like it is improving while the catalogue shrinks?"
+    ],
+    "answers": [
+      "A random split lets the model train on the future it will never have and on items that did not exist yet. It inflates every number and is the most common reason offline results do not survive.",
+      "Items the old system never showed have no labels, so a model that surfaces genuinely better items is scored as if those items were irrelevant.",
+      "Exposure bias means the new model's better items were never shown; position bias means offline labels reward reproducing the old placement; and the metric may not match the business outcome. Train/serve skew and a real-but-small effect also qualify.",
+      "P(click) = P(examined | position) × P(relevant | user, item). You want the second term; the first is placement and must be divided out.",
+      "Vary position deliberately - randomize the top k occasionally, or swap adjacent slots - and compare click rates for the same item at different ranks. You cannot separate them from data where position never varied.",
+      "The slate, the scores, the outcome, and critically the probability each item was selected. Without logged propensities the method is impossible, and a fully deterministic ranker gives probabilities of exactly 1 and 0.",
+      "Variance. An action taken with probability 0.001 gets a weight of 1000, so one lucky click dominates the estimate. Clipping and self-normalization trade bias for usability.",
+      "Request-level randomization lets the same person see both systems, which contaminates the comparison and makes an inconsistent product. Assignment must be sticky across sessions.",
+      "It is far more sensitive and needs much less traffic, because each user compares both rankers directly. It only compares orderings, so it cannot measure retention, revenue, or system-level effects.",
+      "Accuracy metrics are computed on logs that inherit the same narrowing, so they keep improving. Only catalogue coverage and list diversity, tracked as trends, reveal it."
+    ]
+  },
+  "rrp-production": {
+    "questions": [
+      "In a 50ms budget, what usually costs the most, and what follows from that?",
+      "What should happen when the feature store is slow?",
+      "Why is a 'recent behavior' feature updated nightly worthless?",
+      "What is train/serve skew and why is it so dangerous?",
+      "What makes training data point-in-time correct, and what is the easiest way to get it?",
+      "Why do recommenders retrain far more often than a typical classifier?",
+      "Which drift type does retraining not fix?",
+      "What must you re-tune after every retrain, and why?",
+      "Name four things a single exploration budget pays for.",
+      "Your embedding table no longer fits in memory. Give three options."
+    ],
+    "answers": [
+      "Feature fetching, not model inference. So measure where the milliseconds go before shrinking the model - batch lookups, co-locate the store, cache hot items, or cut the candidate count.",
+      "Serve with default or stale features and log it. Every stage needs a timeout and a fallback ending in a static popularity list, because the page must always render.",
+      "Its value is entirely in recency. A nightly job makes it a long-run feature with extra steps, and it is the most common way sequence models fail to deliver in production.",
+      "The same feature computed two different ways in training and serving. Nothing errors - the model simply receives inputs unlike the ones it learned on, and performance quietly degrades.",
+      "Features must reflect what was true at the moment of the impression, not what is true now. Logging features exactly as served and training on those logs gives it for free and eliminates skew at the same time.",
+      "The catalogue turns over weekly. A new item has no learned vector and no index entry, so it is invisible rather than merely ranked low - a direct business problem.",
+      "Behavioral drift, where a signal changes meaning - after a UI change, historical clicks describe a product that no longer exists, so retraining on them rebuilds the old world.",
+      "Thresholds and blending weights. The score distribution moves with every retrain, so a fixed threshold now means something different, which causes a surprising share of post-retrain incidents.",
+      "Cold start for new items, breaking feedback loops, estimating position bias, and enabling counterfactual evaluation by keeping selection probabilities non-zero.",
+      "Frequency pruning, which usually gives the best ratio because most ids are too rare to support a fitted vector; quantization to 8-bit, for roughly 4x with a small accuracy loss; and hashing into fixed buckets, which costs collisions."
+    ]
+  },
+  "rrp-applied-practice": {
+    "questions": [
+      "Why does optimizing any proxy eventually go wrong?",
+      "In a marketplace, what does buyer-only optimization do to the platform?",
+      "How do you handle an objective like retention that is too slow to train on?",
+      "What makes a guardrail different from another weighted term?",
+      "Why is 'we did not use the protected attribute' not a defence?",
+      "Why must policy be a filter rather than a penalty in the score?",
+      "A retrieval source silently breaks. Why do ranking metrics stay healthy?",
+      "Users say the feed feels repetitive. What order do you diagnose in?",
+      "What are the eight things a complete RRP design answer covers?",
+      "What is the highest-value habit when answering an RRP question?"
+    ],
+    "answers": [
+      "Enough optimization pressure finds where the proxy diverges from the goal. That is what proxies do, not a modelling bug - so decide in advance what you will hold fixed.",
+      "It concentrates traffic on a few proven sellers, which raises short-term conversion and starves supply. Listings dry up and the catalogue, the platform's real asset, stops growing.",
+      "Train on short-term predictions you can measure, combine them with weights set from what correlates with long-term outcomes, and validate with a long-horizon holdback held on a fixed policy for months.",
+      "A guardrail is not traded off. Once it becomes a weighted term, optimization will spend it - so it is declared before the experiment as something you refuse to lose.",
+      "Correlated features reproduce it. Postcode is a well-known proxy, so excluding the attribute itself does not prevent the effect.",
+      "A score can always be outweighed by a large enough relevance, so 'mostly not shown' is the best it can achieve. A hard rule must remove the item, applied late where the whole list exists and can be audited.",
+      "The ranker is still ordering the candidates it receives correctly. Only a retrieval-specific recall metric catches it - which is why retrieval needs its own metric.",
+      "Infrastructure first (fallbacks, nulls, staleness), then retrieval recall, then ranking on the candidates actually retrieved, then the list itself for diversity and duplication, then the objective.",
+      "Goal and metric, the training row and label, retrieval, ranking, re-ranking, evaluation, cost and latency, and failure modes. The last three are what separate shipped experience from reading.",
+      "Say which stage you are in - retrieval, ranking, or re-ranking - because the constraints, metrics, and models differ completely, and define the training row before choosing a model."
+    ]
+  },
   "lc-hashmap-frequency-and-top-k": {
     "questions": [
       "Walk me through your approach to Two Sum — start with the brute force, then optimize.",
