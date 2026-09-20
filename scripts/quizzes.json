@@ -311,6 +311,188 @@
       "The model's own decisions shape the data it later trains on - a recommender only observes clicks on what it chose to show, and a blocked segment never proves it was fine. Hold out a small random control, or add exploration."
     ]
   },
+  "agentic-foundations": {
+    "questions": [
+      "What single property distinguishes an agent from a workflow?",
+      "Why does an agent's cost grow faster than its step count?",
+      "Constrained decoding guarantees valid JSON. What does it not guarantee?",
+      "Name the three stopping conditions every agent loop needs.",
+      "Your agent invents an order ID after retrieval returns nothing. Where is the bug?",
+      "Why is 'be careful and accurate' a bad agent instruction?",
+      "A 40-step run degrades in quality even though nothing was truncated. Why?",
+      "A PM asks for an agent to process invoices. What decides whether it should be one?",
+      "What is the capability-ceiling test before adding scaffolding?",
+      "Per-step success is 95%. What is a 10-step task's end-to-end success?"
+    ],
+    "answers": [
+      "Control flow: in a workflow the engineer writes the sequence of steps; in an agent the model chooses the next step at runtime.",
+      "The model is stateless, so every turn re-sends the whole transcript. Input tokens are the sum of prefixes, which grows quadratically in steps.",
+      "Truth. A schema constrains shape, so a well-formed object can still contain an invented ID or amount; semantic validation is a separate layer.",
+      "The model emits a final answer; a budget (steps, tokens, wall-clock, or dollars) is exhausted; or a guardrail halts the run.",
+      "In the system, not the prompt. The tool should return an explicit 'no results' observation and reject unresolvable IDs - a likely continuation is an ID-shaped string.",
+      "It describes a trait rather than an observable behavior, so it cannot be turned into an assertion or an eval case.",
+      "Relevant facts compete with plausible distractors. A long, noisy context measurably lowers accuracy in addition to costing money and latency.",
+      "Whether the path is data-dependent, the step count is unknown in advance, and recovery needs judgment. If the steps are the same each time, ship a workflow.",
+      "Ask whether a single well-prompted call with the right context could do the task. If not, more steps, reflection, or subagents will not fix it.",
+      "Roughly 0.95^10, about 60% - which is why agents must be measured end to end rather than from per-call benchmarks."
+    ]
+  },
+  "agentic-tool-use": {
+    "questions": [
+      "The model emits a tool call. What does it actually execute?",
+      "Where must 'a user can only read their own records' be enforced, and why not in the prompt?",
+      "Why do tool definitions cost tokens on every single turn?",
+      "A payment tool times out but the payment succeeded. What makes a retry safe?",
+      "What belongs in a tool description beyond what the tool does?",
+      "When can two tool calls run in parallel?",
+      "Why is a sandboxed code tool both the biggest capability gain and the biggest risk?",
+      "Your agent has 200 tools and picks the wrong one often. What is the fix?",
+      "Why must parallel tool results be bound by call id?",
+      "What changes in your threat model when tool schemas come from a third-party server?"
+    ],
+    "answers": [
+      "Nothing. It emits a structured request; the runtime authorizes, executes, and returns an observation - which is where every security property lives.",
+      "In the tool implementation, scoping the query to the authenticated session's identity. The model produces likely text rather than obeying policy, and anything it reads can argue for different behavior.",
+      "Schemas are serialized into the prompt, so they are re-sent with the full context each turn - 40 tools can be thousands of tokens per step.",
+      "A caller-supplied idempotency key. The agent cannot distinguish failure from success-without-response, so only the tool can deduplicate.",
+      "When to use it, when not to use it, what it returns, and whether it is irreversible. The 'when not to' line prevents random choice among near-duplicates.",
+      "Only when no call's arguments depend on another's result and no two write to the same state. Reads fan out; writes are serialized.",
+      "It covers operations you cannot enumerate and moves exact computation out of token prediction, but generated code is untrusted input - so no ambient credentials, no network, scoped filesystem, hard limits.",
+      "Treat selection as retrieval: index tool descriptions, expose only the top ~12 per turn plus a few always-on tools. First consolidate duplicates and delete unused ones.",
+      "Results return out of order. Appending by completion order silently attributes one tool's output to another call.",
+      "That server writes text into your prompt via descriptions and results, and can change its tool set between runs - so pin versions, treat its text as untrusted, and scope credentials per server."
+    ]
+  },
+  "agentic-reasoning": {
+    "questions": [
+      "What does chain of thought actually buy the model?",
+      "Why can't stated reasoning be used as an audit log?",
+      "What does ReAct add over planning everything up front?",
+      "What is ReAct's characteristic failure?",
+      "When is ungrounded self-critique useless?",
+      "Best-of-5 helps on code and not on customer emails. Why?",
+      "What makes tree search over actions impractical in production?",
+      "How should a reasoning model be used inside an agent loop?",
+      "What is the main engineering reason to use subagents?",
+      "Which field is most often missing from a subagent brief?"
+    ],
+    "answers": [
+      "More serial computation per decision - extra forward passes conditioned on prior tokens. It adds no knowledge and checks nothing against the world.",
+      "The text is a plausible explanation generated alongside the answer, not a transcript of the computation; it can be unfaithful while the answer is correct, or vice versa.",
+      "Grounding: each decision is made against a fresh observation, which is the only part of the loop not generated by the model, so the plan is corrected by evidence.",
+      "Myopia - every step is locally sensible and the run wanders without converging, because nothing asks whether progress is being made.",
+      "When the critic has no information the actor lacked. The same model in the same context usually rates its own error as correct.",
+      "The verifier. Tests and a compiler are near-perfect, so sampling converts into accuracy; an LLM judge is noisy, so larger N optimizes for the judge's blind spots.",
+      "Real actions are usually irreversible, so branches cannot be abandoned, and partial states are often expensive to evaluate.",
+      "Route by step kind: reasoning model with a generous budget for planning and diagnosis, fast model for extraction and formatting. Tune the budget per task type on the eval set.",
+      "Context isolation: a subagent absorbs a large read in its own window and returns a compact result, so the parent never re-sends those tokens each turn.",
+      "'Already tried' - without it, multiple subagents repeat the same failed searches. Constraints are the other commonly dropped field."
+    ]
+  },
+  "agentic-memory-and-retrieval": {
+    "questions": [
+      "Why doesn't a larger context window remove the need for selection?",
+      "What must never be lost when a transcript is compacted?",
+      "How does agentic RAG differ from classic RAG, and when is classic better?",
+      "Most retrieval misses are really what kind of failure?",
+      "Why does dense retrieval fail on 'error TSC2345'?",
+      "Why does a cross-encoder rerank only the top ~50 candidates?",
+      "What are the three kinds of agent memory and their lifetimes?",
+      "Why must permission filters be applied inside the retrieval query?",
+      "Why does repeated compaction lose a constraint stated at turn 2?",
+      "A run crashes at step 18. What must have been persisted for a correct resume?"
+    ],
+    "answers": [
+      "Irrelevant context costs money and latency and measurably lowers accuracy, because the needed fact competes with plausible distractors. A bigger window raises what you can include, not what you should.",
+      "Identifiers, exact values, and user constraints and corrections - summaries destroy exactly these. Pin them and copy them forward verbatim.",
+      "The agent issues its own queries, reads the results, and reformulates. Classic single-shot RAG is better for well-specified single-hop lookups: one round trip, predictable cost.",
+      "Chunking failures - the answer straddles a boundary, or the chunk is unreadable standalone. Split on document structure and prepend titles before blaming the embedding model.",
+      "Rare identifier tokens produce weak vectors, so semantic similarity misses them. BM25 matches the literal string, which is why production uses hybrid search.",
+      "It scores query and passage jointly in one forward pass, so nothing can be precomputed - one pass per pair. The cheap bi-encoder stage supplies recall; the reranker supplies precision.",
+      "Working memory is the context window (this turn), episodic memory records past sessions, and semantic memory holds durable facts about the user or domain in an explicit store.",
+      "Filtering after retrieval means the passage already entered the pipeline. Scoping inside the query is what prevents cross-tenant or unauthorized data exposure.",
+      "Each compaction summarizes the previous summary, so detail decays geometrically. Fix it by pinning constraints verbatim and compacting from the original transcript.",
+      "The goal, the plan with per-step status, executed tool calls with arguments and results, artifacts, budget consumed, and versions - plus a way to establish whether step 18's side effect was applied."
+    ]
+  },
+  "agentic-multi-agent": {
+    "questions": [
+      "What are the only two solid reasons to split into multiple agents?",
+      "Why is 'a specialist agent writes better than a generalist' a weak justification?",
+      "How do subagents reduce cost while increasing total tokens?",
+      "What must a brief contain, and why can't it be vague?",
+      "What must a worker return instead of its transcript?",
+      "Name three ways multi-agent systems fail invisibly.",
+      "How does a merge step prevent fabricated statistics?",
+      "Two agents write the same file in a shared workspace. What is the minimum control?",
+      "Why are per-worker budgets insufficient?",
+      "What are the standard workflow patterns that are not agents?"
+    ],
+    "answers": [
+      "Parallelism over independent subtasks, and context isolation for work that will not fit in one window. Both are checkable properties of the task.",
+      "Same weights - the gain comes from a focused prompt, which a single agent can also have, without the coordination cost.",
+      "The parent never re-sends the worker's large read on every subsequent turn. Total tokens rise; the repeatedly-resent context shrinks, which is what dominated.",
+      "Objective, relevant parent context, constraints, deliverable schema, and what was already tried. The worker cannot ask a clarifying question of a context it never saw.",
+      "Structured findings with provenance, plus explicit gaps and cost. Returning the transcript undoes the context isolation that motivated the split.",
+      "Gaps no brief owned, error amplification where a wrong finding becomes a premise, and contradictions silently resolved at merge time.",
+      "By dropping or flagging claims without a source and as-of date, surfacing contradictions with both sources, and listing gaps explicitly rather than concatenating findings.",
+      "Single ownership per file or record, or optimistic concurrency where a write fails if the version moved - plus logged writes and timeout-bounded locks.",
+      "Ten steps each across six workers is sixty steps with no global stop. Budgets must be enforced run-wide, with exhaustion as a defined partial-result outcome.",
+      "Prompt chaining, routing to a specialist handler, parallel sampling with aggregation, and evaluator-optimizer loops - all with control flow written in code."
+    ]
+  },
+  "agentic-evaluation-and-safety": {
+    "questions": [
+      "Why is a single run per eval case misleading, and what do you report instead?",
+      "Which metric is the honest one for an agent that issues money?",
+      "Name three process metrics that complement outcome metrics.",
+      "How do you find the root cause in a 30-step failed trace?",
+      "Why validate an LLM judge, and what number do you quote?",
+      "Name three known biases of LLM judges and a mitigation for each.",
+      "What is the mechanical detector for agent looping?",
+      "Why gate on reversibility rather than model confidence?",
+      "What three things must combine for prompt-injection exfiltration?",
+      "Why is approval fatigue worse than no approval gate?"
+    ],
+    "answers": [
+      "The path is non-deterministic, so a case that passes 60% of the time can look like a pass. Run each case n times and report the pass-rate distribution with cost and steps.",
+      "pass^k - the fraction of cases that succeed on every one of k runs - rather than pass@k, which flatters by counting any single success.",
+      "Steps per run, tool-selection and argument accuracy, tokens and cost per run, and recovery rate after a failed call.",
+      "Read the outcome, then the last step, then bisect backwards to the first step that was wrong given what was known at that time. Everything after it is a consequence.",
+      "Because it is a measurement instrument with biases. Hand-label a few hundred examples and quote judge-human agreement, re-validating whenever the judge or rubric changes.",
+      "Position bias (randomize order), length bias (state in the rubric that length is not a criterion), and self-preference (use a different model as judge).",
+      "Hash (tool name, arguments) per step and break on repetition - then fix the tool so it returns something conclusive rather than the same observation.",
+      "Model confidence is generated text, poorly calibrated, and influenceable by the same content that caused the problem. Reversibility and blast radius are properties of the action.",
+      "Untrusted content, access to private data, and an external channel in the same context. Removing any one breaks the chain.",
+      "It manufactures false assurance - the organization believes actions were reviewed while the reviewer is approving in two seconds. Watch rejection rate and approval latency."
+    ]
+  },
+  "agentic-production": {
+    "questions": [
+      "Which lever reduces agent cost the most, and why?",
+      "Your prompt cache hit rate is near zero despite a long fixed system prompt. Why?",
+      "How should an agent prompt be ordered, and what does that buy?",
+      "Which three version fields must appear in every trace?",
+      "Which operational metrics lead quality metrics in detecting degradation?",
+      "How do you test a non-deterministic agent in CI?",
+      "Why is replaying production traces the best tool for a model upgrade?",
+      "Why is renaming a tool riskier than editing a prompt?",
+      "In what order do you escalate through fixes for a recurring failure?",
+      "When is fine-tuning an agent justified?"
+    ],
+    "answers": [
+      "Fewer steps. Because the transcript is re-sent each turn, input tokens grow with the sum of prefixes, so removing steps removes the context they would have carried forward too.",
+      "Something volatile sits early in the prefix - a timestamp, session or request id - and the cache matches on an exact prefix, so everything after the first differing token is recomputed.",
+      "Stable to volatile: system prompt, tool schemas, static docs, then history and the current turn. It maximizes cache hits and puts decision-relevant material nearest the generation point.",
+      "Prompt version, tool schema version, and model identifier - without them a regression after a multi-change deploy cannot be attributed.",
+      "Steps per run, cost per successful task, tool error rate by tool, cache hit rate, and escalation or retry rate.",
+      "Unit tests with mocked tools asserting ordering, arguments, and refusals; replay against recorded traces; property assertions including negative ones; and a pass-rate gate over repeated runs.",
+      "It diffs behavior on real inputs rather than a curated set, showing changes in tool choices, arguments, step count, and cost before any traffic is affected.",
+      "It breaks running agents and invalidates prompt caches. Prefer additive changes with a deprecation overlap so the old tool nudges rather than fails.",
+      "Tool descriptions and return shapes, then context and retrieval, then prompt rules and examples, then model or thinking budget, then fine-tuning.",
+      "For consistent formatting or style at scale, a narrow stable domain, or cost reduction on a stable task - not for adding knowledge, which is retrieval, or for reasoning."
+    ]
+  },
   "lc-hashmap-frequency-and-top-k": {
     "questions": [
       "Walk me through your approach to Two Sum — start with the brute force, then optimize.",
