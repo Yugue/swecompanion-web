@@ -85,10 +85,13 @@ An agent given this can finish the job. An agent given `"Error"` will either red
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "a payment tool times out but the payment succeeded":
-
-> From the agent's point of view a timeout is indistinguishable from a failure, so it will retry and charge the customer twice. This can't be solved in the agent - it has to be solved in the tool, with an idempotency key supplied by the caller, something like run id plus step. The payment service records the key, and a retry with the same key returns the original result instead of charging again. Alongside that I'd have the tool expose a status lookup so the agent can check the outcome rather than assume, classify errors so that only genuinely transient ones are retried, and handle transient retries in the runtime below the model so a 503 doesn't cost a full context re-send. And I'd cap retries per tool and per run, escalating to a human when exhausted, because the alternative is spending the whole budget turning a transient blip into an outage.
+- **Tool failure is the normal case,** and the wording of the error decides whether the agent recovers or spirals. Name what was wrong, what the valid form is, and what to do next - including "do not retry".
+- **An empty result is the worst error,** because an unexplained blank is where invention starts.
+- **Classify before retrying:** transient failures belong to the runtime (retrying in the model costs a full context re-send), input errors belong to the model, and terminal errors must stop.
+- **Any tool with side effects needs a caller-supplied idempotency key.** The agent cannot tell "failed" from "succeeded but I didn't hear back" - only the tool can.
+- **Cap retries per tool and per run,** or a transient blip consumes the entire budget at growing context size.
+- **Give partial failure a shape** - what succeeded, what failed and why, what is safe to retry - so the agent can finish the job instead of redoing it.
 
 Next topic is **Parallel and sequential calls**.

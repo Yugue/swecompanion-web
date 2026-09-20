@@ -104,10 +104,13 @@ So the final comparison is an **online A/B test**:
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "model B beats model A by 0.4% AUC":
-
-> Not on that evidence. I would first check whether 0.4% is bigger than the fold-to-fold spread - with ten folds I would compare the paired per-fold differences, or bootstrap the test set for a confidence interval on the gap. I would also ask how many configurations were tried, because the best of many is optimistic, and confirm on data that was not used for selection. Even if the gain is real, I would weigh it against serving cost, interpretability, and maintenance - and if B is a much heavier model, I would want a clearly larger margin, and ultimately an online A/B test, before shipping it.
+- **A validation score is a sample statistic.** If the difference is smaller than the fold-to-fold standard deviation, you haven't measured a difference.
+- **Compare on identical conditions** - same folds, same preprocessing, same metric - and use paired per-fold differences, which are far more sensitive than comparing two means.
+- **Trying 50 variants and keeping the best selects partly for noise,** so the honest final number comes from a fresh test set or nested CV.
+- **Bootstrap the test set for a confidence interval on the difference;** if it includes zero, the improvement isn't established.
+- **Accuracy is one axis.** A 0.3% gain that triples latency and adds a dependency is a loss.
+- **Offline wins are hypotheses** about a prediction; the decision's effect needs an online test randomized by user, with guardrail metrics pre-registered.
 
 Next topic is **Error analysis and slice-based evaluation**.

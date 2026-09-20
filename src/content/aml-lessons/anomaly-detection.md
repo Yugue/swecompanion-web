@@ -1,6 +1,8 @@
 ## Anomaly detection
 
-Anomaly detection asks a different question from classification: not "which class is this" but **"does this look like the data I have seen?"** It is the right framing when positives are too rare, too varied, or too unlabelled for a supervised model.
+**Anomaly detection asks "does this look like the data I have seen?" rather than "which class is this?"**
+
+It is the right framing when the positives are too rare, too varied, or too unlabelled for a classifier to learn from.
 
 ### 1. When to use it instead of a classifier
 
@@ -111,10 +113,13 @@ Anomaly detection covers the unknown-unknowns and generates the labels; the supe
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "400 confirmed frauds in 50 million transactions":
+- **The deciding question is whether the positives share a pattern.** Ten thousand similar frauds is a classification problem; four hundred creative ones is an anomaly problem.
+- **Know which setup you are in:** outlier detection finds anomalies already sitting in the training data; novelty detection learns clean "normal" and flags deviations later.
+- **Isolation Forest is the practical default** for tabular data - linear time, no distribution assumption. One-class SVM, density models, and reconstruction error are the alternatives.
+- **The threshold is the product decision.** Flag rate times traffic is alerts per day, so set it from review capacity rather than from a statistical rule.
+- **Anomalous does not mean bad.** Someone buying a car is an outlier; a human still has to decide which unusual is actionable.
+- **The common production shape is a hybrid:** the detector surfaces unknown-unknowns and generates labels, and a supervised model takes over the patterns that repeat.
 
-> That is a 0.0008% positive rate, so a supervised classifier has very little to learn from and the metrics will be dominated by the negatives. If those 400 cases share a clear pattern I would still try supervised learning with heavy class weighting and evaluate with PR-AUC and recall at the team's review capacity - 400 positives is thin but not hopeless. If they are varied one-off schemes, I would start with unsupervised anomaly detection, an Isolation Forest on behavioral features, thresholded by how many cases the team can actually review, and use the confirmed reviews to accumulate labels. In practice I would run both, plus the existing rules, and let the reviewed outcomes feed a supervised model once enough labels exist.
-
-Next topic is **The applied ML workflow**.
+That completes **Chapter 6 — Unsupervised learning**. Next topic is **The applied ML workflow**.

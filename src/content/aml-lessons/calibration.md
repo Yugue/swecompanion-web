@@ -106,10 +106,13 @@ So: monitor the mean predicted probability against the realized positive rate, a
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "the output is multiplied by transaction value to estimate expected loss":
-
-> Then calibration matters more than AUC. AUC only tells me the ordering is right; expected loss is p times the amount, so if every probability is inflated by 40% the ranking is fine and every downstream dollar figure is wrong. I would check a reliability diagram and the Brier score, and if the model is off I would fit Platt scaling or isotonic regression on a held-out set with the real class distribution - not the resampled one. I would also monitor predicted versus observed positive rates in production, because calibration drifts with the base rate even when discrimination does not.
+- **Calibration and ranking are independent.** Halve every score and the AUC is unchanged while every probability is now wrong.
+- **The trigger is simple:** the moment a probability gets multiplied by anything - a dollar value, another probability, a cost - it must be calibrated.
+- **Diagnose with a reliability diagram,** and summarize with Brier (calibration plus discrimination) or ECE (calibration alone).
+- **Know the typical directions:** logistic regression is calibrated by construction, naive Bayes is over-confident, forests are under-confident at the extremes, and SVMs emit a distance rather than a probability.
+- **Fit Platt or isotonic on held-out data** - never on data the model trained on - and after resampling, calibrate on a set with the original class distribution.
+- **Calibration drifts with the base rate** even when ranking holds, so monitor predicted versus realized rates; recalibrating is a cheap alternative to a full retrain.
 
 Next topic is **Class imbalance**.

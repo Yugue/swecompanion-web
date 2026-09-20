@@ -1,6 +1,8 @@
 ## From traces to improvements
 
-A production agent improves through a loop, not through inspiration: traces reveal failures, failures become eval cases, fixes are validated against those cases, and the cases stay forever. The discipline is in choosing **what** to fix and **which layer** to fix it in.
+**A production agent gets better through a loop, not through inspiration:** the recorded runs show what failed, each failure becomes a permanent test case, and every fix is checked against those cases.
+
+The discipline is in choosing **what** to fix, and **which layer** to fix it in.
 
 ### 1. The loop
 
@@ -77,10 +79,30 @@ Without this step, the loop is a treadmill: the same failure returns three promp
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "10,000 traces and one engineer - what do you fix first?":
+Improvement is a loop, and the discipline is choosing what to fix and where:
 
-> I'd cluster before I read. Run automated detectors over all of them - repeated tool arguments, arguments that don't trace to any observation, ignored errors, budget exhaustion, claimed actions with no matching call - then group the failures by cause rather than symptom and rank by frequency times severity times cost. That usually collapses ten thousand traces into five or six causes, and the top two are often mundane: retrieval missing identifier-style queries because there's no keyword search, or a tool rejecting a date format the model keeps producing. Then I'd fix in the cheapest effective layer, working up from tool descriptions and return shapes, then context and retrieval, then prompt rules, and only then a stronger model or fine-tuning. If my proposed fix is another sentence in the system prompt, that's usually a sign I'm avoiding a tool or context fix. Every fix gets a minimal reproducing case added to the eval suite permanently, and I'd validate with several runs per case rather than one, so the same failure can't quietly return two revisions later.
+```text
+traces → automated detectors → cluster failures by CAUSE, not symptom
+       → rank by frequency × severity × cost
+       → fix in the cheapest effective layer
+       → validate on the eval set over repeated runs
+       → the case stays in the suite forever
+```
+
+Escalate through the layers in order, because most teams start at step 3 and skip the first two:
+
+```text
+1. tool descriptions and return shapes   ← cheapest, often the real cause
+2. context: retrieval, compaction
+3. prompt rules and examples             ← accumulates debt
+4. model or thinking budget              ← costs money per request, forever
+5. fine-tuning                           ← needs stable data
+```
+
+- **Fix the cluster, not the case.** One-off prompt patches become a system prompt nobody can reason about.
+- **If your fix is another sentence in the system prompt, ask which layer you are avoiding.**
+- **Fine-tuning suits consistent formatting, a narrow stable domain, or cost reduction** - rarely reasoning, and never as a substitute for retrieval.
 
 Next topic is **An agentic system design answer**.

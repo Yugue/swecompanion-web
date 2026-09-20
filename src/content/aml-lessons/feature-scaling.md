@@ -45,6 +45,8 @@ StandardScaler()  |  MinMaxScaler()  |  RobustScaler()
 | Random forest, gradient boosting | No | Built from trees |
 | Naive Bayes (categorical/multinomial) | No | Works on counts and probabilities |
 
+> **Gradient descent** is the standard way of training a model: nudge the numbers a little, check whether the error went down, and repeat. Chapter 4 covers it properly.
+
 ### Rule of thumb
 
 > Distance, dot products, penalties, and gradients care about scale. Threshold splits do not.
@@ -95,10 +97,11 @@ The same statistics must also be shipped to production: the serving path applies
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "why does standardizing change logistic regression but not a tree":
-
-> Logistic regression in practice is regularized, and the penalty is on the raw coefficient magnitudes - so rescaling a feature changes how hard that feature is penalized, and therefore changes the fit. It also conditions the gradient descent. A decision tree only asks whether a feature is above a threshold; any monotone rescaling maps the same rows to the same side of the same split, so the tree is unchanged. In practice I put the scaler in a Pipeline so it is fitted per fold, which also prevents leaking test statistics.
+- **Ask whether the model measures distance, dot products, penalties, or gradients.** If so, scale (k-NN, k-means, RBF-SVM, regularized linear models, PCA, neural nets). Threshold splits don't care, so trees and boosting skip it.
+- **Regularization punishes by unit of measurement** when features are unscaled, not by usefulness - that is the real reason to put a scaler in front of logistic regression.
+- **Pick the transform for the data:** standardize by default, robust scaling when outliers are present, and remember min-max is squashed by a single extreme value.
+- **Fit the scaler on train only,** and ship the stored mean and standard deviation to production rather than recomputing them from live traffic.
 
 Next topic is **Encoding categorical features**.

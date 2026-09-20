@@ -1,6 +1,8 @@
 ## Tool selection at scale
 
-Tool-calling accuracy is not constant in the size of the catalogue. Somewhere between twenty and a few dozen tools, selection stops being a prompting problem and becomes a **retrieval** problem.
+**Give a model five tools and it chooses well. Give it three hundred and it starts guessing.**
+
+Accuracy falls as the catalogue grows. Somewhere between twenty and a few dozen tools, picking the right one stops being a prompting problem and becomes a **retrieval** problem - you have to find the handful of plausible tools before you even ask.
 
 ### 1. Why it degrades
 
@@ -83,10 +85,12 @@ Note that step 1 is organizational and step 6 is what tells you whether the rest
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "300 internal APIs, one agent - design the tool layer":
-
-> I wouldn't put 300 schemas in the prompt; that's roughly 30,000 tokens per turn and selection accuracy falls apart well before that. First I'd consolidate - traces almost always show a long tail nothing calls and a few pairs that get confused, and merging those is free accuracy. Then I'd treat selection as retrieval: build an index over tool names, descriptions, and example invocations, embed the current task, and expose only the top ten or fifteen schemas for that turn, plus a few always-on tools like search, escalate, and finish so the agent is never stranded. For deep domains I'd go further and route to a subagent that owns one namespace and returns findings, which also isolates context. The thing I'd insist on measuring is candidate recall - whether the correct tool was even in the retrieved set - because that separates a retriever problem from a model problem, and no amount of prompt work fixes the former.
+- **Accuracy is not constant in catalogue size.** Past a few dozen tools, near-duplicates get chosen at random and most of the window becomes a menu.
+- **Consolidate first.** Traces almost always show a long tail nothing calls and a few pairs that get confused - merging those is free accuracy before any engineering.
+- **Then treat selection as retrieval:** index tool descriptions, expose the top ten or fifteen per turn, and keep a few always-on tools so the agent is never stranded.
+- **Write tool descriptions to be retrievable,** not just readable, since the same failure modes as document search now apply.
+- **Measure candidate recall separately** - whether the right tool was even in the retrieved set. That separates a retriever problem from a model problem, and no prompt fixes the former.
 
 That completes **Chapter 2 — Tool use and function calling**. Next topic is **Chain of thought and its limits**.

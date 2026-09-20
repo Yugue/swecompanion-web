@@ -104,10 +104,27 @@ Mitigations: hold out a small random control that is scored but not acted on, ad
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "precision drops 8% over three months with no deploys":
+Quality metrics arrive last - sometimes months later - so monitoring is built in layers, and the cheap ones carry the alerting:
 
-> With no code change, the data changed. I would first separate the two candidates: compare recent feature distributions against training with PSI to see whether the inputs shifted, and check whether the positive base rate moved. If the inputs look the same but quality fell, that points to concept drift - the relationship changed, and retraining on old labels will not fix it; I need fresh labelled data, which my label delay may not yet allow. I would also rule out mundane causes first: an upstream schema change, a feature silently defaulting, or a threshold left un-tuned after the last retrain. If it is covariate or label shift, retraining on a recent window plus recalibration is usually enough, rolled out through shadow and canary with the threshold re-validated.
+```text
+inputs       feature distributions, null rate, range, cardinality, staleness   (today)
+predictions  the FLAG RATE - the single most useful cheap alarm                (today)
+quality      precision, recall, business outcome            (after labels mature)
+```
+
+Then name the drift, because the fix differs:
+
+```text
+covariate shift  P(x) moved      → retraining usually helps
+label shift      P(y) moved      → retrain and recalibrate
+concept drift    P(y|x) moved    → retraining on OLD labels rebuilds the wrong model
+```
+
+- **Label delay sets your cadence.** A 60-day chargeback window means a regression can hide for two months.
+- **Scheduled retraining with threshold alarms on top** is the defensible default - and automated retraining needs an automated quality gate.
+- **Re-tune the threshold after every retrain,** because the score distribution moves and the old operating point no longer means the same precision.
+- **Watch for feedback loops:** a model that blocks a segment never learns that segment was fine.
 
 Next topic is **Answering a Basics-of-ML interview question**.

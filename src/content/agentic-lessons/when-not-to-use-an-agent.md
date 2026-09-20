@@ -1,6 +1,8 @@
 ## When not to build an agent
 
-Proposing an agent where a workflow would do is one of the fastest ways to look inexperienced in a design interview. Autonomy is expensive, and most production "agents" are - correctly - workflows with one agentic step.
+**An agent decides its own steps. A workflow has the steps written down in advance.** The second is cheaper, faster, testable, and predictable - so it wins unless you genuinely need the first.
+
+Proposing an agent where a workflow would do is one of the fastest ways to look inexperienced in a design interview. Most production "agents" are - correctly - workflows with one agentic step.
 
 ### 1. The decision, in one diagram
 
@@ -82,10 +84,22 @@ Begin at the lowest autonomy that could plausibly work: few tools, small step ca
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "a PM wants an agent to process invoices":
+Three of the four leaves on this tree are not agents:
 
-> I'd ask three questions before designing anything. First, walk me through three real invoices end to end - if the steps are the same each time, this is a workflow, and a workflow is cheaper, faster, deterministic, and testable with ordinary methods. Second, what happens when it's wrong - if the failure mode is paying the wrong vendor, then whatever we build needs an approval gate on the irreversible step regardless of the architecture. Third, what's the budget per invoice in cents and seconds, because that sets the step cap and the model tier before I draw anything. My prior is that invoice processing is extraction plus validation plus a routing decision, which is one model call and a pipeline. I'd reserve the agentic step for the genuinely open part - the exceptions queue, where the path depends on what the document turns out to be - and I'd keep it bounded with a small tool set and a step cap rather than giving it the whole task.
+```text
+Are the steps the same every time?
+   yes → workflow
+   no  → Do you know the step count in advance?
+            yes → bounded workflow with a model step
+            no  → Does recovery need judgment?
+                     no  → retry logic
+                     yes → agent
+```
 
-That completes **Chapter 1 — Agent foundations**. Next topic is **Function calling mechanics**.
+All three of these should hold before you reach for autonomy: the path is **data-dependent**, the step count is **unknown**, and recovery requires **judgment**.
+
+Ask the three questions that cost the design before you draw it: walk me through three real examples end to end; what happens when it is wrong; and what is the budget per request in cents and seconds. Then start at the lowest autonomy that could work and turn each dial up only when a trace shows the lower setting failing.
+
+Next topic is **Workflows versus autonomous agents**.

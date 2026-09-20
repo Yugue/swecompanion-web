@@ -7,7 +7,7 @@ Agent scaffolding cannot create ability that the base model does not have. It ca
 - Instruction following, including multi-part formatting rules.
 - Broad prior knowledge up to the training cutoff.
 - Plausible decomposition of tasks that resemble things people have written about.
-- Schema adherence, especially with constrained decoding.
+- Sticking to a required output format, especially with constrained decoding - a sampling trick covered two lessons from now.
 
 ### 2. What is structurally missing
 
@@ -52,7 +52,7 @@ Nothing in the model's objective distinguishes "the right ID" from "an ID-shaped
 
 ### 4. The capability ceiling test
 
-Before adding steps, reflection, or subagents, run the diagnostic:
+Before adding steps, a self-review pass, or subagents - helper agents with their own context, covered in Chapter 3 - run the diagnostic:
 
 ```text
 can a single well-prompted call, given the right context, do this?
@@ -80,10 +80,12 @@ So 95% per step gives about 60% end to end, and 99% per step gives about 90%. Tw
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "your agent hallucinates order IDs when retrieval returns nothing":
+- **Scaffolding redistributes the base model's ability; it cannot create it.** Before adding steps or subagents, ask whether one well-prompted call with the right context could do the task.
+- **Some limits are structural and no prompt fixes them:** no memory between calls, a frozen knowledge cutoff, no ground truth about the live world, and unreliable arithmetic.
+- **Confident gap-filling is the one that causes incidents.** When the context lacks an order ID, an ID-shaped string is the likely continuation - so the fix is an explicit empty result, a tool that rejects unknown IDs, and validation before anything irreversible.
+- **The test for where to fix something:** if the failure would still be possible with a perfectly obedient model, it is a systems bug, not a prompting bug.
+- **Per-step reliability compounds.** At ten steps, 95% per step is about 60% end to end and 99% is about 90% - which is why agents must be measured end to end.
 
-> I wouldn't fix that in the prompt. The model's objective is to produce a likely continuation, and when the context doesn't contain an order ID, an ID-shaped string is the likely continuation - a stricter instruction lowers the rate but can't remove it. The systems fix has three parts: the retrieval tool should return an explicit "no results" observation rather than an empty string, so the model has something concrete to act on; the order tool should reject IDs it can't resolve instead of proceeding; and any irreversible step should validate its arguments against the record before executing. I'd also keep the general test in mind - per-step reliability compounds, so at ten steps the difference between 95% and 99% per step is the difference between 60% and 90% end to end, which is why I measure agents end to end rather than from per-call benchmarks.
-
-Next topic is **System prompts and instruction hierarchy**.
+Next topic is **The context window as working memory**.

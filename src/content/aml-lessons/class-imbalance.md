@@ -1,6 +1,8 @@
 ## Class imbalance
 
-Most production problems worth modelling - fraud, churn, rare disease, ad clicks - are heavily imbalanced. The naive approach of training on the raw data quietly fails, and interviewers use this topic specifically to check whether you notice.
+**Class imbalance means one outcome is far rarer than the other** - one fraudulent transaction in a thousand, or three clicks in a thousand impressions.
+
+Most problems worth modelling look like this, and training on the raw data quietly fails: a model that always answers "not fraud" is right 99.9% of the time and catches nothing. Interviewers use this topic specifically to check whether you notice.
 
 ### 1. Why accuracy lies here
 
@@ -102,10 +104,19 @@ That last point is worth raising: with implicit labels, your "negatives" include
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "you oversample positives 50× - what happens to the probabilities":
+Reach for the levers in this order - the common mistake is starting at the bottom:
 
-> The model is now fitting a distribution where positives are 50× more common than they really are, so its outputs are systematically inflated - a raw score of 0.5 corresponds to a much smaller real-world probability. The ranking is largely preserved, so if the system only sorts or applies a tuned threshold it still works. But if a downstream step multiplies the probability by a dollar amount, I have to correct it: either apply the known prior shift analytically, or fit isotonic regression on a held-out set with the original class balance. And whatever I do to training, I evaluate on the real distribution - otherwise the metrics describe a dataset that does not exist.
+```text
+1. metrics     quote the majority baseline, switch to precision/recall/PR-AUC
+2. threshold   change the decision, not the model        ← cheapest, often enough
+3. class weight change the loss, distort no data
+4. resampling  change the data the model sees            ← most invasive
+```
+
+Two rules govern resampling: do it **inside** the fold, never before the split, and evaluate on the **original** distribution. And remember it moves the model's probabilities off the real base rate, so calibrate on a held-out set with the true balance whenever the probability itself is consumed.
+
+At extreme rarity, change the framing instead - anomaly detection, a two-stage high-recall filter, or recall@k against review capacity. And question the data: a too-short window, the wrong unit, or undetected positives labelled as negatives.
 
 Next topic is **Comparing models honestly**.

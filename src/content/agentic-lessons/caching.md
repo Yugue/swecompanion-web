@@ -70,10 +70,13 @@ The retrieval cache is often the biggest non-model win, because agents re-issue 
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "cache hit rate is near zero despite a long fixed system prompt":
-
-> Something volatile is sitting early in the prompt. The cache matches on an exact token prefix and stops at the first difference, so a timestamp, a session id, or a request id in or near the system block invalidates everything after it on every call - and that's nearly always the cause. The others I'd check are tool schemas being serialized in a non-deterministic order, dynamically retrieved tools placed in the prefix rather than after the always-on set, and per-user personalization at the top, which prevents any sharing across requests. The fix is to order stable-to-volatile: system prompt, tool schemas, and static examples first, then compacted history, then the current turn, with anything time-dependent moved to the end or coarsened to a date. I'd also check cache lifetime - prefixes expire after a short idle period, so sporadic one-off requests legitimately miss, and I shouldn't model the savings as guaranteed outside an active loop. Above the model, I'd add a retrieval cache with a bounded TTL keyed per tenant, since agents re-issue near-identical searches constantly.
+- **The cache keys on an exact token prefix,** and matching stops at the first difference - so one volatile token early costs you the entire cache.
+- **Order stable to volatile:** system prompt, tool schemas, static docs, then history, then the current turn.
+- **A near-zero hit rate with a long fixed prompt is almost always a timestamp or a session id near the top,** or tool schemas serialized in a non-deterministic order.
+- **Agent loops are the ideal case,** since each turn re-sends a long, nearly identical prefix seconds apart.
+- **Cached prefixes expire when idle,** so do not model the savings as guaranteed for sporadic one-off requests.
+- **Cache above the model too** - identical retrieval queries and deterministic read-only tool calls - keyed per tenant, never across them.
 
 Next topic is **Tracing and observability**.

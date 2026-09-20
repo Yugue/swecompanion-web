@@ -1,6 +1,8 @@
 ## How multi-agent systems fail
 
-Single-agent failures are usually loud: a loop, an error, a step cap. Multi-agent failures are quiet. The system produces a fluent, confident deliverable assembled from work that never actually fit together.
+**A single agent fails loudly - it loops, it errors, it hits the step cap. A multi-agent system fails quietly.**
+
+It hands you a fluent, confident report assembled from pieces that never actually fit together, and nothing in the output shows the seam.
 
 ### 1. The five characteristic failures
 
@@ -84,10 +86,23 @@ Caps that exist only per worker do not bound the system. Enforce a run-level ste
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "the system returns a fluent report with a fabricated statistic":
+Multi-agent failures are quiet, and three of the five are invisible in the output:
 
-> Most likely error amplification through the merge. One worker produced a number without recording where it came from - misread, stale page, or invented after an empty search - a second worker used it as an input to a calculation, and the orchestrator concatenated the results into fluent prose. Nothing in that chain ever asked "what's the source?" So the fix is structural: every finding is a typed record with a claim, a source URL, an as-of date, the agent that produced it, and a confidence, and the merge step drops or flags anything unsourced rather than pasting it in. The merge also has to detect contradictions on the same key and surface both with sources instead of silently picking one, and state gaps explicitly so absence doesn't read as a finding. Upstream I'd make the retrieval tool return an explicit "no results" observation, since empty results are where invention starts, and I'd have the orchestrator assert that every plan step has exactly one owner before dispatch, which removes duplicated and orphaned work at the same time.
+```text
+duplication    overlapping briefs → the same work done three times
+gaps           no brief owned subtask X → nobody did it, nobody noticed
+amplification  a wrong finding becomes the next agent's premise
+contradiction  two workers disagree → the merge silently picks one
+blowup         slowest worker sets latency; everyone pays full overhead
+```
+
+The structural fixes, in order of value:
+
+- **Provenance on every claim** - claim, source, as-of date, agent, confidence - and a merge that drops or flags anything unsourced. A claim without a source should not survive a merge.
+- **Exclusive ownership per subtask,** asserted before dispatch, which removes duplication and gaps together.
+- **A merge that reconciles:** surface contradictions with both sources, state gaps explicitly, and check the deliverable answers the original goal rather than the subtasks.
+- **Global budgets, not per-worker ones,** with exhaustion as a defined partial-result outcome.
 
 That completes **Chapter 5 — Multi-agent systems**. Next topic is **Evaluating agents**.

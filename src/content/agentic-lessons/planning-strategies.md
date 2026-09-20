@@ -1,6 +1,13 @@
 ## Planning strategies
 
-The real design question is not "should the agent plan" but **how much structure you fix before execution begins**. That choice is set by how predictable the environment is and by whether a human needs to approve the work.
+**The question is not whether the agent plans, but how much it commits to before it starts working.**
+
+```text
+plan everything first    → reviewable and parallelizable, brittle when reality differs
+plan one step at a time  → adapts to surprises, wanders more, costs more
+```
+
+Where you land is decided by how predictable the environment is, and by whether a human has to approve the work before it happens.
 
 ### 1. The three shapes
 
@@ -81,10 +88,13 @@ Investigation tasks, where step 1's result determines whether steps 2-5 make any
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "when is an up-front plan actively harmful?":
-
-> When the first observation is likely to invalidate the rest of the plan - investigation work, debugging, incident response. If I ask an agent to plan five steps before it has read the stack trace, four of them are wasted, and worse, the plan anchors it: it tends to keep executing steps that no longer make sense rather than abandoning them. There I'd plan one step ahead and let each observation drive the next decision. Where an up-front plan earns its keep is the opposite case - a stable environment, work that a human should approve before it happens, and subtasks that are independent enough to parallelize. In practice I usually land on hierarchical: a coarse plan for structure, auditability, and parallelism, ReAct inside each step for robustness, the plan stored as a structured artifact rather than prose so it survives compaction and a human can edit it, and explicit replanning triggers with a cap so the agent neither clings to a dead plan nor replans forever.
+- **The choice is how much you fix before executing,** and it is set by how predictable the environment is and whether a human must approve the work.
+- **An up-front plan is actively harmful for investigation work,** where the first observation invalidates the rest - and worse, it anchors the agent into finishing steps that no longer make sense.
+- **Hierarchical is the usual landing place:** a coarse plan for structure, auditability, and parallelism, with step-by-step reasoning inside each step.
+- **A step needs a stateable artifact.** If you cannot say what it produces, it is a wish, not a step.
+- **Replanning needs an explicit trigger and a cap,** or the agent either clings to a dead plan or replans forever.
+- **Store the plan as structured state, not prose,** so it survives compaction, a human can edit it, and the runtime can parallelize on its dependencies.
 
 Next topic is **Reflection and self-critique**.

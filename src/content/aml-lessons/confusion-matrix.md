@@ -1,6 +1,17 @@
 ## Confusion matrix, precision, and recall
 
-Every classification metric is a different summary of the same four counts. Knowing which summary to choose - and being able to say *why* in terms of cost - is the most frequently tested skill in this domain.
+**Once a model makes a yes/no call, only four things can happen.** It can say yes and be right, say yes and be wrong, say no and be right, or say no and be wrong.
+
+```text
+                            the truth
+                        no             yes
+   model  no  │  correct "no"   │   MISSED IT    │
+    says yes  │  FALSE ALARM    │  correct "yes" │
+```
+
+The two capitalized cells are the mistakes, and they are not interchangeable - missing a tumour is not the same kind of wrong as a false alarm on a spam filter.
+
+Every classification metric you will meet is a different summary of those four counts. Knowing which summary to choose, and saying *why* in terms of cost, is the most frequently tested skill in this domain.
 
 ### 1. The four counts
 
@@ -100,10 +111,20 @@ With imbalanced classes, macro and micro can tell opposite stories - macro-F1 co
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "cancer screening vs spam filtering":
+Every metric here is a different summary of the same four counts, so start from the cost:
 
-> They sit at opposite ends. In cancer screening a missed case is catastrophic and a false alarm costs another test, so recall leads - I would pick the threshold to hit a required recall and then report what precision that costs. In spam filtering the asymmetry flips: a spam email reaching the inbox is a minor annoyance, but a job offer in the spam folder is a real loss, so precision leads. Getting it backwards means either missing cancers to avoid extra tests, or quarantining legitimate mail to catch a bit more spam. If I need one number I would use F-beta with beta chosen to reflect that asymmetry, rather than plain F1, which assumes the errors cost the same.
+```text
+which mistake hurts more?
+  a miss (FN)        → lead with recall      (cancer screening, triage)
+  a false alarm (FP) → lead with precision   (spam, blocking good customers)
+  both, measurably   → expected cost: C_FP·FP + C_FN·FN
+```
 
-Next topic is **ROC-AUC, PR-AUC, and thresholds**.
+- **Precision and recall are quoted as a pair** because each is trivially gamed alone - flag everything, or flag only the surest case.
+- **F1's harmonic mean punishes imbalance,** and \(F_\beta\) lets you state the asymmetry outright.
+- **Accuracy only informs when classes are balanced and both errors cost the same,** which is rare in the problems interviewers pick.
+- **Say which multiclass averaging you used:** macro treats rare classes equally, micro is dominated by frequent ones, and they can tell opposite stories.
+
+Next topic is **Regression metrics**.

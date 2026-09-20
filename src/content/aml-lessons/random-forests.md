@@ -92,10 +92,19 @@ Note the asymmetry with boosting: adding trees to a forest **cannot** cause over
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "if bagging reduces variance, why also subsample features":
+Everything follows from one formula - the variance of an average of B models with variance \(\sigma^2\) and pairwise correlation \(\rho\):
 
-> Because averaging only cancels errors that are independent. With bootstrap sampling alone, every tree still sees the same dominant feature and splits on it first, so the trees are highly correlated and their errors do not cancel - the variance floor is set by that correlation. Sampling a random subset of features at each split forces different trees to use different signals, which decorrelates them. Each tree is individually a bit weaker, but the ensemble is stronger, and `max_features` is effectively the dial between correlated-and-accurate and diverse-and-weak.
+\[
+\text{Var}(\bar f) = \rho\sigma^2 + \frac{1-\rho}{B}\sigma^2
+\]
+
+- **More trees shrink only the second term,** so a forest can never be hurt by adding trees, but it stalls once the first term dominates.
+- **The real design problem is lowering \(\rho\).** Bootstrapping rows helps; sampling features at every split helps far more, because it stops one dominant feature from making every tree the same.
+- **That is why a forest deliberately makes each tree worse** so that the ensemble is better.
+- **Out-of-bag scoring gives a free validation estimate,** but it assumes independent rows and does not replace a test set.
+
+Against boosting: forests build independent deep trees to cut *variance* and are safe to over-add; boosting builds sequential shallow trees to cut *bias* and can overfit.
 
 Next topic is **Boosting and gradient-boosted trees**.

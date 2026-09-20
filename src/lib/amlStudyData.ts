@@ -31,7 +31,7 @@ export const amlParts: AmlPart[] = [
     id: "foundations",
     number: "1",
     title: "Foundations",
-    description: "The vocabulary every other answer in this domain is built on.",
+    description: "What a model is, what one row of data looks like, how success is measured, and why models fail.",
     color: "#4285F4",
     icon: "Blocks",
     topics: [
@@ -39,10 +39,10 @@ export const amlParts: AmlPart[] = [
         id: "what-is-ml",
         title: "What machine learning is",
         summary:
-          "Machine learning fits a function from data instead of specifying the rules by hand; it is worth using only when the rules are unknown, numerous, or keep changing.",
+          "Machine learning works out its own rules from examples instead of a person writing them down; it is worth using only when the rules are unknown, too numerous to maintain, or keep changing.",
         keyPoints: [
           "Traditional software encodes rules a human already knows; ML infers the rules from labelled examples of the behavior you want.",
-          "The output is a learned function f(x) → ŷ plus a threshold or decision rule that turns ŷ into an action.",
+          "What comes out is a score, not a decision - a threshold and an action are what turn that score into something the product does.",
           "ML is the right tool when rules are hard to write, tolerate being occasionally wrong, and when enough representative data exists.",
           "Every ML system inherits the biases, gaps, and staleness of the data it learned from - a rule engine does not.",
         ],
@@ -54,11 +54,11 @@ export const amlParts: AmlPart[] = [
         id: "learning-paradigms",
         title: "Supervised, unsupervised, and self-supervised learning",
         summary:
-          "The paradigm is decided by what supervision signal exists in your data, not by which algorithm you prefer.",
+          "Which of the three you use is decided by whether your examples already have the right answer attached, not by which algorithm you prefer.",
         keyPoints: [
-          "Supervised learning has (x, y) pairs and optimizes predictions against known targets.",
-          "Unsupervised learning has only x and looks for structure: clusters, density, low-dimensional manifolds.",
-          "Self-supervised learning builds targets from the data itself (mask a word, hide a column) and is how most pretraining works.",
+          "Supervised learning has examples with the answer attached, and trains its predictions against those known answers.",
+          "Unsupervised learning has only the inputs and looks for structure: groups that belong together, what counts as normal, which directions in the data actually matter.",
+          "Self-supervised learning invents the answer from the input itself - hide a word and predict it - which is how most large models are first trained.",
           "Semi-supervised and weak supervision sit in between: a small labelled set plus a large unlabelled one, or noisy programmatic labels.",
         ],
         interviewPrompt:
@@ -66,34 +66,34 @@ export const amlParts: AmlPart[] = [
         code: "supervised: (x, y)   unsupervised: (x)   self-supervised: (x, y=g(x))",
       },
       {
-        id: "task-types",
-        title: "Regression, classification, ranking, and clustering",
-        summary:
-          "The task type is a commitment about the shape of the output and therefore about the loss, the metric, and the decision the system makes.",
-        keyPoints: [
-          "Regression predicts a continuous value; classification predicts one of C classes; ranking predicts an ordering over candidates.",
-          "Binary, multiclass, and multilabel are three different problems - multilabel allows several positives per example and uses per-label sigmoids.",
-          "Ranking cares only about relative order, so a model with badly calibrated scores can still be excellent at it.",
-          "Clustering has no target at all; its 'correctness' is defined by the downstream use, not by a held-out label.",
-        ],
-        interviewPrompt:
-          "'Predict how likely a user is to churn' - argue for framing it as binary classification, as regression on time-to-churn, and as ranking, then pick one.",
-        code: "regression: ŷ ∈ ℝ   classification: ŷ ∈ {1..C}   ranking: order over items",
-      },
-      {
         id: "features-and-labels",
         title: "Features, labels, and a training example",
         summary:
           "One row of training data is a snapshot of what the model will know at prediction time, paired with what actually happened afterwards.",
         keyPoints: [
-          "A feature vector x is the information available *before* the outcome; the label y is the outcome you want to predict.",
+          "The features (written x) are what you knew before the outcome; the label (written y) is the outcome you want to predict.",
           "The design matrix X is [n_samples, n_features] - state the shape and the unit of a row (per user, per session, per item pair).",
           "A label needs an operational definition: 'churned' must specify a window, an event, and how it is observed.",
-          "If a feature could only be computed after the label is known, it is leakage, not a feature.",
+          "If a value could only be known after the outcome, it is not a feature - using it anyway is called leakage, and it is the most expensive bug in this domain.",
         ],
         interviewPrompt:
           "Define one training row for a food-delivery ETA model: what is the unit, what is in x, what is y, and when does y become observable?",
         code: "X.shape == (n_samples, n_features);  y.shape == (n_samples,)",
+      },
+      {
+        id: "task-types",
+        title: "Regression, classification, ranking, and clustering",
+        summary:
+          "The task type is the shape of the answer you want back - a number, a category, an ordering, or a grouping - and it decides the metric and the decision the system makes.",
+        keyPoints: [
+          "Regression predicts a continuous value; classification predicts one of C classes; ranking predicts an ordering over candidates.",
+          "Binary, multiclass, and multilabel are three different problems: the first two pick exactly one answer, while multilabel lets several be true at once, so each gets its own yes/no decision.",
+          "Ranking only needs the order to be right, so its scores never have to be believable as probabilities.",
+          "Clustering has no right answer at all, so it is judged by whether the groups are stable and whether anyone can use them.",
+        ],
+        interviewPrompt:
+          "'Predict how likely a user is to churn' - argue for framing it as binary classification, as regression on time-to-churn, and as ranking, then pick one.",
+        code: "regression: ŷ ∈ ℝ   classification: ŷ ∈ {1..C}   ranking: order over items",
       },
       {
         id: "parameters-vs-hyperparameters",
@@ -101,8 +101,8 @@ export const amlParts: AmlPart[] = [
         summary:
           "Parameters are fitted from the training data; hyperparameters are chosen by you and judged on validation data.",
         keyPoints: [
-          "Weights and split thresholds are parameters; tree depth, k in k-NN, C in an SVM, and the regularization strength are hyperparameters.",
-          "Capacity is how rich a family of functions the model can express - more capacity fits more, including noise.",
+          "Weights and split thresholds are parameters; tree depth, the k in k-nearest-neighbours, and the strength of any simplicity penalty are hyperparameters.",
+          "Capacity is how complicated a pattern the model can express - more capacity fits more of the real signal, and more of the noise too.",
           "Hyperparameters are what you use to trade capacity against generalization, which is why they are tuned on validation data.",
           "Anything tuned by looking at a dataset has 'used up' that dataset - which is exactly why the test set stays untouched.",
         ],
@@ -126,6 +126,36 @@ export const amlParts: AmlPart[] = [
         code: "train -> fit  |  validation -> choose  |  test -> report (once)",
       },
       {
+        id: "confusion-matrix",
+        title: "Confusion matrix, precision, and recall",
+        summary:
+          "Every classification metric is a different summary of the same four counts, chosen to match which mistake is expensive.",
+        keyPoints: [
+          "Precision = TP/(TP+FP) answers 'when we flagged it, were we right'; recall = TP/(TP+FN) answers 'of the real positives, how many did we catch'.",
+          "F1 is the harmonic mean, which punishes a lopsided pair more than an arithmetic mean would.",
+          "Accuracy is only informative when the classes are roughly balanced and both errors cost the same.",
+          "Macro averaging treats every class equally; micro averaging is dominated by the frequent classes.",
+        ],
+        interviewPrompt:
+          "Cancer screening versus spam filtering: which metric leads in each case, and what is the cost of getting that choice backwards?",
+        code: "precision = tp / (tp + fp);  recall = tp / (tp + fn)",
+      },
+      {
+        id: "regression-metrics",
+        title: "Regression metrics",
+        summary:
+          "Regression metrics differ mainly in how they punish large errors and whether they are expressed in the target's units.",
+        keyPoints: [
+          "MAE is in target units and robust; MSE punishes large errors quadratically; RMSE restores the units of MSE.",
+          "R² is the fraction of variance explained relative to predicting the mean - it can be negative for a bad model.",
+          "MAPE is scale-free and intuitive but explodes near zero and is asymmetric about over- and under-prediction.",
+          "For skewed targets, evaluating in log space (RMSLE) matches how the error is actually felt.",
+        ],
+        interviewPrompt:
+          "A delivery-ETA model has RMSE 6 minutes and MAE 3 minutes. What does that gap tell you about the error distribution?",
+        code: "rmse = np.sqrt(((y - yhat) ** 2).mean())",
+      },
+      {
         id: "baselines",
         title: "Baselines and when not to use ML",
         summary:
@@ -140,8 +170,23 @@ export const amlParts: AmlPart[] = [
           "Your fraud model has 99.2% accuracy. What baseline do you compute first, and what does it likely tell you?",
         code: "DummyClassifier(strategy=\"most_frequent\").fit(X, y).score(X_test, y_test)",
       },
+      {
+        id: "bias-variance",
+        title: "Bias-variance tradeoff",
+        summary:
+          "Expected error decomposes into bias from wrong assumptions, variance from sensitivity to the sample, and irreducible noise.",
+        keyPoints: [
+          "High bias means systematic error - the model cannot represent the pattern; it underfits.",
+          "High variance means the fitted function changes a lot with a different training sample; it overfits.",
+          "Capacity, regularization, and data volume are the three levers that move you along the tradeoff.",
+          "Irreducible noise sets a ceiling: no model can beat the ambiguity in the labels themselves.",
+        ],
+        interviewPrompt:
+          "You are at 62% train and 61% validation accuracy. Is more data the right next move? Justify from the decomposition.",
+        code: "error = bias² + variance + irreducible_noise",
+      },
     ],
-    quizQuestionCount: 10,
+    quizQuestionCount: 12,
   },
   {
     id: "data-and-features",
@@ -212,21 +257,6 @@ export const amlParts: AmlPart[] = [
         code: "df[\"spend_per_order\"] = df[\"spend_30d\"] / df[\"orders_30d\"].clip(lower=1)",
       },
       {
-        id: "dimensionality-reduction",
-        title: "Dimensionality reduction and PCA",
-        summary:
-          "In high dimensions, distances flatten and data becomes sparse; reduction trades a little information for stability and speed.",
-        keyPoints: [
-          "The curse of dimensionality: the number of examples needed to cover a space grows exponentially with the number of features.",
-          "PCA projects onto the orthogonal directions of maximum variance; components are ordered by explained variance ratio.",
-          "PCA needs scaled inputs, is linear, and produces components that are usually not interpretable as business quantities.",
-          "t-SNE and UMAP are for visualization, not for producing features - their distances are not globally meaningful.",
-        ],
-        interviewPrompt:
-          "When would you prefer feature selection over PCA, even though PCA keeps more of the variance?",
-        code: "PCA(n_components=0.95).fit(X_scaled)  # keep 95% of variance",
-      },
-      {
         id: "leakage",
         title: "Data leakage",
         summary:
@@ -240,6 +270,21 @@ export const amlParts: AmlPart[] = [
         interviewPrompt:
           "A model jumps from 0.82 to 0.99 AUC after a new feature is added. What is your first hypothesis, and how do you test it?",
         code: "for feature in X: assert available_at(prediction_time, feature)",
+      },
+      {
+        id: "dimensionality-reduction",
+        title: "Dimensionality reduction and PCA",
+        summary:
+          "In high dimensions, distances flatten and data becomes sparse; reduction trades a little information for stability and speed.",
+        keyPoints: [
+          "The curse of dimensionality: the number of examples needed to cover a space grows exponentially with the number of features.",
+          "PCA projects onto the orthogonal directions of maximum variance; components are ordered by explained variance ratio.",
+          "PCA needs scaled inputs, is linear, and produces components that are usually not interpretable as business quantities.",
+          "t-SNE and UMAP are for visualization, not for producing features - their distances are not globally meaningful.",
+        ],
+        interviewPrompt:
+          "When would you prefer feature selection over PCA, even though PCA keeps more of the variance?",
+        code: "PCA(n_components=0.95).fit(X_scaled)  # keep 95% of variance",
       },
     ],
     quizQuestionCount: 10,
@@ -379,7 +424,7 @@ export const amlParts: AmlPart[] = [
     id: "training-and-generalization",
     number: "4",
     title: "Training and generalization",
-    description: "How a model is fitted, why it fails to generalize, and the evidence that tells you which.",
+    description: "What training optimizes, and how to keep a model honest on data it has not seen.",
     color: "#34A853",
     icon: "TrendingDown",
     topics: [
@@ -414,19 +459,19 @@ export const amlParts: AmlPart[] = [
         code: "w -= lr * grad(loss, w)  # one step downhill",
       },
       {
-        id: "bias-variance",
-        title: "Bias-variance tradeoff",
+        id: "regularization",
+        title: "Regularization: L1, L2, and elastic net",
         summary:
-          "Expected error decomposes into bias from wrong assumptions, variance from sensitivity to the sample, and irreducible noise.",
+          "Regularization adds a penalty on model complexity, deliberately raising bias to buy a larger reduction in variance.",
         keyPoints: [
-          "High bias means systematic error - the model cannot represent the pattern; it underfits.",
-          "High variance means the fitted function changes a lot with a different training sample; it overfits.",
-          "Capacity, regularization, and data volume are the three levers that move you along the tradeoff.",
-          "Irreducible noise sets a ceiling: no model can beat the ambiguity in the labels themselves.",
+          "L2 (ridge) shrinks coefficients smoothly toward zero and handles correlated features by sharing weight between them.",
+          "L1 (lasso) drives some coefficients exactly to zero, so it performs feature selection as a side effect.",
+          "Elastic net mixes both; the strength (alpha, or C = 1/alpha in scikit-learn) is a hyperparameter tuned on validation data.",
+          "For trees, regularization looks different: depth limits, minimum leaf size, subsampling, and shrinkage.",
         ],
         interviewPrompt:
-          "You are at 62% train and 61% validation accuracy. Is more data the right next move? Justify from the decomposition.",
-        code: "error = bias² + variance + irreducible_noise",
+          "You have 5,000 features and 800 rows. Which penalty do you reach for and why?",
+        code: "Ridge(alpha=1.0)  |  Lasso(alpha=0.01)  |  ElasticNet(l1_ratio=0.5)",
       },
       {
         id: "overfitting-diagnosis",
@@ -442,21 +487,6 @@ export const amlParts: AmlPart[] = [
         interviewPrompt:
           "Validation loss improves for 20 iterations and then steadily worsens while train loss keeps falling. Name the effect and two fixes.",
         code: "plot(train_scores, val_scores, x=train_size)  # learning curve",
-      },
-      {
-        id: "regularization",
-        title: "Regularization: L1, L2, and elastic net",
-        summary:
-          "Regularization adds a penalty on model complexity, deliberately raising bias to buy a larger reduction in variance.",
-        keyPoints: [
-          "L2 (ridge) shrinks coefficients smoothly toward zero and handles correlated features by sharing weight between them.",
-          "L1 (lasso) drives some coefficients exactly to zero, so it performs feature selection as a side effect.",
-          "Elastic net mixes both; the strength (alpha, or C = 1/alpha in scikit-learn) is a hyperparameter tuned on validation data.",
-          "For trees, regularization looks different: depth limits, minimum leaf size, subsampling, and shrinkage.",
-        ],
-        interviewPrompt:
-          "You have 5,000 features and 800 rows. Which penalty do you reach for and why?",
-        code: "Ridge(alpha=1.0)  |  Lasso(alpha=0.01)  |  ElasticNet(l1_ratio=0.5)",
       },
       {
         id: "cross-validation",
@@ -494,26 +524,11 @@ export const amlParts: AmlPart[] = [
   {
     id: "evaluation",
     number: "5",
-    title: "Evaluation",
-    description: "Turning a model score into a defensible claim about how the system will behave.",
+    title: "Evaluation in depth",
+    description: "Curves, probabilities, rare classes, and proving one model is really better than another.",
     color: "#A78BFA",
     icon: "ListChecks",
     topics: [
-      {
-        id: "confusion-matrix",
-        title: "Confusion matrix, precision, and recall",
-        summary:
-          "Every classification metric is a different summary of the same four counts, chosen to match which mistake is expensive.",
-        keyPoints: [
-          "Precision = TP/(TP+FP) answers 'when we flagged it, were we right'; recall = TP/(TP+FN) answers 'of the real positives, how many did we catch'.",
-          "F1 is the harmonic mean, which punishes a lopsided pair more than an arithmetic mean would.",
-          "Accuracy is only informative when the classes are roughly balanced and both errors cost the same.",
-          "Macro averaging treats every class equally; micro averaging is dominated by the frequent classes.",
-        ],
-        interviewPrompt:
-          "Cancer screening versus spam filtering: which metric leads in each case, and what is the cost of getting that choice backwards?",
-        code: "precision = tp / (tp + fp);  recall = tp / (tp + fn)",
-      },
       {
         id: "roc-pr-curves",
         title: "ROC-AUC, PR-AUC, and thresholds",
@@ -528,21 +543,6 @@ export const amlParts: AmlPart[] = [
         interviewPrompt:
           "Your model has 0.95 ROC-AUC on a 0.3%-positive dataset, and product says it is useless in practice. Explain both facts.",
         code: "precision_recall_curve(y_true, y_score)  # pick a point, not a curve",
-      },
-      {
-        id: "regression-metrics",
-        title: "Regression metrics",
-        summary:
-          "Regression metrics differ mainly in how they punish large errors and whether they are expressed in the target's units.",
-        keyPoints: [
-          "MAE is in target units and robust; MSE punishes large errors quadratically; RMSE restores the units of MSE.",
-          "R² is the fraction of variance explained relative to predicting the mean - it can be negative for a bad model.",
-          "MAPE is scale-free and intuitive but explodes near zero and is asymmetric about over- and under-prediction.",
-          "For skewed targets, evaluating in log space (RMSLE) matches how the error is actually felt.",
-        ],
-        interviewPrompt:
-          "A delivery-ETA model has RMSE 6 minutes and MAE 3 minutes. What does that gap tell you about the error distribution?",
-        code: "rmse = np.sqrt(((y - yhat) ** 2).mean())",
       },
       {
         id: "calibration",

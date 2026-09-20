@@ -76,10 +76,12 @@ Mitigate the first with a mid-run checkpoint: workers report early findings, the
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "how do subagents reduce cost while increasing total tokens?":
-
-> Because the expensive thing in an agent isn't reading tokens once, it's re-sending them on every subsequent turn. If a single agent reads sixty documents, those 180,000 tokens sit in its context and get resent at every remaining step, so the cost is roughly the tokens times the number of turns after that point. A subagent absorbs that read inside its own short run and returns nine hundred tokens of structured findings, so the parent pays once, for a small amount. Total tokens across the system go up - each worker re-pays its own system prompt and tool schemas - and the cost that actually dominated goes down. Two conditions make it real: the return has to be capped and typed before dispatch, because a worker whose output grows with what it read has just moved the context rather than reduced it; and I'd pass every worker a small shared block with the goal, constraints, and key entities, since full isolation makes three workers independently rediscover the same background.
+- **The saving is not the one-time read, it is the re-sending.** A worker absorbs 180,000 tokens and returns 900; the parent would otherwise re-send all of it on every later turn.
+- **That is why total tokens rise while the cost that actually dominated falls.**
+- **It is also a privilege boundary.** A subagent reading untrusted content should hold no credentials, no write tools, and no egress - the cheapest structural defense against indirect injection.
+- **Decide the return schema before dispatch.** A worker whose output grows with what it read has moved the context, not reduced it.
+- **Over-isolation costs too:** pass every worker a small shared block with the goal, hard constraints, and key entities to prevent duplicate discovery.
 
 Next topic is **How multi-agent systems fail**.

@@ -98,10 +98,12 @@ Scale the features, think hard about the distance metric, and reduce dimensional
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For GPS pickup points, unknown cluster count, with a notion of "not in any cluster":
-
-> DBSCAN. The number of pickup hotspots is not known in advance, the shapes follow roads and blocks rather than circles, and scattered one-off pickups should not be forced into a cluster - DBSCAN labels them as noise, which k-means cannot do. I would set eps from a k-distance plot, in metres via a projected coordinate system or a haversine metric, and min_samples from how many pickups make a location worth calling a hotspot. If density varies a lot between downtown and the suburbs, a single eps will not fit both and I would move to HDBSCAN.
+- **Each one drops a different k-means constraint:** hierarchical clustering does not need k in advance, DBSCAN does not assume round clusters.
+- **Linkage decides the shape** in hierarchical clustering - Ward gives spherical groups like k-means, single linkage finds long snaking ones but chains through thin bridges.
+- **DBSCAN's third output is noise.** Points in no cluster get their own label, which makes it an outlier detector for free.
+- **A single density threshold is DBSCAN's weakness:** one `eps` cannot fit a dataset where one region is dense and another sparse. HDBSCAN varies it.
+- **Cost decides more than quality:** hierarchical clustering is quadratic, so it is for exploration on small data; k-means stays the one that scales.
 
 Next topic is **Gaussian mixture models**.

@@ -80,10 +80,13 @@ Observability that only produces dashboards changes nothing. The pipeline should
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "quality dropped after a deploy that changed three things":
-
-> Attribution needs the versions in the trace. Every span should record the prompt version, tool schema version, and model identifier in force when it ran, so I can segment quality, cost, and step count by each of the three and see which one moves the metric. Without those fields I'm reduced to bisecting by reverting changes in production. Beyond that I'd look at operational metrics first, because they lead: steps per run at p50 and p95, cost per successful task, tool error rate by tool, and cache hit rate - a cache-rate collapse, for instance, would point straight at a prompt change that put something volatile early in the prefix. Then I'd use the trace store as a queryable dataset rather than a viewer, grouping failures by trajectory to see whether the regression is concentrated in one path. And I'd make sure this ends somewhere: the failing cases become permanent eval cases, so the same regression can't ship twice.
+- **One trace per run, one span per step,** carrying prompt, model, tool call, observation, tokens, latency, cost, and cache hit.
+- **Record the prompt, tool-schema, and model versions in every span,** or a regression after a multi-change deploy cannot be attributed to anything.
+- **Operational metrics lead quality metrics.** Steps per run and cost per *successful* task detect degradation days before a quality metric moves; a cache-rate collapse points straight at a prompt change.
+- **Make traces queryable, not just viewable.** A viewer reads one trace; finding the pattern across ten thousand needs a store you can group and aggregate.
+- **Redact at capture time,** because traces are the most widely shared artifact in an agent system and redacting at read time means the raw data is already stored.
+- **Close the loop:** observability that only produces dashboards changes nothing.
 
 Next topic is **Testing and replay**.

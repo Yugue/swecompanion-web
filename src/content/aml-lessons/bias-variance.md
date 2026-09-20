@@ -1,6 +1,19 @@
 ## Bias-variance tradeoff
 
-The single most useful mental model in this domain: it turns "the model is bad" into "the model is bad *in this specific way*, so here is the fix that targets it."
+**There are two different ways for a model to be bad, and the cure for one makes the other worse.**
+
+- It can be **too simple** to capture the pattern, so it is wrong in much the same way every time. That is **bias**.
+- It can be **so flexible that it memorized** the particular examples it was shown, so it swings wildly on data it has not seen. That is **variance**.
+
+```text
+   too simple              about right            too flexible
+       ___                     ╱╲                   ╱╲  ╱╲
+   ___╱            vs         ╱  ╲        vs       ╱  ╲╱  ╲╱╲
+  misses the real          follows the         chases every wobble
+  shape entirely           actual shape        in the training data
+```
+
+This is the single most useful mental model in the domain: it turns "the model is bad" into "the model is bad *in this specific way*, so here is the fix that targets it."
 
 ### 1. The decomposition
 
@@ -86,10 +99,21 @@ For this interview you do not need double descent. You do need to avoid claiming
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "62% train, 61% validation - is more data the answer":
+Two numbers - training score and validation score - identify the failure mode before you change anything:
 
-> No. The gap is tiny, so variance is not the problem - the model is failing on data it has already seen, which is high bias or a broken pipeline. More rows of the same kind would not change that. I would first confirm training is working at all by checking that the model can overfit a small subset; then increase capacity or reduce regularization, and most importantly look at the features, since a bias-limited model usually means the inputs do not carry the signal. More data becomes the right answer once training accuracy is high and validation is well behind it.
+```text
+train BAD                       → high bias (underfitting)
+   fix: more capacity, better features, less regularization
+   more data will NOT help
 
-Next topic is **Diagnosing overfitting and underfitting**.
+train GOOD, validation much worse → high variance (overfitting)
+   fix: regularize, simplify, get more data
+```
+
+The rule that follows: **if training performance itself is poor, do not add regularization** - you would be treating the opposite disease, since regularization buys lower variance by paying in bias.
+
+Keep two more facts ready: more data only ever reduces variance, and irreducible noise sets a floor that no model beats. And avoid the overclaim that a bigger model always overfits more - large, well-regularized models trained on large data often generalize despite huge capacity.
+
+That completes **Chapter 1 — Foundations**. Next topic is **Missing values, outliers, and duplicates**.

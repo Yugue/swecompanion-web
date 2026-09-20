@@ -1,6 +1,14 @@
 ## What an agent actually is
 
-Everyone can say "an agent uses tools in a loop." The version that scores well is the one that names **what moved from your code into the model** - because that single shift is what creates every benefit and every problem discussed in the rest of this guide.
+**Start with the thing underneath.** A large language model reads text and writes the text that most plausibly comes next. That is all it does. It has no memory between calls, no way to reach the internet, and no way to run anything.
+
+```text
+         text in  ──►  [ language model ]  ──►  text out
+```
+
+An **agent** is what you get when you wrap that in a loop, hand it some tools, and let it choose which tool to use next.
+
+Everyone can say "an agent uses tools in a loop", though. The version that scores well names **what moved from your code into the model** - because that single shift creates every benefit and every problem in the rest of this guide.
 
 ### 1. Three things people all call "AI"
 
@@ -10,7 +18,7 @@ workflow:     prompt → step 1 → step 2 → step 3 → output     (you wrote 
 agent:        prompt → [ model decides next step ] ⟲ → output (the model wrote the arrows)
 ```
 
-A model call is a function. A workflow is a program that calls that function several times. An agent is a program whose **control flow is produced at runtime by the model**.
+A model call is a single question and answer. A workflow is a program that asks several in a fixed order. An agent is a program whose **order of steps is decided at runtime by the model**.
 
 That is the whole definition:
 
@@ -88,10 +96,12 @@ This is not a detail. It is the reason evaluation gets its own chapter.
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "what makes something an agent?":
-
-> An agent is a model placed in a loop with tools and a stopping condition, where the model - not my code - decides what the next step is. That last clause is the real definition: in a workflow I write the sequence of steps, and in an agent the sequence is chosen at runtime based on what the model observes. That buys me the ability to handle paths I never enumerated, and it costs me determinism, predictable cost, and ordinary testing - the same input can take a different route each run, so I test with pass rates over repeated runs and debug from traces rather than outputs. Autonomy is also a dial rather than a switch: tool breadth, step cap, and whether side effects need approval are all separately tunable, and I'd start every design at the low end.
+- **The definition is about control, not intelligence:** in a workflow you write the sequence of steps; in an agent the model chooses the next step at runtime.
+- **Four things make it an agent:** a model, tools, a loop, and a stopping condition. Remove the tools and it cannot affect anything; remove the stopping condition and it never returns.
+- **It is a trade, not an upgrade.** You gain handling of paths you never enumerated; you give up a readable execution path, deterministic tests, and predictable cost and latency.
+- **Autonomy is a dial:** tool breadth, loop length, approval on side effects, and scope are all tunable separately. Three read-only tools and a 5-step cap is still an agent, and often the right one.
+- **The same input can take a different path each run,** which is why you test with pass rates over repeated runs and debug from traces rather than outputs.
 
 Next topic is **What the underlying model gives you**.

@@ -1,6 +1,8 @@
 ## An agentic system design answer
 
-Agentic prompts are open like system-design prompts. The structure below is what a complete answer covers, in an order that lets the interviewer redirect you early rather than after you have spent six minutes on the wrong layer.
+**"Design an agent that does X" is an open-ended prompt, like any system-design question.** There is no single right answer, and the interviewer is watching how you structure one.
+
+The skeleton below is what a complete answer covers, in an order that lets the interviewer redirect you early rather than after six minutes on the wrong layer.
 
 ### 1. The skeleton
 
@@ -87,10 +89,23 @@ online:  escalation rate, refund reversal rate, cost per resolved ticket,
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "design an agent that resolves customer refund requests end to end":
+Cover the eight in order, and let the interviewer redirect you early:
 
-> I'd start with what correct means: the right decision applied, citing the policy clause, and - just as important - no incorrect refunds issued, because that second half is the metric that governs the design. Then I'd question the autonomy: most requests are an order lookup, a date check, and a policy check, which is a deterministic path, so I'd build a workflow with an agentic path only for the ambiguous twenty percent. For that path, six tools - order lookup, order search, policy retrieval, identity verification, issue refund, and escalate - a stopping condition that names the artifact, a twelve-step cap, and an eight-cent budget. Context is the cached system block, the tool schemas, the order record, and the top three reranked policy sections, compacting past eight steps while pinning identifiers and the customer's stated constraints. Controls: refunds authorize from the session identity, require identity verification in the same run, carry an idempotency key, auto-approve under five hundred dollars and require a human above it, and the customer's free text is untrusted so it can't influence tool behavior. Evaluation is two hundred cases built from real traces including adversarial ones, five runs each, gated on passing every run since this moves money, plus online escalation and reversal rates. On cost, six steps at around a seven-thousand-token context is roughly forty thousand input tokens, about seven cents, so I'd use a fast model for everything but the policy-reasoning step. And the failure I'd most expect is refunding the wrong order when the description is ambiguous, which is why the final decision must carry an order id that appeared in an observation.
+```text
+1. task + success criterion     what does "done and correct" mean?
+2. does this need an agent?     justify autonomy, or do not use it
+3. the loop                     tools, stopping conditions, step budget
+4. context                      what is in the window each turn
+5. controls                     permissions, approvals, untrusted content
+6. evaluation                   offline set, online signals
+7. cost + latency               do the arithmetic out loud
+8. failure modes                the top one, and what catches it
+```
+
+**Sections 5 to 8 are what separate someone who has shipped an agent from someone who has read about them.** State the success criterion as a metric - including the harm side, like "and no incorrect refunds" - because it governs the rest of the design.
+
+Where candidates lose points: jumping to multi-agent with no bottleneck to justify it, no stopping condition or budget, "guardrails" that are only sentences in a prompt, evaluation as an afterthought, and no account of what the agent should refuse or escalate.
 
 Next topic is **Answering agentic AI questions**.

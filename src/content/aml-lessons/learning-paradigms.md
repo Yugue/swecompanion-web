@@ -1,6 +1,14 @@
 ## Supervised, unsupervised, and self-supervised learning
 
-The paradigm is not a preference. It is decided for you by **what supervision signal exists in your data**.
+These three names answer a single question: **do your examples come with the right answer attached?**
+
+```text
+you have the answers          → supervised       "these 50,000 emails are marked spam / not spam"
+you have no answers           → unsupervised     "here are 50,000 emails, find some structure"
+the data contains its own     → self-supervised  "hide a word, predict it from the rest"
+```
+
+So the paradigm is not a preference. It is decided for you by what is already in your data.
 
 ### 1. The three cases in one line each
 
@@ -101,10 +109,11 @@ Do I have outcomes for my rows?
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-Given "10 million sessions, 2,000 human-reviewed labels":
+- **The data picks the paradigm, not your preference.** Ask what supervision signal your rows actually contain.
+- **"We have no labels" usually means "find the implicit label"** - a click, a return, a chargeback - before reaching for unsupervised learning.
+- **Unsupervised output is a hypothesis.** There is nothing to be accurate against, so a person has to decide the clusters mean something.
+- **Self-supervised learning is the bridge for scarce labels:** pretrain on cheap unlabelled data, then fine-tune on the expensive labelled data.
 
-> All three are available, in an order. I would use the unlabelled data first - self-supervised or clustering - to learn a representation of a session. Then train a supervised model on the 2,000 labels on top of that representation, because 2,000 raw rows is too little for a model with many features. And I would set up active learning so the next 2,000 labels are spent on the examples the model is least certain about.
-
-Next topic is **Regression, classification, ranking, and clustering**.
+Next topic is **Features, labels, and a training example**.

@@ -102,10 +102,20 @@ Reversing the first two steps is the most common silent leak in applied ML, and 
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "income is missing for 30% of users":
+Treat every cleaning choice as a modelling decision and ask one question first:
 
-> First I would check whether the missingness correlates with the label. If it does, that is signal, and I would add an is-missing indicator rather than hide it. For the value itself I would use the median, fitted inside the pipeline so it is computed per fold on training data only. If I were using gradient-boosted trees I might not impute at all, since they handle missing values natively. Thirty percent is high enough that I would also check whether the column is worth keeping - I would compare the model with and without it rather than assume.
+```text
+missing value → why is it missing?      does missingness predict the label? keep an indicator
+outlier       → what is it?             data error | real heavy tail | the target event
+duplicate     → same entity?            dedupe by entity key, and split by it
+```
+
+Only the first kind of outlier is ever safe to drop - in fraud or anomaly work the outliers *are* the positive class.
+
+One rule holds all of it together: **split first, fit the cleaning on train only, then apply it to validation and test.**
+
+Getting that order wrong is invisible in the metrics. Everything just looks slightly too good.
 
 Next topic is **Feature scaling and normalization**.

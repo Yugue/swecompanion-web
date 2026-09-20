@@ -107,10 +107,12 @@ When features have wildly different scales, the loss surface becomes a long narr
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "when would you use SGD over the closed form for linear regression":
+- **Closed form only exists for a few models,** costs roughly cubic in the feature count, and breaks on singular matrices. Ridge fixes that singularity, which is one of its quiet virtues.
+- **The learning rate is the critical choice:** a loss that goes up almost always means it is too high. Plot the loss before changing anything else.
+- **Mini-batch is the practical compromise;** plain SGD suits data that doesn't fit in memory or arrives as a stream, and its noise acts as mild regularization.
+- **Convex loss means a bad result is a data, feature, or learning-rate problem - never a lucky seed.** Logistic regression, linear regression, and linear SVMs are convex; k-means and neural nets are not.
+- **Scaling matters here too:** it makes the loss surface rounder so descent runs down the valley instead of zig-zagging across it.
 
-> The closed form costs roughly d-cubed for the matrix inverse and needs the whole design matrix in memory, so with many features or tens of millions of rows it becomes impractical - and if features are collinear the matrix is singular and it fails outright. SGD needs only one row or one mini-batch at a time, so it handles data that does not fit in memory and streaming updates, at the cost of tuning a learning rate and accepting an approximate answer. A middle option is ridge, whose closed form is always invertible, or L-BFGS, which converges in few iterations without a learning rate.
-
-Next topic is **Bias-variance tradeoff**.
+Next topic is **Regularization: L1, L2, and elastic net**.

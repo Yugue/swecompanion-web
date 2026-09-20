@@ -72,10 +72,13 @@ Reflection cannot supply missing knowledge. If the agent doesn't know the refund
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "design a reflection step that would have caught a real bug":
-
-> I'd ground it in something the actor didn't have. For a code-writing agent: the actor produces a patch, the runtime runs the test suite and the linter, and a critic prompt receives the patch, the original requirement, and the failing test output - not the actor's reasoning, because a critic that reads the justification tends to grade the argument instead of the artifact. That critic reliably catches real bugs, because the test output is new information rather than the same model's opinion. Asking the actor "are you sure?" wouldn't have caught it; the same context that produced the error usually rates it as fine. I'd cap it at one or two rounds, since the first round captures most of the gain and further rounds tend to oscillate or polish an already-acceptable answer while the budget drains. And I'd be clear about what reflection can't do: if the agent is missing a fact, the fix is retrieval, not self-critique.
+- **Reflection works exactly as well as the evidence you give the critic.** If the critic knows nothing the actor did not, you are mostly paying for agreement.
+- **Ground it:** a test result, a compiler, a schema check, a second retrieval, or a different model as the critic.
+- **Start with the cheapest signals.** Most teams add an LLM critic before they add a linter, which is backwards.
+- **Withhold the actor's reasoning from the critic,** or it grades the argument instead of the artifact.
+- **Cap it at one or two rounds.** The first captures most of the gain; later rounds oscillate or polish an already-acceptable answer.
+- **It cannot supply missing knowledge.** Diagnose first: a knowledge gap needs retrieval, a computation gap needs a code tool, only a care gap needs reflection.
 
 Next topic is **Sampling and search over actions**.

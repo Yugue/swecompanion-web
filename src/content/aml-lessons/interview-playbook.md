@@ -108,12 +108,26 @@ That scores far better than bluffing, and much better than stopping at "I don't 
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-The opening of "Tell me about overfitting":
+The graded skill is narrowing a broad prompt to one concept and explaining that concept well - not surveying everything you know.
 
-> Overfitting is when a model learns patterns specific to the training data - including its noise - so it performs much better on data it has seen than on new data. The signature is a large gap between training and validation performance. Would you like me to focus on how I diagnose it, or on how I would fix it in a particular model?
+```text
+1. define in one sentence a non-specialist could follow
+2. ask ONE clarifying question, then commit to a direction
+3. use a concrete example with real numbers
+4. name the trade-off and the opposite case
+5. mention the baseline, and what you would check in the data first
+6. stop when the concept is covered - do not pad
+```
 
-Then go where they point, with numbers, and stop when the concept is covered.
+The opening of "tell me about overfitting" shows the shape:
 
-You have reached the end of this guide. Go back to any chapter and re-read the "what you should say in an interview" sections - together they are a compact script for the whole domain.
+> Overfitting is when a model learns patterns specific to the training data - including its noise - so it does much better on data it has seen than on new data. The signature is a large gap between training and validation performance. Would you like me to focus on how I diagnose it, or how I'd fix it in a particular model?
+
+- **Say what you would check in the data before you say what model you would build.**
+- **Pair every number with its baseline,** or the number means nothing.
+- **Say "the model relies on it", not "it causes it".**
+- **When you do not know, reason from first principles out loud** - that scores far better than bluffing.
+
+You have reached the end of this guide. Go back to any chapter and re-read the "what matters most" sections - together they are a compact summary of the whole domain.

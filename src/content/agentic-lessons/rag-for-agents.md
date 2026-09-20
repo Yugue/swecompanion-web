@@ -1,6 +1,8 @@
 ## Retrieval as a tool
 
-Classic RAG retrieves once, before generation. An agent turns retrieval into an **action** it can take repeatedly, with queries it writes after seeing what the last attempt returned. That difference fixes the single-shot query's biggest weakness and costs you round trips.
+**Retrieval means looking something up and dropping the result into the model's context so it can use it.** Without it a model can only answer from what it absorbed during training - nothing about your documents, your customers, or today.
+
+The classic arrangement (usually called RAG, retrieval-augmented generation) looks things up **once**, before answering. An agent instead treats retrieval as an **action it can repeat**: read what came back, notice it is not enough, and search again with better words. That fixes the single-shot query's biggest weakness and costs you round trips.
 
 ### 1. The two shapes
 
@@ -59,7 +61,7 @@ agent: search_orders(customer, limit=2)        ← resolve "last" and "usual"
        → a promotional price on the earlier order
 ```
 
-Note that the first "retrieval" is a structured lookup, not a vector search. Agents that only have semantic search will embed "more expensive than usual" and retrieve nothing useful. Give the agent both structured filters and semantic search.
+Note that the first "retrieval" is a structured lookup, not a search by meaning. Agents that can only search by meaning will turn "more expensive than usual" into a numeric fingerprint (an **embedding** - two lessons from here) and retrieve nothing useful, because the phrase does not resemble any stored text. Give the agent both structured filters and semantic search.
 
 ---
 
@@ -75,14 +77,19 @@ A cheap post-check - does every cited source appear in what was actually retriev
 
 ### 5. Knowing when to stop searching
 
-Give the agent a stopping rule and a budget: "stop when you can answer with at least two independent sources, or after four searches - then say what you could not find." Without one you get the search-forever failure, where every query is defensible and none of them conclude.
+Give the agent a stopping rule and a budget. Something like: stop once two independent sources agree, or after four searches - then say what you could not find.
+
+Without one you get the search-forever failure. Every query looks defensible, and none of them conclude.
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "when is single-shot RAG strictly better?":
-
-> When the question is single-hop and well specified - "what's the refund window?" One retrieval and one generation answers it in one round trip at predictable cost, while an agentic loop spends several model calls deciding to do the same thing. I'd route by question shape rather than picking one architecture: classify the query, send simple lookups down the cheap path, and reserve the loop for multi-hop or vague questions where the second query depends on what the first returned. When I do use the loop, the retrieval tool has to return provenance on every passage, the query it actually used, and an explicit "no results" message rather than an empty string - that last one is where invented citations come from. I'd also give the agent structured filters alongside semantic search, since questions like "my last order" need a lookup rather than an embedding, and I'd add a citation check that verifies every cited source was actually retrieved.
+- **Route by question shape.** A single-hop, well-specified lookup should take the cheap one-shot path; multi-hop or vague questions earn the loop.
+- **The agentic version's real gain is reformulation** - it reads what came back, notices the gap, and searches again with better words.
+- **The retrieval tool must return provenance, the query it actually used, and an explicit "no results" message.** A blank result is where invented citations begin.
+- **Give the agent structured filters alongside semantic search.** Questions like "my last order" need a lookup, not a similarity match.
+- **Check citations after the fact** - that every cited source was really retrieved - which catches the most damaging RAG failure for almost nothing.
+- **Give it a stopping rule,** or every query stays defensible and none of them conclude.
 
 Next topic is **Chunking and indexing**.

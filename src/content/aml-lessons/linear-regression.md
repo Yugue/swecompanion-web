@@ -1,6 +1,13 @@
 ## Linear regression
 
-The simplest useful model, and the one every other regression idea is explained against. Interviewers use it to check whether you can talk about assumptions, not just about `.fit()`.
+**Linear regression predicts a number by multiplying each feature by its own weight and adding everything up.**
+
+```text
+predicted_price =  180 × size_m2  +  12,000 × bedrooms  -  900 × age_years  +  45,000
+                   └──────── weights learned from the data ────────┘         └ intercept ┘
+```
+
+Training means finding the weights that make those predictions as close as possible to the real prices. It is the simplest useful model and the one every other regression idea is explained against, so interviewers use it to check whether you can discuss assumptions rather than just `.fit()`.
 
 ### 1. The model
 
@@ -98,10 +105,12 @@ Three caveats worth saying out loud:
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "the coefficients flipped sign when I added a correlated feature":
-
-> That is multicollinearity. With two nearly-redundant features, many weight combinations give almost identical predictions, so the individual coefficients are poorly determined and can come out large and opposite. Prediction quality may be unaffected - it is the interpretation that has broken. I would check VIF, and then either drop one of the pair, combine them into a single feature, or switch to ridge, which adds an L2 penalty that makes the solution unique and stable. If the goal were explanation rather than prediction, I would not trust either coefficient until the redundancy is resolved.
+- **"Linear" means linear in the parameters,** so polynomial terms, splines, and log transforms still count - with regularization to stop them overfitting.
+- **A coefficient is conditional, not causal, and unit-dependent:** it holds other features fixed, describes association only, and needs standardizing before you compare magnitudes.
+- **Assumptions matter for different reasons.** Nonconstant variance or curvature show up in the residual plot; normality only matters for inference, not for useful predictions.
+- **Multicollinearity damages interpretation, not necessarily prediction,** and ridge is the simplest fix.
+- **Closed form is fine for modest d;** use gradient descent when d or n is large or the features are collinear.
 
 Next topic is **Logistic regression**.

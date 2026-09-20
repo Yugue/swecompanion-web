@@ -1,6 +1,15 @@
 ## k-Means clustering
 
-The default clustering algorithm: simple, fast, and built on assumptions that are easy to state and easy to violate.
+**k-means sorts data into k groups by repeatedly asking "which group centre is each point nearest?", then moving each centre to the middle of the points that chose it.**
+
+```text
+   place k centres  →  assign every point to its nearest centre
+          ↑                               │
+          └──── move each centre to the middle of its points ←┘
+                        (repeat until nothing moves)
+```
+
+You have to tell it k - the algorithm will never discover that there are really three groups rather than five. It is the default clustering algorithm: simple, fast, and built on assumptions that are easy to state and easy to violate.
 
 ### 1. The algorithm
 
@@ -97,10 +106,12 @@ There is no label to validate against, so k is chosen by internal criteria plus 
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "k-means split one dense blob and merged two others":
-
-> That is the spherical, equal-size assumption failing. k-means minimizes within-cluster squared distance with Euclidean geometry, so it can only draw round, comparable clusters separated by straight boundaries - a large elongated group costs less to split in half than to keep, and two small nearby groups cost less to merge. I would first confirm the features are scaled, since unscaled inputs cause the same symptom. If the shapes are genuinely irregular I would switch to DBSCAN, which grows clusters by density and does not assume shape, or to a Gaussian mixture with full covariance, which allows elliptical clusters of different sizes.
+- **It always converges, but only to a local optimum,** which is exactly why k-means++ initialization and multiple restarts matter.
+- **It assumes spherical, similar-sized, similarly dense clusters,** because it draws Voronoi boundaries with Euclidean distance. Elongated or nested shapes produce confident nonsense.
+- **Scaling is mandatory,** outliers drag centroids (they are means), and one-hot columns make every category pair equidistant.
+- **Cost is linear in n,** which is why it stays the default at scale, with MiniBatchKMeans for millions of rows.
+- **Inertia always falls as k grows,** so k is chosen by an elbow, silhouette, stability under resampling, or a business constraint - never by minimizing the objective.
 
 Next topic is **Hierarchical clustering and DBSCAN**.

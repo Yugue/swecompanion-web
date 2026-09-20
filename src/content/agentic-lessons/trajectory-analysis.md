@@ -78,10 +78,23 @@ These four run over every production trace for free and surface the cases worth 
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "given a failed 30-step trace, what's your reading order?":
+Do not read forward. Bisect:
 
-> I don't read forward. I start with the outcome and what was actually asked, then jump to the last step to see what the agent thought it had, then bisect backwards for the first step that was wrong given what was known at that moment - that qualifier matters, because judging a step by information that arrived later leads to fixing problems the agent never had. Everything after that first bad step is a consequence, not a separate bug. Then I look at that step's inputs - the context it had, the observation before it, the tools available - and classify the failure: retrieval, tool selection, argument construction, interpretation of an observation, or stopping. The classification decides the layer I fix, and it's usually not the system prompt: invented arguments point at an empty result being returned as a blank string, repeated identical calls point at a tool that doesn't resolve the question, ignored errors point at unactionable error text. The first thing I actually check is whether every tool argument traces back to an observation or the user's request, because an argument that appears from nowhere explains most confident wrong answers.
+```text
+1. the outcome        what was produced vs. what was asked
+2. the LAST step      what did it think it had?
+3. bisect backwards   find the FIRST step that was wrong
+                      given what was known AT THAT TIME
+4. that step's inputs context, observation, available tools
+5. classify           retrieval | selection | arguments | interpretation | stopping
+```
+
+Everything after the first bad step is a consequence, not a separate bug - and judging a step by information that arrived later produces fixes for problems the agent never had.
+
+- **The classification decides the layer you fix,** and it is rarely the system prompt.
+- **The single highest-value check:** every tool argument should trace back to an observation or the user's request. An argument from nowhere explains most confident wrong answers.
+- **Automate the detectors** - repeated calls, ungrounded arguments, ignored errors, claimed-but-missing actions - and read the flagged traces rather than random ones.
 
 Next topic is **LLM-as-judge**.

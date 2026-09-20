@@ -1,6 +1,8 @@
 ## LLM-as-judge
 
-For open-ended output there is no exact-match metric, so a model grades it. This scales, and it introduces a measurement instrument with its own biases. The interview answer that lands is: **validate the judge before you trust it.**
+**When there is no single right answer to compare against, you can have a second model grade the first one's output.** That is all "LLM-as-judge" means.
+
+It scales to thousands of examples, which is the appeal. It also makes your measuring instrument a language model with its own biases - so the answer that lands is: **validate the judge before you trust it.**
 
 ### 1. When to use one
 
@@ -71,10 +73,12 @@ Asking for **specific step numbers and evidence** makes the verdict checkable, w
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "how do you establish that your judge is trustworthy?":
-
-> I treat it as an instrument that needs calibrating. I hand-label a couple of hundred representative examples, ideally with two labellers resolving disagreements, run the judge over the same set, and report agreement with the human labels - something like Cohen's kappa - along with where it systematically disagrees. That agreement number is what I'd quote, not the judge's own scores, because without it a claim like "quality improved eight percent" is a statement about the judge. When agreement is poor I iterate on the rubric rather than on the examples. Design-wise I'd use pairwise comparison with randomized order rather than a one-to-ten scale, since absolute scores cluster and drift and position bias is real; use a different model from the one that generated the output to avoid self-preference; state explicitly in the rubric that length isn't a criterion; and require the judge to cite the specific evidence or step number for its verdict, which makes the verdict checkable. And before any of it, I'd check whether a deterministic test could answer the question instead.
+- **Check first whether a deterministic test could answer it.** Teams routinely build a judge for something an assertion would settle.
+- **Ask the judge a question it can be right or wrong about.** "Rate this 1-10" produces noise that looks like data; pairwise comparison with randomized order is the default.
+- **Know the biases:** position, length, self-preference for its own style, and clustering toward the middle. Use a different model as judge and say in the rubric that length is not a criterion.
+- **Validate against human labels and quote the agreement,** re-validating whenever the judge or rubric changes. Without that number, "quality improved 8%" is a claim about the judge.
+- **Require the judge to cite the step number or evidence for its verdict** - the single biggest improvement you can make to any judge prompt.
 
 Next topic is **Characteristic failure modes**.

@@ -90,10 +90,13 @@ BIC penalizes complexity more heavily than AIC and usually gives the more conser
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "when is a soft assignment more useful":
-
-> Whenever the boundary cases matter. A responsibility of 0.5 says the point is genuinely between two components rather than belonging to one - for customer segmentation that flags people who do not fit a single segment, and in a pipeline it is a natural signal to route to human review instead of acting automatically. It is also useful as a feature: the vector of responsibilities carries more information than a single cluster id. And since a GMM is a density model, low likelihood under every component is an anomaly score, which a hard assignment cannot give you - k-means assigns every point to something no matter how far away it is.
+- **A GMM is k-means made probabilistic.** In fact k-means *is* a GMM with round, equal-sized components and hard assignments.
+- **Soft assignment is the payoff.** A point that is 0.48 / 0.51 between two clusters is flagged as genuinely ambiguous, which a hard label hides.
+- **It defines a probability density,** so unlike k-means it can score how likely a new point is - useful for anomaly detection - and generate new samples.
+- **`covariance_type` is the capacity dial:** `full` fits ellipses at any angle but needs a lot of data; `diag` is the usual compromise in higher dimensions.
+- **Because it is a likelihood model, BIC and AIC can choose the number of components** - a real advantage over k-means, where the objective always improves with more clusters.
+- **EM converges only to a local optimum,** so initialization (usually from k-means) and restarts matter.
 
 Next topic is **Choosing k and evaluating clusters**.

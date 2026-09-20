@@ -1,6 +1,8 @@
 ## Regularization: L1, L2, and elastic net
 
-Regularization adds a penalty on complexity to the training objective. You are deliberately making the training fit *worse* in exchange for a model that generalizes better.
+**Regularization is telling the model "keep it simple" by charging it a fee for complexity.**
+
+You add a penalty to the training objective that grows as the model's coefficients grow. The model then deliberately fits the training data *worse* in exchange for doing better on data it has never seen - the variance half of the bias-variance trade.
 
 ### 1. The objective
 
@@ -107,10 +109,12 @@ That trade is favorable only up to a point. Too much regularization gives you a 
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "5,000 features, 800 rows":
+- **You are deliberately fitting the training data worse** in exchange for better generalization: lower variance bought with higher bias.
+- **L2 shrinks smoothly and splits weight between correlated features; L1 zeroes coefficients outright** and picks one of a correlated group arbitrarily. Elastic net gives sparsity with stability.
+- **The geometric reason L1 selects:** its constraint region has corners on the axes, and a corner means a coordinate is exactly zero.
+- **Scale first, then tune λ by cross-validation** - and keep straight that `alpha` rises with regularization while `C` falls.
+- **The idea generalizes:** depth limits and pruning for trees, shrinkage and early stopping for boosting, C for SVMs, larger k for k-NN, and more data for everything.
 
-> With d far larger than n the model can fit the training data perfectly in many different ways, so I need a penalty that picks among them. I would start with L1 or elastic net, because I expect only a small subset of those 5,000 features to matter and L1 drives the rest exactly to zero, which also makes the model cheaper to serve and easier to explain. If the features come in correlated groups, lasso alone would arbitrarily keep one per group, so elastic net is safer. I would scale everything first, tune alpha by cross-validation, and compare against a ridge model, since sometimes many weak signals beat a sparse subset.
-
-Next topic is **Cross-validation**.
+Next topic is **Diagnosing overfitting and underfitting**.

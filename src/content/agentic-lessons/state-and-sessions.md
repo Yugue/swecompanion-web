@@ -77,10 +77,20 @@ human marks finding[4] wrong →  it is excluded from the context
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "a run crashes at step 18 of 30 - what must have been persisted?":
+The context window is *derived*. The durable truth of a run is a record you can hand to another worker:
 
-> Enough to establish what has actually happened, not just what was said. That means the run record is written after every step: the goal, the plan with per-step status, the ordered list of executed tool calls with their arguments and result references, any artifacts produced with their locations, the budget consumed, and the prompt, tool, and model versions in force. With that, another worker can rebuild the context and continue. But resumption correctness needs one more thing - knowing whether step 18's side effect was applied. If it's ambiguous, the agent must query the external system rather than assume, which is why side-effecting tools need idempotency keys and a status lookup: then retrying is safe either way. I'd also make the state structured and addressable rather than a message list, so a human can open a stuck run, correct a wrong fact, and let it continue - and scope every record by tenant and user, with redaction at write time, since run records are the most widely shared artifact in the system.
+```text
+run = {goal, plan[status per step], steps[tool, args, result_ref],
+       artifacts, budget_used, versions{prompt, tools, model}, status}
+```
+
+The test for your design: **if the process died right now, could another worker pick this run up correctly?**
+
+- **Persist after every step,** not at the end - otherwise a run cannot be resumed, audited mid-flight, or debugged when it hangs.
+- **Resumption needs more than "keep going."** Whether step 18's side effect actually applied must be established, not assumed - which is why side-effecting tools need idempotency keys and a status lookup.
+- **Separate task state from conversation state.** The task state is what humans, dashboards, and other services need.
+- **Make it structured and editable** so a person can correct a fact mid-run, and scope every record by tenant and user from day one.
 
 That completes **Chapter 4 — Memory, context, and retrieval**. Next topic is **When multi-agent pays for itself**.

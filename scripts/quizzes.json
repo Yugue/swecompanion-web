@@ -133,26 +133,30 @@
     "questions": [
       "When is a hand-written rule the better answer than a model?",
       "What makes a task self-supervised rather than unsupervised?",
+      "Define one training row for a delivery-ETA model.",
       "Softmax or independent sigmoids for tagging an article with any number of topics?",
-      "Your fraud model is 99.2% accurate. What do you compute next?",
       "Is k in k-means a parameter or a hyperparameter?",
       "What are the three splits for?",
       "Why is a random split wrong for time-ordered data?",
-      "The same user appears in train and test. What breaks?",
-      "What makes a label definition usable?",
-      "Define one training row for a delivery-ETA model."
+      "Give precision and recall in one sentence each.",
+      "Why is F1 a harmonic mean rather than an arithmetic one?",
+      "RMSE is 6 minutes and MAE is 3. What does that gap tell you?",
+      "Your fraud model is 99.2% accurate. What do you compute next?",
+      "62% train accuracy, 61% validation. Will more data help?"
     ],
     "answers": [
       "When the rule is short, stable, and auditable. ML earns its cost only when the rules are unknown, too numerous to maintain, or keep changing.",
       "The target is constructed from the input itself - mask a word, hide a column - so it trains like supervised learning without any human labels.",
+      "The unit is one order at placement time; x is everything knowable at that instant; y is the realized delivery duration, observable about 40 minutes later.",
       "Independent sigmoids. Several labels can be true at once, and softmax would force them to compete for one unit of probability.",
-      "The majority-class baseline. At a ~1% positive rate, predicting 'never fraud' also scores ~99%, so report precision and recall against that baseline instead.",
       "A hyperparameter. The centroids are the learned parameters; k is a choice you make before fitting, and there is no validation label to tune it against.",
       "Train fits the parameters, validation compares candidates and tunes hyperparameters, and test estimates generalization exactly once.",
       "It lets the model train on the future. Split chronologically, and leave a gap as long as the label delay.",
-      "The model can recognize that user rather than the pattern, so the test score measures memorization. Split by the entity with a grouped split.",
-      "It names the event, the window, the exclusions, and when the outcome becomes observable - so two engineers building the label table get the same rows.",
-      "The unit is one order at placement time; x is everything knowable at that instant; y is the realized delivery duration, observable about 40 minutes later."
+      "Precision: of everything we flagged, how much was right. Recall: of everything that was really positive, how much did we catch.",
+      "Because it punishes a lopsided pair. Precision 1.0 with recall 0.0 gives an arithmetic mean of 0.5 but an F1 of 0, which is the honest summary.",
+      "The errors are not uniform: most predictions are close and a few are badly wrong, because RMSE squares large misses and MAE does not. Go read the worst cases before tuning.",
+      "The majority-class baseline. At a ~1% positive rate, predicting 'never fraud' also scores ~99%, so report precision and recall against that baseline instead.",
+      "No. The gap is tiny, so this is high bias or a broken pipeline - the model fails on data it has already seen. More rows of the same kind change nothing; fix features, capacity, or the bug."
     ]
   },
   "aml-data-and-features": {
@@ -214,7 +218,7 @@
       "Being late costs more than being early. Which loss?",
       "When is the closed form for linear regression the wrong choice?",
       "Which classical models have a convex loss, and why does it matter?",
-      "62% train accuracy, 61% validation. Will more data help?",
+      "Your model cannot reach high accuracy even on 100 training examples. What does that tell you?",
       "What does a learning curve over training-set size tell you?",
       "L1 or L2 for 5,000 features and 800 rows?",
       "Why must feature selection live inside the cross-validation fold?",
@@ -226,7 +230,7 @@
       "Quantile (pinball) loss at q > 0.5, and serve that quantile instead of the mean - optimizing the mean is optimizing the wrong thing under asymmetric cost.",
       "When d is large (the inverse is O(d³)), the data does not fit in memory, or XᵀX is singular from collinear features. Ridge or gradient descent handles those cases.",
       "Linear regression, logistic regression, and the linear SVM. It means one global optimum: the fit is reproducible and initialization is irrelevant. k-means and neural networks are not convex.",
-      "No. The gap is tiny, so this is high bias or a broken pipeline - the model fails on data it has already seen. More rows of the same kind change nothing; fix features, capacity, or the bug.",
+      "It is not a capacity problem - it is a bug. Suspect shuffled labels, a broken transform, a learning rate far too high, or a target column that is not what you think it is. Run that check before any tuning.",
       "Whether more data would help at all. Converged, low curves mean bias; a persistent gap with validation still rising means variance and more data pays.",
       "L1 or elastic net. With d far larger than n, expect only a few relevant features - L1 zeroes the rest. Elastic net if the features come in correlated groups.",
       "Selecting on the full dataset uses every label, including the held-out fold's, so the fold is no longer held out. On pure noise this can produce a strong-looking CV score.",
@@ -235,28 +239,28 @@
   },
   "aml-evaluation": {
     "questions": [
-      "Give precision and recall in one sentence each.",
-      "Why is F1 a harmonic mean rather than an arithmetic one?",
-      "0.95 ROC-AUC on 0.3% positives, and the product team says it is useless. Explain both.",
       "What does ROC-AUC actually mean?",
+      "0.95 ROC-AUC on 0.3% positives, and the product team says it is useless. Explain both.",
       "How do you choose the production threshold?",
-      "RMSE is 6 minutes and MAE is 3. What does that gap tell you?",
       "Can a model rank perfectly and still be badly calibrated?",
       "When does calibration stop being optional?",
       "You oversample positives 50x. What happens to the predicted probabilities?",
-      "Model B beats model A by 0.4% AUC. Do you ship it?"
+      "Model B beats model A by 0.4% AUC. Do you ship it?",
+      "On an imbalanced problem, in what order do you reach for the levers?",
+      "The model is 90% accurate. What do you actually do next?",
+      "Why report the worst slice next to the average?"
     ],
     "answers": [
-      "Precision: of everything we flagged, how much was right. Recall: of everything that was really positive, how much did we catch.",
-      "Because it punishes a lopsided pair. Precision 1.0 with recall 0.0 gives an arithmetic mean of 0.5 but an F1 of 0, which is the honest summary.",
-      "Both are true. FPR is divided by an enormous number of negatives, so the ROC curve hugs the top-left while precision at the operating point is a few percent. Switch to PR-AUC against the 0.003 baseline.",
       "The probability that a randomly chosen positive is scored above a randomly chosen negative. 0.5 is random; it is threshold-free and insensitive to class balance.",
+      "Both are true. FPR is divided by an enormous number of negatives, so the ROC curve hugs the top-left while precision at the operating point is a few percent. Switch to PR-AUC against the 0.003 baseline.",
       "From cost, not from 0.5. Sweep the threshold and minimize C_FP·FP + C_FN·FN, or fix it by the review team's capacity - then re-validate it after every retrain.",
-      "The errors are not uniform: most predictions are close and a few are badly wrong, because RMSE squares large misses and MAE does not. Go read the worst cases before tuning.",
       "Yes. Halving every score leaves the ordering, and therefore the AUC, untouched while making every probability wrong. Ranking and calibration are independent properties.",
       "The moment the probability is multiplied by something - expected loss, pricing, another probability - or shown to a human. Pure ranking does not need it.",
       "They are inflated toward the resampled base rate, so a raw 0.5 no longer means 50% in the real world. Recalibrate on a held-out set with the original distribution, and always evaluate on that distribution.",
-      "Not on that evidence. Compare paired per-fold differences or bootstrap the test set for a confidence interval, account for how many variants were tried, and weigh serving cost and maintenance before shipping."
+      "Not on that evidence. Compare paired per-fold differences or bootstrap the test set for a confidence interval, account for how many variants were tried, and weigh serving cost and maintenance before shipping.",
+      "Metrics first (quote the majority baseline, switch to precision/recall/PR-AUC), then the threshold, then class weights, then resampling - which is the most invasive and the one candidates jump to first.",
+      "Read 50-100 errors by hand and sort them into buckets - label error, missing coverage, missing feature, preprocessing bug, genuine ambiguity, real model limitation - because each bucket has a different fix. Then rank by frequency times fixability times business impact.",
+      "An 88% average can hide 60% on the segment that generates the revenue. The average is what you built; the worst slice is what someone actually experiences."
     ]
   },
   "aml-unsupervised": {
@@ -322,7 +326,8 @@
       "A 40-step run degrades in quality even though nothing was truncated. Why?",
       "A PM asks for an agent to process invoices. What decides whether it should be one?",
       "What is the capability-ceiling test before adding scaffolding?",
-      "Per-step success is 95%. What is a 10-step task's end-to-end success?"
+      "Per-step success is 95%. What is a 10-step task's end-to-end success?",
+      "Name the standard workflow patterns that are not agents."
     ],
     "answers": [
       "Control flow: in a workflow the engineer writes the sequence of steps; in an agent the model chooses the next step at runtime.",
@@ -334,7 +339,8 @@
       "Relevant facts compete with plausible distractors. A long, noisy context measurably lowers accuracy in addition to costing money and latency.",
       "Whether the path is data-dependent, the step count is unknown in advance, and recovery needs judgment. If the steps are the same each time, ship a workflow.",
       "Ask whether a single well-prompted call with the right context could do the task. If not, more steps, reflection, or subagents will not fix it.",
-      "Roughly 0.95^10, about 60% - which is why agents must be measured end to end rather than from per-call benchmarks."
+      "Roughly 0.95^10, about 60% - which is why agents must be measured end to end rather than from per-call benchmarks.",
+      "Prompt chaining, routing to a specialist handler, parallel sampling with aggregation, and evaluator-optimizer loops - all with control flow written in code."
     ]
   },
   "agentic-tool-use": {
@@ -426,7 +432,7 @@
       "How does a merge step prevent fabricated statistics?",
       "Two agents write the same file in a shared workspace. What is the minimum control?",
       "Why are per-worker budgets insufficient?",
-      "What are the standard workflow patterns that are not agents?"
+      "Why is a handoff lossy, and which two fields are most often dropped?"
     ],
     "answers": [
       "Parallelism over independent subtasks, and context isolation for work that will not fit in one window. Both are checkable properties of the task.",
@@ -438,7 +444,7 @@
       "By dropping or flagging claims without a source and as-of date, surfacing contradictions with both sources, and listing gaps explicitly rather than concatenating findings.",
       "Single ownership per file or record, or optimistic concurrency where a write fails if the version moved - plus logged writes and timeout-bounded locks.",
       "Ten steps each across six workers is sixty steps with no global stop. Budgets must be enforced run-wide, with exhaustion as a defined partial-result outcome.",
-      "Prompt chaining, routing to a specialist handler, parallel sampling with aggregation, and evaluator-optimizer loops - all with control flow written in code."
+      "Whatever is not in the message does not exist for the receiving agent, which cannot ask a clarifying question of a context it never saw. The two most often dropped are the constraints and what was already tried - causing a downstream agent to break a rule it was never told, and several agents to repeat the same dead-end work."
     ]
   },
   "agentic-evaluation-and-safety": {

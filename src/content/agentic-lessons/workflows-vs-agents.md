@@ -46,7 +46,7 @@ Put the agent in the one stage where the path is genuinely unknown, and wrap it 
 | Latency | Fixed, predictable | Variable; p99 far above p50 |
 | Cost | Fixed | Variable, unbounded without caps |
 | Testing | Ordinary unit/integration tests | Pass rates over repeated runs |
-| Observability | Standard tracing | Trajectory analysis |
+| Observability | Standard tracing | Reading the whole step-by-step trace (Chapter 6) |
 | Handles unforeseen cases | No | Yes |
 | Failure | Loud and localized | Quiet and diffuse |
 
@@ -59,7 +59,7 @@ The last row is the strongest practical argument for workflows: when a workflow 
 ```text
 request
   ├─ classify intent                     (cheap model, deterministic)
-  ├─ simple lookup?  → RAG → answer      (no agent at all)
+  ├─ simple lookup?  → look it up → answer   (no agent at all)
   └─ complex case?   → agent
                         tools: 4
                         step cap: 12
@@ -77,10 +77,12 @@ Once you have traces, look at the actual trajectories. If 80% of runs follow the
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "convert the predictable 70% of an autonomous design into a workflow":
+- **Most production systems are workflows with one agentic stage,** and that is usually correct rather than a compromise.
+- **Know the standard shapes by name:** prompt chaining, routing to a specialist, parallel sampling with aggregation, and evaluator-optimizer loops. Their control flow is code, so they are testable and bounded by construction.
+- **Autonomy is a component, not an architecture.** Put it in the one stage where the path is genuinely unknown and wrap it in a deterministic shell that validates the output.
+- **The strongest practical argument for workflows is the failure mode:** a broken workflow throws an exception at a known line, while a wrong agent returns a fluent, confident, incorrect answer.
+- **Migration is the reliable cost win in a mature system:** group traces by trajectory, promote the dominant path into code, and leave the agent for the remainder.
 
-> I'd start from traces rather than intuition - group the runs by trajectory and see which sequences dominate. Typically most requests follow the same few steps: classify the intent, fetch the record, look up the relevant policy. Those become code: a router, a retrieval call, a validation step. That gets me fixed latency and cost on the majority of traffic, ordinary tests instead of pass-rate evals, and exceptions at known lines instead of fluent wrong answers. What's left is the genuinely open part - usually exceptions and multi-hop cases where step three depends on what step two returned - and that's the one stage I keep agentic, with a small tool set, a step cap, and approval on anything irreversible. I'd wrap it in a deterministic shell that validates the output against a contract and has a fallback path when the agentic stage fails or exceeds budget. The general principle is that autonomy is a component rather than an architecture, and traces tell me exactly how big that component needs to be.
-
-Next topic is **Context isolation across agents**.
+That completes **Chapter 1 — Agent foundations**. Next topic is **Function calling mechanics**.

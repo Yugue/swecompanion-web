@@ -1,6 +1,8 @@
 ## Support Vector Machines
 
-An SVM asks a different question from logistic regression: not "what boundary makes the data most likely", but "what boundary sits as far as possible from the closest points".
+**A support vector machine separates two classes by drawing the dividing line as far away from both of them as it can.**
+
+Logistic regression asks "what line makes this data most likely?". An SVM asks "what line leaves the widest empty corridor between the two groups?" - and only the handful of points sitting closest to that corridor matter at all.
 
 ### 1. The margin
 
@@ -105,10 +107,12 @@ They often produce similar boundaries, and the honest comparison is:
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-Explaining the margin to someone who knows logistic regression:
-
-> Logistic regression picks the boundary that maximizes the likelihood of the labels, and every point keeps contributing to the fit. An SVM instead picks the boundary that sits as far as possible from the closest points of each class - it only cares about those borderline points, the support vectors, and ignores anything already confidently correct. C controls how much it is willing to let points violate that margin: a small C buys a wider, safer margin at the cost of more training mistakes, which is regularization. The practical difference is that logistic regression hands me a calibrated probability, and the SVM hands me a decision.
+- **An SVM maximizes the margin,** and only the support vectors - the points touching it - define the boundary. Delete the rest and nothing changes.
+- **C is regularization in reverse:** small C means a wide margin and strong regularization; large C fits the training data hard.
+- **Hinge loss stops caring once a point is safe,** whereas log loss keeps pushing - which is why the SVM solution is sparse in the data.
+- **The kernel trick needs only inner products,** so it gives nonlinear boundaries without building the high-dimensional space; for RBF, tune C and gamma together.
+- **Practical limits:** scale features, training is roughly quadratic or worse in n, and it outputs a distance rather than a probability.
 
 Next topic is **Decision trees**.

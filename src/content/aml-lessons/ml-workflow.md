@@ -109,10 +109,22 @@ Saying what you would *not* do first is a strong signal:
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For an end-to-end churn project:
+Walk the loop in order, and name the steps people skip:
 
-> I would start by pinning the decision - who acts on the prediction and with what budget - because that fixes the unit, the label window, and the metric. Then build the dataset as of a prediction time, audit for leakage, and split chronologically since churn is time-dependent. Before modelling I would get two baselines: the trivial rate and whatever the retention team does today. Then a gradient-boosted tree, evaluated with recall at the team's contact capacity rather than accuracy. From there I would iterate through error analysis rather than model shopping. What I would postpone: a real-time serving path, since a weekly batch score fits how the team works, and any deep model, because this is tabular data with a modest number of rows.
+```text
+frame the decision → split the data → baseline → iterate on evidence
+        ↑                                              │
+        └────────── evaluate for the decision ─────────┘
+                              ↓
+              deploy → monitor → retraining trigger
+```
+
+- **Framing comes first and decides everything else:** the decision, the unit of prediction, the operational label, the cost of each error, and what "good enough to ship" means.
+- **Split before exploring,** or your choices have already seen the test set.
+- **Two baselines:** the trivial one tells you what the metric means, the existing system is what you must beat to justify the project.
+- **Improvements come in a reliable order** - data and label fixes, then a new feature, then tuning, then a different model family. Most candidates propose that list backwards.
+- **Shipping is the start of the second half.** Define the retraining trigger before launch, not after the first incident.
 
 Next topic is **Choosing a model under real constraints**.

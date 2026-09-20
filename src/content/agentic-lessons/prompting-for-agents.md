@@ -83,10 +83,13 @@ Treat the system prompt like code: in source control, versioned per deploy, and 
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "how do you turn a vague agent instruction into something you can rely on?":
+- **An agent's system prompt is a standing policy,** re-read every turn and applied to situations you never imagined - closer to configuration than to copywriting.
+- **Write rules as observable behavior, not traits.** "Never call issue_refund before verify_identity returns ok" is both an instruction and an eval case; "be careful" is neither.
+- **State the stopping condition and name the artifact.** Agents that never learn what "done" looks like either loop or stop half-finished.
+- **Authority runs system → developer/tools → user → retrieved content,** and that last layer is data, never a command. That ordering cannot be enforced by wording alone, so pair it with architectural controls.
+- **Few-shot examples steer tool choice better than adjectives** but are re-sent every turn, so keep them few and put them in the cacheable prefix.
+- **Version the prompt like code** and record the version in every trace, or you cannot attribute a regression.
 
-> I rewrite traits as observable behaviors, because a trait can't be tested and therefore can't be improved. "Be careful" becomes "never call issue_refund before verify_identity returns ok," which is both an instruction and an eval case. Beyond the rules I make sure the prompt states the stopping condition - naming the artifact that counts as done - and the output contract, since those are the two sections people most often leave out and they cause the "loops forever" and "stops too early" failures. I also keep the instruction hierarchy explicit: system instructions outrank the user message, and anything retrieved from the world is data rather than a command. That last one isn't enforceable in the prompt, so I pair it with architectural controls rather than relying on the wording.
-
-Next topic is **The context window as working memory**.
+Next topic is **Structured output and schemas**.

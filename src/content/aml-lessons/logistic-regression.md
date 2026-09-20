@@ -34,7 +34,7 @@ L = -\frac{1}{n}\sum_i \Big[ y_i\log p_i + (1-y_i)\log(1-p_i) \Big]
 
 If the truth is 1, the loss is \(-\log p\): predicting 0.99 costs almost nothing, predicting 0.01 costs a lot. It punishes **confident mistakes** hard, which is exactly the behavior you want from something that outputs probabilities.
 
-This loss is convex, so there is a single global optimum and no initialization worries.
+This loss is **convex** - it has one single lowest point, like a bowl, rather than several dips to get stuck in. So training always lands in the same place, and where it starts does not matter.
 
 ### Why not squared error?
 
@@ -102,10 +102,12 @@ The calibration point is underrated: logistic regression is a *probability* mode
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "why log loss instead of squared error":
-
-> Logistic regression models a probability, and log loss is the negative log-likelihood of a Bernoulli outcome - so minimizing it is maximum-likelihood estimation, which is the principled reason. Practically, log loss is convex in the weights so the fit is unique and reproducible, while squared error through a sigmoid is not, and squared error gives weak gradients exactly where the model is confidently wrong. With squared error you would also lose the probabilistic interpretation that makes the output thresholdable against a business cost.
+- **It is a linear model of the log-odds,** which is why the boundary is a hyperplane and why a coefficient converts cleanly into an odds ratio you can report.
+- **Log loss is the maximum-likelihood objective for a Bernoulli outcome,** convex, and punishes confident mistakes - a better answer than "squared error gets stuck."
+- **It regularizes by default, with C as the *inverse* penalty,** so scale your features and treat C as the hyperparameter worth tuning.
+- **Its probabilities are usually trustworthy out of the box,** unlike forests and SVMs.
+- **Use softmax when classes compete and independent sigmoids when several labels can be true.**
 
 Next topic is **k-Nearest Neighbors**.

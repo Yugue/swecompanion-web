@@ -78,10 +78,12 @@ Nothing in the pattern asks "is this working?" Fixes are structural: a step budg
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "contrast ReAct with plan-then-execute when step 3 invalidates step 1":
-
-> ReAct handles it without any special machinery, because there is no plan to invalidate - each thought is formed against the latest observation, so when step 3 returns something that contradicts the earlier assumption, the next thought is already conditioned on it. Plan-then-execute will keep executing a stale plan unless I've built an explicit replanning trigger, typically on a failed step or a contradicted assumption. The tradeoff runs the other way too: an up-front plan is auditable, can be shown to a human for approval, and exposes which steps are independent so I can parallelize them, while ReAct is myopic - every step is locally sensible and the run still wanders for fifteen steps without converging. In practice I'd use a hierarchical shape: a coarse plan for structure and approval, ReAct inside each step for robustness, plus a mandatory checkpoint partway through the budget where the agent states what it knows and what's still missing.
+- **Thought → Action → Observation, repeated.** The observation is the only part of the loop the model did not generate, which is what keeps planning honest.
+- **It beats pure planning when reality disagrees with the plan,** and beats pure acting because a surprising result actually changes the next decision.
+- **Its weakness is myopia:** every step is locally sensible and the run still wanders for fifteen steps without converging.
+- **Fix that structurally** - a mandatory mid-run checkpoint stating what is known and what is missing, a repeated-call detector, and tools that can return a definitive "not found".
+- **Keep thoughts to a sentence or two,** since they are re-sent on every later turn, and allow parallel actions when they are genuinely independent.
 
 Next topic is **Planning strategies**.

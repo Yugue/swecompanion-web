@@ -83,10 +83,13 @@ When a guardrail can't evaluate - the validator is down, the policy service time
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "your agent can send email - list every control between the decision and the message leaving":
-
-> Starting at the tool boundary: authorization using the session identity, not anything the model supplied, so the agent can only send as this user. Then argument validation - recipients checked against an allowlist or at minimum a domain policy, attachments checked by type and size, body scanned for secrets and for other tenants' data. Then rate and spend limits, per run and per tenant, so a loop can't send a thousand messages. Then the gate: sending is irreversible, so above some blast radius - external recipients, bulk sends - it requires human approval, and I'd gate on reversibility and reach rather than on the model's confidence, since confidence is generated text and an attacker could set it. Below that threshold I'd still use a staged send with a short cancellation window and a notification. Everything is logged with the full message and the approving identity. And the whole thing fails closed: if the allowlist service is unavailable, the send blocks and escalates rather than proceeding, because a check that passes when it can't run isn't a check.
+- **A guardrail is deterministic code around a non-deterministic core.** Anything expressible only as a sentence in the prompt is a preference, not a guardrail.
+- **Three placements:** input, tool, and output - and the tool layer matters most, because that is where the world changes.
+- **Least privilege per tool and per run,** authorizing from the session identity. The useful test: if the model were replaced by an attacker, what could this run do?
+- **Gate on reversibility and blast radius, never on model confidence** - confidence is generated text, poorly calibrated, and influenceable by the same input that caused the problem.
+- **Budgets are guardrails too,** and exhaustion should be a defined outcome rather than an exception at step 47.
+- **Do not forget output checks** - schema, citations, leakage, and action-claim consistency - and **fail closed** when a check cannot run.
 
 Next topic is **Prompt injection and untrusted content**.

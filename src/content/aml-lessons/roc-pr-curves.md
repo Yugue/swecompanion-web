@@ -1,6 +1,8 @@
 ## ROC-AUC, PR-AUC, and thresholds
 
-Precision and recall describe **one** threshold. The curves describe every threshold at once - which makes them the right tool for comparing models and the wrong tool for choosing an operating point.
+**A classifier does not really output "yes" or "no". It outputs a score, and you choose a cut-off.** Move the cut-off and precision and recall both move with it.
+
+Precision and recall therefore describe **one** cut-off. The curves in this lesson describe every cut-off at once, which makes them the right tool for comparing two models and the wrong tool for deciding where to actually set the dial.
 
 ### 1. The ROC curve
 
@@ -112,10 +114,12 @@ A sudden change in the proportion of flagged traffic is often the earliest visib
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "0.95 ROC-AUC but product says it is useless":
+- **ROC-AUC is the probability a random positive outranks a random negative** - threshold-free and invariant to class balance.
+- **That invariance is the trap.** Under heavy imbalance the huge TN count keeps FPR tiny, so ROC-AUC reads 0.95 while the flagged set is mostly junk. Use PR-AUC when positives are rare and the flagged set is what matters.
+- **PR-AUC's baseline is the positive rate,** so it can't be compared across datasets with different balances; ROC-AUC can.
+- **AUC compares models; a threshold runs in production.** Pick the operating point from review capacity, from F-beta, or best of all by minimizing expected cost.
+- **Thresholds drift with the score distribution,** so re-validate after every retrain and watch the flag rate - it moves before labels arrive.
 
-> Both can be true. With a 0.3% positive rate, the false-positive rate is divided by a huge number of negatives, so even tens of thousands of false alarms look like a tiny FPR and the ROC curve stays near the top-left. What the team actually experiences is precision - how many of the flagged cases are real - and that can be a few percent while AUC reads 0.95. I would switch to the precision-recall curve with average precision, compare it against the 0.003 baseline, and then choose the threshold from the review capacity or from the relative cost of a miss versus a false alarm.
-
-Next topic is **Regression metrics**.
+Next topic is **Probability calibration**.

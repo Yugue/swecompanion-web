@@ -80,10 +80,21 @@ Run these over every production trace. They cost nothing, they catch the majorit
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "the agent calls get_status six times with the same id and reports success":
+Six failures repeat across every agent system, and each has a mechanical detector - build the detectors before tuning the prompt:
 
-> That's two failures stacked. The first is a loop: the observation never changed, so the same action stayed optimal and nothing in the pattern asks whether progress is being made. The detector is trivial - hash the tool name and arguments and break on repetition - and the real fix is in the tool, which should return something conclusive rather than the same word, like "still pending after three checks, expected resolution in four hours," or expose a poll-with-backoff tool. The second failure is premature completion: it reported success without the state ever reaching success, which means the stopping condition is weak and there's no assertion tying the claimed outcome to an actual observation. I'd add a check that the final answer's claims are supported by the trace - if the goal required a write, assert a write call happened - and I'd make these mechanical detectors part of the trace pipeline rather than something I look for by hand, because they cost nothing and catch most real incidents.
+```text
+looping             repeated (tool, args)        → break on a repeat hash
+hallucinated tool   unknown tool name            → reject with an actionable error
+hallucinated arg    arg in no observation        → trace every argument to its source
+ignored error       error, then identical call   → the error text was not actionable
+premature stop      claims an action, no call    → assert the call exists in the trace
+budget exhaustion   retry storm                  → classify errors, cap per tool and run
+```
+
+- **Looping means the observation never changed the model's belief,** so the real fix is a tool that returns something conclusive.
+- **Error cascades are the quiet one:** one wrong intermediate fact becomes every later step's premise, which is why facts need provenance and freshness before they are used in computation.
+- **Goal drift usually traces back to compaction** dropping the goal or the constraints.
 
 Next topic is **Guardrails and permissioning**.

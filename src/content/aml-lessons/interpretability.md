@@ -87,10 +87,13 @@ Importance says *how much*; partial dependence says *in which direction*:
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "a loan applicant asks why they were declined":
-
-> That is a local explanation, and it has to be honest and actionable - typically the top few factors that pushed the score toward decline, from SHAP values on the individual prediction, phrased in the applicant's terms: high utilization relative to limit, short credit history, recent delinquencies. The limits matter: SHAP explains the model's behavior, not the real world, so I cannot tell them that changing a factor guarantees approval - that is a causal claim the model does not support. In a regulated setting I would also push toward a model that is defensible by construction - monotonic constraints, or a scorecard-style logistic model - so the explanation is a property of the model rather than a post-hoc approximation of it.
+- **Ask which of the three jobs you are doing** - debugging, building trust, or meeting a legal obligation - because they need different tools.
+- **Global and local answer different questions.** "Which features drive the model?" uses permutation importance or mean SHAP; "why was *I* declined?" is local and is what regulators mean.
+- **Built-in tree importance is biased** toward continuous and high-cardinality features, and it is computed on training data. Use it for a glance, not for decisions.
+- **Permutation importance measures what the model actually uses on held-out data,** but correlated features make both look unimportant - group them and permute together.
+- **SHAP splits a single prediction exactly into a base value plus per-feature contributions,** which is what makes it usable locally; it assumes feature independence, so correlation still distorts it.
+- **Post-hoc explanations describe the model, not reality,** and importance is correlational - an important feature is one the model leans on, not a lever you can pull.
 
 Next topic is **Serving a model: batch, online, and train/serve skew**.

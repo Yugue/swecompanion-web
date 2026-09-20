@@ -76,10 +76,13 @@ Two specific risks worth naming:
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "a user changes their address - how does it propagate?":
-
-> The write path has to supersede rather than append. When the user states the new address, I write a typed record - entity, key, value, source pointing at the run and step, and a timestamp - and the store marks the previous value as superseded rather than leaving both retrievable, because two contradictory memories retrieved together is worse than having neither. The old value stays in history for auditing but is excluded from retrieval. On the read side I'm retrieving by relevance to the current task and capping the count, not loading the user's whole profile, since that would reintroduce the context problem memory was supposed to solve. I'd also want an expiry policy, because facts have different lifetimes, and a genuine delete path that covers derived records for data-deletion requests. And I'd only write memories from what the user said or what a tool authoritatively returned - never from content the agent merely read, because that's how a web page turns into a permanent instruction.
+- **"The model remembers" is always false.** Within a run memory is the transcript you re-send; across runs it is a store you deliberately write to and read from.
+- **Working, episodic, and semantic memory have different lifetimes** - and procedural knowledge belongs in the system prompt, not the store, or memory slowly becomes an un-versioned second prompt.
+- **Writing is the hard part.** Write typed records with a source, on real triggers - a stated preference, a correction, a concluded run - not on every message.
+- **Read by retrieval, not by loading everything,** or you reintroduce the problem memory was meant to solve.
+- **Memory needs a lifecycle:** correction must supersede rather than sit beside the old value, facts need expiry, and deletion must reach derived records.
+- **Never write memories from content the agent merely read** - an injection that lands in memory is re-read on every future run.
 
 Next topic is **Summarization and compaction**.

@@ -1,6 +1,8 @@
 ## Dimensionality reduction and PCA
 
-More features are not automatically better. Past a point they make distances meaningless, models unstable, and training slow - and reduction trades a little information for a lot of stability.
+**"Dimensions" here just means columns** - a table with 500 features is 500-dimensional.
+
+More columns are not automatically better. Past a point they make distances meaningless, models unstable, and training slow, so reduction trades away a little information for a lot of stability.
 
 ### 1. The curse of dimensionality
 
@@ -94,10 +96,12 @@ Use them to look at your data. Do not feed their output to a downstream model.
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "when would you prefer feature selection over PCA":
+- **High dimensions make distances stop discriminating,** so k-NN, k-means, and RBF kernels degrade first; regularized linear models and trees cope far better.
+- **Selection keeps original columns (explainable); extraction builds new ones (compact, opaque).** Choose based on whether you must explain individual features.
+- **PCA needs three things:** scale first, fit on training data only, and remember it maximizes variance - not usefulness for the label.
+- **Feature selection must happen inside cross-validation,** or choosing features from the whole dataset leaks and inflates scores.
+- **t-SNE and UMAP are for looking at data,** not for producing features - their global distances and cluster sizes aren't meaningful.
 
-> Whenever the individual features need to keep their meaning - a regulated credit model where I have to explain which factors drove a decision, or a case where the cost of computing a feature at serve time matters, since PCA still needs every original input to build the components. PCA also optimizes variance rather than predictive value, so it can discard a low-variance direction that happens to carry the label. I would reach for PCA when I have many highly correlated numeric columns and a distance-based or linear model, and for L1 or tree-based selection when interpretability and serving cost are the concern.
-
-Next topic is **Data leakage**.
+That completes **Chapter 2 — Data and features**. Next topic is **Linear regression**.

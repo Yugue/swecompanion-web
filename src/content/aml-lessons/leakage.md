@@ -112,10 +112,25 @@ Both are invisible in the schema and obvious in the timeline.
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "AUC jumped from 0.82 to 0.99 after a new feature":
+One question catches every case:
 
-> My first hypothesis is leakage, not a breakthrough. I would check when that feature is actually populated relative to the prediction time - a jump that size usually means the feature encodes the outcome. Concretely: look at a few positive rows and see whether the value exists before the label event; check whether it is null for all negatives; and re-run validation chronologically, because if the feature is legitimate the gain should survive a time-based split. I would also confirm the feature is computable in the serving path, since a feature that only exists in the warehouse is not a feature.
+```text
+Could this value be computed, exactly as it is, at the moment of prediction?
+        no  →  leakage
+```
 
-Next topic is **Linear regression**.
+Then know the five places it hides, since interviewers will probe for them:
+
+```text
+target        a feature that is a consequence of the label
+preprocessing a scaler, imputer, encoder, or selector fitted before the split
+temporal      a window that crosses t, or a random split on time-ordered data
+group         the same user, patient, or product on both sides of the split
+other rows    target encoding or full-history aggregates that see the future
+```
+
+Leakage raises no error; it produces excellent numbers. So treat any sudden metric jump as a bug until proven otherwise, and rely on procedure over inspection: an explicit prediction timestamp per row, every transformation inside a `Pipeline`, and chronological validation whenever time exists.
+
+Next topic is **Dimensionality reduction and PCA**.

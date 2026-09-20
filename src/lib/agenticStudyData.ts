@@ -31,7 +31,7 @@ export const agenticParts: AgenticPart[] = [
     id: "foundations",
     number: "1",
     title: "Agent foundations",
-    description: "What makes a system an agent, what the underlying model can and cannot do, and when autonomy is the wrong answer.",
+    description: "What a language model can do, what the context window is, and when an agent is the wrong answer.",
     color: "#4285F4",
     icon: "Blocks",
     topics: [
@@ -66,21 +66,6 @@ export const agenticParts: AgenticPart[] = [
         code: "capability ceiling = base model  |  scaffolding = how close you get to it",
       },
       {
-        id: "prompting-for-agents",
-        title: "System prompts and instruction hierarchy",
-        summary:
-          "An agent's system prompt is a persistent policy - role, tools, rules, and stopping conditions - not a one-off request.",
-        keyPoints: [
-          "Order of authority: system instructions, then developer/tool definitions, then user input, then **content retrieved from the world**, which is data and never an instruction.",
-          "Write rules as observable behavior (\"ask before deleting\") rather than traits (\"be careful\") - the first is testable, the second is not.",
-          "State the stopping condition explicitly; agents that never learn what \"done\" looks like either stop too early or loop.",
-          "Few-shot examples steer format and tool-choice style far more reliably than adjectives, but they cost context on every turn.",
-        ],
-        interviewPrompt:
-          "Rewrite a vague agent instruction - \"be helpful and accurate\" - into three rules you could write an eval for.",
-        code: "system > developer/tools > user > retrieved content (data, never commands)",
-      },
-      {
         id: "context-window",
         title: "The context window as working memory",
         summary:
@@ -94,6 +79,21 @@ export const agenticParts: AgenticPart[] = [
         interviewPrompt:
           "A 40-step agent run is 12x more expensive than you modelled. Explain where the tokens went before you propose a fix.",
         code: "tokens_turn_n ≈ system + tools + Σ(all prior steps)  → cost grows superlinearly",
+      },
+      {
+        id: "prompting-for-agents",
+        title: "System prompts and instruction hierarchy",
+        summary:
+          "An agent's system prompt is a persistent policy - role, tools, rules, and stopping conditions - not a one-off request.",
+        keyPoints: [
+          "Order of authority: system instructions, then developer/tool definitions, then user input, then **content retrieved from the world**, which is data and never an instruction.",
+          "Write rules as observable behavior (\"ask before deleting\") rather than traits (\"be careful\") - the first is testable, the second is not.",
+          "State the stopping condition explicitly; agents that never learn what \"done\" looks like either stop too early or loop.",
+          "Few-shot examples steer format and tool-choice style far more reliably than adjectives, but they cost context on every turn.",
+        ],
+        interviewPrompt:
+          "Rewrite a vague agent instruction - \"be helpful and accurate\" - into three rules you could write an eval for.",
+        code: "system > developer/tools > user > retrieved content (data, never commands)",
       },
       {
         id: "structured-output",
@@ -140,8 +140,23 @@ export const agenticParts: AgenticPart[] = [
           "A PM wants an agent to \"process invoices.\" Ask the three questions that decide whether this should be an agent at all.",
         code: "known steps → workflow   |   unknown steps + judgment → agent",
       },
+      {
+        id: "workflows-vs-agents",
+        title: "Workflows versus autonomous agents",
+        summary:
+          "Most production systems are workflows with agentic steps, not autonomous agents - and that is usually the right architecture.",
+        keyPoints: [
+          "Common workflow shapes: prompt chaining, routing to a specialist, parallel voting, and evaluator-optimizer loops.",
+          "A workflow's control flow is code, so it is testable, observable, and bounded by construction.",
+          "Put autonomy only where the path is genuinely unknown, and wrap it in a deterministic shell.",
+          "Hybrid is the norm: a fixed pipeline whose third stage is an agent with three tools and a ten-step cap.",
+        ],
+        interviewPrompt:
+          "Take an autonomous agent design and convert the 70% that is predictable into a workflow. What's left?",
+        code: "route → [agent step] → validate → format   # autonomy in one bounded stage",
+      },
     ],
-    quizQuestionCount: 10,
+    quizQuestionCount: 11,
   },
   {
     id: "tool-use",
@@ -543,21 +558,6 @@ export const agenticParts: AgenticPart[] = [
         interviewPrompt:
           "Two agents edit the same file in a shared workspace. Design the minimum coordination that makes this safe.",
         code: "handoff = {goal, constraints, findings, already_tried, deliverable}",
-      },
-      {
-        id: "workflows-vs-agents",
-        title: "Workflows versus autonomous agents",
-        summary:
-          "Most production systems are workflows with agentic steps, not autonomous agents - and that is usually the right architecture.",
-        keyPoints: [
-          "Common workflow shapes: prompt chaining, routing to a specialist, parallel voting, and evaluator-optimizer loops.",
-          "A workflow's control flow is code, so it is testable, observable, and bounded by construction.",
-          "Put autonomy only where the path is genuinely unknown, and wrap it in a deterministic shell.",
-          "Hybrid is the norm: a fixed pipeline whose third stage is an agent with three tools and a ten-step cap.",
-        ],
-        interviewPrompt:
-          "Take an autonomous agent design and convert the 70% that is predictable into a workflow. What's left?",
-        code: "route → [agent step] → validate → format   # autonomy in one bounded stage",
       },
       {
         id: "context-isolation",

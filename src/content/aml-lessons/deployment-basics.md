@@ -1,6 +1,13 @@
 ## Serving a model: batch, online, and train/serve skew
 
-How predictions reach the product decides the latency budget, where features come from, and how fresh the answer can be. It is also where the most expensive production bug lives.
+**"Serving" is everything that happens after training: getting a real prediction to a real user.**
+
+```text
+batch   → compute every prediction overnight, look the answer up instantly
+online  → compute the prediction on demand, while the user waits
+```
+
+Which one you pick decides your latency budget, where features come from, and how fresh the answer can be. It is also where the most expensive production bug lives.
 
 ### 1. The three serving modes
 
@@ -110,10 +117,13 @@ A model that returns a 500 when the feature store times out is worse than a rule
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "offline AUC 0.89, online much worse, no code changes":
-
-> My first suspicion is train/serve skew rather than the model. I would compare the feature vectors as computed offline with those logged at serving time on the same requests - differences in null handling, timezone, or rounding are the usual causes, and they produce exactly this symptom with no errors anywhere. I would also check whether the offline evaluation used a random split on time-ordered data, which would have inflated it, and whether any feature is unavailable or stale at request time and silently defaulting. The systematic fix is to log features as served and train on those logs, so the two paths cannot diverge unnoticed.
+- **Default to batch.** Use online only when the prediction depends on something that happened in the last few minutes; most "we need real-time" requirements do not.
+- **Train/serve skew is the expensive bug:** the same feature computed two different ways. Nothing errors - the model just quietly receives inputs unlike the ones it learned on.
+- **The fix is one implementation,** shared between training and serving or owned by a feature store, plus logging features as served and training on those logs.
+- **A deployment is model *plus* preprocessing, feature definitions, and schema.** Version them together, and keep the previous version loadable so rollback is a config change.
+- **Shadow mode catches skew at zero risk** by scoring real traffic without acting on it.
+- **Decide the fallback per feature in advance,** because every online feature is a dependency that can be slow or missing.
 
 Next topic is **Monitoring, drift, and retraining**.

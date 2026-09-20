@@ -112,10 +112,12 @@ Adding features is not free: each one is a serving dependency, a possible source
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-Asked for three features for a ride-hailing ETA model:
+- **Prefer rates and ratios to raw counts;** they transfer to users and items the model has never seen.
+- **The window length is the feature,** and every window must end before the prediction time.
+- **Feature engineering hands a simple model the nonlinearity a complex one would find itself** - interactions, log transforms, and sin/cos for cyclic time.
+- **Generalizing features (rates, aggregates) beat memorizing ones (raw IDs)** on small tabular data, where memorizing mostly invites overfitting.
+- **Every feature is a serving dependency,** so keep it only if it shows measured lift, is computable within the latency budget, and will still mean the same thing in six months.
 
-> First, a ratio: the driver's recent average speed on similar road types, rather than a raw distance, because distance alone ignores traffic. Second, a rolling aggregate: median trip duration on this route in the last 30 minutes, which captures live congestion - that one is a real-time feature and needs a streaming path at serving. Third, cyclic encodings of hour-of-day and day-of-week, so rush hour is learnable by a linear model. A gradient-boosted tree would find the third by itself, so I would prioritize the first two, and I would check each one's lift on validation before committing to the serving cost.
-
-Next topic is **Dimensionality reduction and PCA**.
+Next topic is **Data leakage**.

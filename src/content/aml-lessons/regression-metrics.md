@@ -1,6 +1,8 @@
 ## Regression metrics
 
-Regression metrics differ mainly in **how hard they punish large errors** and whether they are expressed in units a stakeholder understands.
+**When the answer is a number, being wrong has a size.** Saying 32 minutes when it took 34 is a small miss. Saying 32 when it took 90 ruined someone's evening.
+
+So these metrics differ mainly in **how harshly they punish the big misses**, and in whether the result comes out in units a stakeholder can actually read.
 
 ### 1. The core four
 
@@ -21,7 +23,7 @@ R^2 = 1 - \frac{\sum_i (y_i-\hat y_i)^2}{\sum_i (y_i-\bar y)^2}
 | MAE | target units | robust | "typically off by 3 minutes" |
 | MSE | units² | very sensitive | hard to interpret directly |
 | RMSE | target units | sensitive | "off by about 6 minutes, with big misses weighted" |
-| R² | unitless | inherits MSE's sensitivity | "explains 74% of the variance vs predicting the mean" |
+| R² | unitless | inherits MSE's sensitivity | "explains 74% of the spread in the data, vs predicting the mean" |
 
 ---
 
@@ -117,10 +119,13 @@ Systematic curvature means a missing nonlinearity; a widening fan means non-cons
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "RMSE 6 minutes, MAE 3 minutes":
+- **Report MAE and RMSE together.** The size of the gap says whether you are consistently mediocre or usually great with occasional disasters - and a large gap means go look at the worst errors, not tune the model.
+- **R² compares against predicting the mean,** can be negative, always rises with more features, and depends on the test set's variance, so it isn't comparable across datasets.
+- **MAPE is asymmetric and explodes near zero,** which biases predictions low; WAPE is the usual fix in forecasting.
+- **For targets spanning orders of magnitude, evaluate in log space** - RMSLE measures ratio error, which is how the error is actually experienced.
+- **Most business regression is asymmetric,** so train and evaluate with quantile loss and say which quantile you serve.
+- **Plot residuals.** Curvature means a missing nonlinearity, a widening fan means non-constant variance, drift means the relationship is changing.
 
-> The factor-of-two gap says the errors are not uniform - most predictions are within a few minutes, and a small number are badly wrong, because RMSE squares the big misses and MAE does not. So the next step is not to tune the model but to look at the worst-error cases and find what they have in common: a particular restaurant, time of day, or distance band. I would also check whether the cost is asymmetric - for an ETA, late is worse than early - and if so switch to a quantile loss and report the quantile we actually show the user, because optimizing the mean is optimizing the wrong thing.
-
-Next topic is **Probability calibration**.
+Next topic is **Baselines and when not to use ML**.

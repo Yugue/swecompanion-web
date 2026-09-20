@@ -1,6 +1,13 @@
 ## Parameters, hyperparameters, and capacity
 
-Three words that get used loosely and are worth being precise about, because the distinction explains why the validation set exists.
+**A parameter is a number the model works out for itself while training. A hyperparameter is a number you pick before training starts.**
+
+```text
+you pick        →  "build a tree at most 8 levels deep"   hyperparameter
+model works out →  which question each level asks         parameter
+```
+
+**Capacity** is the third word: how complicated a pattern the model is able to express. Hyperparameters are the dial that sets it. These three are worth being precise about, because the distinction explains why the validation set exists at all.
 
 ### 1. The definition
 
@@ -20,6 +27,8 @@ model.fit(X_train, y_train)                                    # parameters
 | Gradient boosting | every tree, every leaf value | learning rate, number of trees, depth |
 | k-NN | none (it stores the data) | k, distance metric, weighting |
 | k-means | the centroids | k, initialization, number of restarts |
+
+> **Regularization**, in that first row, is a dial that pushes a model to stay simple - it gets its own lesson in Chapter 4. Everything in the right-hand column is something a person chose.
 
 Note k-NN: the "training" is storage. The interesting consequence is that all of its behavior comes from hyperparameters.
 
@@ -66,7 +75,7 @@ Some settings do not fit neatly in either box, and saying so is a good sign:
 
 - **Number of epochs with early stopping**: chosen by watching validation loss, so it is a hyperparameter fitted on validation data.
 - **Number of clusters k**: a hyperparameter, but with no validation label to tune against - which is why choosing k needs its own methods (silhouette, stability, BIC).
-- **Preprocessing choices** (imputation strategy, encoding, scaler): hyperparameters of the whole pipeline. They must be tuned inside cross-validation, not before it.
+- **Preprocessing choices** (imputation strategy, encoding, scaler): hyperparameters of the whole pipeline. They must be tuned inside cross-validation - a way of rotating which slice of data is held out, covered in Chapter 4 - rather than before it.
 
 ### Rule of thumb
 
@@ -90,10 +99,12 @@ This is why random search beats grid search: most dimensions are flat, and rando
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-If asked whether k in k-means is a parameter or a hyperparameter:
-
-> A hyperparameter - the centroids are the learned parameters, k is a choice I make before fitting. The awkward part is that there is no validation label to tune it against, so I cannot pick it the way I pick a tree depth. I would use silhouette or BIC as an internal criterion, check that the clusters are stable when I resample the data, and ultimately defend k by whether the segments are usable by the team that asked for them.
+- **Same idea, different dataset:** parameters are fitted to minimize training error, hyperparameters to minimize validation error.
+- **Hyperparameters set capacity,** and training error only ever falls as capacity rises - so training data would always vote for the most complex model.
+- **Tuning is fitting.** Every configuration you try uses up a little of the validation set's independence.
+- **Preprocessing choices are hyperparameters too,** so they belong inside the cross-validation loop.
+- **Only one or two settings matter per model,** which is why random search beats grid search.
 
 Next topic is **Train, validation, and test splits**.

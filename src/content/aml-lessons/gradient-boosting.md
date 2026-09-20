@@ -99,10 +99,12 @@ Key hyperparameters worth naming: `learning_rate`, `n_estimators` (with early st
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-Comparing a forest and boosting on a 200k-row tabular fraud problem:
+- **Each shallow tree fits the negative gradient of the loss,** which makes boosting gradient descent in function space and lets one algorithm handle log loss, Huber, quantile, or ranking objectives.
+- **Learning rate and tree count are a single trade-off:** fix a small rate and let early stopping on validation choose the number of trees.
+- **Bagging attacks variance; boosting attacks bias.** That is also why extra trees can *overfit* here but cannot in a forest.
+- **It is sensitive to label noise,** because it keeps concentrating on the examples it gets wrong - and mislabelled rows are exactly those.
+- **XGBoost, LightGBM, and CatBoost** add regularized objectives, subsampling, and native missing-value or categorical handling. On tabular data under a few million rows it is the model to beat.
 
-> I would expect gradient boosting to win on accuracy, typically by a meaningful margin, because it reduces bias by fitting the residual errors directly, while the forest mostly averages away variance. The costs are that boosting trains sequentially and needs tuning - learning rate with early stopping, depth, and subsampling - whereas a random forest is close to its best at defaults and trains in parallel. With noisy fraud labels I would watch boosting carefully, since it concentrates on the hardest examples, which are often the mislabelled ones. My practical approach: random forest as a fast baseline, LightGBM as the candidate, and ship the forest if the gap does not justify the tuning and maintenance.
-
-Next topic is **Loss functions for classical models**.
+That completes **Chapter 3 — Core supervised algorithms**. Next topic is **Loss functions for classical models**.

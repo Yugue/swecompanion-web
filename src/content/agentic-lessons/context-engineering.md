@@ -73,10 +73,12 @@ The agent can then run code against the file. The content is still fully availab
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "100k tokens of relevant docs, 32k budget - what's your selection policy?":
-
-> I'd budget the window by line item before thinking about retrievers. System prompt, rules, and the task state are fixed and never evicted - maybe 2k. Tool schemas get pruned to what's plausibly needed this turn. Then I'd reserve roughly a third for retrieved evidence, re-selected per turn rather than loaded once, because what's relevant at step 3 isn't what's relevant at step 15. Recent steps stay verbatim in a sliding window, older ones get compacted into a structured summary that preserves identifiers and user constraints exactly, and I'd keep explicit headroom so the next observation can't overflow. The principle underneath is that relevance beats volume: irrelevant context measurably lowers accuracy as well as costing money and latency, so a bigger window wouldn't change the policy. And for anything large I'd store a pointer rather than the payload - write the data to a file and let the agent run code against it, so the content stays available without occupying the window every turn.
+- **The window is assembled every turn,** and deciding what goes in drives quality more than prompt wording does.
+- **Relevance beats volume.** Irrelevant context costs money, latency, *and* accuracy at the same time, so a bigger window raises what you *can* include, not what you *should*.
+- **Decide the eviction policy before the first long run:** what is never dropped (goal, constraints, user corrections), what gets compacted, what gets externalized.
+- **Order stable content first and volatile content last,** so prefix caching can hit and the most decision-relevant material sits nearest the generation point.
+- **Prefer pointers to payloads.** A path plus a short preview replaces thirty thousand tokens of CSV, and the content stays fully available.
 
 Next topic is **Retrieval as a tool**.

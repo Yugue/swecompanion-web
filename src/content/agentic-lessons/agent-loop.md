@@ -49,6 +49,8 @@ Six lines. The entire rest of this guide is about what goes inside `execute`, wh
 | Budget | Step, token, wall-clock, or dollar cap | Runtime |
 | Guardrail | Policy violation, repeated failure, human halt | Runtime |
 
+A **guardrail** here means a deterministic check in your code that can stop the run - covered fully in Chapter 6.
+
 A step cap is a **safety net, not a design**. If runs regularly terminate on the cap, the task is under-specified or the tools are too weak - raising the cap converts a visible failure into an expensive one.
 
 ---
@@ -94,10 +96,23 @@ Persist each iteration - step index, tool call, observation, status - rather tha
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "your agent hits the 25-step cap on 8% of runs":
+Every framework reduces to six lines, and the whole subject is what goes inside them:
 
-> First I'd treat the cap as a symptom, not the problem - raising it would just make those runs more expensive. I'd pull the traces for the failing 8% and look at the step sequence for three specific patterns: identical repeated calls, which means an observation isn't changing the model's belief; oscillation between two tools, which usually means neither returns something conclusive; and ignored errors, where the tool said "invalid date format" and the next call repeats the same argument. Each points somewhere different - repeated calls and ignored errors are usually tool-design or error-wording problems, oscillation is usually a missing tool or an under-specified stopping condition, and if the trace looks like steady reasonable progress that simply needs more steps, then the task is too big for one agent and should be decomposed. I'd also add a mechanical loop detector that breaks on a repeated tool-and-argument hash and escalates, so this fails fast instead of burning the whole budget.
+```python
+context = [system_prompt, user_goal]
+for step in range(MAX_STEPS):
+    decision = model(context, tools=TOOLS)
+    if decision.is_final: return decision.answer
+    result = execute(decision.tool_call)   # authorize, run, bound, normalize
+    context += [decision.tool_call, result]
+raise StepBudgetExceeded
+```
+
+- **`authorize` and `normalize` are the two stages beginners omit,** and they are exactly where permissioning and context bloat get controlled.
+- **Three stopping conditions must always exist:** the model finishes, a budget runs out, or a guardrail fires.
+- **A step cap is a safety net, not a design.** Runs that regularly end on the cap mean the task is under-specified or the tools are too weak.
+- **Failures look like progress:** repeated identical calls, oscillation between two tools, ignored errors, confident completion with nothing done. If an observation did not change the next decision, the loop is spinning.
 
 Next topic is **When not to build an agent**.

@@ -1,6 +1,17 @@
 ## Features, labels, and a training example
 
-One row of training data is a **snapshot of everything the model will know at prediction time**, paired with what actually happened afterwards. Getting that sentence right prevents most of the failures in this domain.
+Training data is a table. **Each row is one thing you are predicting about, the columns are what you knew at the time, and one extra column is what actually happened.**
+
+```text
+        features - what we knew at the time        label - what happened
+ ┌──────────────────────────────────────────┐    ┌──────────────┐
+ │ distance   prep_time   hour   couriers   │    │ delivery_min │
+ │   2.4 km     11 min     19        6      │ →  │      34      │   ← one row
+ │   5.1 km     26 min     12        2      │ →  │      58      │   ← another
+ └──────────────────────────────────────────┘    └──────────────┘
+```
+
+The features are written **x**, the label **y**. Said carefully: a row is a snapshot of everything the model will know at prediction time, paired with what actually happened afterwards. Getting that sentence right prevents most of the failures in this domain.
 
 ### 1. The shapes
 
@@ -35,7 +46,7 @@ The rule:
 
 > A feature may only use information available strictly before \(t\). A label is only observable strictly after it.
 
-Breaking this is leakage, and it produces a model that looks brilliant offline and is worthless in production. It is the single most common serious bug in applied ML.
+Breaking this rule is called **leakage** - the model gets shown something it could not possibly know yet, so it looks brilliant offline and is worthless in production. It is the single most common serious bug in applied ML, and it gets a full lesson in Chapter 2.
 
 ---
 
@@ -102,12 +113,17 @@ For each feature ask:
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-When handed any prediction problem, open with the row:
+Open any prediction problem by saying four things out loud, in this order:
 
-> Let me define one training example first. The unit is one order at placement time. The features are what we know at that instant - restaurant history, distance, current load, time of day. The label is the realized delivery time, which we see about 40 minutes later. That delay matters, because it caps how fresh my training data can be and it rules out any feature computed from the courier assignment, which happens after the prediction.
+```text
+1. unit      what is one row?                     (per user? per session? per order?)
+2. time t    when is the prediction made?
+3. features  only what is known strictly before t   ← anything later is leakage
+4. label     event + window + exclusions, and when it becomes observable
+```
 
-That answer covers unit, features, label, timing, and leakage in four sentences.
+Then test every candidate feature against the timeline, and ask whether it can be computed fast enough, and identically, at serving time. The features that look most predictive are often the ones that break rule 3.
 
-Next topic is **Parameters, hyperparameters, and capacity**.
+Next topic is **Regression, classification, ranking, and clustering**.

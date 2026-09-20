@@ -75,10 +75,12 @@ That last line is often missed: reasoning from step 3 is still in the context at
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "the agent's stated reasoning contradicts the tool call it makes":
-
-> It tells me the output isn't trustworthy on that step - but it doesn't tell me which half reflects the model's "real" belief, because neither does. The written reasoning is generated text that's plausible given the context, not a transcript of the computation, so it can be faithful, decorative, or contradictory, and I can't treat it as an audit log. What I do with it is practical: treat contradiction as a signal to inspect that step, and if the decision needs justification, ground it in something checkable - have the agent cite the retrieved policy clause and verify the clause exists and says what it claims. The mechanism is worth stating too: chain of thought buys serial computation per decision, so it helps on arithmetic, logic, and planning and does nothing for recall, which is also why I'd make it conditional on task difficulty rather than always on.
+- **Reasoning tokens buy serial computation, nothing else.** They are extra forward passes; they add no knowledge and check nothing against the world.
+- **So it helps where the bottleneck is computation** - arithmetic, logic, multi-constraint planning - and does nothing for recall, where it only adds latency.
+- **The written reasoning is a plausible narrative, not a faithful trace.** Never treat it as an audit log; if a decision needs justification, ground it in a citation you can verify.
+- **It costs on every turn and persists afterwards:** step 3's reasoning is still in the context at step 25, being re-sent.
+- **Make it conditional and short.** Full reasoning for planning and diagnosis, little or none for routine steps; length correlates with drift, not accuracy.
 
 Next topic is **ReAct: interleaving reasoning and acting**.

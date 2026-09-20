@@ -85,10 +85,12 @@ An agent with no defined behavior on validation failure will do the worst of the
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "constrained decoding guarantees valid JSON - what does it not prevent?":
-
-> Two things. First, semantic falsehood: every field can be well-typed and still be invented - an order ID matching the right pattern for an order that doesn't exist, or an amount that isn't the amount. The schema constrains shape, not truth, so I still need a validation layer that checks the values against the system of record before anything irreversible runs. Second, it doesn't prevent forced guessing: if a field is required and the model has no way to know it, a valid enum value comes out anyway. I design around that by giving every uncertain field a legal "unknown" value plus a source field, so the model can be honest inside the schema. And I decide the failure path in advance - retry with the validation error as an observation, narrow the schema, or escalate - because an agent with no defined behavior on invalid output picks one at random.
+- **Constrained decoding makes malformed output structurally impossible** by masking illegal tokens at sampling time - which matters far more in a 20-step agent than in chat, where a few percent failure rate would break one run in three.
+- **A schema constrains shape, never truth.** Every field can validate while the order ID is invented, so semantic validation against the system of record is a separate, mandatory layer before anything irreversible.
+- **Give the model a legal way to say "I don't know."** A required field it cannot know becomes a guess that typechecks; add an `unknown` value and a source field.
+- **Design for the model, not your database:** enums over free text, units in the field name, flat over deeply nested.
+- **Decide the failure path in advance** - retry with the validation error as an observation, fall back to a narrower schema, or escalate.
 
 Next topic is **The agent loop**.

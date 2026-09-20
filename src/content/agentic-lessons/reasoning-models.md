@@ -1,6 +1,8 @@
 ## Reasoning models and thinking budgets
 
-Reasoning models are trained to spend a variable amount of computation before answering. For an agent builder this changes the job: less prompt choreography, more **budget allocation** - deciding which steps deserve expensive thinking.
+**A reasoning model is one trained to think before it answers** - to spend a variable amount of extra computation working through the problem internally instead of replying straight away.
+
+For an agent builder that changes the job: less prompt choreography, more **budget allocation** - deciding which steps deserve the expensive thinking and which do not.
 
 ### 1. What is different
 
@@ -49,7 +51,7 @@ diagnose        → reasoning model, high budget
 format output   → fast model
 ```
 
-A 20-step run where two steps are expensive costs far less than one where all twenty are, and measurably no worse - which is the kind of claim you should say you would verify on your eval set rather than assume.
+Two expensive steps out of twenty cost far less than twenty, and usually measure no worse. That is a claim to verify on your eval set, not one to assume.
 
 ---
 
@@ -79,10 +81,12 @@ Sweep it per task type on your eval set, plot accuracy against cost and p95 late
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "your agent is accurate but too slow":
-
-> I'd stop paying for thinking on steps that don't need it. First I'd pull per-step latency and token counts from traces and find where the time actually goes - usually a handful of steps dominate. Then I'd route by step kind rather than using one model for the whole run: planning, diagnosis, and the final decision get the reasoning model with a generous budget, while gathering, extraction, and formatting get a fast model with minimal thinking. Those transformation steps are pattern matching, and extra reasoning buys nothing but seconds. I'd tune the thinking budget as a hyperparameter per task type, sweeping it on the eval set and plotting accuracy against cost and p95 latency, then picking the knee rather than the plateau. Alongside that I'd take the ordinary latency wins - parallelize independent tool calls, cut step count, and stream output so perceived latency decouples from total run time.
+- **The model learned when to think, so elaborate "think step by step" scaffolding adds little.** Clear task statements and good context matter more.
+- **Spend thinking on decisions, not transformations.** Planning, diagnosis, and final judgments earn it; extraction, routing, and formatting do not.
+- **Route by step kind within a single run.** Two expensive steps out of twenty costs far less than twenty, and usually measures no worse.
+- **Treat the thinking budget as a hyperparameter:** sweep it per task type, plot accuracy against cost and p95 latency, and pick the knee rather than the plateau.
+- **Latency is the binding constraint in interactive products,** and reasoning traces keep occupying context afterwards - consider dropping them during compaction.
 
 Next topic is **Task decomposition and subagents**.

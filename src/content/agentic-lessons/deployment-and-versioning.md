@@ -23,7 +23,7 @@ All five belong in source control and in every trace. The most common gap is a p
 
 ### 2. Model upgrades are breaking changes
 
-A newer model that scores higher on public benchmarks can still be worse **for your agent**: it may be more verbose, more cautious about a tool you rely on, format arguments differently, or need a different thinking budget.
+A newer model that scores higher on public benchmarks can still be worse **for your agent**. It may be more verbose, more cautious about a tool you rely on, format arguments differently, or need a different thinking budget.
 
 ```text
 before switching:
@@ -66,10 +66,13 @@ Removing or renaming a tool breaks running agents and invalidates prompt caches.
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "your model is deprecated with 30 days' notice":
-
-> I'd treat it as a breaking dependency change, not a swap. First, replay: take a representative sample of recorded production traces and run them against the new model with the same mocked tools, then diff tool choices, argument construction, step count, and cost. That tells me the shape of the behavior change on real inputs rather than curated ones. Second, the full eval suite with several runs per case, comparing pass rates rather than single runs, plus cost and latency, since a model can be more accurate and still break my budget or my p95. Where behavior differs I'd adjust the prompt and thinking budget for the new model rather than assuming the old settings transfer. Then a canary at one percent watching step count, cost, and tool error rate - those move faster than quality metrics - ramping to ten and fifty percent, keeping the old config hot-swappable so rollback is a pointer flip rather than a deploy. And I'd make sure the model id, prompt version, and tool version are recorded in every trace, so if something does regress mid-migration I can attribute it immediately.
+- **Prompts, tool schemas, model choice, and parameters are production dependencies.** If it changes behavior and is not in source control, you cannot debug the next regression.
+- **A model upgrade is a breaking change,** not a swap - a model that scores higher publicly can be more verbose, more cautious about a tool, or need a different thinking budget.
+- **Pin model versions explicitly,** so nothing is upgraded underneath a running agent.
+- **Canary on operational metrics first** - step count, cost, tool error rate - because they move faster and with less noise than success rate.
+- **Rollback must be a pointer flip, not a deploy,** or you will hesitate exactly when you should not. Decide what happens to in-flight runs.
+- **Changing tools is riskier than changing prompts:** it breaks running agents and invalidates caches, so prefer additive changes with a deprecation overlap.
 
 Next topic is **From traces to improvements**.

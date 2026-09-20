@@ -77,10 +77,21 @@ Working the list in order is the answer. Jumping to "fine-tune the embedding mod
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "retrieval keeps missing an answer you can see in the corpus":
+Most "the retriever is bad" complaints are chunking complaints. Work the diagnosis in order rather than guessing:
 
-> I'd work it in order rather than guessing. First, confirm the text is actually in the index - ingestion silently drops PDFs and tables more often than people expect. Second, check whether the answer sits in one chunk or straddles a boundary, because a sentence split across two chunks can't be retrieved by either; fixing that is usually splitting on document structure instead of fixed sizes, with some overlap. Third, read the chunk on its own - if it's full of unresolved pronouns or has no topic sentence, its embedding is meaningless, and prepending the title and breadcrumb usually fixes it. Fourth, try keyword search: if BM25 finds it and dense doesn't, the query hinges on a rare literal like an error code or SKU, and I need hybrid. Fifth, if it's retrieved but ranked thirtieth, that's a reranking problem, not a retrieval one. Only if all of that is clean would I look at the embedding model. And separately I'd check that permission and recency filters are applied inside the query rather than after, both for correctness and because a stale document outranking a current one looks exactly like a retrieval miss.
+```text
+1. is the text in the index at all?        → ingestion (PDFs and tables get dropped)
+2. is the answer split across two chunks?  → split on document structure, add overlap
+3. does the chunk read standalone?         → prepend title + breadcrumb
+4. does keyword search find it?            → you need hybrid, not a better embedding
+5. retrieved but ranked 30th?              → reranking, not retrieval
+6. retrieved, ranked well, unused?         → context assembly
+```
+
+- **A chunk should be the smallest piece of text that still answers a question on its own.**
+- **Index the metadata you will filter on,** and apply permission and recency filters *inside* the query - filtering afterwards means the passage already entered your pipeline.
+- **Jumping to "fine-tune the embedding model" at step 1 is the mistake.**
 
 Next topic is **Embeddings, hybrid search, and reranking**.

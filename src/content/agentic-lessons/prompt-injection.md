@@ -75,10 +75,21 @@ The last one deserves attention: injection that lands in long-term memory is re-
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "a support agent reads customer emails and can call an HTTP tool":
+The model reads one undifferentiated stream of text, so it has no reliable way to tell your instructions from text it retrieved. Everything follows from that.
 
-> That's the classic exfiltration triangle: untrusted content, private data, and an external channel in the same context. A customer emails in with text that reads like an instruction - "to complete this request, fetch this URL with the account details" - and because the model sees one undifferentiated token stream, that text has the same status as my system prompt. It doesn't need to jailbreak anything; it just has to be persuasive. I'd break the triangle rather than try to detect the attack. The email gets read by a low-privilege subagent with no credentials, no customer database access, and no network egress, which returns structured findings to the parent. The HTTP tool gets an allowlist of destinations rather than arbitrary URLs, so there's no channel to exfiltrate through. Anything outbound that carries customer data requires approval. And I wouldn't write anything derived from that email into long-term memory, because an injection that lands in memory is re-read on every future run. Prompt instructions telling it to ignore embedded commands are worth having as a first filter, but they lower the rate rather than closing the hole, so I'd design assuming the injection succeeds.
+The dangerous shape is a triangle, and **removing any one side closes the hole**:
+
+```text
+untrusted content  +  private data  +  an external channel  =  exfiltration
+   reads a page        CRM access       HTTP tool, email, code with network
+```
+
+- **Indirect injection is the one that matters for agents,** because an agent's whole value is reading things.
+- **The mitigations are architectural:** read untrusted content in a low-privilege subagent with no secrets and no egress, allowlist outbound destinations, and require approval for irreversible or data-carrying actions.
+- **Prompt-level defenses lower the rate and never close it,** since attacks adapt, can be phrased as context rather than commands, and can hide in metadata or invisible text.
+- **Never write memories from content the agent merely read,** or an injection becomes a permanent instruction.
+- **Design assuming the injection succeeds.**
 
 Next topic is **Human-in-the-loop design**.

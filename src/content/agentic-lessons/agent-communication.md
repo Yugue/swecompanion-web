@@ -1,6 +1,13 @@
 ## Handoffs and shared state
 
-Agents coordinate in one of two ways: they pass messages, or they share a workspace. Each has a characteristic failure mode, and naming both is what makes a design answer credible.
+**Two agents can only work together in one of two ways: send each other messages, or write into the same shared place.**
+
+```text
+message passing   → explicit and traceable, but whatever is not in the message is lost
+shared workspace  → nothing is lost, but they can overwrite each other
+```
+
+Each has a characteristic failure mode, and naming both is what makes a design answer credible.
 
 ### 1. The two models
 
@@ -74,10 +81,12 @@ The shared workspace reintroduces the context problem if every agent loads the w
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "two agents edit the same file in a shared workspace":
+- **Message passing is traceable but lossy; a shared workspace loses nothing and invites write conflicts.** Pick knowing which failure you prefer.
+- **A handoff must carry goal, constraints, findings, what was already tried, the deliverable shape, and a budget.** The two that get dropped - constraints and already-tried - cause the most waste.
+- **Type every message.** Free-text chatter between agents is unloggable, untestable, and drifts into negotiating about the task instead of doing it.
+- **A shared workspace needs ordinary distributed-systems controls** - single ownership, append-only where possible, optimistic versioning, timeout-bounded locks - applied more strictly, because agents are concurrent writers with poor judgment.
+- **Give agents a query interface into the workspace, not a dump,** or you undo the context isolation.
 
-> I'd treat them as ordinary concurrent writers, because that's what they are - with worse judgment. The minimum is single ownership: one writer per file or per record, with the other agent submitting a change request rather than writing directly. If they genuinely must both write, I'd use optimistic concurrency - each read carries a version, and a write fails if the version has moved, which forces a re-read and a merge instead of a silent overwrite. Append-only structures help a lot here, since conflicts become merges rather than lost updates. I'd also log every write so a stale reader can notice, cap any lock with a timeout so a crashed agent can't block the system, and give agents a query interface into the workspace rather than letting them load the whole thing, which would undo the context isolation. And I'd make the alternative explicit: if the coordination is getting elaborate, that's evidence these were one task that got split wrongly.
-
-Next topic is **Workflows versus autonomous agents**.
+Next topic is **Context isolation across agents**.

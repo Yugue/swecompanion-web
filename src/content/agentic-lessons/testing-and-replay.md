@@ -75,10 +75,19 @@ Running each case once turns a flaky change into a green build. Five runs and a 
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "three assertions you'd put in CI for a refund agent":
+Non-determinism changes how you test, not whether you test:
 
-> First, ordering: verify_identity must have been called and returned ok before issue_refund - that's a business rule with a real fraud consequence, and it's testable deterministically with mocked tools. Second, a negative assertion: no tool outside the allowed set was called, and issue_refund was called at most once with an amount that exactly matches the order total from the mocked observation, never a value that didn't appear in an observation. Third, budget and outcome consistency: the run stayed under its step and cost caps, and if the final message claims a refund was issued, a refund call exists in the trace - that catches premature completion before a user sees it. I'd run those with mocked tools on every commit, including mocks that return errors, timeouts, and empty results, since the error paths are where agents break. Separately I'd replay recorded production traces against any prompt or model change to diff tool choices and cost, and I'd run each eval case several times and gate on pass rate rather than a single green run, because one run on a non-deterministic system is an anecdote.
+```text
+unit,  mocked tools       every commit   ordering, arguments, refusals, error paths
+replay recorded traces    every change   diff tool choices, arguments, cost, steps
+end-to-end, real tools    pre-release    slow, flaky, few
+```
+
+- **Assert properties, not strings.** The negative assertions - nothing forbidden ran, nothing was sent, nothing was deleted - catch the failures that actually hurt.
+- **Mock the error paths too** - timeouts, empty results, rejections - since that is where agents break and where tests are cheapest.
+- **Replay is the best model-upgrade tool** because it uses real inputs rather than a curated set.
+- **Gate on pass rate over repeated runs,** or one green run lets a flaky change ship.
 
 Next topic is **Deployment and versioning**.

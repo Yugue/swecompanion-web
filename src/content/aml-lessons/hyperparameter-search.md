@@ -95,10 +95,13 @@ Diminishing returns arrive fast. If a full search moves validation by 0.4% while
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "30 runs across 6 hyperparameters":
+- **Random beats grid at equal budget,** because a couple of hyperparameters dominate and grid search wastes runs re-testing the flat ones.
+- **Sample scale-free parameters log-uniformly.** A uniform draw from (0.001, 1000) puts almost all its mass above 1 and never tests strong regularization.
+- **Spend the budget on the one or two knobs that matter per model,** and remember preprocessing choices are searchable hyperparameters too.
+- **If the winner is within one fold-to-fold standard deviation of the runner-up, you have not found a better model** - take the simpler or faster one.
+- **Reporting the best of 300 CV scores is reporting the maximum of 300 noisy numbers,** so quote a held-out test set or nested CV.
+- **Know when to stop:** if a full sweep moves validation 0.4% and one new feature moves it 3%, the budget belongs in feature work.
 
-> I would not grid it - 6 dimensions at even 3 values each is 729 combinations, so a grid would only cover a fraction and would waste runs on parameters that do not matter. I would use random search with 30 draws, sampling learning rate and regularization log-uniformly, and fold early stopping into the boosting fits so the number of trees is not a searched dimension. After that I would do a small coarse-to-fine pass near the best region if budget allows. For reporting, the best CV score from a 30-run search is optimistic, so I would quote the score on a held-out test set - or nested CV if the dataset is too small for a separate holdout - and I would only prefer the winner over a simpler model if the margin exceeds the fold-to-fold spread.
-
-Next topic is **Confusion matrix, precision, and recall**.
+That completes **Chapter 4 — Training and generalization**. Next topic is **ROC-AUC, PR-AUC, and thresholds**.

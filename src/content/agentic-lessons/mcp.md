@@ -76,10 +76,12 @@ Two servers can both expose `search`. The model then picks between identically n
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "what changes when tool definitions are fetched at runtime from a server you don't control?":
-
-> Two things move. First, availability and behavior become someone else's deploy: the tool set can change between runs, so I pin server versions and diff tool descriptions on change, exactly like a package dependency. Second, and more seriously, that server now writes text into my prompt. Tool descriptions and tool results both land in the model's context, so a malicious or compromised server has a direct injection channel - it doesn't need to exploit anything, it just describes a tool persuasively. So I treat descriptions and results as untrusted data, scope credentials per server with least privilege, allowlist which servers may be connected in production rather than letting users add arbitrary ones, and require approval for irreversible actions regardless of which server offered the tool. The integration-math benefit is real - it turns N times M connectors into N plus M - but it's a supply-chain decision, not just a convenience.
+- **The benefit is integration math:** a shared protocol turns N agents times M systems into N + M, written once per system instead of once per pair.
+- **Tools are model-driven; resources are application-driven.** Exposing something as a resource means your code decides when it enters the context, which is a real control.
+- **Runtime discovery is the convenience and the risk.** A third party can change what your agent can do between one run and the next.
+- **A tool server writes text into your prompt** through descriptions and results, so it is an injection channel as well as a dependency - treat both as untrusted data.
+- **Controls worth naming:** pin and diff server versions, scope credentials per server, allowlist which servers may connect in production, and namespace tools so two `search` tools cannot collide.
 
 Next topic is **Tool selection at scale**.

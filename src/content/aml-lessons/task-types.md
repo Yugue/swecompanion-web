@@ -1,15 +1,26 @@
 ## Regression, classification, ranking, and clustering
 
-Choosing the task type is a commitment about the **shape of the output**, and everything downstream - loss, metric, threshold, the decision the product makes - follows from it.
+**The task type is the shape of the answer you want back:** a number, a category, an ordering, or a grouping.
+
+```text
+"how many minutes will this delivery take?"  → a number    → regression
+"is this transaction fraud?"                 → a category  → classification
+"which 10 results belong at the top?"        → an ordering → ranking
+"which of our customers behave alike?"       → groups      → clustering
+```
+
+Picking the shape commits you to everything downstream - what the model is trained to minimize, how you score it, and what decision the product makes.
 
 ### 1. The four shapes
 
-| Task | Output | Typical loss | Typical metric |
-|---|---|---|---|
-| Regression | a real number | MSE, MAE, Huber | RMSE, MAE, R² |
-| Classification | one of C classes (or a probability) | log loss | precision/recall, AUC |
-| Ranking | an ordering over candidates | pairwise/listwise loss | NDCG, MRR, recall@k |
-| Clustering | a group assignment | none (no target) | silhouette, stability |
+| Task | Output | Scored on |
+|---|---|---|
+| Regression | a number | how far off the number is, on average |
+| Classification | one of C categories (or a probability) | how often it is right, and which kind of mistake it makes |
+| Ranking | an ordering over candidates | whether the good items reached the top |
+| Clustering | a group assignment | how tight and how separated the groups are |
+
+> **New to this?** Each of those scoring ideas has a proper name - MSE, log loss, NDCG, silhouette - and its own lesson later. Chapter 1 covers the classification and regression ones; ranking and clustering scores come in Chapters 5 and 6. For now, only the shape of the output matters.
 
 ---
 
@@ -18,12 +29,14 @@ Choosing the task type is a commitment about the **shape of the output**, and ev
 These are three different problems and candidates blur them constantly.
 
 ```text
-binary      : y ∈ {0, 1}              one sigmoid output
-multiclass  : y ∈ {1..C}, exactly one softmax over C outputs
-multilabel  : y ⊆ {1..C}, any number  C independent sigmoids
+binary      : exactly two options            "spam" or "not spam"
+multiclass  : one of many, pick exactly one  a photo is a cat OR a dog OR a bird
+multilabel  : any number can be true at once an article is politics AND economics
 ```
 
-Multiclass assumes the classes compete - softmax forces the probabilities to sum to 1. Multilabel does not: an article can be *both* "politics" and "economics", so each label gets its own binary decision and its own threshold.
+The difference that matters is whether the categories **compete**. Multiclass says they do, so the model's probabilities are forced to add up to 1 - more confidence in "cat" must mean less in "dog". Multilabel says they do not, so each label gets its own independent yes/no decision and its own threshold.
+
+The machinery for this is a pair of functions called **sigmoid** (squashes one score into a probability) and **softmax** (turns C scores into C probabilities that sum to 1). Both are covered properly in the logistic regression lesson in Chapter 3.
 
 ### Rule of thumb
 
@@ -38,8 +51,8 @@ The same business question can often be framed either way.
 "How likely is this customer to churn next month?"
 
 - **Binary classification**: y = 1 if they churned within 30 days. Simple, gives a probability, needs a fixed window.
-- **Regression on time-to-event**: predict days until churn. More informative, but every still-active customer is a censored (unknown) label.
-- **Ranking**: order customers by risk so the retention team works the top 500. Does not need calibrated probabilities at all.
+- **Regression on time-to-event**: predict days until churn. More informative, but every customer who has not churned yet has no usable answer - you only know they lasted *at least* this long, not how long they will last. Statisticians call that a **censored** label, and it needs special handling.
+- **Ranking**: order customers by risk so the retention team works the top 500. Only the ordering has to be right, so the scores never have to be believable as probabilities.
 
 The deciding question is always:
 
@@ -61,8 +74,8 @@ A ranking model only has to get the **order** right. Its scores can be systemati
 
 So:
 
-- a ranking-only system can skip calibration entirely,
-- a system that multiplies the score by a dollar amount **cannot** - it needs a calibrated probability (see the **calibration** lesson).
+- a ranking-only system does not care whether the scores are believable as probabilities,
+- a system that multiplies the score by a dollar amount **does** - if the model says 0.7, the thing had better happen about 70% of the time. That property is called **calibration**, and it gets its own lesson in Chapter 5.
 
 ---
 
@@ -104,10 +117,11 @@ Example, food delivery ETA:
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "predict churn":
+- **The task type comes from the decision the output feeds,** and the loss comes from the cost of being wrong in each direction.
+- **Multiclass and multilabel are different problems.** If two labels can be true at once, you cannot use softmax.
+- **Ranking only has to get the order right.** It can skip calibration - unless the score gets multiplied by a dollar value.
+- **Clustering has no correctness,** so it is judged by stability and downstream usefulness, and the cluster count is a choice you must defend.
 
-> I would default to binary classification with an explicit 30-day window, because it is simple and gives a probability the retention team can threshold. But if the team can only contact a fixed number of customers, I would frame it as ranking and evaluate recall@k instead - the probability is never used, only the order. Time-to-churn regression is richer but introduces censoring, which is more machinery than the decision needs.
-
-Next topic is **Features, labels, and a training example**.
+Next topic is **Parameters, hyperparameters, and capacity**.

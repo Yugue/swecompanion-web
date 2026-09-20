@@ -73,10 +73,13 @@ Scoring a million documents with a cross-encoder is a million forward passes per
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "why does a cross-encoder rerank the top 50 instead of the whole corpus?":
-
-> Because of how the two models are shaped. A bi-encoder embeds the query and each document independently, so document vectors are computed once at index time and search is an approximate nearest-neighbour lookup - milliseconds across millions of documents. A cross-encoder reads the query and the passage jointly in a single forward pass, which is why it's much more accurate: it can model interactions between the two. But that also means nothing can be precomputed, so scoring the whole corpus would be one forward pass per document per query. The pipeline splits the job: a cheap wide stage optimizes recall - get the right passage into the candidate set at all, ideally fusing dense and keyword results so identifiers aren't missed - and an expensive narrow stage optimizes precision over those candidates. I'd measure them separately, recall at 100 and nDCG at 5, because if the answer never made the candidate set the reranker can't help.
+- **An embedding turns text into a list of numbers so that related texts land near each other,** which is how "get my money back" finds a passage about refunds with no shared words.
+- **That representation is lossy by design, so nothing matches exactly** - which is precisely why dense search fails on identifiers like error codes, SKUs, and names, where keyword search excels.
+- **Production needs both, fused,** then a reranker over the survivors.
+- **The two stages have different jobs:** a cheap wide stage optimizes recall, an expensive narrow one optimizes precision.
+- **A cross-encoder cannot scale** because it reads query and passage together, so nothing precomputes - one forward pass per pair. That is why it only sees the top ~50.
+- **Measure recall@100 and nDCG@5 separately,** so you know which stage to fix.
 
 Next topic is **Short-term and long-term memory**.

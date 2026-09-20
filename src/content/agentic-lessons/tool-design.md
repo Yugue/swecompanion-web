@@ -81,10 +81,12 @@ Three habits that follow from that:
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "your agent calls search five times with near-identical queries":
-
-> That's a tool problem before it's a prompt problem. Three things I'd change. First, the return value: if search returns a hundred truncated snippets, the agent can't tell whether it found the answer, so it tries again with slightly different wording - returning fewer, fuller, ranked results with a clear "no results" case usually ends the repetition on its own. Second, the description: it should say when to use search and, crucially, when not to - "use get_order when the user has an ID; use search only when they don't." Third, the arguments: if the query is free text, the model keeps rephrasing; adding structured filters for email, date range, and status gives it a way to narrow that isn't rewording. I'd also add a mechanical guard that detects repeated calls with near-identical arguments and returns an observation saying so, so the loop can't silently burn its budget.
+- **Granularity is the biggest reliability lever.** One tool call should map to one thing a human would say they did - "issued the refund", not "sent a POST".
+- **The description is a prompt.** Say what it does, when to use it, **when not to**, what it returns, and whether it is irreversible; the "when not to" line is what stops near-duplicate tools being picked at random.
+- **Make wrong arguments impossible:** enums over free text, units in the name, defaults instead of required fields the model cannot know.
+- **The return value lands in the context on every later turn,** so return the few fields the next decision needs, not the full API payload.
+- **If the agent consistently misuses a tool, the tool is wrong, not the agent.** Read your own traces before rewriting the prompt.
 
 Next topic is **Errors, retries, and idempotency**.

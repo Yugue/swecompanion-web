@@ -1,6 +1,8 @@
 ## Baselines and when not to use ML
 
-A baseline turns "the model gets 87%" into a sentence that means something. Without one, an accuracy number is not evidence of anything.
+**A baseline is the dumbest thing that could possibly work, scored on exactly the same data as your model.**
+
+Without one, "the model gets 87%" means nothing. You cannot tell whether 87% is a triumph or whether always guessing "no" would have scored 86%.
 
 ### 1. The trivial baseline
 
@@ -66,6 +68,8 @@ boosted tree 0.89 AUC   ← the extra 0.03 has a cost
 deep model   0.895 AUC  ← probably noise
 ```
 
+> **AUC** is a single score for how well a classifier separates the two classes: 0.5 is coin-flipping, 1.0 is perfect. It gets a full lesson in Chapter 5; here it is just a yardstick that stays the same down the ladder.
+
 The shape of that ladder is the real finding. Most of the value usually arrives with the first honest model; everything after is an engineering trade against latency, explainability, and maintenance.
 
 ### Rule of thumb
@@ -98,10 +102,12 @@ A baseline is a permanent control:
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "our fraud model has 99.2% accuracy":
+- **Quote the baseline in the same breath as the model.** "0.91 AUC" is a number; "0.91 vs 0.74 for the current rule" is a result.
+- **There are three baselines:** the trivial one (majority class, mean), whatever the business does today, and a simple model you can build in an hour.
+- **The shape of the ladder is the finding.** Most of the value arrives with the first honest model; the rest is a trade against latency and maintenance.
+- **A model that can't beat the trivial baseline signals a bug,** and one that barely beats the rules may not be worth shipping.
+- **A model with no owner is worse than the rule it replaced,** because it decays silently while everyone still trusts it.
 
-> The first thing I would compute is the majority-class baseline. With a fraud rate under 1%, predicting "never fraud" also gets about 99%, so that number tells us nothing yet. I would look at precision and recall at the operating threshold, compare against the existing rules, and ask what the model catches that the rules do not - that gap is the actual result.
-
-Next topic is **Missing values, outliers, and duplicates**.
+Next topic is **Bias-variance tradeoff**.

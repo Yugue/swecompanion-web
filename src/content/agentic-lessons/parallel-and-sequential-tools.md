@@ -75,10 +75,12 @@ Parallel calls cut latency, not tokens: three observations still enter the conte
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "the model emits three calls in one turn and the third needs the second's output":
-
-> That's a mis-plan, and the visible symptom will be an invented argument, because the model has to put something in that field. I'd fix it structurally rather than in the prompt. If those two steps always go together - look up the user, then fetch their orders - I'd merge them into one tool that takes the email and does both server-side, which removes the dependency entirely and saves a round trip. If they can't be merged, I'd state the dependency in the tool description, naming the field and where it comes from, and add a runtime check that rejects any batch containing a call whose argument never appeared in an observation, returning that as an actionable error. The general rule I'd apply is fan out reads, serialize writes, and never parallelize a call whose arguments I don't already have - and I'd bind every result back to its call id, since parallel results return out of order and appending by completion order silently misattributes them.
+- **Fan out reads, serialize writes, and never parallelize a call whose arguments you do not already have.**
+- **Parallelism collapses round trips *and* model turns:** three sequential lookups become one step, saving two full context re-sends as well as the wall-clock.
+- **A call is parallelizable only if its arguments do not depend on another result** and no two calls touch the same state.
+- **If the model emits a batch with an internal dependency it has mis-planned,** and the symptom is an invented argument. Fix it structurally - merge the paired tools, state the dependency in the description, or reject the batch at runtime.
+- **Parallel calls cut latency, not tokens.** Three observations still enter the window, so pair fan-out with compact returns.
 
 Next topic is **Code execution as a universal tool**.

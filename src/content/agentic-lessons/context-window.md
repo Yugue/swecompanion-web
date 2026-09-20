@@ -50,7 +50,7 @@ Decide the shape before you write the retriever:
   ├── task state / goal            0.5k   never evicted
   ├── retrieved evidence           8k     re-selected each turn
   ├── recent steps (verbatim)     12k     sliding window
-  └── compacted older steps        4k     summarized
+  └── compacted older steps        4k     summarized (Chapter 4)
                                   ────
                          headroom  4k     for the next observation
 ```
@@ -82,10 +82,25 @@ A timestamp in the system prompt invalidates the entire cached prefix on every c
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "your 40-step agent run costs 12x your estimate":
+The model is stateless, so every turn re-sends the whole transcript. Input tokens are therefore the sum of *prefixes*, not the sum of steps:
 
-> Almost certainly the prefix effect. The model is stateless, so every turn re-sends the whole transcript - system prompt, tool schemas, and every prior call and observation. That means input tokens grow with the sum of prefixes, which is quadratic in step count, not linear. I'd confirm it from traces by plotting input tokens per step rather than totals. The fixes in order of payoff: cut the number of steps, shrink what each observation contributes - returning the three fields the agent needs instead of the whole API payload - then compact older turns into a summary that keeps identifiers verbatim, and externalize large artifacts to a file with a pointer in context. I'd also check prompt-cache hit rate, because if anything volatile sits early in the prompt we're paying full price for a prefix that should be nearly free.
+```text
+turn 1:  [system][tools][user]
+turn 2:  [system][tools][user][call 1][obs 1]
+turn n:  [system][tools][user][ ......... every prior step ......... ]
+                                          → grows quadratically
+```
 
-Next topic is **Structured output and schemas**.
+That single fact explains three separate costs: **money** (input tokens dominate), **latency** (attention is quadratic in length), and **accuracy** - a long, noisy context measurably degrades answers because the needed fact competes with plausible distractors.
+
+So budget the window by line item, and keep explicit headroom for the next observation. Then reach for three levers in order:
+
+```text
+select      retrieve fewer, better passages
+compact     summarize old turns, keeping identifiers verbatim
+externalize write big artifacts to a file, keep only a pointer
+``` Order stable content first so the cache can hit.
+
+Next topic is **System prompts and instruction hierarchy**.

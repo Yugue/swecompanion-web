@@ -1,6 +1,10 @@
 ## What machine learning is
 
-Everyone can define machine learning. The version that scores well in an interview is the one that explains **when it is the right tool**, because that is the judgement the interviewer is actually testing.
+**Machine learning is how a program works out its own rules by looking at examples, instead of a person writing those rules down.**
+
+A spam filter is never told "mail containing FREE MONEY is spam". It is shown a few million messages that people already marked spam or not spam, and it works out the patterns itself.
+
+That is the whole idea. Everyone can recite a definition, though - what scores well in an interview is knowing **when it is the right tool**, because that is the judgement being tested.
 
 ### 1. Rules written by a human vs. rules inferred from data
 
@@ -100,18 +104,17 @@ Now change the question: "flag transactions that look unlike this user's normal 
 
 ### Rule of thumb
 
-> The value of ML is the gap between the model and the best simple rule you could write instead.
+> Before you build a model, write down the simplest rule that could work. That rule is what the model has to beat.
 
-Always know what that rule scores. See the **baselines** lesson for how to measure it.
+How to measure that properly is the **baselines** lesson, later in this chapter.
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-A strong 30-second answer:
-
-> Machine learning fits a function from examples instead of having a human state the rules. It makes sense when the rules are unknown, too numerous, or keep changing, and when being occasionally wrong is tolerable. The cost is that the model inherits whatever is in the data, and it degrades silently when the world moves - so it comes with monitoring and retraining, not just training.
-
-Then ask which part they want: the framing, the model, or the evaluation.
+- **The skill being tested is knowing when *not* to use ML.** If the rule fits in a sentence and stays true next quarter, write the rule.
+- **A model produces a score, not a decision.** The threshold and the action are product choices that sit outside the optimizer.
+- **ML has a running cost:** data you must keep collecting, silent decay when the world shifts, and decisions that are hard to explain one by one.
+- **Value is measured against the best simple rule,** so always know what that rule scores before claiming the model helps.
 
 Next topic is **Supervised, unsupervised, and self-supervised learning**.

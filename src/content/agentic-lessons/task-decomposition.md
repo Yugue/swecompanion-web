@@ -1,6 +1,8 @@
 ## Task decomposition and subagents
 
-Splitting a task into subtasks with their own contexts is primarily a **context management** technique. Understanding that - rather than "specialists are better at their specialty" - is what makes the answer sound experienced.
+**A subagent is a second agent you hand one narrow job to, which reports back a short answer.**
+
+The reason to use one is not that specialists are smarter - it is the same model either way. It is that the subagent reads all the messy material inside *its own* context window and returns a paragraph, so the main agent never has to carry that material around. Decomposition is a **context management** technique first.
 
 ### 1. The actual benefit
 
@@ -82,10 +84,26 @@ Cost note: each subagent pays its own system prompt and tool schemas, so five su
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "what must cross the parent/subagent boundary, and what must not?":
+The point of a subagent is context, not expertise. Everything else follows from that:
 
-> Going down, the brief has to be self-contained, because the subagent can't ask a clarifying question of a context it never saw: a one-sentence objective, the specific facts from the parent that bear on it, the constraints including a budget, the schema of what to return, and what's already been tried - that last one is what stops three subagents re-running the same failed search. Coming up, structured findings with provenance on every claim, plus explicit gaps and the cost consumed. What must not cross is the raw transcript in either direction: sending the parent's whole history down defeats the point, and returning the child's whole history up undoes the context isolation I decomposed for. I'd also keep the boundary as a privilege boundary where relevant - a subagent reading untrusted content shouldn't be holding credentials or the overall plan.
+```text
+parent:  plan, delegate, merge          keeps a small window
+child:   fresh context, narrow goal     absorbs the large read
+         returns a compact result       parent never pays for it again
+```
+
+The handoff is where information dies, so make both directions explicit:
+
+```text
+down:  objective, the parent facts that bear on it, constraints,
+       the return schema, and ALREADY TRIED
+up:    structured findings with provenance, explicit gaps, cost
+```
+
+- **`already_tried` is the field people omit,** and it is what stops three subagents repeating the same failed search.
+- **Never pass a raw transcript in either direction** - it undoes the isolation that motivated the split.
+- **Decompose along real seams** - independent data sources, independent items, distinct phases. If two subtasks must negotiate mid-flight, they were one task.
 
 That completes **Chapter 3 — Reasoning and planning**. Next topic is **Context engineering**.

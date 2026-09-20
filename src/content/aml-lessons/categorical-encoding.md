@@ -1,6 +1,6 @@
 ## Encoding categorical features
 
-Every model consumes numbers, so a categorical column has to be converted - and the encoding decides what the model is **allowed to learn** about it.
+**Models do arithmetic, so every column has to be a number.** A column holding "red", "green", "blue" has to be converted first - and *how* you convert it decides what the model is **allowed to learn** about it.
 
 ### 1. One-hot encoding
 
@@ -104,10 +104,19 @@ Always have an answer for two production questions:
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For a 40,000-level zip-code feature with gradient boosting:
+Choose by cardinality and model family, then answer the two production questions:
 
-> One-hot would add 40,000 sparse columns, which boosted trees handle badly - each split isolates a single zip. I would use out-of-fold target encoding with smoothing, so each zip becomes one column carrying its observed rate, and rare zips get shrunk toward the global mean. The encoding must be fitted inside each CV fold or it leaks the label. Hashing is the alternative if the set of zips is unbounded or I need fixed memory, at the cost of collisions. I would also consider a coarser geography - state or the first three digits - as a generalizing companion feature.
+```text
+few levels (< ~15)            → one-hot
+many levels, tree model       → target encoding (smoothed, out-of-fold)
+unbounded / streaming         → hashing
+huge, lots of data, neural    → embeddings
+```
+
+Two rules keep the choice honest. Integer codes are only acceptable when the order is genuinely real - trees tolerate them, linear and distance models are misled by them. And any encoding that uses the label must be computed out-of-fold, or it leaks.
+
+Then say what happens on **an unseen level at serve time** and on **a level that had three training examples**. Interviewers ask both.
 
 Next topic is **Feature engineering**.

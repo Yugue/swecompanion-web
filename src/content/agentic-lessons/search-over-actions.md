@@ -1,6 +1,8 @@
 ## Sampling and search over actions
 
-When a solution is **hard to find but easy to check**, the right move is to spend test-time compute generating several candidates and keep one that verifies. The whole pattern lives or dies on the verifier.
+**Some problems are hard to solve and easy to check.** Writing a function that passes the tests is hard; running the tests takes a second.
+
+Whenever that is true you can trade compute for accuracy: generate several attempts and keep one that passes the check. The whole pattern lives or dies on the quality of that check.
 
 ### 1. Best-of-N
 
@@ -84,10 +86,12 @@ N candidates cost roughly N times the tokens, though input caching softens it be
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "best-of-5 helps on code and not on customer emails":
-
-> The asymmetry is entirely in the verifier. For code I have a near-perfect, nearly free checker - the compiler and the test suite - so sampling five candidates and keeping one that passes converts diversity directly into accuracy; with a perfect verifier the failure rate drops like one minus p to the N. For customer emails my only verifier is an LLM judge, which is noisy and has known biases toward length, position, and its own style. Selecting the best of five under a flawed measure doesn't find the best email, it finds the one that best exploits the judge, so larger N makes it worse rather than better. The general rule I'd state is that best-of-N is a verifier amplifier, not a model amplifier: spend on the verifier first, and if I can't build one better than a judge, I'd rather invest in grounding and a single careful generation. I'd also be careful about search over real actions at all, since branch-and-backtrack assumes reversibility, and in production most side effects aren't.
+- **The pattern fits problems that are hard to solve and easy to check,** and the verifier - not N - sets the ceiling.
+- **With a good verifier, sampling converts directly into accuracy;** with a noisy one, larger N finds the candidate that best exploits the judge's blind spots, making things worse.
+- **That is the whole reason best-of-N helps on code and not on open-ended writing.**
+- **Search over action *sequences* needs reversible steps and cheap partial evaluation,** which production rarely offers - you cannot un-send an email.
+- **Keep it economical:** escalate only after the first attempt fails verification, and prune short plans before expanding them.
 
 Next topic is **Reasoning models and thinking budgets**.

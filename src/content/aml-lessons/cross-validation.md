@@ -106,10 +106,11 @@ Expensive, and the right answer when someone asks "how well does this model real
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "why does selecting features before CV inflate the score":
-
-> Because the selection step has already looked at every label, including the rows that later become the validation fold. The held-out data is no longer held out - it influenced which features exist. On noise-only data this can produce a strong-looking cross-validated score. The fix is to put the selector inside a Pipeline so it is refitted on each training fold, which measures the whole procedure rather than just the final estimator. The same applies to scalers, imputers, target encoders, and any resampling.
+- **Report the spread, not just the mean.** A 0.4% gap between models is meaningless when folds vary by 2%.
+- **Pick the variant that matches the dependence in your data:** stratified for classification, grouped for repeated entities, and forward-chaining with a gap for time series.
+- **Anything that calls `.fit()` goes inside the Pipeline** - scalers, imputers, encoders, selectors, PCA, resamplers. Feature selection outside the fold can manufacture a strong model from pure noise.
+- **After tuning on CV, the CV score is optimistic** for the configuration you picked; report a held-out test set or use nested CV.
 
 Next topic is **Hyperparameter search**.

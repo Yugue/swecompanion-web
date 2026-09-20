@@ -70,10 +70,12 @@ Step 3's last line matters: splitting an inaccurate agent into three inaccurate 
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "argue against the three-agent design someone just proposed":
-
-> My question would be what each split buys mechanically. There are two reasons that hold up - independent subtasks I can run in parallel, and work whose context won't fit in one window - and if neither applies, three agents is one agent with extra cost and a coordination problem. The cost isn't linear either: each agent re-pays its system prompt and tool schemas on every turn, and I'm adding briefs, handoffs, and a merge step, so this is commonly several times the tokens for the same work. The failure surface grows too - duplicated work where briefs overlap, gaps where they don't, and one agent's wrong finding becoming another's premise with nobody revisiting it. What would change my mind is a trace showing a real bottleneck: context overflow on a specific phase, or a set of subtasks with no argument dependencies that are serializing my wall clock. Then I'd split along that one seam, not into three roles. And if the problem is accuracy, I'd fix tools and context first, because splitting an inaccurate agent gives me three of them.
+- **There are exactly two solid reasons:** independent subtasks you can genuinely run in parallel, and context that will not fit in one window. Both are checkable properties of the task.
+- **"A specialist writes better" is not one of them.** Same weights - the gain came from a focused prompt, which one agent can also have.
+- **Cost multiplies worse than linearly,** because every agent re-pays its system prompt and tool schemas on every turn, plus briefs, handoffs, and a merge step.
+- **Debuggability is the quiet cost:** N traces, N contexts, and the seams between them.
+- **Start with one agent, find the specific bottleneck in traces, and split along that one seam.** Splitting an inaccurate agent gives you three inaccurate agents and a coordination problem.
 
 Next topic is **The orchestrator-worker pattern**.

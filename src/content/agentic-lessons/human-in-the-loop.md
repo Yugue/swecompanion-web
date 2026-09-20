@@ -78,10 +78,12 @@ Log the action, the justification, the decision, the editor's changes, and the r
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "design the approval UX for an agent that files production changes":
-
-> The reviewer has to be able to decide in seconds, so the screen shows the exact diff, the justification with links to the evidence the agent used, the complete list of effects including anything secondary like notifications or ticket transitions, and a blast-radius summary - which services and how many users. Three actions: approve, approve with edits, and reject with a reason, and the reason is mandatory because that text is the most valuable eval data I'll get. I'd prefer a staged pattern over a raw approve/reject here: the agent opens a pull request and a human merges, so the reviewer receives an editable artifact instead of a yes/no question. I'd gate on reversibility and blast radius rather than the model's confidence, since confidence is generated text and can be swayed by the same input that caused the problem. And I'd watch for approval fatigue directly - if rejection rate is near zero and approval latency is under two seconds, the gate is manufacturing false assurance, and I'd either narrow what gets gated or batch similar changes into one reviewable list.
+- **Gate on what the action does - reversibility and blast radius - not on how sure the model says it is.**
+- **Make the review possible in seconds:** the action, its justification, the evidence, and the *complete* set of effects. Hidden side effects make approvals meaningless.
+- **Approval fatigue is worse than no gate,** because it manufactures false assurance. Watch rejection rate and approval latency; near-zero and sub-second means nobody is reading.
+- **"Agent prepares, human commits" often beats approve/reject** - the reviewer gets an editable artifact instead of a yes/no question.
+- **Log every approval, edit, and rejection reason.** That log is the highest-quality eval set you will ever have.
 
 That completes **Chapter 6 — Evaluation, reliability, and safety**. Next topic is **Latency and token economics**.

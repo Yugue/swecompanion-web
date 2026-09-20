@@ -76,12 +76,22 @@ That answers the underlying question and is far stronger than bluffing a feature
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "tell me about agents" - the first thirty seconds:
+The graded skill is narrowing a broad prompt to one concept and explaining it concretely.
 
-> An agent is a model in a loop with tools and a stopping condition, where the model rather than my code decides what the next step is - that last part is the real definition, because in a workflow I write the sequence and in an agent it's chosen at runtime from what's observed. That trade buys flexibility and costs determinism, predictable cost, and ordinary testing. There's a lot underneath that: how the loop is bounded, how context is managed as it grows, how tools are designed, how you evaluate something that takes a different path each run, and how you contain what it can do. Is there a particular one of those you'd like me to go into - or is there a specific system you have in mind, so I can talk about the design concretely?
+```text
+1. define in one sentence
+2. ask ONE clarifying question   ← then let them choose the direction
+3. mechanism: what literally happens, step by step
+4. a concrete example with numbers
+5. the trade-off, and when you would choose differently
+6. stop
+```
 
-Then go where they point, use mechanism and numbers, name one tradeoff, and stop.
+- **Ground answers in mechanism.** Say "the model is stateless, so each turn re-sends the transcript" rather than "the agent remembers" - naming the context window, the tool boundary, or the loop is the tell that you have built one.
+- **Put enforcement in the right layer out loud:** "I'd put that in the runtime rather than the prompt, so it holds regardless."
+- **Reach for the simpler architecture first.** Proposing an agent where a workflow suffices is the most common way to look inexperienced.
+- **When you do not know, name the boundary and reason forward** - that answers the underlying question far better than bluffing a feature list.
 
-You have reached the end of this guide. Go back to any chapter and re-read the "what you should say in an interview" sections - together they are a compact script for the whole domain.
+You have reached the end of this guide. Go back to any chapter and re-read the "what matters most" sections - together they are a compact summary of the whole domain.

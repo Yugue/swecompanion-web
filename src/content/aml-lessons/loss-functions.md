@@ -110,10 +110,19 @@ Surrogate losses (soft-F1, approximations of AUC) exist, but the two-stage appro
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "why can't you train on F1":
+Keep loss and metric separate, and let the cost structure pick the loss:
 
-> F1 comes from hard counts of true and false positives, which require thresholding the score - and that step function has no usable gradient, so there is nothing for the optimizer to descend. What I do instead is train with log loss, which gives a well-ordered probability, and then pick the threshold that maximizes F1 on the validation set. If false negatives are much more expensive I would additionally weight the positive class in the loss, but the threshold is the more direct and more interpretable lever, and it can be re-tuned without retraining.
+```text
+loss    what training minimizes    must be optimizable
+metric  what you are judged on     can be anything (F1, recall@k, revenue)
+        → train with the loss, then tune the threshold for the metric
+```
+
+- **The loss chooses which summary of the outcome you estimate:** MSE gives the mean, MAE the median, and a quantile loss the q-th quantile. That is why MAE resists outliers and why "late is worse than early" calls for a quantile above 0.5.
+- **Log loss is the maximum-likelihood objective** and the right choice whenever a probability feeds expected-value math.
+- **Class weights change the distribution the model optimizes for,** which moves its probabilities off the true base rate - recalibrate afterwards.
+- **You cannot train on F1 directly:** thresholding is a step function with no gradient, so use the two-stage pattern.
 
 Next topic is **Optimization: closed form, gradient descent, SGD**.

@@ -96,10 +96,12 @@ The built-in `feature_importances_` sums each feature's impurity reduction. It i
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "why does a single deep tree overfit so reliably":
-
-> Because it keeps splitting until the leaves are pure, and a leaf with two examples is a confident prediction based on two observations - that is variance, not signal. It is also greedy and unstable: a small change in the data can change the top split and cascade through the whole tree. I would control it with `max_depth` and especially `min_samples_leaf`, so no leaf is built from too few rows, and tune both by cross-validation. But the more common answer in practice is not to fix the single tree at all - averaging many of them in a random forest, or boosting shallow ones, addresses the variance directly.
+- **A tree greedily picks the split that most reduces impurity,** so it is never guaranteed to be globally best - and it never stops on its own.
+- **Unconstrained, it memorizes.** Limit it with `min_samples_leaf`, `max_depth`, or pruning; the leaf-size limit restrains complexity exactly where data is thin.
+- **High variance is the defining weakness:** a few changed rows can change the top split and therefore the whole tree. That instability is the motivation for ensembles.
+- **Strengths:** no scaling, interactions and non-monotone shapes for free, and readable at shallow depth. **Weaknesses:** staircases for smooth relationships and no extrapolation beyond the training range.
+- **Built-in feature importance is biased** toward continuous and high-cardinality features; use permutation importance when it matters.
 
 Next topic is **Bagging and random forests**.

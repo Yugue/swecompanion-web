@@ -1,6 +1,13 @@
 ## Function calling mechanics
 
-The single most important sentence about function calling: **the model does not execute anything.** It emits a structured request. Your runtime decides whether that request is allowed, runs it, and reports back. Every security property of an agent lives in that gap.
+**Function calling is how a model asks for something to happen in the real world.** It cannot look up an order or send an email itself. It writes down which tool it wants and what arguments to use, and your code decides whether to actually run it.
+
+```text
+model writes:  {"tool": "get_order", "args": {"id": "48812"}}
+your code:     is this allowed?  →  run it  →  hand the result back
+```
+
+So the single most important sentence here is: **the model does not execute anything.** Every security property of an agent lives in that gap.
 
 ### 1. What actually happens
 
@@ -77,10 +84,12 @@ That last item is why the answer to "how do you stop it doing X" is never "tell 
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "where do you enforce that a user can only read their own records?":
-
-> In the tool implementation, using the identity from the session - not from the model's arguments and not from the prompt. The model emits a request; my runtime authorizes and executes it, so the tool should take the caller's user id from the authenticated session and scope the query to it, ignoring any user id the model supplied. It can't live in the prompt for two reasons: the model produces likely text rather than obeying policy, so it'll be right most of the time and wrong occasionally; and anything the agent reads - a document, a web page, a tool result - can contain text that argues for a different behavior. Prompt rules are worth having as a first filter, but the guarantee has to be code that would reject the call even if the model were fully compromised.
+- **The model never executes anything.** It emits a structured request; your runtime authorizes, executes, and returns an observation. Every security property lives in that gap.
+- **Authorize from the session's identity,** never from an identifier the model supplied, and never in the prompt - prompt rules are a first filter, not a guarantee.
+- **Tool schemas are prompt text re-sent every turn,** so 40 tools can cost thousands of input tokens per step, and a bigger catalogue makes selection harder.
+- **Bind every result to its call id.** Parallel results return out of order, and appending by completion order silently misattributes one tool's output to another.
+- **The model is good at picking a plausible tool and filling arguments it can see;** it is bad at knowing whether a tool has side effects or whether it is allowed to run.
 
 Next topic is **Designing tools a model can use**.

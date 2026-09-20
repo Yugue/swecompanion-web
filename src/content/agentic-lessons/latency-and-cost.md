@@ -1,6 +1,8 @@
 ## Latency and token economics
 
-Agent cost is not "price per token times length of answer." It is **steps multiplied by a growing context**, and that product is what any serious design answer works backwards from.
+**An agent's bill is not "price per word of the answer". It is the number of steps multiplied by how much text it re-reads at every step.**
+
+Because the model remembers nothing between calls, each step re-sends the whole conversation so far. Ten steps therefore costs a good deal more than ten times one step, and every serious design answer works backwards from that.
 
 ### 1. The cost model
 
@@ -77,10 +79,21 @@ Working the arithmetic out loud like this is what distinguishes a design answer 
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "$0.05 and 8 seconds per request":
+Turn the budget into token arithmetic before designing anything:
 
-> I'd turn the budget into token arithmetic first. At roughly three dollars per million input tokens, five cents is about sixteen thousand input tokens for the entire run - and because the transcript is re-sent every turn, input grows with the sum of prefixes, so that's something like five or six steps at a three-thousand-token context, not sixteen steps. That number then drives the design: a small tool set so schemas don't eat the prefix, a step cap around six, observations compacted to a few hundred tokens rather than raw payloads, and a stable-first prompt so prompt caching covers the system and tool blocks. I'd route by step kind, using a fast model for extraction and formatting and reserving a reasoning model for the one planning decision. For latency I'd parallelize independent reads, time-box every tool, and stream output so first token lands under a second. And I'd check what fraction of traffic needs the agent at all - if most requests are single-hop lookups, they should go down a non-agent path, which is usually the difference between meeting that budget and missing it.
+```text
+$0.05 at ~$3 per million input tokens  ≈ 16k input tokens for the WHOLE run
+because input grows with the sum of prefixes → that is ~5-6 steps at 3k context,
+                                               not 16 steps
+```
+
+That number then drives every choice: a small tool set, a step cap near six, observations compacted to a few hundred tokens, a cacheable prefix, and a fast model everywhere except the one planning step.
+
+- **The levers in order:** fewer steps, smaller context per step, prompt caching, a cheaper model per step, then parallelism - which buys wall-clock, not tokens.
+- **Latency is long-tailed** because step count varies, so design to p95 and p99 with caps, time-boxed tools, and a partial-result path.
+- **Streaming changes whether the product feels broken** without changing total time.
+- **Check what fraction of traffic needs the agent at all** - routing simple requests off the agent path is often the difference between meeting the budget and missing it.
 
 Next topic is **Prompt caching and reuse**.

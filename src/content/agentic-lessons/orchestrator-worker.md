@@ -86,10 +86,13 @@ If two workers need to talk to each other to finish, they were one task that has
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "write the brief for one subtask of a market-research agent":
-
-> The brief has to stand alone, so I'd give the worker a single unambiguous objective - find ACME's published pricing tiers as of September 2026 - plus the small slice of parent context that changes how it interprets that, which here is that we only care about per-seat pricing because that's what we're comparing against. Then hard constraints: public sources only, a search budget, and a requirement to cite every figure. Then the exact schema of what to return, including a gaps field so it can say what it couldn't find rather than implying absence. And what's already been tried, so it doesn't repeat a search that hit a login wall. What I deliberately leave out is the overall plan, the other workers' findings, and the parent's transcript - the worker doesn't need them, and sending them would undo the context isolation that was the reason to delegate. On the way back I want findings with provenance rather than a transcript, and the orchestrator's merge step has to reconcile contradictions and drop unsourced claims rather than concatenating.
+- **The information asymmetry is deliberate:** only the orchestrator holds the plan and the whole picture, which is what keeps every worker's context small.
+- **The brief is the product.** A worker cannot ask a clarifying question of a context it never saw, so an ambiguous brief silently becomes confident irrelevant work.
+- **Workers return structured findings, not transcripts** - otherwise the orchestrator's window fills with exactly the context you isolated.
+- **Always include gaps.** A worker that found three of five tiers and says so lets the orchestrator follow up; one that silently returns three implies five do not exist.
+- **The merge step reconciles rather than concatenates:** resolve contradictions, dispatch for gaps, drop unsourced claims, and check the deliverable answers the original goal.
+- **It fits wide-read/narrow-write work** and fits badly where subtasks must negotiate mid-flight.
 
 Next topic is **Handoffs and shared state**.

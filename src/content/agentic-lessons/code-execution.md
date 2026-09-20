@@ -83,10 +83,12 @@ Log the source, stdout, stderr, exit code, and wall time for every execution. Ge
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "argue both sides of giving an agent a code tool":
-
-> In favor: it's the only tool with open-ended coverage, so I don't have to enumerate every transformation a user might want, and it moves exact computation - arithmetic, date math, aggregation - out of token prediction into an interpreter, which fixes the model's weakest area rather than prompting around it. It's also a context-engineering win, because code can process fifty thousand rows outside the window and return three numbers. Against: generated code is untrusted input, and if the agent has read anything from the outside world, the code may be doing what that content asked rather than what the user asked. So the sandbox is the control, not the prompt - no ambient credentials, no outbound network by default, a scratch filesystem scoped to the run, hard CPU and wall-clock limits, and capped output. In production I'd use both shapes: narrow permissioned tools for anything with side effects, where I want per-argument authorization and a named audit entry, and the code tool for computation over what those tools return.
+- **It is the only tool with open-ended coverage,** and it moves exact computation out of token prediction into an interpreter - repairing the model's weakest area rather than prompting around it.
+- **It is also a context-engineering win:** code can process fifty thousand rows outside the window and return three numbers.
+- **Generated code is untrusted input,** especially once the agent has read anything from the outside world - so the sandbox is the control, not the prompt.
+- **The defaults that matter:** no ambient credentials, no outbound network, a scratch filesystem scoped to the run, hard CPU and wall-clock limits, and capped output.
+- **Production usually runs both shapes:** narrow permissioned tools for anything with side effects, where you want per-argument authorization and a named audit entry, and the code tool for computation over what they return.
 
 Next topic is **Tool servers and the Model Context Protocol**.

@@ -110,10 +110,12 @@ Its weaknesses are the mirror image: badly correlated features, continuous featu
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "Naive Bayes says 0.9999 - is it that confident?":
-
-> No. That number is an artifact of the independence assumption. Spam emails contain many correlated words, and the model multiplies each of them as if it were independent evidence, so the posterior saturates near 0 or 1. The ranking is still usually fine, which is why it works as a classifier, but the value is not a calibrated probability. If the downstream system just needs a spam/not-spam decision, I would tune the threshold and move on. If it needs a real probability - to compute expected cost - I would calibrate with isotonic regression on a held-out set, or use a model like logistic regression that is calibrated by construction.
+- **The independence assumption turns an impossible joint distribution into per-feature counts.** Drop the shared denominator and sum log-probabilities, and it behaves like a fast linear classifier.
+- **It is wrong and still works because only the ranking of classes has to be right.** Trust its argmax, not its confidence.
+- **It is overconfident by construction:** correlated features are counted as independent evidence, so calibrate it whenever the probability itself will be used.
+- **Smoothing is not optional.** One unseen feature has probability zero and wipes out the whole posterior.
+- **It earns its place as a one-pass, tiny-data text baseline,** with variants chosen by feature type (counts, binary, Gaussian).
 
 Next topic is **Support Vector Machines**.

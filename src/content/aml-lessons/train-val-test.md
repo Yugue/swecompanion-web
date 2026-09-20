@@ -1,6 +1,16 @@
 ## Train, validation, and test splits
 
-Three splits exist because there are three different questions, and using one dataset to answer two of them quietly corrupts the answer.
+**You cut your data into three piles, because you are asking three different questions and one pile can only answer one of them honestly.**
+
+```text
+ ┌──────────────── all your data ────────────────┐
+ │   train 60%      │  validation 20% │ test 20% │
+ └──────────────────┴─────────────────┴──────────┘
+   learn from it      make choices      final score,
+                      with it           looked at once
+```
+
+Using one pile to answer two of those questions does not raise an error. It quietly makes the final number too good.
 
 ### 1. What each split is for
 
@@ -63,7 +73,7 @@ chronological (right)    : ░░░░░░░░░░░█████  tra
 
 A random split lets the model see, say, next week's holiday spike while predicting this week's - an advantage it will never have in production. Chronological splits usually give a **lower** score than random ones. That lower number is the true one.
 
-Add a gap when labels are delayed: if a label takes 30 days to mature, leave a 30-day buffer between the end of training and the start of validation, or training data will contain outcomes you could not have known.
+Add a gap when labels are delayed. If a label takes 30 days to mature, leave a 30-day buffer between the end of training and the start of validation - otherwise the training data contains outcomes you could not have known.
 
 ---
 
@@ -92,10 +102,25 @@ train_test_split(X, y, test_size=0.2, stratify=y, random_state=0)
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "validation keeps improving, test does not":
+Three splits exist because there are three different questions:
 
-> That is over-fitting to the validation set, not to the training data. After 200 experiments the best validation score is partly luck, because I have been selecting on that set. I would re-run the comparison with nested cross-validation so the selection happens in an inner loop, keep a fresh holdout that has never been used for a decision, and I would trust the size of the improvement only if it is larger than the fold-to-fold spread.
+```text
+fit the parameters                     → train
+choose (hypers, features, threshold)   → validation
+how good is the chosen model?          → test, touched once
+```
 
-Next topic is **Baselines and when not to use ML**.
+Then make the split mimic deployment, because a split that doesn't will produce a score that is fiction:
+
+```text
+rows repeat per user / product?   → split by that entity
+model predicts the future?        → split chronologically
+labels take 30 days to mature?    → leave a 30-day gap
+rare positives?                   → stratify
+```
+
+If the test score is far below validation, suspect over-tuning. If both look too good, suspect leakage or the same entity on both sides.
+
+Next topic is **Confusion matrix, precision, and recall**.

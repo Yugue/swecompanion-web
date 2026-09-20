@@ -81,10 +81,12 @@ Nothing is lost, the window is freed, and the agent can re-read the file if a la
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "the agent forgets a constraint the user gave at turn 2 after compaction at turn 40":
-
-> Two structural fixes. First, pin it: the summary should be a structured object with a constraints field that is copied forward verbatim, never re-summarized, so user statements and corrections survive every compaction round unchanged. Prose summaries lose exactly this, and because each compaction summarizes the previous summary, detail decays geometrically - by turn 40 a constraint mentioned once has been through several lossy passes. Second, compact from the original transcript rather than from the last summary; I keep the full run in the run store even though it isn't in the window, so each compaction is one lossy step rather than a chain of them. I'd also compact on a threshold around seventy or eighty percent rather than at overflow, so there's headroom for the summarization call itself, and prefer externalizing over summarizing where the content is an artifact - write it to a file and keep a path plus a short abstract, so nothing is lost at all.
+- **Compact on a threshold, around 70-80%,** not at overflow - you need headroom for the summarization call itself and the next observation.
+- **Summarize the narrative; never summarize an identifier.** Order IDs, file paths, exact amounts, dates, and the user's own words must survive verbatim.
+- **Use a structured summary, not prose:** goal, constraints, decisions, artifacts, failed attempts, open questions. Prose loses exactly what agents need most.
+- **Compaction compounds,** so pin the constraint block and compact from the original transcript rather than from the last summary.
+- **Externalizing usually beats compressing.** Write the artifact to a file and keep a path plus a three-line abstract - nothing is lost at all.
 
 Next topic is **State and session management**.

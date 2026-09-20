@@ -1,6 +1,8 @@
 ## Choosing k and evaluating clusters
 
-Clustering has no held-out label, so there is no accuracy to compute. Quality is argued from **internal geometry, stability, and downstream usefulness** - and being comfortable saying that is most of the answer.
+**With clustering there is no right answer to check against,** so there is no accuracy to compute and nothing to be correct about.
+
+Quality has to be argued instead - from the geometry of the groups, from whether they survive being re-run on slightly different data, and from whether anyone can actually use them. Being comfortable saying that is most of the answer.
 
 ### 1. The elbow method
 
@@ -105,10 +107,18 @@ Internal indices measure geometry. The business question is usefulness:
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "marketing wants the right number of customer segments":
+There is no ground truth, so quality has to be argued from three directions - and saying that plainly is most of the answer:
 
-> There is no ground truth, so I would not pretend one number is correct. I would scale the features, sweep k, and use silhouette rather than inertia alone since it is comparable across k - then shortlist two or three candidates. The deciding evidence is stability: if the same customers cluster together across resamples, the structure is real; if membership changes every run, the algorithm is inventing splits. Finally I would profile each candidate solution and have marketing read the segments, because the answer also has to be operationally usable - four segments they can run campaigns for beat seven they cannot staff.
+```text
+geometry   silhouette, Calinski-Harabasz, Davies-Bouldin, the elbow in inertia
+stability  re-run on resampled data - do the same points stay together?
+usefulness can a human name each cluster, and do the clusters behave differently?
+```
+
+- **Inertia always falls as k rises,** so the elbow is a point of diminishing returns, not a minimum. Silhouette, unlike inertia, is comparable across k.
+- **Stability is the strongest internal evidence.** A clustering that changes completely when you resample is not a finding.
+- **The business test decides it:** four segments that map to four campaigns beat eleven mathematically tidier ones nobody can staff.
 
 Next topic is **Anomaly detection**.

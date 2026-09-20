@@ -103,10 +103,23 @@ Naming the trade-off - you generally cannot satisfy every fairness definition at
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "accuracy is 91% and flat across three iterations":
+This is the answer to "the model is 90% accurate - what now?" Read 50-100 errors by hand and sort each into a bucket, because each bucket has a different fix:
 
-> I would stop tuning and look at the errors. Concretely: sample a hundred misclassified cases and bucket them into label errors, missing coverage, missing features, preprocessing bugs, genuine ambiguity, and real model limitations - the mix tells me what the next fix should be. In parallel I would slice the metric by segment, geography, and time, because a flat 91% often hides one slice performing far worse, and fixing that slice may matter more to the business than the average. If a large share turn out to be label errors, the ceiling is lower than 100% and the work belongs in the labelling process, not in the model.
+```text
+label error        → clean labels, re-measure the ceiling
+missing coverage   → collect or augment data
+missing feature    → feature engineering
+preprocessing bug  → fix the pipeline
+genuine ambiguity  → irreducible, stop optimizing
+model limitation   → more capacity
+```
 
-Next topic is **k-Means clustering**.
+Then slice the metrics: an 88% average can hide 60% on the segment that earns the revenue.
+
+**Report the worst slice next to the average.** The average is what you built; the worst slice is what someone experiences.
+
+Prioritize by frequency × fixability × business impact rather than by what's interesting. And treat confidence bands as a product lever: auto-action the top band, route the middle to review, ignore the bottom - often worth more than a 1% metric gain.
+
+That completes **Chapter 5 — Evaluation in depth**. Next topic is **k-Means clustering**.

@@ -74,10 +74,12 @@ So pair offline evals with online signals: user corrections, escalations, retrie
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "92% on your eval set but users complain constantly":
-
-> Three likely reasons. First, the set is measuring one run per case - if I'm quoting pass@1 on a non-deterministic system, a case that succeeds sixty percent of the time counts as a pass, and users hit the other forty. I'd re-run each case several times and quote the fraction that passes every time, especially for anything with side effects. Second, distribution: if the cases were written by the team rather than sampled from production traces, they're cleaner than reality - unambiguous requests, records that exist, tools that respond. Real traffic has missing data and contradictory context, and that's where agents fail. Third, the set probably only checks the final answer. A run can produce the right answer through a path that's one API change from breaking, and it likely doesn't assert the absence of harmful side effects at all. I'd rebuild the set from clustered production failures, add step-level assertions to localize regressions, and watch online signals - escalations, corrections, retries, cost per successful task - because those catch what the offline set structurally can't.
+- **Measure outcome *and* process.** A right answer reached by a broken path will fail tomorrow, and "did it refund the right amount" and "did it refund anything else" are different questions.
+- **One run is an anecdote.** Run each case several times and quote a distribution - and for anything with side effects quote the fraction that passes *every* run, not the fraction that passes at least once.
+- **Build the eval set from real traces.** Synthetic cases are clean, and agents fail on ambiguity, missing records, and ugly tool output.
+- **Put assertions at three levels** - unit with mocked tools, step-level, end-to-end - because end-to-end alone tells you something broke, not what.
+- **Offline evals lie in known ways** - drift, overfitting to the set, a missing tail, mocked tools - so pair them with online signals like escalations, corrections, and cost per successful task.
 
 Next topic is **Trajectory analysis**.

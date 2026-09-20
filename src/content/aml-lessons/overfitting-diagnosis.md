@@ -114,14 +114,23 @@ model.fit(small, y_train[:100])
 model.score(small, y_train[:100])   # should be near 1.0
 ```
 
-If it cannot memorize 100 rows, you do not have a capacity problem - you have a bug: shuffled labels, a broken transform, a learning rate that is far too high, or a target column that is not what you think it is.
+If it cannot memorize 100 rows, you do not have a capacity problem. You have a bug - shuffled labels, a broken transform, a runaway learning rate, or a target column that is not what you think it is.
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For "validation improves for 20 iterations then worsens while training keeps falling":
+Diagnose from shapes over time, not from one final number:
 
-> That is overfitting over time - the model has stopped learning generalizable structure and started fitting noise in the training set. The cheapest fix is early stopping: keep the checkpoint at the validation minimum. Beyond that I would add regularization appropriate to the model - shrinkage and a smaller depth for boosting, or an L2 penalty - and check whether more data is available, since the curve shape suggests variance rather than bias. I would also confirm the validation set is large enough that the turn is real and not noise.
+```text
+learning curve (vs data size)   → curves meet low = bias; persistent gap = variance
+                                  and it answers "should we collect more data?"
+validation curve (vs a hyper)   → the peak is the capacity the data supports
+iteration curve (vs steps)      → where validation turns up is the early-stopping point
+```
 
-Next topic is **Regularization: L1, L2, and elastic net**.
+Before calling a large gap overfitting, rule out the impostors: leakage, the same entity on both sides, a distribution difference between splits, or simply a validation set small enough that ±3% is resampling noise.
+
+And run the bug check first - a model that cannot memorize 100 rows doesn't have a capacity problem, it has shuffled labels, a broken transform, or the wrong target column.
+
+Next topic is **Cross-validation**.

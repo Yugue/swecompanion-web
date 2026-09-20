@@ -95,10 +95,12 @@ Bad fit:
 
 ---
 
-## What you should say in an interview
+## What matters most
 
-For "k-NN works in the notebook but cannot be served at 10k QPS":
-
-> The expensive part is that there is no trained model - every request scans the training set, so cost grows with n and d. Three directions: reduce what is searched, with an approximate nearest-neighbor index like HNSW, which trades a little recall for sub-linear lookup; reduce the dimensionality first so the index is effective and the distances still mean something; or replace it with a model that moves the cost to training time, like gradient-boosted trees, which serve in microseconds. If the reason for k-NN is a good embedding space, I would keep the embedding and put an ANN index in front of it rather than abandoning the approach.
+- **There is no training; all the cost is at prediction time** - the opposite of every other model in this chapter.
+- **k is the bias-variance dial:** small k inherits noise, large k averages away local structure. Choose it by cross-validation.
+- **The distance metric is the model.** Scale mandatory, irrelevant features hurt, and the wrong metric for the data type (cosine for embeddings, for instance) quietly ruins it.
+- **High dimensions hit it hardest,** because nearest and farthest neighbors become almost equally far.
+- **At scale it survives as approximate nearest-neighbor retrieval over embeddings,** not as a brute-force tabular classifier.
 
 Next topic is **Naive Bayes**.

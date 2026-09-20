@@ -88,10 +88,21 @@ The simpler model is faster to train, faster to serve, easier to debug, easier t
 
 ---
 
-## What you should say in an interview
+## Interview mental model
 
-For 50k rows, 40 tabular features, a 20ms budget, and a regulator:
+Answer in a fixed shape - **choice, reason, alternative, fallback** - and it works for almost any model question:
 
-> Gradient-boosted trees are the natural starting point for tabular data at that size, and they serve in well under a millisecond, so latency is not the binding constraint - the feature fetch is, and I would budget for that first. The regulator is the real constraint: if individual decisions must be explained, I would use monotonic constraints on the GBM so each feature has a defensible direction, and keep a regularized logistic regression as the transparent fallback, expecting to give up a few points of AUC for coefficients I can hand to a compliance team. A deep model is the wrong fit at 50k rows on both accuracy and explainability.
+```text
+1. modality   tabular under a few million rows → gradient-boosted trees
+              tiny data → regularized linear;  text/image/audio → pretrained model
+2. constraints latency, data volume, explainability, training cost,
+              maintenance, robustness to a missing feature
+3. defend     name the alternative and why it lost, and your fallback
+```
+
+- **Newer is not better.** On tabular data, boosted trees remain the model to beat.
+- **Explainability can be a hard constraint,** outranking a point of AUC in credit, insurance, hiring, and healthcare.
+- **Latency is usually not the model.** Feature retrieval dominates, so find where the time actually goes before shrinking the network.
+- **Simplicity is an engineering benefit, not a matter of taste** - cheaper to serve, debug, explain, and monitor.
 
 Next topic is **Interpretability and feature importance**.
