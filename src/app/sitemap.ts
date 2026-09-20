@@ -4,7 +4,8 @@ import { CODING_PATH, chapterHref, chapterQuizHref } from "@/lib/codingPaths";
 import { mlParts } from "@/lib/mlStudyData";
 import { amlParts } from "@/lib/amlStudyData";
 import { agenticParts } from "@/lib/agenticStudyData";
-import { DEEP_LEARNING_PATH, APPLIED_ML_PATH, AGENTIC_AI_PATH } from "@/lib/mlDomains";
+import { rrpParts } from "@/lib/rrpStudyData";
+import { DEEP_LEARNING_PATH, APPLIED_ML_PATH, AGENTIC_AI_PATH, RRP_PATH } from "@/lib/mlDomains";
 
 export const dynamic = "force-static";
 
@@ -16,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}${DEEP_LEARNING_PATH}`, priority: 1 },
     { url: `${siteUrl}${APPLIED_ML_PATH}`, priority: 1 },
     { url: `${siteUrl}${AGENTIC_AI_PATH}`, priority: 1 },
+    { url: `${siteUrl}${RRP_PATH}`, priority: 1 },
   ];
 
   for (const topic of studyTopics) {
@@ -49,6 +51,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
     if (part.quizQuestionCount > 0) {
       entries.push({ url: `${siteUrl}${AGENTIC_AI_PATH}/${part.id}/quiz`, priority: 0.6 });
+    }
+  }
+
+  for (const part of rrpParts) {
+    for (const topic of part.topics) {
+      entries.push({ url: `${siteUrl}${RRP_PATH}/${topic.id}`, priority: 0.8 });
+    }
+    if (part.quizQuestionCount > 0) {
+      entries.push({ url: `${siteUrl}${RRP_PATH}/${part.id}/quiz`, priority: 0.6 });
     }
   }
 

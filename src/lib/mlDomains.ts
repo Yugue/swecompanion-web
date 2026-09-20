@@ -13,6 +13,7 @@ export const ML_DOMAIN_PATH = "/mldomain";
 export const DEEP_LEARNING_PATH = `${ML_DOMAIN_PATH}/deeplearning`;
 export const APPLIED_ML_PATH = `${ML_DOMAIN_PATH}/appliedml`;
 export const AGENTIC_AI_PATH = `${ML_DOMAIN_PATH}/agentic`;
+export const RRP_PATH = `${ML_DOMAIN_PATH}/rrp`;
 
 /** Where /mldomain and the top-bar ML tab land: a domain is always selected. */
 export const DEFAULT_ML_DOMAIN_PATH = DEEP_LEARNING_PATH;
@@ -22,7 +23,7 @@ export const DEFAULT_ML_DOMAIN_PATH = DEEP_LEARNING_PATH;
 export const ML_DOMAINS: { name: string; href?: string }[] = [
   { name: "Agentic AI Development", href: AGENTIC_AI_PATH },
   { name: "Applied Machine Learning → Basics of ML", href: APPLIED_ML_PATH },
-  { name: "Recommendations / Ranking / Predictions (RRP)" },
+  { name: "Recommendations / Ranking / Predictions (RRP)", href: RRP_PATH },
   { name: "Computer Vision (CV) / Image Processing" },
   { name: "Natural Language Processing / Understanding (NLP / NLU)" },
   { name: "Speech / Audio" },

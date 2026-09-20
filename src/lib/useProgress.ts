@@ -27,7 +27,7 @@ function loadLocal(key: string, fallback: string[]): Set<string> {
  * load would silently re-check anything you'd ever completed before, undoing an uncheck the
  * instant a stale write raced a reload.
  */
-export function useProgress(kind: "leetcode" | "ml" | "aml" | "agentic", initial: string[]) {
+export function useProgress(kind: "leetcode" | "ml" | "aml" | "agentic" | "rrp", initial: string[]) {
   const storageKey = `progress_${kind}_v1`;
   const { user } = useAuth();
   const [completed, setCompleted] = useState<Set<string>>(() => new Set(initial));

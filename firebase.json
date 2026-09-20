@@ -13,6 +13,8 @@
       { "source": "/aml/:path*", "destination": "/mldomain/appliedml/:path*", "type": 301 },
       { "source": "/agentic", "destination": "/mldomain/agentic", "type": 301 },
       { "source": "/agentic/:path*", "destination": "/mldomain/agentic/:path*", "type": 301 },
+      { "source": "/rrp", "destination": "/mldomain/rrp", "type": 301 },
+      { "source": "/rrp/:path*", "destination": "/mldomain/rrp/:path*", "type": 301 },
       { "source": "/topics/hashmap-frequency-and-top-k/:rest*", "destination": "/coding/hashmap/:rest*", "type": 301 },
       { "source": "/topics/prefix-sum-and-subarray/:rest*", "destination": "/coding/prefix-sum/:rest*", "type": 301 },
       { "source": "/topics/stack-and-monotonic-stack/:rest*", "destination": "/coding/stack/:rest*", "type": 301 },
