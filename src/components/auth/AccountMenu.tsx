@@ -20,7 +20,7 @@ export function AccountMenu() {
         <button
           type="button"
           onClick={() => setDialogOpen(true)}
-          className="rounded-lg bg-accent-blue px-3.5 py-2 text-sm font-semibold text-white hover:brightness-110"
+          className="whitespace-nowrap rounded-lg bg-accent-blue px-3 py-2 sm:px-3.5 text-sm font-semibold text-white hover:brightness-110"
         >
           Sign in
         </button>

@@ -8,6 +8,7 @@
   --color-outline: #d4dae4;
   --color-text: #202124;
   --color-text-muted: #5f6368;
+  --color-thumb: #ffffff;
 
   --color-blue: #4285f4;
   --color-blue-soft: #8ab4f8;
@@ -26,6 +27,7 @@
   --color-outline: #3c424d;
   --color-text: #e3e7ee;
   --color-text-muted: #9aa0a6;
+  --color-thumb: #353b46;
 }
 
 @theme inline {
@@ -35,6 +37,7 @@
   --color-outline: var(--color-outline);
   --color-text: var(--color-text);
   --color-text-muted: var(--color-text-muted);
+  --color-thumb: var(--color-thumb);
   --color-accent-blue: var(--color-blue);
   --color-accent-blue-soft: var(--color-blue-soft);
   --color-accent-red: var(--color-red);

@@ -15,6 +15,9 @@ export const APPLIED_ML_PATH = `${ML_DOMAIN_PATH}/appliedml`;
 export const AGENTIC_AI_PATH = `${ML_DOMAIN_PATH}/agentic`;
 export const RRP_PATH = `${ML_DOMAIN_PATH}/rrp`;
 
+/** The ML System Design track (top-bar tab), separate from the per-domain guides. */
+export const ML_SYSTEM_DESIGN_PATH = "/mlsystemdesign";
+
 /** Where /mldomain and the top-bar ML tab land: a domain is always selected. */
 export const DEFAULT_ML_DOMAIN_PATH = DEEP_LEARNING_PATH;
 
