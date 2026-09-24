@@ -63,40 +63,45 @@ export function TopicDetails({
         </div>
       </summary>
 
-      <div className="border-t-[3px]" style={{ borderColor: "var(--accent)" }} />
-
-      <div className="pb-1">
-        {problems.map((problem, i) => {
-          const heading = problem.subcategory;
-          const showHeading = heading && heading !== problems[i - 1]?.subcategory;
+      <div className="flex flex-col gap-6 border-t border-outline/50 px-4 pt-5 pb-5 sm:px-5">
+        {groupBySubcategory(problems).map(({ heading, rows }) => {
           // Progress is over the whole subcategory, not just the rows the current search shows.
-          const group = showHeading ? topic.problems.filter((p) => p.subcategory === heading) : [];
+          const group = heading ? topic.problems.filter((p) => p.subcategory === heading) : [];
           const groupDone = group.filter((p) => completed.has(p.id)).length;
           return (
-            <div key={problem.id} className={i > 0 && !showHeading ? "border-t border-outline/40" : undefined}>
-              {showHeading && (
-                <div
-                  className={`flex items-center gap-3.5 border-outline/50 bg-surface-high/40 px-5 py-2.5 ${
-                    i > 0 ? "border-y" : "border-b"
-                  }`}
-                >
-                  <span className="flex w-11 shrink-0 justify-center">
-                    <span className="h-4 w-1 rounded-full" style={{ background: "var(--accent)" }} />
-                  </span>
-                  <h4 className="min-w-0 flex-1 truncate text-sm font-bold tracking-tight text-text">
+            <section key={heading ?? rows[0].id}>
+              {heading && (
+                <div className="mb-2.5 flex items-center gap-3 px-1">
+                  <h4 className="min-w-0 flex-1 truncate text-base font-bold tracking-tight text-text">
                     {heading}
                   </h4>
-                  <span
-                    className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold tabular-nums text-accent-ink"
-                    style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}
+                  <div
+                    className="flex shrink-0 items-center gap-2"
                     title={`${groupDone} of ${group.length} completed`}
                   >
-                    {groupDone}/{group.length}
-                  </span>
+                    <div className="h-1.5 w-14 overflow-hidden rounded-full bg-outline/60 sm:w-20">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${(groupDone / group.length) * 100}%`, background: "var(--accent)" }}
+                      />
+                    </div>
+                    <span className="w-8 text-right text-xs font-bold tabular-nums text-accent-ink">
+                      {groupDone}/{group.length}
+                    </span>
+                  </div>
                 </div>
               )}
-              <ProblemRow problem={problem} complete={completed.has(problem.id)} onToggle={onToggleProblem} />
-            </div>
+              <div className="divide-y divide-outline/40 overflow-hidden rounded-lg border border-outline/60">
+                {rows.map((problem) => (
+                  <ProblemRow
+                    key={problem.id}
+                    problem={problem}
+                    complete={completed.has(problem.id)}
+                    onToggle={onToggleProblem}
+                  />
+                ))}
+              </div>
+            </section>
           );
         })}
       </div>
@@ -111,4 +116,16 @@ export function TopicDetails({
       )}
     </details>
   );
+}
+
+/** Consecutive problems that share a subcategory, in order. Problems without one form their own
+ * headingless group. */
+function groupBySubcategory(problems: StudyProblem[]) {
+  const groups: { heading?: string; rows: StudyProblem[] }[] = [];
+  for (const problem of problems) {
+    const last = groups[groups.length - 1];
+    if (last && last.heading === problem.subcategory) last.rows.push(problem);
+    else groups.push({ heading: problem.subcategory, rows: [problem] });
+  }
+  return groups;
 }
