@@ -30,8 +30,8 @@ export const agenticParts: AgenticPart[] = [
   {
     id: "foundations",
     number: "1",
-    title: "Agent foundations",
-    description: "What a language model can do, what the context window is, and when an agent is the wrong answer.",
+    title: "From model call to bounded agent",
+    description: "What makes a system agentic, how its execution loop works, and when autonomy is worth its cost.",
     color: "#4285F4",
     icon: "Blocks",
     topics: [
@@ -41,10 +41,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "An agent is a language model placed in a loop where it chooses its own actions, observes the results, and decides when it is done.",
         keyPoints: [
-          "A model call maps prompt to text. An agent adds tools, a loop, and a stopping condition, so control flow is decided at runtime by the model.",
+          "A model call maps input to output. An agent adds actions, a loop, and stopping conditions, so the model can choose the next step at runtime.",
           "The defining property is not intelligence but **delegated control**: the sequence of steps is not written by the engineer in advance.",
-          "A fixed chain of LLM calls is a workflow, not an agent - it is more predictable, cheaper, and usually the right default.",
-          "Autonomy is a dial, not a switch: tool breadth, loop length, and how much the agent may do without approval are all independently tunable.",
+          "The runtime still owns permissions, validation, budgets, and execution; the model only proposes decisions inside that boundary.",
+          "Autonomy is a dial: action breadth, loop length, and approval requirements can be tuned independently.",
         ],
         interviewPrompt:
           "Draw the boundary: at what exact point does a retrieval-augmented chatbot become an agent, and what does that change about how you test it?",
@@ -56,14 +56,29 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "Everything an agent can do is bounded by the base model's instruction-following, reasoning, and tool-calling ability - scaffolding redistributes those limits rather than removing them.",
         keyPoints: [
-          "Strengths you can rely on: language understanding, format adherence, broad prior knowledge, plausible decomposition of familiar tasks.",
-          "Structural limits: no memory between calls, a frozen knowledge cutoff, no ground truth about the live world, and confident errors when the prompt underspecifies.",
-          "The model predicts tokens, so it will happily invent a tool argument that looks right; the system, not the model, must make that safe.",
-          "When an agent fails, first ask whether a single well-prompted model call would have succeeded - if not, no loop will save it.",
+          "Models provide language understanding and judgment; tools provide live facts, exact computation, storage, and external actions.",
+          "A model has no guaranteed truth, persistent memory, or authority beyond the context and actions supplied by the runtime.",
+          "Missing information can become a plausible invention, so absence must be explicit and important values must be verified.",
+          "Before adding orchestration, ask whether one capable call with complete evidence could solve the task at all.",
         ],
         interviewPrompt:
           "Your agent hallucinates order IDs when the retrieval step returns nothing. Where do you fix it, and why not in the prompt?",
         code: "capability ceiling = base model  |  scaffolding = how close you get to it",
+      },
+      {
+        id: "agent-loop",
+        title: "The agent loop",
+        summary:
+          "Decide → act → observe, repeated until success, budget, or safety conditions stop the run; nearly every agent framework is a variation on this loop.",
+        keyPoints: [
+          "One iteration: the model reads the context, emits either a tool call or a final answer, the runtime executes it, and the observation is appended.",
+          "Three stopping conditions must always exist: the model declares completion, a step/token/cost budget is exhausted, or a guardrail halts it.",
+          "The runtime validates, authorizes, executes, and records each requested action; the model never performs the action directly.",
+          "Failures often look like progress: repeated calls, ignored observations, goal drift, or confident completion with nothing done.",
+        ],
+        interviewPrompt:
+          "Your agent hits the 25-step cap on 8% of runs. Walk through how you would diagnose whether that is a prompt, tool, or task-scoping problem.",
+        code: "for step in range(MAX_STEPS): ...  # the cap is a safety net, not a design",
       },
       {
         id: "context-window",
@@ -71,10 +86,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "The context window is the agent's entire working memory, refilled from scratch on every call, and it is the scarcest resource in the system.",
         keyPoints: [
-          "Every turn re-sends system prompt, tool schemas, history, and observations; cost and latency grow with the transcript, not with the task.",
-          "Attention cost grows quadratically with sequence length, so a long transcript is slow before it is expensive.",
-          "Relevant facts compete with irrelevant ones: a long, noisy context measurably degrades accuracy even when nothing is truncated.",
-          "Treat the window as a budget with named line items - instructions, tools, retrieved evidence, history - and decide what gets evicted first.",
+          "Each call receives an assembled window of instructions, tool descriptions, task state, recent history, evidence, and the current request.",
+          "More context is not always better: irrelevant material adds cost and makes useful facts harder to identify.",
+          "Keep structured task state separate from the transcript so the current truth does not have to be reconstructed from conversation.",
+          "Treat the window as a budget and define what can be dropped, summarized, externalized, or must remain exact.",
         ],
         interviewPrompt:
           "A 40-step agent run is 12x more expensive than you modelled. Explain where the tokens went before you propose a fix.",
@@ -111,34 +126,19 @@ export const agenticParts: AgenticPart[] = [
         code: "response_format={\"type\": \"json_schema\", \"schema\": {...}}  # shape, not truth",
       },
       {
-        id: "agent-loop",
-        title: "The agent loop",
+        id: "task-contracts",
+        title: "Defining the agent task contract",
         summary:
-          "Think → act → observe, repeated until a stopping condition fires; nearly every agent framework is a variation on this loop.",
+          "A task contract bounds the goal, trusted inputs, permissions, success criteria, budgets, and escalation path before implementation begins.",
         keyPoints: [
-          "One iteration: the model reads the context, emits either a tool call or a final answer, the runtime executes it, and the observation is appended.",
-          "Three stopping conditions must always exist: the model declares completion, a step/token/cost budget is exhausted, or a guardrail halts it.",
-          "The context is append-only within a run, which is why step count, not task difficulty, drives cost.",
-          "Failures of the loop look like progress: repeated identical calls, oscillation between two tools, or confident completion with nothing done.",
+          "Describe an observable outcome without prescribing a framework or implementation.",
+          "Name authoritative sources and define what happens when required input is missing or conflicting.",
+          "Separate permission to read, propose, and execute; a useful investigation agent may remain entirely read-only.",
+          "Define successful partial outcomes, cost and time limits, and who owns the task after escalation.",
         ],
         interviewPrompt:
-          "Your agent hits the 25-step cap on 8% of runs. Walk through how you would diagnose whether that is a prompt, tool, or task-scoping problem.",
-        code: "for step in range(MAX_STEPS): ...  # the cap is a safety net, not a design",
-      },
-      {
-        id: "when-not-to-use-an-agent",
-        title: "When not to build an agent",
-        summary:
-          "Autonomy buys flexibility and costs predictability; if the steps are known in advance, hard-coding them is strictly better.",
-        keyPoints: [
-          "Prefer a workflow when the task decomposes the same way every time - it is cheaper, faster, debuggable, and testable with ordinary methods.",
-          "Prefer a single model call when the task is one transformation: classify, extract, rewrite, summarize.",
-          "Agents earn their cost when the path is genuinely data-dependent, the step count is unknown, and recovering from failure requires judgment.",
-          "The honest cost of autonomy: non-determinism, variable latency, variable spend, and a much larger failure surface.",
-        ],
-        interviewPrompt:
-          "A PM wants an agent to \"process invoices.\" Ask the three questions that decide whether this should be an agent at all.",
-        code: "known steps → workflow   |   unknown steps + judgment → agent",
+          "Turn the request \"build an agent that handles order delays\" into a bounded task contract before proposing an architecture.",
+        code: "contract = {goal, inputs, scope, success, limits, escalation}",
       },
       {
         id: "workflows-vs-agents",
@@ -154,6 +154,21 @@ export const agenticParts: AgenticPart[] = [
         interviewPrompt:
           "Take an autonomous agent design and convert the 70% that is predictable into a workflow. What's left?",
         code: "route → [agent step] → validate → format   # autonomy in one bounded stage",
+      },
+      {
+        id: "when-not-to-use-an-agent",
+        title: "When not to build an agent",
+        summary:
+          "Autonomy buys flexibility and costs predictability; if the steps are known in advance, hard-coding them is strictly better.",
+        keyPoints: [
+          "Prefer a workflow when the task decomposes the same way every time - it is cheaper, faster, debuggable, and testable with ordinary methods.",
+          "Prefer a single model call when the task is one transformation: classify, extract, rewrite, summarize.",
+          "Agents earn their cost when the path is genuinely data-dependent, the step count is unknown, and recovering from failure requires judgment.",
+          "The honest cost of autonomy: non-determinism, variable latency, variable spend, and a much larger failure surface.",
+        ],
+        interviewPrompt:
+          "A PM wants an agent to \"process invoices.\" Ask the three questions that decide whether this should be an agent at all.",
+        code: "known steps → workflow   |   unknown steps + judgment → agent",
       },
     ],
     quizQuestionCount: 11,
@@ -328,6 +343,21 @@ export const agenticParts: AgenticPart[] = [
         code: "stable env → plan first   |   noisy env → plan one step ahead",
       },
       {
+        id: "task-decomposition",
+        title: "Task decomposition and dependency graphs",
+        summary:
+          "A useful decomposition turns an open goal into verifiable artifacts with explicit dependencies, without assuming the work needs multiple agents.",
+        keyPoints: [
+          "Every subtask should produce a named artifact with an observable completion rule.",
+          "Explicit dependencies reveal which work can run in parallel and which steps must wait.",
+          "Choose granularity that reduces complexity rather than creating more coordination overhead than useful work.",
+          "Map every requirement to one owner and define the observations that trigger replanning.",
+        ],
+        interviewPrompt:
+          "Decompose a market-research task into artifacts and dependencies, then identify what can run in parallel.",
+        code: "ready(step) = all(dep.status == done for dep in step.depends_on)",
+      },
+      {
         id: "reflection",
         title: "Reflection and self-critique",
         summary:
@@ -371,21 +401,6 @@ export const agenticParts: AgenticPart[] = [
         interviewPrompt:
           "Your agent is accurate but too slow. Show how you would decide which steps deserve a reasoning model.",
         code: "model = REASONER if task.is_hard else FAST  # measure, don't guess",
-      },
-      {
-        id: "task-decomposition",
-        title: "Task decomposition and subagents",
-        summary:
-          "Splitting a task into subtasks with their own contexts controls context growth - and pays for it with coordination overhead.",
-        keyPoints: [
-          "A subagent gets a narrow objective, its own fresh window, and returns a compact result rather than a transcript.",
-          "This keeps the parent's context small, which is the main reason to decompose at all.",
-          "The handoff is where information is lost: the parent's brief and the child's summary must both be explicit.",
-          "Decompose along genuine boundaries - independent data sources, independent files - not arbitrarily.",
-        ],
-        interviewPrompt:
-          "What information must cross the parent/subagent boundary, and what must not?",
-        code: "parent: plan + delegate  |  child: fresh context, narrow goal, compact return",
       },
     ],
     quizQuestionCount: 10,

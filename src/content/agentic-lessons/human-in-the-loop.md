@@ -88,4 +88,10 @@ undo:        cheaper than approval where the action supports it
 - **"Agent prepares, human commits" often beats approve/reject** - the reviewer gets an editable artifact instead of a yes/no question.
 - **Log every approval, edit, and rejection reason.** That log is the highest-quality eval set you will ever have.
 
+---
+
+## Chapter 6 checkpoint
+
+Choose one high-impact action and specify its success metric, forbidden trajectories, permission check, adversarial cases, approval view, and safe fallback. Test both legitimate completion and attempted misuse over repeated runs.
+
 That completes **Chapter 6 — Evaluation, reliability, and safety**. Next topic is **Latency and token economics**.

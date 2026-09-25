@@ -1,121 +1,136 @@
 ## Structured output and schemas
 
-An agent acts through machine-readable output. The schema is the contract between a probabilistic model and code that has to run. The interview point most candidates miss: a schema constrains **shape**, and shape has nothing to do with **truth**.
+An agent communicates with software, not only with people. Tool requests, plans, decisions, and final results therefore need machine-readable structure.
+
+A schema defines the shape of that communication. It reduces parsing failures, but it does not make the content true.
 
 ---
 
-## 1. Three ways to get structure
+## 1. Three levels of structure
 
-| Method | Guarantee | Cost |
+| Method | What it provides | Main weakness |
 |---|---|---|
-| Ask nicely in the prompt | None - best effort | Free, and fails a few percent of the time |
-| Ask + validate + retry | Eventually valid | An extra round trip on failure |
-| Constrained decoding | Valid by construction | Slight decode overhead, less flexibility |
+| “Return JSON” in the prompt | A formatting request | May produce invalid or extra text |
+| JSON mode | Syntactically valid JSON | Shape may still be wrong |
+| Schema-constrained output | Required fields and allowed types | Values may still be false |
 
-Constrained decoding works at sampling time: at each position, tokens that could not continue a valid document are masked out, so the probability of malformed output is zero rather than small.
-
-```text
-grammar/schema ──► token mask ──► sample only from legal tokens
-```
-
-### Core intuition
-
-With a few percent malformed rate and a 20-step agent, roughly one run in three would hit a parse failure. That is why this matters more for agents than for chat.
+Use schema-constrained output for interfaces that code must consume. Prompt-only formatting is appropriate only when occasional repair is acceptable.
 
 ---
 
-## 2. Why this matters more in an agent than in chat
+## 2. Shape and truth are different guarantees
 
-Suppose prompted JSON is malformed 3% of the time. In a chat product that is an occasional retry. In a 20-step agent:
+This object is valid and still unsafe:
 
-```text
-P(all 20 steps parse) = 0.97²⁰ = 0.54
-```
-
-**Nearly half of all runs hit a parse failure somewhere.** Each one costs a retry with a full context re-send, or kills the run. That is the argument for constrained decoding in one line - it moves the probability from "small" to "zero".
-
-```text
-prompted JSON        97% per step   →  54% of 20-step runs clean
-constrained decoding 100% per step  →  100% clean
-```
-
----
-
-## 3. Shape is not truth
-
-```text
+```json
 {
-  "order_id": "ORD-48812",     ← valid string, matches the pattern, does not exist
-  "refund_amount": 240.00,     ← a number, not the number
-  "policy_clause": "4.2(b)"    ← well-formed citation of nothing
+  "order_id": "ORD-99999",
+  "status": "refunded",
+  "confidence": 0.99
 }
 ```
 
-Every field validates. Nothing is true. Structured output moves the failure from "crashes your parser" to "silently proceeds with invented values," which is more dangerous unless you add semantic validation after parsing.
+A schema can verify that the fields exist and have the right types. It cannot verify that the order exists or that a refund occurred.
+
+### Core intuition
+
+Use schemas for shape. Use tools and validation for truth.
+
+---
+
+## 3. Design schemas the model can satisfy honestly
+
+A bad schema forces invention:
+
+```json
+{
+  "cause": "string",
+  "resolution": "string"
+}
+```
+
+What if the cause is unknown? A better schema represents that state:
+
+```json
+{
+  "status": "resolved | needs_information | blocked",
+  "cause": "string | null",
+  "evidence_ids": ["string"],
+  "missing_information": ["string"],
+  "next_action": "string | null"
+}
+```
+
+Useful schema choices include:
+
+- enums for small known sets,
+- optional or nullable fields for genuinely unknown values,
+- explicit status fields,
+- evidence references for important claims,
+- defaults only when a real default exists.
 
 ### Rule of thumb
 
-> Constrained decoding guarantees your code will run. It does not guarantee it should.
+Never require a value the model may not have enough evidence to provide.
 
 ---
 
-## 4. Design schemas the model can satisfy honestly
-
-The most common schema bug is a required field the model cannot know.
+## 4. Validate in two layers
 
 ```text
-✗  {"customer_tier": "gold" | "silver" | "bronze"}          required
-   → model must guess when the record didn't include it
+structural validation
+  - valid JSON
+  - required fields present
+  - correct types and enum values
 
-✓  {"customer_tier": "gold" | "silver" | "bronze" | "unknown",
-    "tier_source": "record" | "inferred" | "missing"}
+domain validation
+  - order ID exists
+  - amount is within policy
+  - cited evidence belongs to this run
+  - requested transition is allowed
 ```
 
-Give the model a legal way to say "I don't know," or it will use an illegal one that happens to typecheck.
-
-Other rules that pay off:
-
-- Enums over free text wherever the set is closed.
-- Units in the field name: `timeout_seconds`, not `timeout`.
-- Flat over deeply nested - nesting raises the error rate.
-- A short `reasoning` or `evidence` field before the decision field, so the ordering of generation puts justification first.
+Structural validation can often happen during generation. Domain validation belongs in application code after parsing.
 
 ---
 
-## 5. Validate in two layers
+## 5. Decide what failure means
+
+When validation fails, choose an explicit response:
 
 ```text
-parse  ──► schema valid?  ──► semantically valid?  ──► act
-             │                      │
-           retry                  reject / ask / halt
+repair once        for a small formatting mismatch
+ask the user       when required input is missing
+call a tool        when an authoritative value can be retrieved
+return blocked     when permission or evidence is unavailable
+stop safely        when retrying could repeat a side effect
 ```
 
-### Rule of thumb
-
-Layer two is yours: does this order exist, is the amount within policy, is this recipient on the allowlist? For anything irreversible, layer two is mandatory.
+Do not silently insert invented defaults to make the object pass.
 
 ---
 
-## 6. Failure handling is part of the design
+## 6. Keep interfaces small
 
-Decide up front what happens when validation fails:
+Large nested schemas create more places for inconsistent or unnecessary data. Separate different decisions when they have different lifecycles:
 
-1. Retry with the validation error appended as an observation - usually effective, because the error is concrete.
-2. Fall back to a narrower schema or a simpler question.
-3. Escalate to a human.
+```text
+investigation result → evidence and cause
+action proposal      → requested side effect and justification
+final response       → customer-facing message
+```
 
-### Common issue
-
-An agent with no defined behavior on validation failure will do the worst of the three by accident.
+This also makes permissions clearer: producing an investigation result is not the same as authorizing an action.
 
 ---
 
 ## What matters most
 
-- **Constrained decoding makes malformed output structurally impossible** by masking illegal tokens at sampling time - which matters far more in a 20-step agent than in chat, where a few percent failure rate would break one run in three.
-- **A schema constrains shape, never truth.** Every field can validate while the order ID is invented, so semantic validation against the system of record is a separate, mandatory layer before anything irreversible.
-- **Give the model a legal way to say "I don't know."** A required field it cannot know becomes a guess that typechecks; add an `unknown` value and a source field.
-- **Design for the model, not your database:** enums over free text, units in the field name, flat over deeply nested.
-- **Decide the failure path in advance** - retry with the validation error as an observation, fall back to a narrower schema, or escalate.
+- **Structured output is an interface contract between the model and code.**
+- **Schema-constrained output guarantees shape, not truth.**
+- **Represent unknown, blocked, and incomplete states explicitly.**
+- **Validate both structure and domain meaning.**
+- **Define repair, clarification, retrieval, and safe-stop behavior before failure occurs.**
+- **Prefer several small contracts over one oversized schema.**
 
-Next topic is **The agent loop**.
+Next topic is **Defining the agent task contract**.

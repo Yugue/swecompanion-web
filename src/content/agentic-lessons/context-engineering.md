@@ -2,6 +2,12 @@
 
 Context engineering is deciding **what occupies the window on each turn**. It has quietly replaced prompt wording as the main lever on agent quality, because in a long-running agent the prompt is a small and stable part of what the model actually reads.
 
+Chapter 1 explained what the window is. This lesson focuses on the engineering decision that follows: how the application assembles a different, relevant window for each step.
+
+### Chapter goal
+
+By the end of Chapter 4, you should be able to assemble context by budget, build retrieval from chunking through reranking, distinguish memory from task state, control memory reads and writes, compact long runs, and resume from durable state.
+
 ---
 
 ## 1. The window is assembled, not written

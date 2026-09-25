@@ -2,6 +2,8 @@
 
 Guardrails are **deterministic checks around a non-deterministic core**. The defining property is that they hold even if the model is fully adversarial, which means they live in code. Anything expressible only as a sentence in the prompt is a preference, not a guardrail.
 
+Chapter 2 established that execution belongs to the runtime. This lesson specifies the controls that runtime must enforce around consequential actions.
+
 ---
 
 ## 1. Where they sit

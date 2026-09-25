@@ -99,4 +99,10 @@ The test for your design: **if the process died right now, could another worker 
 - **Separate task state from conversation state.** The task state is what humans, dashboards, and other services need.
 - **Make it structured and editable** so a person can correct a fact mid-run, and scope every record by tenant and user from day one.
 
+---
+
+## Chapter 4 checkpoint
+
+Trace one important fact from source to retrieval, context, compaction, durable state, correction, and deletion. At every stage, identify its provenance, scope, validity, and whether its exact value must survive.
+
 That completes **Chapter 4 — Memory, context, and retrieval**. Next topic is **When multi-agent pays for itself**.

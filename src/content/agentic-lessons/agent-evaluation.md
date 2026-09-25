@@ -2,6 +2,10 @@
 
 Agents break the usual evaluation setup in two ways: the same input can take a different path each run, and a correct final answer can be reached by a path that will fail tomorrow. So you measure **outcome and process**, over **repeated runs**.
 
+### Chapter goal
+
+By the end of Chapter 6, you should be able to measure outcomes and trajectories over repeated runs, validate model-based judges, diagnose recurring failures, enforce permissions outside the prompt, test injection paths, and place human review where it meaningfully reduces risk.
+
 ---
 
 ## 1. Two families of metric

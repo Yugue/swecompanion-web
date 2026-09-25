@@ -2,6 +2,10 @@
 
 Multi-agent architectures are proposed far more often than they are justified. There are exactly two solid reasons to use one, and "different agents have different personalities" is not among them.
 
+### Chapter goal
+
+By the end of Chapter 5, you should be able to justify a split through parallelism or context isolation, write a bounded worker brief, select a communication model, preserve provenance across handoffs, and diagnose coordination failures under a global budget.
+
 ---
 
 ## 1. The two good reasons

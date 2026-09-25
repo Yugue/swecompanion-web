@@ -1,163 +1,137 @@
 ## The agent loop
 
-Every agent framework, stripped of its abstractions, is this loop. Being able to write it on a whiteboard in six lines - and then name everything that can go wrong in it - is a reliable way to sound like someone who has actually shipped one.
+Every agent framework reduces to the same cycle: give the model the current context, let it request one of the allowed actions, execute that action in the runtime, and return the observation.
+
+```text
+context → decide → act → observe
+   ↑                         │
+   └─────────────────────────┘
+```
+
+The loop ends when the task succeeds or the runtime stops it.
 
 ---
 
-## 1. The loop
+## 1. The smallest useful implementation
 
 ```python
-context = [system_prompt, user_goal]
+context = [system_instructions, user_goal]
+
 for step in range(MAX_STEPS):
     decision = model(context, tools=TOOLS)
+
     if decision.is_final:
-        return decision.answer
-    result = execute(decision.tool_call)       # authorize, run, bound
-    context += [decision.tool_call, result]
+        return validate_final(decision.answer)
+
+    call = validate_and_authorize(decision.tool_call)
+    observation = execute(call)
+    context += [call, observation]
+
 raise StepBudgetExceeded
 ```
 
-### Core intuition
-
-Six lines. The entire rest of this guide is about what goes inside `execute`, what goes into `context`, and how you know the loop is behaving.
+The model decides which allowed action to request. The runtime validates, authorizes, executes, and records it. Keeping those responsibilities separate is the central design rule.
 
 ---
 
-## 2. One iteration, in detail
+## 2. One iteration in detail
 
 ```text
- context ──► model ──► choice
-                         │
-          ┌──────────────┴──────────────┐
-          │                             │
-     tool call                     final answer
-          │                             │
-   authorize (can this run?)          return
-          │
-   execute (with timeout + limits)
-          │
-   normalize (compact, typed observation)
-          │
-   append ──────────────────────────────┘
+model reads current context
+          ↓
+emits a tool request or final answer
+          ↓
+runtime validates arguments and permissions
+          ↓
+runtime executes with time and resource limits
+          ↓
+result is normalized into an observation
+          ↓
+observation is appended for the next decision
 ```
 
-### Common issue
-
-`authorize` and `normalize` are the two stages beginners omit, and they are where permissioning and context bloat are actually controlled.
+The model never executes the action directly. Function calling and tool-runtime design are covered in Chapter 2; for now, remember that the request and the execution are different events.
 
 ---
 
-## 3. A real run, step by step
+## 3. A complete short run
 
-Goal: *"Refund my last order, it arrived broken."* Watch what is in the context at each turn.
+Goal: *“Find out why order 48812 has not shipped and tell the customer.”*
 
 ```text
-step 1  context: [system][6 tool schemas][user goal]                    ~1.4k tokens
-        model:   I need the order. I have no id, so search by the session's user.
-        call:    search_orders(user_id="u_8812", limit=3)
-        obs:     [{id:"48812", placed:"2026-03-02", total:240.00, status:"delivered"}, ...]
+step 1
+  call: get_order(order_id="48812")
+  observation: {shipment_id:null, status:"payment_review"}
 
-step 2  context: [...everything above...] + call 1 + obs 1              ~2.1k tokens
-        model:   48812 is the most recent and it was delivered. Check the refund policy.
-        call:    get_policy(topic="damaged_goods")
-        obs:     {window_days:30, requires:"identity_verified", max_auto:500}
+step 2
+  decision: there is no shipment to track; inspect payment review
+  call: get_payment_review(order_id="48812")
+  observation: {state:"manual_review", age_hours:36}
 
-step 3  context: [...] + call 1 + obs 1 + call 2 + obs 2                ~2.7k tokens
-        model:   Placed 2 March, today is 19 March - inside the window. Policy needs identity.
-        call:    verify_identity(user_id="u_8812")
-        obs:     {status:"ok"}
+step 3
+  decision: obtain the approved customer-facing explanation
+  call: get_policy(topic="payment_review_delay")
+  observation: {message:"Payment verification is in progress",
+                escalate_after_hours:72}
 
-step 4  context: [...]                                                   ~3.1k tokens
-        model:   Verified, 240 is under the 500 auto limit.
-        call:    issue_refund(order_id="48812", amount=240.00,
-                              reason="damaged", idempotency_key="run_441:step_4")
-        obs:     {status:"refunded", confirmation:"RF-9921"}
-
-step 5  context: [...]                                                   ~3.4k tokens
-        model:   Done.
-        final:   "Refunded $240.00 for order 48812 (confirmation RF-9921)."
+step 4
+  final: explain the delay and state when escalation becomes available
 ```
 
-Three things are worth noticing in that trace, and each is a lesson elsewhere in this guide.
-
-**The context grows every turn and is re-sent every turn.** Step 5's call costs roughly 3.4k input tokens, not the 300 tokens of the last exchange. Five steps cost far more than five times one step.
-
-**Every argument traces back to an observation.** `48812` came from step 1's result, `240.00` came with it, `500` came from the policy. Nothing was invented - and checking that property is the single most useful automated trace check there is.
-
-**The order was forced by the data, not by a plan.** The agent could not verify identity before it knew there was an order to refund. That dependency is exactly what makes this an agent rather than a workflow.
+The first observation changed the path. A fixed “track the shipment” sequence would have failed because no shipment existed.
 
 ---
 
-## 4. Three stopping conditions, always
+## 4. Every run needs three ways to stop
 
-| Condition | Trigger | Who owns it |
+| Stop type | Example | Owner |
 |---|---|---|
-| Success | Model emits a final answer | Prompt (stopping condition) |
-| Budget | Step, token, wall-clock, or dollar cap | Runtime |
-| Guardrail | Policy violation, repeated failure, human halt | Runtime |
-
-A **guardrail** here means a deterministic check in your code that can stop the run - covered fully in Chapter 6.
+| Success | Required answer or artifact is complete | Model proposes; runtime validates |
+| Budget | Step, time, token, or cost limit reached | Runtime |
+| Safety | Permission failure, repeated action, or policy violation | Runtime |
 
 ### Rule of thumb
 
-A step cap is a **safety net, not a design**. If runs regularly terminate on the cap, the task is under-specified or the tools are too weak - raising the cap converts a visible failure into an expensive one.
+A step limit is a safety boundary, not a solution to looping. If normal runs often hit the limit, diagnose the task, instructions, or available actions.
 
 ---
 
-## 5. What looks like progress but isn't
+## 5. Common loop failures
 
 ```text
-loop:         get_status(42) → pending → get_status(42) → pending → ...
-oscillation:  search → read → search (same query) → read → ...
-ignored obs:  tool returns error → next call ignores it entirely
-premature:    "I've updated the record." (no write tool was ever called)
-drift:        goal was "reconcile March"; agent is now tidying April
+repetition:   same tool and arguments called again
+oscillation:  search → read → same search → same read
+ignored result: tool says "not found"; model acts as if it succeeded
+premature stop: final answer claims an action that never happened
+goal drift:   the run starts solving a nearby, easier task
 ```
 
-All five are detectable mechanically. The cheapest detector, and the one worth mentioning:
+These failures are visible in the sequence of calls and observations. That sequence is the agent’s **trajectory** and later becomes the main debugging artifact.
 
-```python
-key = hash((tool_name, args))
-if seen[key] >= 2: break_and_escalate()
-```
-
-### Rule of thumb
-
-> If an observation didn't change the next decision, the loop isn't learning - it's spinning.
+A simple runtime can already detect repeated calls and impossible completion claims without asking another model.
 
 ---
 
-## 6. Cost is driven by steps, not difficulty
+## 6. Persist the boundary, not private reasoning
 
-Because the context is append-only within a run, step count multiplies everything:
+For each step, record:
 
-\[
-\text{run cost} \;\approx\; \sum_{i=1}^{n}\big(\text{context}_i + \text{output}_i\big)
-\]
+- the action requested,
+- validated arguments,
+- the observation returned,
+- timestamps and resource usage,
+- the run status.
 
-and \(\text{context}_i\) grows with \(i\). A task that takes 8 steps instead of 20 is far cheaper than 2.5x.
-
-**Making the loop resumable.** Persist each iteration - step index, tool call, observation, status - rather than holding the run in memory. Then a crash at step 18 resumes at step 18, and a human can inspect or correct the state mid-run. This is covered under state and session management.
+That is enough to replay and diagnose behavior. Do not treat generated reasoning text as a faithful internal explanation; observable actions and evidence are the reliable record.
 
 ---
 
-## Interview mental model
+## What matters most
 
-Every framework reduces to six lines, and the whole subject is what goes inside them:
+- **The loop is decide → act → observe, repeated.**
+- **The model requests; the runtime validates, authorizes, and executes.**
+- **New observations can change the path, which is the reason to use an agent.**
+- **Every run needs success, budget, and safety stopping conditions.**
+- **Debug from the trajectory:** calls, observations, and state transitions.
 
-```python
-context = [system_prompt, user_goal]
-for step in range(MAX_STEPS):
-    decision = model(context, tools=TOOLS)
-    if decision.is_final: return decision.answer
-    result = execute(decision.tool_call)   # authorize, run, bound, normalize
-    context += [decision.tool_call, result]
-raise StepBudgetExceeded
-```
-
-- **`authorize` and `normalize` are the two stages beginners omit,** and they are exactly where permissioning and context bloat get controlled.
-- **Three stopping conditions must always exist:** the model finishes, a budget runs out, or a guardrail fires.
-- **A step cap is a safety net, not a design.** Runs that regularly end on the cap mean the task is under-specified or the tools are too weak.
-- **Failures look like progress:** repeated identical calls, oscillation between two tools, ignored errors, confident completion with nothing done. If an observation did not change the next decision, the loop is spinning.
-
-Next topic is **When not to build an agent**.
+Next topic is **The context window as working memory**.

@@ -4,6 +4,8 @@
 
 The classic arrangement (usually called RAG, retrieval-augmented generation) looks things up **once**, before answering. An agent instead treats retrieval as an **action it can repeat**: read what came back, notice it is not enough, and search again with better words. That fixes the single-shot query's biggest weakness and costs you round trips.
 
+The context-engineering lesson decides how much evidence may enter the window. This lesson focuses only on how that evidence is found and grounded.
+
 ---
 
 ## 1. The two shapes

@@ -2,6 +2,8 @@
 
 The domain interview is not a vocabulary test. The graded skill is narrowing a broad prompt to one concept and explaining that concept clearly - with mechanism, tradeoff, and a concrete example. This lesson is the script.
 
+The previous lesson covered what a complete design contains. This lesson covers delivery: how to make that reasoning easy to follow under interview time pressure.
+
 ---
 
 ## 1. The shape of an answer
@@ -95,5 +97,11 @@ The graded skill is narrowing a broad prompt to one concept and explaining it co
 - **Put enforcement in the right layer out loud:** "I'd put that in the runtime rather than the prompt, so it holds regardless."
 - **Reach for the simpler architecture first.** Proposing an agent where a workflow suffices is the most common way to look inexperienced.
 - **When you do not know, name the boundary and reason forward** - that answers the underlying question far better than bluffing a feature list.
+
+---
+
+## Chapter 7 checkpoint
+
+Design backwards from a success-rate target, p95 latency, per-request budget, and maximum side-effect risk. State the trace schema, regression gate, deployment unit, rollback path, degraded behavior, and first metric that would reveal deterioration.
 
 You have reached the end of this guide. Go back to any chapter and re-read the "what matters most" sections - together they are a compact summary of the whole domain.

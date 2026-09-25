@@ -2,6 +2,8 @@
 
 "The model remembers" is always false. Within a run, memory is the transcript you resend. Across runs, memory is a **store you deliberately write to and read from**. Everything else is an illusion produced by those two mechanisms.
 
+Chapter 1 covered working context. This lesson is about persistence across runs: what deserves storage, how it is retrieved, and how stale or corrected facts stop influencing future work.
+
 ---
 
 ## 1. Three kinds, with different lifetimes

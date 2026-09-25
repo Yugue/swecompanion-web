@@ -2,6 +2,8 @@
 
 **"Design an agent that does X" is an open-ended prompt, like any system-design question.** There is no single right answer, and the interviewer is watching how you structure one.
 
+This is intentionally a synthesis lesson: it combines earlier decisions into one worked answer rather than introducing another architecture pattern.
+
 The skeleton below is what a complete answer covers, in an order that lets the interviewer redirect you early rather than after six minutes on the wrong layer.
 
 ---

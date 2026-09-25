@@ -2,6 +2,8 @@
 
 Non-determinism is a reason to test differently, not a reason to skip testing. The three techniques that make agents testable are **mocked tools**, **trace replay**, and **property assertions over repeated runs**.
 
+The evaluation lessons define what quality means. This lesson focuses on when those checks run and how recorded trajectories become repeatable regression tests.
+
 ---
 
 ## 1. The test pyramid for agents

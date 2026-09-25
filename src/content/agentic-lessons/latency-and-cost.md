@@ -4,6 +4,12 @@
 
 Because the model remembers nothing between calls, each step re-sends the whole conversation so far. Ten steps therefore costs a good deal more than ten times one step, and every serious design answer works backwards from that.
 
+Chapter 1 introduced this growth qualitatively. This lesson turns it into production budgets, tail-latency decisions, and concrete optimization priorities.
+
+### Chapter goal
+
+By the end of Chapter 7, you should be able to design from cost and latency objectives, use caching effectively, instrument and replay runs, deploy versioned configurations safely, turn trace clusters into improvements, and communicate an end-to-end design clearly.
+
 ---
 
 ## 1. The cost model

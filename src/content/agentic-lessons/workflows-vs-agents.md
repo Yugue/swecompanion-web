@@ -1,90 +1,122 @@
 ## Workflows versus autonomous agents
 
-Most systems shipped as "agents" are workflows with one agentic stage, and that is usually the correct architecture. Knowing the standard workflow patterns by name - and where the autonomy actually belongs - is a strong signal in a design interview.
+A workflow and an agent can use the same model and tools. The difference is who determines the control flow.
+
+```text
+workflow: code selects the next step
+agent:    model selects the next step from allowed actions
+```
+
+Most production systems combine both: deterministic code around one bounded agentic stage.
 
 ---
 
-## 1. The standard workflow patterns
+## 1. Start with the common workflow shapes
 
 ```text
-chaining:      A ──► B ──► C            each step's output feeds the next
-routing:       classify ──┬─► handler 1  one of N specialized paths
-                          ├─► handler 2
-                          └─► handler 3
-parallel:      ┌─► A ─┐                 same input, several perspectives,
-        input ─┼─► B ─┼─► aggregate     then vote or merge
-               └─► C ─┘
-evaluator:     generate ──► evaluate ──► revise  (loop, bounded)
-orchestrator:  plan ──► dispatch subtasks ──► merge   (agentic at the edges)
+chain:      extract → validate → format
+route:      classify → choose one handler
+parallel:   run independent checks → combine results
+evaluate:   draft → check → revise, with a fixed limit
 ```
+
+These patterns may contain model calls, but they are not agents when the sequence and branches are written in code.
+
+Use them when the path is known because they are easier to test, observe, and cost.
+
+---
+
+## 2. Use an agent for a genuinely unknown path
+
+The order-delay task may need different investigations:
+
+```text
+order status
+  ├─ payment_review → inspect payment and policy
+  ├─ out_of_stock   → inspect inventory and restock estimate
+  ├─ shipped        → inspect carrier tracking
+  └─ cancelled      → inspect cancellation reason
+```
+
+You could write every branch as code. An agent becomes useful when the branches are numerous, change often, and require judgment after each observation.
 
 ### Core intuition
 
-The first four have control flow written in code. They are testable, observable, and bounded by construction.
+An agent earns its complexity when new evidence changes which action is sensible next.
 
 ---
 
-## 2. Where autonomy belongs
+## 3. Put autonomy inside a deterministic shell
+
+A practical architecture:
 
 ```text
-┌─────────────────────────────────────────────────┐
-│ deterministic shell                             │
-│  validate input → route → [ AGENT ] → validate  │
-│                             ↑ output → format   │
-│                   the only non-deterministic part│
-└─────────────────────────────────────────────────┘
+authenticate
+  → validate request
+  → route simple cases to fixed workflows
+  → bounded read-only investigation agent
+  → validate evidence and output
+  → require approval for any side effect
+  → format response
 ```
 
-Put the agent in the one stage where the path is genuinely unknown, and wrap it in code that checks what comes out. The shell gives you input validation, an output contract, a step and cost cap, and a deterministic fallback when the agentic stage fails.
+The shell owns predictable work. The agent handles only the part whose path is hard to enumerate.
 
 ### Rule of thumb
 
-> Autonomy is a component, not an architecture.
+Autonomy is usually one component, not the entire architecture.
 
 ---
 
-## 3. Comparing honestly
+## 4. Compare the tradeoff honestly
 
-| | Workflow | Autonomous agent |
+| Property | Workflow | Agentic stage |
 |---|---|---|
-| Latency | Fixed, predictable | Variable; p99 far above p50 |
-| Cost | Fixed | Variable, unbounded without caps |
-| Testing | Ordinary unit/integration tests | Pass rates over repeated runs |
-| Observability | Standard tracing | Reading the whole step-by-step trace (Chapter 6) |
-| Handles unforeseen cases | No | Yes |
-| Failure | Loud and localized | Quiet and diffuse |
+| Path | Known in code | Chosen at runtime |
+| Cost and latency | Predictable | Variable |
+| Testing | Exact branches and outputs | Repeated runs and path properties |
+| Unexpected cases | Only coded branches | Can adapt using available actions |
+| Failure location | Usually local and explicit | May be spread across a trajectory |
+| Best use | Stable repeatable process | Open investigation or recovery |
 
-### Rule of thumb
-
-The last row is the strongest practical argument for workflows: when a workflow step breaks you get an exception at a known line, and when an agent goes wrong you get a fluent, confident, incorrect answer.
+Do not choose an agent because it appears more advanced. Choose it because the task contract contains a decision path that cannot be maintained reasonably as code.
 
 ---
 
-## 4. The typical production shape
+## 5. Convert repeated behavior back into code
+
+Agent trajectories reveal which paths are common. If most runs perform the same sequence:
 
 ```text
-request
-  ├─ classify intent                     (cheap model, deterministic)
-  ├─ simple lookup?  → look it up → answer   (no agent at all)
-  └─ complex case?   → agent
-                        tools: 4
-                        step cap: 12
-                        approvals: on writes
-                      → validate output → format → respond
+get order → check payment → read policy
 ```
 
-Most traffic never reaches the agent. That is the design working, not a compromise.
+promote that sequence into a workflow and keep the agent for unusual cases. This reduces steps and variation without removing flexibility where it is still needed.
 
-**Migrating from agent to workflow.** Once you have traces, look at the actual trajectories. If 80% of runs follow the same three steps, promote those three steps into code and leave the agent for the remainder. This is the most reliable cost and latency win available in a mature agent system, and it comes from evidence rather than taste.
+This is an important lifecycle: start with bounded autonomy when the space is unclear, then make learned regularities deterministic.
+
+---
+
+## 6. A simple architecture test
+
+For each stage, ask:
+
+- Are the possible next steps known?
+- Can the branch condition be expressed reliably in code?
+- Does unexpected evidence require judgment?
+- Is the action reversible?
+- Does the benefit of flexibility justify variable cost and failure modes?
+
+Only the stages that require runtime judgment should remain agentic.
 
 ---
 
 ## What matters most
 
-- **Most production systems are workflows with one agentic stage,** and that is usually correct rather than a compromise.
-- **Know the standard shapes by name:** prompt chaining, routing to a specialist, parallel sampling with aggregation, and evaluator-optimizer loops. Their control flow is code, so they are testable and bounded by construction.
-- **Autonomy is a component, not an architecture.** Put it in the one stage where the path is genuinely unknown and wrap it in a deterministic shell that validates the output.
-- **The strongest practical argument for workflows is the failure mode:** a broken workflow throws an exception at a known line, while a wrong agent returns a fluent, confident, incorrect answer.
-- **Migration is the reliable cost win in a mature system:** group traces by trajectory, promote the dominant path into code, and leave the agent for the remainder.
+- **Workflow control flow lives in code; agent control flow is chosen by the model.**
+- **Model calls inside a fixed sequence do not make it an agent.**
+- **Use autonomy where evidence changes the path in ways that are difficult to enumerate.**
+- **Wrap the agentic stage in deterministic validation, budgets, and approval gates.**
+- **Move common trajectories back into code as the system matures.**
 
-That completes **Chapter 1 — Agent foundations**. Next topic is **Function calling mechanics**.
+Next topic is **When not to build an agent**.

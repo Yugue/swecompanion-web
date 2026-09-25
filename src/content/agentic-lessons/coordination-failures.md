@@ -115,4 +115,10 @@ The structural fixes, in order of value:
 - **A merge that reconciles:** surface contradictions with both sources, state gaps explicitly, and check the deliverable answers the original goal rather than the subtasks.
 - **Global budgets, not per-worker ones,** with exhaustion as a defined partial-result outcome.
 
+---
+
+## Chapter 5 checkpoint
+
+Draw every agent and communication edge. Label ownership of the goal, writable artifacts, budget, stopping condition, and merge decision. Remove any edge—or agent—that provides no measurable parallelism or context-isolation benefit.
+
 That completes **Chapter 5 — Multi-agent systems**. Next topic is **Evaluating agents**.

@@ -91,4 +91,10 @@ Sweep it per task type on your eval set, plot accuracy against cost and p95 late
 - **Treat the thinking budget as a hyperparameter:** sweep it per task type, plot accuracy against cost and p95 latency, and pick the knee rather than the plateau.
 - **Latency is the binding constraint in interactive products,** and reasoning traces keep occupying context afterwards - consider dropping them during compaction.
 
-Next topic is **Task decomposition and subagents**.
+---
+
+## Chapter 3 checkpoint
+
+For one complex task, choose fixed workflow, plan-then-execute, interleaved ReAct, or hierarchical planning. Define each step's artifact, dependencies, completion evidence, replanning trigger, and reasoning budget.
+
+That completes **Chapter 3 — Reasoning and planning**. Next topic is **Context engineering**.

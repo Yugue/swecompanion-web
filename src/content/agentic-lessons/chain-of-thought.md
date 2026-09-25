@@ -2,6 +2,10 @@
 
 Letting a model write intermediate tokens before answering buys it **more computation per decision**. That is the entire mechanism. Everything true about chain of thought - what it helps, what it doesn't, and why you can't trust it as an explanation - follows from that one fact.
 
+### Chapter goal
+
+By the end of Chapter 3, you should be able to choose between interleaved reasoning and up-front planning, represent dependencies explicitly, use critique only when it adds evidence, allocate reasoning effort by task difficulty, and decompose work without losing the goal.
+
 ---
 
 ## 1. The mechanism

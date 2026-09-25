@@ -1,99 +1,117 @@
 ## What the underlying model gives you
 
-Agent scaffolding cannot create ability that the base model does not have. It can only **redistribute** the model's existing ability across more steps. Knowing exactly which limits are structural - and therefore not fixable by prompting - is what stops you from spending a week on the wrong layer.
+An agent can take more steps than a single model call, but every step is still produced by the underlying model. The loop can provide new evidence and chances to recover; it cannot turn a task the model fundamentally cannot perform into a reliable one.
 
 ---
 
-## 1. What you can rely on
+## 1. Capabilities the agent inherits
 
-- Instruction following, including multi-part formatting rules.
-- Broad prior knowledge up to the training cutoff.
-- Plausible decomposition of tasks that resemble things people have written about.
-- Sticking to a required output format, especially with constrained decoding - a sampling trick covered two lessons from now.
+A capable language model is usually good at:
+
+- understanding natural-language goals,
+- following clear instructions,
+- extracting and transforming text,
+- selecting among well-described actions,
+- decomposing familiar problems,
+- producing structured output.
+
+These abilities make the model a flexible decision-maker. They do not make it a database, calculator, or source of live truth.
+
+---
 
 ## 2. What is structurally missing
 
-| Limit | Why it exists | What actually fixes it |
+| Limitation | Why it exists | What supplies the missing ability |
 |---|---|---|
-| No memory between calls | Each call is stateless; only the context exists | Persist state yourself and re-send it |
-| Knowledge cutoff | Weights are frozen at training time | Retrieval, or a tool that reads live data |
-| No ground truth | The model predicts likely text, not true text | Tools that return authoritative values |
-| Unreliable arithmetic | Digits are tokens, not numbers | A code or calculator tool |
-| Confident gap-filling | Under-specification is resolved by plausibility | Constrain the input, verify the output |
-
-### Common issue
-
-The last row is the one that produces agent incidents. When a tool returns nothing and the prompt requires an order ID, the model does not stop - it produces the most plausible-looking order ID.
-
----
-
-## 3. The plausibility failure, drawn
-
-```text
-retrieval → [ ] empty
-                │
-                ↓
-     model must emit get_order(id=?)
-                │
-                ↓
-     most likely continuation: "ORD-10023"
-                │
-                ↓
-     schema-valid, well-formatted, invented
-```
-
-Nothing in the model's objective distinguishes "the right ID" from "an ID-shaped string." The fix is never a sterner prompt. It is:
-
-1. an explicit empty-result observation the model is told to act on,
-2. a tool that rejects unknown IDs instead of failing silently,
-3. an output check before anything irreversible happens.
-
-### Rule of thumb
-
-> If a failure would still be possible with a perfectly obedient model, it is a systems bug, not a prompting bug.
-
----
-
-## 4. The capability ceiling test
-
-Before adding steps, a self-review pass, or subagents - helper agents with their own context, covered in Chapter 3 - run the diagnostic:
-
-```text
-can a single well-prompted call, given the right context, do this?
-       │                                   │
-      yes                                  no
-       │                                   │
-scaffolding will help              scaffolding will not help
-(you have an orchestration          (you need a better model,
- problem)                            a tool, or a smaller task)
-```
-
-### Rule of thumb
-
-Agent frameworks are very good at hiding the second case behind twelve retries.
-
----
-
-## 5. Where model choice actually shows up
-
-Agents amplify small per-step differences. If each step succeeds with probability \(p\), a 10-step task succeeds at roughly:
-
-\[
-p^{10}
-\]
+| No live knowledge | Model weights do not update with the world | Retrieval or an authoritative tool |
+| No persistent memory | Calls are stateless outside supplied context | Stored state that is retrieved explicitly |
+| No guaranteed truth | Likely text is not the same as verified fact | Evidence and validation |
+| Weak exact computation | Token prediction is not a calculator | Code or calculator tool |
+| No real authority | A generated action is only text | Runtime authorization and execution |
 
 ### Core intuition
 
-So 95% per step gives about 60% end to end, and 99% per step gives about 90%. Two models a few points apart on a benchmark can be far apart as agents - which is why agent quality must be measured end to end, not from per-call benchmarks.
+Use the model for judgment and language. Use software systems for truth, exact computation, storage, and enforcement.
+
+---
+
+## 3. Why missing information becomes invented information
+
+Suppose a tool returns no matching order, but the next action requires an order ID:
+
+```text
+search result: no match
+       ↓
+model is asked to call get_order(order_id=?)
+       ↓
+a plausible-looking ID may be generated
+```
+
+The generated ID can satisfy the schema while being completely false. A stronger instruction may reduce the error, but the reliable fixes are structural:
+
+- represent “not found” explicitly,
+- allow the model to ask the user,
+- reject unknown identifiers in the tool,
+- verify important values before acting.
+
+### Rule of thumb
+
+A schema can require an ID-shaped value. It cannot prove the ID came from evidence.
+
+---
+
+## 4. The capability-ceiling test
+
+Before adding planning, retries, reflection, or more agents, ask:
+
+```text
+Could one well-prompted model call solve this
+if it received all necessary evidence?
+```
+
+- **Yes:** orchestration may help deliver that evidence at the right time.
+- **No:** use a more capable model, add a deterministic tool, or narrow the task.
+
+A loop helps when later decisions depend on new observations. It does not repair a missing core capability.
+
+---
+
+## 5. Reliability compounds across steps
+
+If each step succeeds 95% of the time, ten independently difficult steps succeed together only about:
+
+[
+0.95^{10} approx 0.60
+]
+
+This is only a rough model—real steps are not independent—but it reveals the direction: small per-step weaknesses become large end-to-end weaknesses.
+
+The practical response is not “reason harder.” It is to reduce unnecessary steps, make inputs unambiguous, verify important transitions, and use deterministic code where possible.
+
+---
+
+## 6. Diagnose the failing layer
+
+When an agent fails, locate the missing capability before changing the prompt:
+
+```text
+Did it lack evidence?          → retrieval or tool problem
+Did it choose the wrong action? → model, description, or context problem
+Were arguments invalid?        → schema and validation problem
+Was an unsafe action allowed?   → runtime authorization problem
+Could no model solve the task?  → capability or task-scope problem
+```
+
+This prevents prompt changes from hiding failures that belong elsewhere.
 
 ---
 
 ## What matters most
 
-- **Scaffolding redistributes the base model's ability; it cannot create it.** Before adding steps or subagents, ask whether one well-prompted call with the right context could do the task.
-- **Some limits are structural and no prompt fixes them:** no memory between calls, a frozen knowledge cutoff, no ground truth about the live world, and unreliable arithmetic.
-- **Confident gap-filling is the one that causes incidents.** When the context lacks an order ID, an ID-shaped string is the likely continuation - so the fix is an explicit empty result, a tool that rejects unknown IDs, and validation before anything irreversible.
-- **The test for where to fix something:** if the failure would still be possible with a perfectly obedient model, it is a systems bug, not a prompting bug.
-- **Per-step reliability compounds.** At ten steps, 95% per step is about 60% end to end and 99% is about 90% - which is why agents must be measured end to end.
+- **Agent scaffolding supplies evidence and control; it does not remove the model’s limits.**
+- **Models are useful for language and judgment, not authoritative truth or enforcement.**
+- **Missing information often produces plausible invention.** Represent absence and verify important values.
+- **Run the capability-ceiling test before adding more orchestration.**
+- **Per-step error compounds,** so fewer clearer steps are usually more reliable.
 
-Next topic is **The context window as working memory**.
+Next topic is **The agent loop**.

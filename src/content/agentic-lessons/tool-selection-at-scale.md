@@ -101,4 +101,10 @@ Note that step 1 is organizational and step 6 is what tells you whether the rest
 - **Write tool descriptions to be retrievable,** not just readable, since the same failure modes as document search now apply.
 - **Measure candidate recall separately** - whether the right tool was even in the retrieved set. That separates a retriever problem from a model problem, and no prompt fixes the former.
 
+---
+
+## Chapter 2 checkpoint
+
+Choose one tool and write its complete contract: selection guidance, arguments, authorization, result shape, empty and error behavior, retry policy, and redacted fields. If any part is implicit, the interface is not finished.
+
 That completes **Chapter 2 — Tool use and function calling**. Next topic is **Chain of thought and its limits**.

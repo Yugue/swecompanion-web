@@ -9,6 +9,10 @@ your code:     is this allowed?  →  run it  →  hand the result back
 
 So the single most important sentence here is: **the model does not execute anything.** Every security property of an agent lives in that gap.
 
+### Chapter goal
+
+By the end of Chapter 2, you should be able to trace a tool call across the model/runtime boundary, design arguments and observations the model can use, handle failures safely, choose sequential or parallel execution, and keep a growing tool catalogue understandable.
+
 ---
 
 ## 1. What actually happens

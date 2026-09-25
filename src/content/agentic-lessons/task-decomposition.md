@@ -1,119 +1,116 @@
-## Task decomposition and subagents
+## Task decomposition and dependency graphs
 
-**A subagent is a second agent you hand one narrow job to, which reports back a short answer.**
-
-The reason to use one is not that specialists are smarter - it is the same model either way. It is that the subagent reads all the messy material inside *its own* context window and returns a paragraph, so the main agent never has to carry that material around. Decomposition is a **context management** technique first.
+Decomposition turns an open goal into pieces that can be scheduled and verified. It does not require multiple agents. A single agent, a workflow, or ordinary code can all execute the resulting plan.
 
 ---
 
-## 1. The actual benefit
+## 1. A useful subtask produces an artifact
 
 ```text
-single agent:     reads 40 documents → all 40 sit in the context → window gone by step 12
-
-with subagents:   subagent A reads 12 docs → returns 400 tokens ┐
-                  subagent B reads 15 docs → returns 400 tokens ├─► parent: 1.2k tokens
-                  subagent C reads 13 docs → returns 400 tokens ┘
+weak:   Research competitors.
+strong: Return the five largest competitors with revenue, year, and source.
 ```
 
-The parent never pays for the 40 documents. Total tokens across the system went **up**; tokens in the parent's window went sharply **down**, and that is what was scarce.
-
-The secondary benefit is parallelism: independent subtasks run concurrently.
+The strong version defines a result that can be checked and used by the next step.
 
 ### Rule of thumb
 
-> Decompose to protect the parent's context, not to create job titles.
+If you cannot name what a step produces, it is not a step—it is a wish.
 
 ---
 
-## 2. The handoff is where information dies
+## 2. Separate work along real boundaries
+
+Good boundaries usually follow:
+
+- independent data sources,
+- separate files or records,
+- distinct phases such as gather, analyze, and write,
+- outputs that can be verified independently.
+
+Avoid splitting one tightly coupled decision into fragments that must constantly exchange context. Coordination can cost more than the split saves.
+
+---
+
+## 3. Make dependencies explicit
+
+A plan is often a graph rather than a list:
 
 ```text
-parent ──► brief ──► subagent ──► findings ──► parent
-             ↑                        ↑
-        must be self-contained    must be structured
+collect product data ─┐
+collect pricing data ─┼─► compare competitors ─► write recommendation
+collect review data  ─┘
 ```
 
-A subagent cannot ask a clarifying question of a context it never saw. So the brief must carry:
+The three collection tasks can run in parallel. Comparison must wait for all three.
+
+Store dependencies as state:
 
 ```json
-{"objective": "one sentence, unambiguous",
- "context": "the facts from the parent that bear on this",
- "constraints": ["date range", "sources allowed", "budget"],
- "deliverable": "schema of what to return",
- "already_tried": ["queries that returned nothing"]}
+{
+  "id": "compare",
+  "depends_on": ["products", "pricing", "reviews"],
+  "artifact": "comparison.json",
+  "done_when": "every competitor has the required fields"
+}
 ```
 
-### Rule of thumb
-
-`already_tried` is the field people omit, and it is what prevents three subagents from re-running the same failed search.
+The runtime can now identify ready work without asking the model to reconstruct the plan.
 
 ---
 
-## 3. Returns must be compressed and typed
+## 4. Choose the right granularity
+
+A step is too large when it has several independent failure points or no clear completion condition. It is too small when coordination and prompt overhead exceed the work itself.
 
 ```text
-✗  the subagent's whole transcript          → you've undone the isolation
-✓  {"findings": [{"claim": "...", "source": "...", "confidence": "high"}],
-     "gaps": ["couldn't verify 2025 revenue"],
-     "cost": {"steps": 9, "tokens": 41000}}
+too large:  Analyze the entire market and recommend a strategy.
+too small:  Read the title of document 1.
+useful:     Extract pricing tiers from one competitor's official pricing page.
 ```
 
-### Core intuition
-
-Carry **provenance** on every claim. Once findings are merged, a claim without a source cannot be checked, and that is exactly how a fabricated number ends up in a confident report.
+Start with the units a human would naturally assign and adjust after observing traces.
 
 ---
 
-## 4. Decompose along real seams
+## 5. Check coverage before execution
 
-```text
-✓  by data source       (each subagent owns one system)
-✓  by independent item  (per competitor, per file, per region)
-✓  by phase             (gather → analyze → write)
+A decomposed plan can be internally clean and still omit part of the goal.
 
-✗  by arbitrary split   ("you do the first half")
-✗  by persona           ("you're the skeptic")
-```
+Before running it, map requirements to steps:
 
-### Rule of thumb
+| Requirement | Owning step |
+|---|---|
+| Top competitors | competitor discovery |
+| Current pricing | pricing extraction |
+| Evidence for claims | source validation |
+| Recommendation | synthesis |
 
-If two subtasks need to negotiate with each other mid-flight, they were one task.
-
----
-
-## 5. When it isn't worth it
-
-- The task fits comfortably in one context - decomposition adds latency and coordination risk for nothing.
-- Subtasks are sequentially dependent - you get the overhead without the parallelism.
-- The work needs shared evolving state - the handoff cost exceeds the context saving.
-
-### Common issue
-
-Cost note: each subagent pays its own system prompt and tool schemas, so five subagents is far more than five times one call in total tokens. It wins anyway when the alternative is a parent that can't fit the work - but say the tradeoff out loud.
+Every requirement needs exactly one clear owner. Missing ownership creates gaps; shared ownership creates duplicate work.
 
 ---
 
-## Interview mental model
+## 6. Define failure and replanning behavior
 
-The point of a subagent is context, not expertise. Everything else follows from that:
+For each step, decide:
 
-```text
-parent:  plan, delegate, merge          keeps a small window
-child:   fresh context, narrow goal     absorbs the large read
-         returns a compact result       parent never pays for it again
-```
+- whether it may retry,
+- whether another step can proceed without it,
+- what partial artifact is still useful,
+- which observation invalidates the plan,
+- who or what updates downstream dependencies.
 
-The handoff is where information dies, so make both directions explicit:
+Do not replan after every inconvenience. Replan when an assumption is contradicted, a required artifact cannot be produced, or a new constraint changes the goal.
 
-```text
-down:  objective, the parent facts that bear on it, constraints,
-       the return schema, and ALREADY TRIED
-up:    structured findings with provenance, explicit gaps, cost
-```
+---
 
-- **`already_tried` is the field people omit,** and it is what stops three subagents repeating the same failed search.
-- **Never pass a raw transcript in either direction** - it undoes the isolation that motivated the split.
-- **Decompose along real seams** - independent data sources, independent items, distinct phases. If two subtasks must negotiate mid-flight, they were one task.
+## What matters most
 
-That completes **Chapter 3 — Reasoning and planning**. Next topic is **Context engineering**.
+- **Decomposition creates verifiable units of work; it does not imply multiple agents.**
+- **Every subtask should produce a named artifact with a completion rule.**
+- **Represent dependencies explicitly** so independent work can run in parallel.
+- **Choose granularity that reduces complexity rather than adding coordination overhead.**
+- **Map every requirement to one owner** before execution.
+- **Replan only after a meaningful trigger.**
+
+Next topic is **Reflection and self-critique**.

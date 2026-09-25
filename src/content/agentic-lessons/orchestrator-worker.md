@@ -2,6 +2,8 @@
 
 The dominant multi-agent shape: one agent holds the goal and the plan, and dispatches bounded subtasks to workers that return compact, structured results. It works because the information asymmetry is deliberate.
 
+Chapter 3 decomposed work into artifacts and dependencies without assuming multiple agents. Here, those units are assigned to separate contexts only when parallelism or isolation justifies the coordination cost.
+
 ---
 
 ## 1. The shape

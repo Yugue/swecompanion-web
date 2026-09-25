@@ -1,146 +1,116 @@
 ## What an agent actually is
 
-**Start with the thing underneath.** A large language model reads text and writes the text that most plausibly comes next. That is all it does. It has no memory between calls, no way to reach the internet, and no way to run anything.
+A language model takes input and produces output. An agent adds a controlled way for the model to decide what should happen next.
 
 ```text
-         text in  ──►  [ language model ]  ──►  text out
+model call:  input ─────────────────────────► output
+workflow:    input → fixed step → fixed step → output
+agent:       input → model chooses next action ↺ → output
 ```
 
-An **agent** is what you get when you wrap that in a loop, hand it some tools, and let it choose which tool to use next.
-
-Everyone can say "an agent uses tools in a loop", though. The version that scores well names **what moved from your code into the model** - because that single shift creates every benefit and every problem in the rest of this guide.
+The important difference is not intelligence. It is **who controls the sequence of steps**.
 
 ---
 
-## 1. Three things people all call "AI"
+## 1. The boundary between a model and an agent
+
+A model call may classify, summarize, extract, or draft. It returns one response and stops.
+
+An agent can request an action, inspect the result, and choose another action. The engineer defines the available actions and the limits; the model chooses among them at runtime.
 
 ```text
-model call:   prompt ──────────────► text
-workflow:     prompt → step 1 → step 2 → step 3 → output     (you wrote the arrows)
-agent:        prompt → [ model decides next step ] ⟲ → output (the model wrote the arrows)
+agent = model + actions + loop + stopping conditions
 ```
 
-A model call is a single question and answer. A workflow is a program that asks several in a fixed order. An agent is a program whose **order of steps is decided at runtime by the model**.
-
-That is the whole definition:
-
-\[
-\boxed{\text{agent} = \text{model} + \text{tools} + \text{loop} + \text{stopping condition}}
-\]
+- Without actions, it cannot inspect or change the outside world.
+- Without a loop, it gets only one decision.
+- Without stopping conditions, it may continue indefinitely.
+- Without runtime controls, model suggestions become unsafe authority.
 
 ### Core intuition
 
-Remove the tools and it cannot affect anything. Remove the loop and it gets one shot. Remove the stopping condition and it never returns.
+An agent is a **software system around a model**, not a special kind of model.
 
 ---
 
-## 2. The loop, concretely
+## 2. Delegated control is the defining property
+
+Consider: *“Find out why order 48812 has not shipped and tell the customer.”*
+
+A fixed workflow might always do this:
 
 ```text
-      ┌─────────────────────────────┐
-      │  context (the transcript)   │
-      └──────────────┬──────────────┘
-                     ↓
-              model decides
-                     ↓
-        ┌────────────┴────────────┐
-        │                         │
-   tool call                 final answer ──► done
-        ↓
-   runtime executes
-        ↓
-   observation appended ──────────┘
+get order → get shipment → format response
 ```
 
-### Intuition
+But the order may have no shipment because payment is under review. An agent can inspect the order and change direction:
 
-Every turn, the model sees everything that has happened so far and chooses: act again, or stop.
+```text
+get order
+  → shipment_id is missing; status is payment_review
+  → inspect payment review
+  → read the relevant customer policy
+  → explain the delay
+```
+
+The model chose the second step from the first result. That runtime choice is what makes the system agentic.
 
 ---
 
-## 3. What "delegated control" costs you
+## 3. What the engineer still controls
 
-This is the sentence that separates a good answer from a recited one.
+Delegating the next decision does not mean delegating the whole system.
 
-| You gave up | You gained |
+| Engineer controls | Model chooses |
 |---|---|
-| A fixed, readable execution path | Handling of cases you never enumerated |
-| Deterministic tests | Recovery from unexpected states |
-| Predictable cost per request | A single entry point for an open task |
-| Predictable latency | Fewer hand-written branches |
+| Available actions | Which allowed action to request |
+| Permissions | Arguments supported by current evidence |
+| Step, time, and cost limits | Whether more information is needed |
+| Validation and approval gates | When to propose completion |
+| What counts as success | A path through allowed actions |
 
 ### Rule of thumb
 
-An agent is **a trade, not an upgrade**. A team that cannot name what it gave up has usually not needed an agent.
+The runtime owns authority. The model proposes decisions inside that boundary.
 
 ---
 
-## 4. The same task, three ways
+## 4. Autonomy is not all-or-nothing
 
-*"Find out why order 48812 hasn't shipped and tell the customer."*
+A useful agent may have:
 
-```text
-MODEL CALL
-  you paste the order record into a prompt and ask for a message
-  → it writes a good message about whatever you pasted
-  → if you pasted the wrong record, it writes a good message about the wrong record
+- three read-only actions,
+- a five-step limit,
+- no access to arbitrary network requests,
+- approval before every write,
+- one narrow goal.
 
-WORKFLOW  (you wrote the arrows)
-  get_order(48812) → get_shipment(order.shipment_id) → draft_message(status)
-  → works perfectly for orders that have a shipment
-  → an order with no shipment record hits a null and the pipeline throws
+That is still an agent. Increasing the number of actions, the run length, or the allowed side effects increases autonomy and risk independently.
 
-AGENT  (the model wrote the arrows)
-  get_order(48812)      → {shipment_id: null, status: "payment_review"}
-  "No shipment. Status says payment review - check that instead."
-  get_payment(48812)    → {state: "manual_review", since: "2026-03-14"}
-  "Held for manual review since the 14th. That is the answer."
-  draft_message(...)
-```
-
-### Core intuition
-
-The agent handled a case nobody enumerated. That is the entire value proposition - and the price is that on the next run it might take a different route, cost a different amount, and need a trace to explain itself.
+Start narrow. Expand a boundary only when real traces show that the smaller boundary cannot complete a valid task.
 
 ---
 
-## 5. Autonomy is a dial
+## 5. What an agent does not guarantee
 
-"Agent or not" is a false binary. Four independent dials:
+Calling a system an agent says nothing about whether it is:
 
-1. **Tool breadth** - three read-only tools, or thirty including writes.
-2. **Loop length** - a 3-step cap, or 100.
-3. **Approval** - every side effect gated, or none.
-4. **Scope** - one narrow task, or an open goal.
+- accurate,
+- safe,
+- cost-effective,
+- able to recover,
+- appropriate for the task.
 
-A system with three read-only tools and a 5-step cap is technically an agent and behaves almost like a workflow. That is frequently the correct design.
-
-### Rule of thumb
-
-> Turn each dial up only after a trace shows you a case that the lower setting could not handle.
-
----
-
-## 6. What this changes about testing
-
-Because the path is chosen at runtime, the same input can produce different paths on different runs. So:
-
-- you cannot assert on an exact sequence of calls,
-- you must run each case several times and report a **pass rate**,
-- and the trace - not the output - becomes the primary debugging artifact.
-
-### Common issue
-
-This is not a detail. It is the reason evaluation gets its own chapter.
+Those properties come from the model, tools, context, runtime, and evaluation around it. The remaining lessons build those pieces one at a time.
 
 ---
 
 ## What matters most
 
-- **The definition is about control, not intelligence:** in a workflow you write the sequence of steps; in an agent the model chooses the next step at runtime.
-- **Four things make it an agent:** a model, tools, a loop, and a stopping condition. Remove the tools and it cannot affect anything; remove the stopping condition and it never returns.
-- **It is a trade, not an upgrade.** You gain handling of paths you never enumerated; you give up a readable execution path, deterministic tests, and predictable cost and latency.
-- **Autonomy is a dial:** tool breadth, loop length, approval on side effects, and scope are all tunable separately. Three read-only tools and a 5-step cap is still an agent, and often the right one.
-- **The same input can take a different path each run,** which is why you test with pass rates over repeated runs and debug from traces rather than outputs.
+- **A model produces an output; an agent can choose another action after seeing a result.**
+- **Delegated control is the defining property:** the model selects the path at runtime.
+- **The runtime still owns authority, limits, validation, and permissions.**
+- **Autonomy is adjustable.** Tool breadth, run length, and approval requirements are separate choices.
+- **“Agent” describes control flow, not quality.**
 
 Next topic is **What the underlying model gives you**.

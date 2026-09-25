@@ -2,6 +2,8 @@
 
 Agent failures repeat across systems and domains. Naming them turns debugging into diagnosis, and being able to list them with their detectors is a strong interview signal.
 
+Chapter 1 introduced visible loop failures. Here the goal is different: map each symptom to a detector, likely layer, and appropriate fix.
+
 ---
 
 ## 1. Looping

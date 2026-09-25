@@ -1,109 +1,139 @@
 ## When not to build an agent
 
-**An agent decides its own steps. A workflow has the steps written down in advance.** The second is cheaper, faster, testable, and predictable - so it wins unless you genuinely need the first.
+An agent trades predictability for flexibility. If the flexibility is not required—or the consequences of unpredictable behavior are unacceptable—the right design is something simpler.
 
-Proposing an agent where a workflow would do is one of the fastest ways to look inexperienced in a design interview. Most production "agents" are - correctly - workflows with one agentic step.
+This lesson is the final decision check for Chapter 1.
 
 ---
 
-## 1. The decision, in one diagram
+## 1. Use the lowest-autonomy option that works
 
 ```text
-Is the sequence of steps the same every time?
-        │ yes                          │ no
-        ↓                              ↓
-    workflow                 Do you know the step count in advance?
-                                   │ yes                │ no
-                                   ↓                    ↓
-                          bounded workflow      Does recovery need judgment?
-                          with a model step          │ no        │ yes
-                                                     ↓           ↓
-                                              retry logic      agent
+one transformation?
+  → single model call
+
+known steps or branches?
+  → workflow
+
+unknown path, but fixed retry or search logic is enough?
+  → deterministic loop
+
+unknown path and recovery requires judgment from new evidence?
+  → bounded agent
 ```
 
-### Core intuition
-
-Three of the four leaves are not agents.
+Three of the four outcomes are not agents.
 
 ---
 
-## 2. What each option actually costs
+## 2. Strong signs that you do not need an agent
 
-| Design | Latency | Cost per request | Debuggability | Handles the unforeseen |
-|---|---|---|---|---|
-| Single model call | One round trip | Lowest, fixed | Trivial | No |
-| Workflow | Fixed, predictable | Fixed | Ordinary tests | Only enumerated cases |
-| Workflow + one agentic step | Mostly fixed | Bounded | Good | In that one stage |
-| Autonomous agent | Variable | Variable, unbounded without caps | Traces only | Yes |
+Prefer a simpler design when:
 
-### Common issue
-
-The "variable" entries are the real story. A product with a p50 of 4 seconds and a p99 of 90 seconds is a different product than one that always takes 6.
-
----
-
-## 3. Cases that are not agents
-
-- **Classify, extract, rewrite, summarize** - one transformation, one call.
-- **Fixed pipeline** - parse, then enrich, then validate, then format. Write the four steps.
-- **Known branching** - a router picking one of five handlers is a switch statement with a model condition.
-- **Bulk processing** - the same operation over 10,000 rows is a map, and an agent per row is a bill.
+- the same steps run in the same order,
+- all branches are known and stable,
+- the task is classification, extraction, rewriting, or summarization,
+- a deterministic query or rule already produces the answer,
+- work is the same operation repeated over many records,
+- the model is being used only to fill one field or draft one message.
 
 ### Rule of thumb
 
-> If you can draw the flowchart, ship the flowchart.
+If you can maintain the full path clearly as code, ship the code.
 
 ---
 
-## 4. What genuinely justifies an agent
+## 3. Strong signs that an agent is a poor fit
 
-All three should hold, not just one:
+Even an unknown path may not justify autonomy when:
 
-1. The path is **data-dependent** - what you do at step 3 depends on what step 2 returned.
-2. The step count is **unknown in advance** - it might be 2 or 20.
-3. Recovery requires **judgment** - a failure has several reasonable responses, and choosing needs context.
+| Constraint | Why it conflicts with an agent |
+|---|---|
+| Extremely tight latency | Step count and tool time vary |
+| Strict per-request cost | Context and retries vary |
+| Irreversible high-impact actions | Model decisions need strong external gates |
+| No observable success condition | The system cannot know when to stop |
+| Missing authoritative data | More reasoning cannot create truth |
+| No way to inspect trajectories | Failures cannot be diagnosed |
 
-### Rule of thumb
-
-Debugging a failing test, investigating an alert, and open-ended research all satisfy all three. "Process invoices" usually satisfies none of them.
+Some of these can be addressed with a bounded read-only agent plus deterministic execution. Others require changing the product design.
 
 ---
 
-## 5. The three questions to ask the PM
+## 4. Ask three questions before designing
+
+### “Show me three real examples end to end.”
+
+If all three follow the same sequence, start with a workflow. If they diverge, identify exactly where new evidence changes the next step.
+
+### “What happens when the system is wrong?”
+
+This reveals required permissions, approval gates, and whether an agent should only prepare a recommendation.
+
+### “What are the time and cost budgets?”
+
+A design without these numbers cannot choose a model, step limit, or tool strategy responsibly.
+
+One more question is often decisive:
+
+### “How will we know the task is complete?”
+
+If nobody can state the success condition, the model cannot be expected to stop reliably.
+
+---
+
+## 5. Apply the decision to order 48812
+
+The task contract is:
 
 ```text
-1. "Walk me through three real examples end to end."
-      → if the three look the same, it's a workflow
-
-2. "What happens when it's wrong?"
-      → if the answer is 'a customer is charged', autonomy needs gates
-
-3. "What's the budget per request, in cents and seconds?"
-      → this sets the step cap and the model tier before any design
+Explain the verified cause of the shipping delay.
+Read-only. Eight steps. No customer contact or account changes.
 ```
 
-Asking these is itself part of what's being graded - it shows you cost a design before building it.
+A good production design is:
 
-**Start low, and move the dial with evidence.** Begin at the lowest autonomy that could plausibly work: few tools, small step cap, approval on side effects. Then let traces tell you which dial to turn. Every increase should be traceable to a specific run that the previous setting could not handle.
+```text
+validate and authenticate
+        ↓
+simple known status? ── yes ──► fixed response workflow
+        │ no
+        ▼
+bounded read-only investigation agent
+        ↓
+validate evidence and draft
+        ↓
+human or deterministic system performs any later side effect
+```
+
+The whole product is not an agent. One uncertain investigation stage is.
 
 ---
 
-## Interview mental model
+## 6. Chapter 1 checkpoint
 
-Three of the four leaves on this tree are not agents:
+You should now be able to explain the following without naming a framework:
 
-```text
-Are the steps the same every time?
-   yes → workflow
-   no  → Do you know the step count in advance?
-            yes → bounded workflow with a model step
-            no  → Does recovery need judgment?
-                     no  → retry logic
-                     yes → agent
-```
+1. What control moves from code into the model?
+2. What can the base model do, and what requires a tool or runtime?
+3. What happens during one loop iteration?
+4. What information belongs in the context?
+5. Which rules belong in the prompt, and which require code?
+6. What does a schema guarantee—and not guarantee?
+7. What are the task’s scope, success condition, budgets, and escalation path?
+8. Which stages are deterministic, and which genuinely need runtime judgment?
+9. Why is an agent better than the simpler alternatives for this task?
 
-All three of these should hold before you reach for autonomy: the path is **data-dependent**, the step count is **unknown**, and recovery requires **judgment**.
+If question 9 has no concrete answer, do not build the agent.
 
-Ask the three questions that cost the design before you draw it: walk me through three real examples end to end; what happens when it is wrong; and what is the budget per request in cents and seconds. Then start at the lowest autonomy that could work and turn each dial up only when a trace shows the lower setting failing.
+---
 
-Next topic is **Workflows versus autonomous agents**.
+## What matters most
+
+- **Use the lowest-autonomy design that can complete the task.**
+- **Known steps belong in a workflow; one transformation belongs in one call.**
+- **Unknown paths justify an agent only when new evidence requires judgment.**
+- **Tight budgets, irreversible actions, and missing success criteria are warning signs.**
+- **Ask for real examples, failure impact, budgets, and completion criteria before drawing the architecture.**
+
+That completes **Chapter 1 — From model call to bounded agent**. Next topic is **Function calling mechanics**.
