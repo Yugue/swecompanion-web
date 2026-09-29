@@ -168,4 +168,10 @@ The rule that follows: **if training performance itself is poor, do not add regu
 
 Keep two more facts ready: more data only ever reduces variance, and irreducible noise sets a floor that no model beats. And avoid the overclaim that a bigger model always overfits more - large, well-regularized models trained on large data often generalize despite huge capacity.
 
+---
+
+## Chapter 1 checkpoint
+
+Given one product problem, state the prediction target, unit of prediction, available-time features, task type, data split, baseline, primary metric, and likely bias/variance failure. If any answer depends on future information, the framing is not ready.
+
 That completes **Chapter 1 — Foundations**. Next topic is **Missing values, outliers, and duplicates**.

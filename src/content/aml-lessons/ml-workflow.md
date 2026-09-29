@@ -2,6 +2,12 @@
 
 An applied ML project is a loop, not a pipeline. Knowing the order - and which steps people skip - is what separates an answer that sounds like a textbook from one that sounds like experience.
 
+This is a synthesis chapter, but the workflow is defined here from the beginning: frame the decision, build data and a baseline, iterate with evidence, validate honestly, deploy, and monitor. The focus is sequencing those steps under real product constraints.
+
+### Chapter goal
+
+By the end of Chapter 7, you should be able to take an ML problem from business objective through data, baseline, model choice, interpretation, deployment, monitoring, retraining, and a concise interview explanation.
+
 ---
 
 ## 1. The loop

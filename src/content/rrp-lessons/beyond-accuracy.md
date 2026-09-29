@@ -41,7 +41,15 @@ Serendipity is the one everyone wants and nobody measures cleanly, because "usef
 
 ---
 
-## 3. Why they trade against engagement
+## 3. Choose a meaningful denominator
+
+Catalogue coverage should use eligible inventory during a defined period, not deleted or unavailable items. Provider coverage counts distinct sellers or creators, which is different from counting items.
+
+A platform showing 40,000 of ten million listings has 0.4% item coverage. That alone does not tell you the fraction of sellers reached: one seller may own many listings.
+
+---
+
+## 4. Why they trade against engagement
 
 ```text
 show the most likely click        → highest short-term engagement
@@ -58,13 +66,13 @@ The cost is immediate and measurable; the benefit is delayed and hard to attribu
 
 ---
 
-## 4. Coverage is a business metric in a marketplace
+## 5. Coverage is a business metric in a marketplace
 
 ```text
 10,000,000 listings
 only 40,000 ever shown in a week
         ↓
-99.6% of sellers get no traffic
+99.6% of listings receive no exposure; seller coverage needs a separate count
         ↓
 they stop listing
         ↓
@@ -77,16 +85,24 @@ For a two-sided platform this is not an aesthetic concern. Supply leaves. That m
 
 ---
 
-## 5. Where each is enforced
+## 6. Where each is enforced
 
 ```text
-diversity     re-ranking stage (Chapter 4) - only there does the list exist
+diversity     often re-ranking, where interactions within the list can be checked
 novelty       ranking feature: "has this user seen this / things like it"
-coverage      exploration (Chapter 6) + per-item exposure caps
+coverage      exploration + per-item exposure caps
 serendipity   mostly a by-product of the other three
 ```
 
 None of them can be fixed by the ranking score alone, which is the practical reason the funnel has a re-ranking stage and the system has an exploration budget.
+
+---
+
+## 7. Check useful discovery, not variety alone
+
+Six unrelated items can maximize category variety while being a terrible recommendation. Pair diversity or novelty with relevance, satisfied engagement, and user feedback.
+
+Compare the effect by surface. Variety helps discovery feeds; a narrow exact-match search or repeat-purchase task may benefit from concentrated results instead.
 
 ---
 

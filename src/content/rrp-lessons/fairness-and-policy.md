@@ -27,7 +27,7 @@ popular item → ranked higher → shown more → more engagement → looks bett
 new/niche    → no data       → ranked low → not shown       → still no data
 ```
 
-Left alone, this concentrates attention until a small fraction of the catalogue absorbs nearly all of it - the feedback loop from Chapter 5, seen from the supply side. Counteracting it requires something deliberate: exposure floors, per-item caps, or exploration.
+Left alone, this creates a **feedback loop**: popular items receive more exposure, which produces more interactions and makes them appear even more popular. Counteracting it requires something deliberate, such as exposure floors, per-item caps, or exploration.
 
 ### Rule of thumb
 
@@ -35,20 +35,11 @@ Left alone, this concentrates attention until a small fraction of the catalogue 
 
 ---
 
-## 3. Where there are legal constraints
+## 3. Identify context-specific policy requirements
 
-Some domains restrict what may be used to target or rank, and the restrictions are specific rather than general:
+Housing, employment, financial services, advertising, minors' content, and regional availability can carry different requirements. Determine the current rules for the actual jurisdiction and surface with the responsible legal and policy teams; a general study guide is not a compliance specification.
 
-```text
-housing, credit, employment       targeting on protected attributes is restricted
-political and issue advertising   disclosure and targeting rules
-minors                            content and advertising restrictions
-regional content rules            availability varies by jurisdiction
-```
-
-### Common issue
-
-Two practical consequences. First, "we did not use the protected attribute as a feature" is **not** a defence - correlated features reproduce it, and postcode is a well-known proxy. Second, these constraints usually apply to a specific surface or ad category, so the system needs the concept of a restricted context rather than one global rule.
+Removing a sensitive attribute alone does not eliminate discrimination risk: other inputs may correlate with it. Keep policy context explicit and audit the resulting decisions, not just the feature list.
 
 ---
 
@@ -62,7 +53,7 @@ This is the part most worth getting right in an interview:
        → "mostly not shown" is not a policy
 
 ✓  remove disallowed items from the slate, as a hard rule
-       → applied late, in re-ranking, where the whole list exists
+       → filter early where possible; recheck hard rules before final display
        → auditable: you can log exactly what was filtered and why
 ```
 
@@ -72,7 +63,23 @@ Soft constraints belong in the score. Hard ones belong in a filter. Mixing them 
 
 ---
 
-## 5. Measuring it
+## 5. Audit eligibility and exposure decisions
+
+Attach a reason and policy version to filtered items. Recheck availability and policy at serving time, including cached slates, because a previously allowed item can become disallowed.
+
+Monitor missing policy metadata, blocked-item leakage, and how filters affect different eligible providers. Use a safe fallback when required policy information is unavailable; relevance is not a reason to bypass the check.
+
+---
+
+## 6. Choose the comparison before judging fairness
+
+Equal impressions, exposure proportional to relevance, and opportunity for new suppliers are different objectives. Define the eligible population and the intended comparison before choosing a metric.
+
+Examine uncertainty in small groups and whether the relevance labels inherit historical exposure bias. An apparently merit-based rule can reproduce incumbency if 'merit' is measured only by past traffic.
+
+---
+
+## 7. Measuring it
 
 ```text
 user-side     ranking quality sliced by user segment, looking at the worst slice

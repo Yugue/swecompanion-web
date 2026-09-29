@@ -2,6 +2,8 @@
 
 **A system that always shows what it currently believes is best never finds out whether something else was better.**
 
+A **feedback loop** occurs when yesterday's recommendations determine today's training data, narrowing what the system learns about. Exploration uses controlled exposure to collect new information while bounding user and business cost.
+
 ```text
 exploit   show the current best guess        → engagement today
 explore   show something uncertain           → information for tomorrow
@@ -13,14 +15,14 @@ Every recommender spends some traffic on the second, whether deliberately or not
 
 ## 1. Why it is not optional here
 
-Three separate problems from earlier chapters all have the same fix:
+Controlled exploration can help with several distinct problems:
 
 ```text
-cold start (Ch.1)        a new item cannot earn data without impressions
-feedback loops (Ch.5)    unshown items stay unshown, forever
-position bias (Ch.5)     you cannot separate position from relevance
+cold start        a new item cannot earn data without impressions
+feedback loops    unshown items stay unshown, forever
+position bias     you cannot separate position from relevance
                          without varying position
-counterfactual eval (Ch.5) needs non-zero probability on every action
+counterfactual eval needs support for actions the target policy may choose
 ```
 
 ### Core intuition
@@ -29,36 +31,20 @@ Exploration is one mechanism paying for four things. That framing is the stronge
 
 ---
 
-## 2. What always-exploit actually costs
+## 2. What always-exploit can miss
 
-Two items, and what the system knows about them:
-
-```text
-item A    shown 50,000 times    2,500 clicks    CTR 5.00% ± 0.10%
-item B    shown     40 times        3 clicks    CTR 7.50% ± 4.20%
-```
-
-A pure exploit policy ranks by the estimate and shows A, every time, forever. That looks right - 5.0% is a known quantity and B's 7.5% comes from three clicks.
-
-But look at the uncertainty. B's true rate is somewhere around 3% to 12%. It might be much better than A. And because it is never shown, that interval never narrows:
+Consider these observations, with approximate 95% Wilson confidence intervals for click rate:
 
 ```text
-week 1   B shown 40 times     interval 3.3% - 11.7%
-week 4   B shown 40 times     interval 3.3% - 11.7%      ← no new information, ever
-week 12  B shown 40 times     interval 3.3% - 11.7%
+item A   2,500 clicks / 50,000 impressions   estimate 5.0%   interval 4.8–5.2%
+item B       3 clicks /    100 impressions   estimate 3.0%   interval 1.0–8.5%
 ```
 
-Thompson sampling breaks this by drawing a plausible value from each item's distribution and showing whichever wins:
+A greedy policy ranks by the point estimate and always chooses A. But B is much less certain and might be better than A. Without further exposure, its uncertainty remains high.
 
-```text
-draw 1    A: 5.02%   B: 9.10%   → show B     (and learn something)
-draw 2    A: 4.98%   B: 4.30%   → show A
-draw 3    A: 5.01%   B: 6.80%   → show B
-```
+**Thompson sampling** maintains a probability distribution over plausible reward rates, samples one value per item, and selects the sampled winner. A draw might put B at 6% and A at 5%, giving B a chance to produce evidence; another draw may favor A.
 
-B gets shown roughly as often as it is plausibly the better item - frequently at first, then less as evidence accumulates and its interval tightens. If it really is 7.5%, you find out in days. If it is 3%, you stop showing it having spent very little.
-
-The cost is visible and small; the benefit is invisible and compounding, which is exactly why it needs defending in business terms rather than left to the optimizer.
+As observations accumulate, the policy can distinguish promising uncertainty from consistently weak performance. The rate of learning depends on traffic, examination, reward delay, and how differently the items perform—not a guaranteed number of days.
 
 ---
 
@@ -78,7 +64,7 @@ Thompson sampling sample a plausible value from each item's distribution,
 
 ### Rule of thumb
 
-Thompson sampling is usually the best default: it explores more where the uncertainty is real, and it degrades gracefully into exploitation as evidence accumulates.
+Choose an approach that matches the reward, uncertainty model, safety constraints, and logging requirements. Thompson sampling is useful when its uncertainty estimates are credible; simple randomized exploration may be easier to audit.
 
 ---
 
@@ -101,7 +87,8 @@ A cooking video that is unproven with cooking enthusiasts should be explored *th
 ## 5. Budgeting it
 
 ```text
-typical: 1-5% of impressions, or a reserved slot low on the page
+illustrative starting budget: a small share of eligible impressions
+                             or a reserved slot; validate the cost
 ```
 
 Ways to make it cheap:
@@ -115,7 +102,15 @@ explore less for high-value sessions     a checkout flow is a bad place to exper
 
 ---
 
-## 6. Explaining it to the business
+## 6. Log the policy's actual selection probability
+
+Record the probability with which the exploration policy chose the displayed action, after accounting for the eligible pool and the mixture of exploration and exploitation.
+
+A configured 2% exploration budget is not the probability of choosing each item. Without the actual action probability, importance-weighted evaluation cannot correctly reconstruct the decision.
+
+---
+
+## 7. Explaining it to the business
 
 This comes up, and the answer should be in business terms:
 
@@ -130,12 +125,20 @@ This comes up, and the answer should be in business terms:
 
 ---
 
+## 8. Set safety limits and measure what was learned
+
+Explore only eligible content, with exposure and complaint limits. Measure information gained for uncertain items, their later successful retrieval, and cost to satisfied engagement—not just exploration CTR.
+
+A low slot can reduce disruption but also receives fewer examinations, slowing learning. Choose placement and budget using measured visibility rather than assuming low placement provides cheap unbiased evidence.
+
+---
+
 ## What matters most
 
 - **Exploitation earns today; exploration buys information for tomorrow.**
 - **One mechanism pays for four things:** cold start, breaking feedback loops, estimating position bias, and enabling counterfactual evaluation.
-- **Thompson sampling is the usual default,** exploring in proportion to the chance an item is genuinely best.
+- **Choose the exploration method deliberately.** Thompson sampling uses reward uncertainty; simpler randomization can provide more transparent action probabilities.
 - **Make it contextual.** Explore where the uncertainty actually is, rather than at random.
-- **Budget it around a few percent,** place explored items in lower slots, and avoid high-value sessions.
+- **Set a measured budget with safety limits,** accounting for visibility, learning value, and user cost.
 
 Next topic is **Scale and cost**.

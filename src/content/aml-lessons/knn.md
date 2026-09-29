@@ -73,20 +73,20 @@ Every model suffers from this, but k-NN suffers most, because the neighbourhood 
 
 ### Rule of thumb
 
-So past a few dozen informative dimensions, reduce first (PCA, or a learned embedding) or use a metric suited to the space.
+So past a few dozen informative dimensions, reduce first with **principal component analysis (PCA)** or a learned embedding, or use a metric suited to the space.
 
 ---
 
 ## 5. Making it servable
 
-Brute-force search over millions of rows at 10k QPS is not viable. Options:
+Brute-force search over millions of rows at 10,000 queries per second (QPS) is not viable. Options:
 
 | Technique | What it does | Cost |
 |---|---|---|
 | KD-tree / Ball-tree | Exact search with pruning | Only helps for low d (roughly < 20) |
-| Approximate NN (HNSW, IVF, ScaNN) | Approximate search in sub-linear time | Small recall loss |
+| Approximate nearest-neighbor search (for example, hierarchical navigable small world or HNSW; inverted file index or IVF; and ScaNN) | Approximate search in sub-linear time | Small recall loss |
 | Prototype reduction | Keep a representative subset | Loses rare-region detail |
-| Vector database | Managed ANN index | An extra system to run |
+| Vector database | Managed approximate-nearest-neighbor (ANN) index | An extra system to run |
 
 ### Intuition
 

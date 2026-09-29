@@ -134,4 +134,10 @@ Then slice the metrics: an 88% average can hide 60% on the segment that earns th
 
 Prioritize by frequency × fixability × business impact rather than by what's interesting. And treat confidence bands as a product lever: auto-action the top band, route the middle to review, ignore the bottom - often worth more than a 1% metric gain.
 
+---
+
+## Chapter 5 checkpoint
+
+Take one aggregate score and turn it into an operating decision: choose the threshold, inspect calibration, report uncertainty, evaluate critical slices, and produce a ranked error taxonomy with one concrete next action per major category.
+
 That completes **Chapter 5 — Evaluation in depth**. Next topic is **k-Means clustering**.

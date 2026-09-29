@@ -177,11 +177,11 @@ export const rrpParts: RrpPart[] = [
         keyPoints: [
           "Describe each item by its features, build a profile from the items a user engaged with, then score new items by similarity to that profile.",
           "It handles new items immediately, because an item's features exist before anyone interacts with it.",
-          "It cannot surprise anyone: recommendations stay inside the region the user has already explored.",
+          "It can over-specialize around past interests; multiple interest profiles and deliberate variety broaden discovery.",
           "Quality depends entirely on the item features, so it works best where items carry rich text or structured attributes.",
         ],
         interviewPrompt:
-          "When is content-based filtering the right first system, despite being the weaker method?",
+          "When is content-based filtering a suitable first system, and what limits should you measure?",
         code: "score(user, item) = similarity(profile(user), features(item))",
       },
       {
@@ -191,7 +191,7 @@ export const rrpParts: RrpPart[] = [
           "Use the behavior of similar users, or similar items, instead of any description of the item itself.",
         keyPoints: [
           "User-based: find people who behaved like you, recommend what they liked. Item-based: find items co-consumed with what you liked.",
-          "Item-based is what production systems use, because item-item similarity is stabler over time and precomputable.",
+          "Item-based neighbor lists are often convenient to precompute; their value depends on catalogue stability and serving constraints.",
           "It needs no item features at all, which is its strength, and it fails completely on items nobody has touched.",
           "It is powerful because it discovers relationships no attribute captures - the two products people actually buy together.",
         ],
@@ -233,7 +233,7 @@ export const rrpParts: RrpPart[] = [
         id: "implicit-mf-and-bpr",
         title: "Factorization for implicit feedback",
         summary:
-          "With clicks instead of ratings there are no negative examples, so the training objective has to be redesigned.",
+          "A click-only table contains positives and uncertain missing entries, so the training objective must define how those blanks are treated.",
         keyPoints: [
           "Treating every unobserved cell as a zero is wrong, but ignoring them entirely leaves the model nothing to push down.",
           "Weighted approaches treat unobserved cells as weak negatives with low confidence, and observed ones as strong positives.",
@@ -250,7 +250,7 @@ export const rrpParts: RrpPart[] = [
         summary:
           "A model that learns how pairs of features interact, without needing one weight per pair.",
         keyPoints: [
-          "A plain linear model scores each feature independently and cannot express 'this user likes this category on mobile in the evening'.",
+          "A linear model without crosses cannot directly express a user–category interaction; standard factorization machines learn pairwise terms.",
           "Writing one weight per pair of features is impossible when features are sparse - most pairs are never observed together.",
           "Factorization machines give every feature a short vector and model an interaction as the dot product of two of them, so pairs share information.",
           "This makes them the natural bridge between matrix factorization and general feature-based prediction.",
@@ -308,7 +308,7 @@ export const rrpParts: RrpPart[] = [
         keyPoints: [
           "The towers never see each other's input, which is exactly what makes retrieval possible: item vectors can be computed in advance.",
           "At request time only the user tower runs, then you look up nearby item vectors in a prebuilt index.",
-          "That separation also costs accuracy - the model cannot express anything that needs user and item features together, which is the ranker's job.",
+          "Independent towers cannot consume arbitrary candidate-specific cross inputs, but their dot product still learns user–item compatibility.",
           "Item features in the item tower are what let brand-new items be retrieved before anyone interacts with them.",
         ],
         interviewPrompt:
@@ -336,7 +336,7 @@ export const rrpParts: RrpPart[] = [
         summary:
           "Finding the closest vectors among millions has to be approximate, because checking every one is far too slow.",
         keyPoints: [
-          "Exact search compares the query to every item, which is linear in catalogue size and impossible within a request budget.",
+          "Exact full-vector search scales with catalogue size; use approximation when measured latency or compute exceeds the budget.",
           "Approximate methods trade a small amount of recall for orders of magnitude less work, using graphs or partitions of the space.",
           "The tuning dial is recall against latency, and it should be measured against exact search on a sample.",
           "Index building and index freshness are operational problems: a new item cannot be retrieved until it is in the index.",
@@ -395,7 +395,7 @@ export const rrpParts: RrpPart[] = [
           "Pointwise treats each item as an independent prediction, which is simple and ignores that only relative order matters.",
           "Pairwise learns from comparisons within a list - this item should outrank that one - which matches the task much more closely.",
           "Listwise optimizes a whole-list metric directly and is the most faithful, at the cost of complexity.",
-          "Pointwise still dominates in practice because the calibrated score it produces is needed elsewhere, such as in an auction.",
+          "Pointwise probability estimation is useful when downstream logic needs probabilities, but calibration still needs validation.",
         ],
         interviewPrompt:
           "Why do so many production rankers stay pointwise when pairwise matches the objective better?",
@@ -526,7 +526,7 @@ export const rrpParts: RrpPart[] = [
           "Training naively on clicks teaches the model to reproduce wherever the old system happened to place things.",
           "The usual model separates being examined from being relevant: a click needs both, and position drives only the first.",
           "Estimating the position effect needs some randomization, or a comparison of the same item shown at different ranks.",
-          "Correcting for it means weighting each example by how likely it was to be seen at all.",
+          "A bias-aware click objective can weight clicks by inverse examination probability; position-aware models are another assumption-dependent approach.",
         ],
         interviewPrompt:
           "How would you measure how much of your click rate is position and how much is relevance?",
@@ -545,7 +545,7 @@ export const rrpParts: RrpPart[] = [
         ],
         interviewPrompt:
           "What must the serving system log today for counterfactual evaluation to be possible next quarter?",
-        code: "log the score, the slate, AND the probability each item was shown",
+        code: "log context, chosen action, action probability, reward, and policy version",
       },
       {
         id: "ab-testing",
@@ -554,7 +554,7 @@ export const rrpParts: RrpPart[] = [
           "The only measurement that settles the question is running both systems on real traffic and comparing what people do.",
         keyPoints: [
           "Randomize by user, not by request, or the same person sees both systems and the comparison is contaminated.",
-          "Run long enough to pass the novelty effect, where any change lifts engagement briefly just by being different.",
+          "Plan duration around statistical power, usage cycles, label maturity, and possible novelty or carryover effects.",
           "Declare the primary metric and the guardrails before starting, so a win on one and a loss on another has a rule.",
           "Interleaving mixes two rankers' results in one list and is far more sensitive, at the cost of only comparing rankings.",
         ],
@@ -657,11 +657,11 @@ export const rrpParts: RrpPart[] = [
           "Item catalogues turn over continuously, so embeddings for ids need regular refreshing or new items stay invisible.",
           "Daily or continuous retraining is normal here, which is unusual compared with other ML domains.",
           "Watch input distributions and the flag-rate equivalents - click rate, coverage, score distribution - because quality signals arrive late.",
-          "Re-tune any threshold or blending weight after a retrain, because the score distribution moves.",
+          "Validate calibration, thresholds, and blend weights before promoting a retrained model; keep a compatible rollback bundle.",
         ],
         interviewPrompt:
           "Why do recommender systems retrain far more often than a typical classifier, and what breaks if they do not?",
-        code: "new items daily → stale embeddings → invisible inventory",
+        code: "new items → encode from features where possible → publish compatible vectors and index",
       },
       {
         id: "exploration",
@@ -727,7 +727,7 @@ export const rrpParts: RrpPart[] = [
         keyPoints: [
           "Two sides to it: users receiving relevant results, and items or sellers getting a fair chance at exposure.",
           "Popularity bias concentrates attention on a few items unless something actively counteracts it.",
-          "Some categories are legally constrained - housing, credit, employment - and restrict what may be used for targeting.",
+          "Determine current jurisdiction- and surface-specific requirements with the responsible policy and legal teams; audit decisions as well as inputs.",
           "Policy filtering belongs late in the funnel, applied as a hard rule rather than as a weight in a score.",
         ],
         interviewPrompt:

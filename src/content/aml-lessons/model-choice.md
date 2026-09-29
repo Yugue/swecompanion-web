@@ -10,8 +10,8 @@ The best model is the one that satisfies **accuracy, latency, data, and explaina
 |---|---|---|
 | Tabular, < a few million rows | Gradient-boosted trees | Handles mixed types, interactions, missing values; usually beats deep models here |
 | Tabular, very small (< 1k rows) | Regularized linear / logistic | Not enough data to support a flexible model |
-| Text | Pretrained transformer, or TF-IDF + linear as the baseline | Transfer learning dominates; the linear baseline is genuinely competitive on simple tasks |
-| Images, audio | Pretrained CNN / transformer, fine-tuned | The inductive bias and the transfer both matter |
+| Text | Pretrained transformer, or term frequency-inverse document frequency (TF-IDF) + linear as the baseline | Transfer learning dominates; the linear baseline is genuinely competitive on simple tasks |
+| Images, audio | Pretrained convolutional neural network (CNN) / transformer, fine-tuned | The inductive bias and the transfer both matter |
 | Sequences / time series | Gradient boosting on lag features, or a sequence model | Lag features plus trees are a strong, underrated baseline |
 | Graphs | Graph models, or hand-engineered graph features + trees | Features + trees first; graph networks when structure is central |
 
@@ -29,7 +29,7 @@ Accuracy is one axis out of six:
 
 | Constraint | Question | Effect |
 |---|---|---|
-| Latency | What is the p99 budget per request? | Rules out large models and expensive features |
+| Latency | What is the 99th-percentile (p99) budget—the time that 99% of requests finish within? | Rules out large models and expensive features |
 | Data volume | How many labelled rows, really? | Small data pushes toward simpler models |
 | Explainability | Must a decision be justified to a user or regulator? | Pushes to linear models, shallow trees, or monotonic GBMs |
 | Training cost | How often must it be retrained, on what hardware? | Sequential/deep models cost more per cycle |
@@ -55,14 +55,14 @@ Feature retrieval usually dominates. A smaller model rarely fixes a latency prob
 
 Levers when you are over budget: fewer or cheaper features, precomputed embeddings, a smaller model, quantization or distillation, caching hot predictions, or moving part of the work to a batch job.
 
-**Explainability is a hard constraint, not a preference.** In credit, insurance, hiring, and healthcare, "the model said so" is not an acceptable answer, and a required explanation can outrank a point of AUC. Options in decreasing order of transparency: linear/logistic with monotonic constraints, shallow trees, monotone-constrained GBMs, and finally a black box with SHAP - which is an approximation, and worth saying so.
+**Explainability is a hard constraint, not a preference.** In credit, insurance, hiring, and healthcare, "the model said so" is not an acceptable answer, and a required explanation can outrank a point of **area under the receiver operating characteristic curve (ROC-AUC)**. Options in decreasing order of transparency are linear or logistic models with monotonic constraints, shallow trees, monotone-constrained gradient-boosted machines (GBMs), and finally a black box explained with **SHapley Additive exPlanations (SHAP)**—an approximation of model behavior.
 
 ---
 
 ## 4. Data volume as a filter
 
 ```text
-< 1k rows      → linear/logistic, heavy regularization, careful CV; question the project
+< 1k rows      → linear/logistic, heavy regularization, careful cross-validation (CV); question the project
 1k-100k        → gradient-boosted trees, tuned
 100k-10M       → gradient boosting; deep learning only for text/image/audio
 > 10M          → deep learning becomes competitive even on tabular; distributed training matters

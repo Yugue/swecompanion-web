@@ -62,7 +62,7 @@ Notice the shape: a sum of per-feature weights plus a class prior - a **linear m
 
 | Variant | Feature type | Typical use |
 |---|---|---|
-| Multinomial NB | Counts | Word counts / TF-IDF for text |
+| Multinomial Naive Bayes (NB) | Counts | Word counts or term frequency-inverse document frequency (TF-IDF) for text |
 | Bernoulli NB | Binary presence | Short text, binary indicators |
 | Gaussian NB | Continuous | Numeric features, assumes a Gaussian per feature per class |
 

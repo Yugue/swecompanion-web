@@ -18,38 +18,39 @@ A tree splits on thresholds, which is meaningless for an id - there is no useful
 
 ### Core intuition
 
-Embedding is the answer: give each id a short learned vector, exactly as in Chapter 3, and let the network work with those. **This is the main thing neural rankers do that trees cannot.**
+An **embedding** solves this problem by giving each identifier a short learned vector that the network can process. A tree can consume pretrained embeddings, but does not learn those vectors end-to-end by itself.
 
 ---
 
-## 2. The interaction problem
+## 2. Memorize known crosses and generalize to new ones
 
-A plain stack of layers can learn feature interactions in principle, and does it inefficiently in practice. So production architectures add explicit crossing:
+A **wide-and-deep model** combines a linear component over selected feature crosses with a neural component over embeddings and numeric features. Their outputs contribute to the final score.
 
-```text
-memorize + generalize
-   a wide linear part learns specific observed combinations
-   a deep part learns smooth patterns that transfer to unseen combinations
-   → the two are summed
-
-explicit cross layers
-   each layer multiplies the input by itself in a controlled way,
-   so degree-2, degree-3 interactions are built rather than hoped for
-
-attention over the user's history
-   weight past items by relevance to the candidate being scored
-   → "you watched three Italian recipes" matters more when scoring a pasta video
-```
-
-That last one matters enough to get its own lesson next.
+The wide part can memorize a useful repeated combination, such as a particular region and category. The deep part shares patterns across related inputs, including combinations with little direct evidence. Compare this blend with a plain neural baseline; extra components add maintenance as well as capacity.
 
 ---
 
-## 3. The shape of a typical ranker
+## 3. Build interactions with cross layers
+
+A **cross layer** constructs interactions between input features rather than relying entirely on ordinary hidden layers to discover them. Stacking layers can represent higher-order combinations.
+
+For example, price may matter differently for different user spending profiles. A cross can express that relationship instead of treating price and spending as unrelated contributions. The crossing scheme controls capacity and computation, so deeper is not automatically better.
+
+---
+
+## 4. Select relevant history with attention
+
+**Candidate-conditioned attention** gives more weight to past actions relevant to the item currently being scored. A pasta candidate can emphasize earlier cooking videos; a car candidate can emphasize car reviews from the same history.
+
+This creates a candidate-specific user summary rather than one average for every item. It is useful when histories contain several interests, but adds work per candidate. Start with simple history summaries and keep attention only if its measured gain earns that cost.
+
+---
+
+## 5. The shape of a typical ranker
 
 ```text
 sparse ids ──► embeddings ──┐
-                            ├──► concatenate ──► cross layers ──► MLP ──► score(s)
+                            ├──► concatenate ──► cross layers ──► multilayer perceptron (MLP) ──► score(s)
 dense features ─────────────┘
 ```
 
@@ -59,7 +60,7 @@ Everything else - which crossing scheme, how deep, how wide - is tuning around t
 
 ---
 
-## 4. Trees are still competitive, and here is when
+## 6. Trees are still competitive, and here is when
 
 | Reach for trees | Reach for a neural ranker |
 |---|---|
@@ -75,7 +76,15 @@ Everything else - which crossing scheme, how deep, how wide - is tuning around t
 
 ---
 
-## 5. What it costs
+## 7. Train identifier representations for the long tail
+
+Rare identifiers have little evidence for learning a reliable embedding. Define an unknown-ID vector, regularize embeddings, and include content or aggregate features so cold items do not depend entirely on an untrained entry.
+
+Monitor common and rare IDs separately. A larger embedding table may help frequent entities while overfitting the tail.
+
+---
+
+## 8. What it costs
 
 ```text
 model size    embedding tables dominate - often >95% of parameters
@@ -87,14 +96,22 @@ staleness     ids for new items have untrained vectors until retrained
 
 ### Common issue
 
-The embedding tables, not the network, are the engineering problem. Chapter 6 covers hashing, pruning, and quantization as the standard responses.
+The embedding tables, not the network, are often the engineering problem. Common ways to shrink them include hashing identifiers into shared buckets, pruning rarely used entries, and quantizing each number to fewer bits.
+
+---
+
+## 9. Earn complexity with a controlled comparison
+
+Start with a strong linear or tree baseline and add one architectural change at a time. Compare held-out list quality, calibration when needed, memory, and tail latency under realistic traffic.
+
+Batch candidate scoring to reduce overhead. The best offline model is not the best serving model if its feature access and computation cannot meet the request deadline.
 
 ---
 
 ## What matters most
 
 - **Neural rankers exist to handle huge sparse ids and to learn interactions** - not because they are inherently better.
-- **Embedding ids is the thing trees genuinely cannot do,** and it is usually the deciding factor.
+- **Learning identifier embeddings is a core neural capability,** and it is usually the deciding factor.
 - **A plain MLP learns crosses inefficiently,** which is why production architectures add explicit crossing or a memorize-plus-generalize split.
 - **Gradient-boosted trees remain strong on dense tabular features,** so the neural model has to earn its cost.
 - **Embedding tables dominate size and memory,** and are the real engineering constraint.

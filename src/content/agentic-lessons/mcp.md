@@ -76,7 +76,28 @@ Controls worth naming:
 
 > Connecting a tool server is installing a dependency that can also write into your prompt.
 
-**Namespace collisions.** Two servers can both expose `search`. The model then picks between identically named tools by description alone. Namespace them (`github.search`, `drive.search`) and keep the combined catalogue small - the selection problem is covered next.
+---
+
+## 5. Avoid namespace and catalogue collisions
+
+Two servers can both expose `search`. The model then picks between identically named tools by description alone. Namespace them (`github.search`, `drive.search`) and expose only the servers relevant to the current task.
+
+A protocol solves connectivity, not tool selection. Combining ten well-designed servers can still create a confusing catalogue of overlapping operations.
+
+---
+
+## 6. Know when a protocol is worth it
+
+| Situation | Better choice |
+|---|---|
+| One agent and one stable internal API | A direct tool wrapper is simpler |
+| Several clients need the same integration | A shared tool server avoids repeated adapters |
+| Tools must be discovered or updated independently | Runtime protocol discovery is useful |
+| The integration holds broad credentials or changes often | Use a tightly reviewed wrapper or do not connect it |
+
+### Rule of thumb
+
+Use a protocol to standardize a reused boundary, not merely to add another layer around one private function.
 
 ---
 
@@ -87,5 +108,6 @@ Controls worth naming:
 - **Runtime discovery is the convenience and the risk.** A third party can change what your agent can do between one run and the next.
 - **A tool server writes text into your prompt** through descriptions and results, so it is an injection channel as well as a dependency - treat both as untrusted data.
 - **Controls worth naming:** pin and diff server versions, scope credentials per server, allowlist which servers may connect in production, and namespace tools so two `search` tools cannot collide.
+- **The protocol standardizes connectivity, not judgment.** You still need catalogue filtering, authorization, compatibility checks, and a reason to reuse the boundary.
 
 Next topic is **Tool selection at scale**.

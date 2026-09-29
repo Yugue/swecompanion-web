@@ -124,6 +124,22 @@ Nothing is lost, the window is freed, and the agent can re-read the file if a la
 
 ---
 
+## 7. Validate the compacted state
+
+Compaction is a state transition, so check it before discarding the old window:
+
+```text
+all pinned constraints copied exactly
+all open tasks still present
+all referenced artifacts and identifiers resolvable
+no completed task returned to "open"
+summary stays within its token budget
+```
+
+Keep the original transcript in durable storage even after the active window replaces it. If validation fails, retry compaction from the original rather than summarizing the faulty summary again.
+
+---
+
 ## What matters most
 
 - **Compact on a threshold, around 70-80%,** not at overflow - you need headroom for the summarization call itself and the next observation.
@@ -131,5 +147,6 @@ Nothing is lost, the window is freed, and the agent can re-read the file if a la
 - **Use a structured summary, not prose:** goal, constraints, decisions, artifacts, failed attempts, open questions. Prose loses exactly what agents need most.
 - **Compaction compounds,** so pin the constraint block and compact from the original transcript rather than from the last summary.
 - **Externalizing usually beats compressing.** Write the artifact to a file and keep a path plus a three-line abstract - nothing is lost at all.
+- **Validate compaction before using it as state,** and retain the original transcript so a bad summary is recoverable.
 
 Next topic is **State and session management**.

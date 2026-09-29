@@ -70,7 +70,27 @@ Two failure modes make the cap non-negotiable:
 
 Empirically the first reflection round captures most of the gain; the third is usually noise.
 
-**What it does not fix.** Reflection cannot supply missing knowledge. If the agent doesn't know the refund window is 30 days, no amount of self-critique will discover it - only retrieval will. Diagnose first: is this a **knowledge** gap (retrieve), a **computation** gap (code tool), or a **care** gap (reflection)?
+---
+
+## 5. Know what reflection cannot fix
+
+Reflection cannot supply missing knowledge. If the agent does not know the refund window is 30 days, no amount of self-critique will discover it—only retrieval will. Diagnose first: is this a **knowledge** gap (retrieve), a **computation** gap (use a code tool), or a **care** gap (reflect against known criteria)?
+
+---
+
+## 6. Use reflection only when revision is possible
+
+Reflection is useful before a reversible artifact is finalized: code before merge, a report before delivery, or a plan before execution. It is much less useful after an irreversible action has already happened.
+
+```text
+artifact can be revised + evidence exists   → reflect
+missing fact or missing tool                → retrieve or add capability
+action already happened                     → detect, contain, and recover
+```
+
+### Rule of thumb
+
+Do not insert a critic by default. Add one where it can see new evidence and still change the outcome.
 
 ---
 
@@ -82,5 +102,6 @@ Empirically the first reflection round captures most of the gain; the third is u
 - **Withhold the actor's reasoning from the critic,** or it grades the argument instead of the artifact.
 - **Cap it at one or two rounds.** The first captures most of the gain; later rounds oscillate or polish an already-acceptable answer.
 - **It cannot supply missing knowledge.** Diagnose first: a knowledge gap needs retrieval, a computation gap needs a code tool, only a care gap needs reflection.
+- **Reflection must happen while revision is still useful.** After an irreversible action, recovery matters more than critique.
 
 Next topic is **Sampling and search over actions**.

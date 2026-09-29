@@ -2,6 +2,8 @@
 
 **"Design the home feed for a video app" is an open prompt,** and the interviewer is watching how you structure one rather than waiting for a specific architecture.
 
+This lesson is self-contained synthesis: it defines the objective, retrieval, ranking, re-ranking, evaluation, and serving components while assembling them into one end-to-end answer.
+
 ---
 
 ## 1. The skeleton
@@ -21,9 +23,9 @@ Steps 6 to 8 are what separate someone who has shipped one of these from someone
 
 ---
 
-## 2. Worked example: the home feed for a video app
+## 2. Home-feed example: goal and metric
 
-**Step 1 — Goal and metric.** Before any model, say what decision is made and what success means. The metric has two halves and candidates usually give only the first.
+Before any model, say what decision is made and what success means. The metric has two halves and candidates usually give only the first.
 
 ```text
 primary     satisfied watch time per user per week
@@ -31,11 +33,11 @@ guardrails  complaint rate, new-creator impression share, p95 latency
             ↑ things you refuse to lose, whatever the primary does
 ```
 
-Naming guardrails out loud is the clearest signal you have shipped one of these, because guardrails only ever get invented after something went wrong.
+A guardrail is a predefined limit on an outcome the launch must not worsen beyond an agreed threshold. p95 is the latency within which 95% of requests finish.
 
 ---
 
-**Step 2 — The training row and the label.**
+## 3. Home-feed example: the training row and the label
 
 ```text
 one row  = one impression
@@ -43,27 +45,29 @@ one row  = one impression
 labels   = click (seconds), watch fraction (minutes), like, hide (minutes)
 ```
 
-Two details do real work. **Features as served** - not recomputed later from the warehouse - is what prevents train/serve skew. **Position and propensity** cost nothing to log today and are the only thing that makes position-bias correction and counterfactual evaluation possible next quarter.
+Two details do real work. **Features as served** means recording the exact inputs the deployed model used rather than recomputing them from future data. This helps avoid training-serving skew: a mismatch between training and deployed inputs. **Position** records placement. A **propensity** records the serving policy's probability of choosing the action; it must come from the actual selection policy, not from a relevance score. Correct action probabilities make later off-policy evaluation possible where the logged policy provides coverage.
 
 Label timing sets the cadence: clicks arrive in seconds, so daily retraining is feasible.
 
 ---
 
-**Step 3 — Retrieval.** ~800 candidates from five sources, each capped, deduplicated, and tagged with its provenance:
+## 4. Home-feed example: retrieval
+
+Retrieve about 800 candidates from five sources, each capped, deduplicated, and tagged with its provenance:
 
 ```text
-two-tower embedding index    semantic match, plus new videos via item features
+two-tower embedding index    jointly trained user/item vectors; new videos via features
 item-item co-occurrence      "people who watched this also watched"
 subscriptions and history    the obvious next thing
 trending in region           today's events, which no trained model has seen
 fresh-content pool           guarantees new uploads get a chance
 ```
 
-Measure it on its own - recall@800 against what users eventually watched. If the right video was never a candidate, nothing downstream can recover it.
+Measure it on its own: recall@800 is the fraction of held-out watched items found among the 800 candidates. If the right video was never a candidate, nothing downstream can recover it.
 
 ---
 
-**Step 4 — Ranking.**
+## 5. Home-feed example: ranking
 
 ```text
 multi-task model over shared embeddings
@@ -79,11 +83,15 @@ features
 score = w₁·click + w₂·watch + w₃·like − w₄·hide
 ```
 
-That negative term is not decoration. Without it, optimization finds clickbait - reliably, and quickly.
+Each **head** predicts one outcome from a shared representation. P denotes probability and E denotes an expected value. Cross features describe user–item relationships; session attention emphasizes relevant recent actions.
+
+The negative term discourages items predicted to cause hides. Validate all heads and their scales, and set serving weights as an explicit product trade-off rather than assuming click optimization alone captures satisfaction.
 
 ---
 
-**Step 5 — Re-ranking**, where the whole list finally exists:
+## 6. Home-feed example: re-ranking
+
+Re-ranking selects a coherent final list rather than judging each candidate alone:
 
 ```text
 cap per creator        no single channel owning the page
@@ -95,20 +103,22 @@ one exploration slot   placed low, where attention is cheapest
 
 ---
 
-**Step 6 — Evaluation.**
+## 7. Home-feed example: evaluation
 
 ```text
 offline   chronological split, position-bias corrected,
           quoted against popularity-in-region,
           sliced by new users and new creators
-online    user-randomized A/B, run past the novelty effect,
+online    user-randomized A/B test (control A versus candidate B), run past the novelty effect,
           primary metric and guardrails pre-registered
 long-run  a holdback on a fixed policy, for the retention question
 ```
 
 ---
 
-**Step 7 — Cost and latency.** Do the arithmetic out loud; it is what turns the funnel's shape into a decision rather than a default.
+## 8. Home-feed example: cost and latency
+
+Do the arithmetic out loud; it is what turns the funnel's shape into a decision rather than a default.
 
 ```text
 800 candidates × 10,000 req/sec = 8,000,000 scores/sec
@@ -116,12 +126,14 @@ long-run  a holdback on a fixed policy, for the retention question
      and precomputed slates for the heaviest users
 
 50ms budget:  retrieve 10 · fetch features 15 · score 15 · re-rank 5 · slack 5
-              ↑ feature fetching, not inference, is the biggest slice
+              ↑ feature fetching and inference tie here; measure the actual bottleneck
 ```
 
 ---
 
-**Step 8 — Failure modes.** Name the one you actually expect, and what catches it.
+## 9. Home-feed example: failure modes
+
+Name the failure you actually expect, and what catches it.
 
 ```text
 most likely    new creators never get impressions → supply leaves
@@ -131,12 +143,12 @@ addressed by   the fresh-content retrieval source and the exploration slot
 
 ---
 
-## 3. Where candidates lose points
+## 10. Where candidates lose points
 
 ```text
 ✗  naming a model architecture before naming the metric
 ✗  no training row, no label, no label timing
-✗  one retrieval source, or no retrieval stage at all
+✗  no justification for the chosen candidate strategy and budget
 ✗  optimizing clicks with no negative objective
 ✗  no cost or latency arithmetic anywhere
 ✗  evaluation mentioned last, in one sentence, if at all
@@ -149,7 +161,7 @@ addressed by   the fresh-content retrieval source and the exploration slot
 
 ---
 
-## 4. Adapting to the surface
+## 11. Adapting to the surface
 
 The skeleton holds; the emphasis moves:
 

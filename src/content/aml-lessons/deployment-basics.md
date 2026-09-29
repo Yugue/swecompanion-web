@@ -55,7 +55,8 @@ Precompute the expensive part, do something cheap at request time. This is how r
 The classic production bug: the same feature, computed two different ways.
 
 ```text
-training  : "avg order value, 30d"  computed in SQL, UTC days, nulls → 0
+training  : "avg order value, 30d"  computed with Structured Query Language (SQL),
+                                      Coordinated Universal Time (UTC) days, nulls → 0
 serving   : "avg order value, 30d"  computed in Java, local time, nulls → skipped
 ```
 

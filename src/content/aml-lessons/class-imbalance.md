@@ -16,7 +16,7 @@ A dataset with a 0.1% positive rate gives 99.9% accuracy to a model that always 
 
 ### Rule of thumb
 
-So the first move on any imbalanced problem is to **quote the majority-class baseline** and switch to metrics that ignore the sea of true negatives: precision, recall, F-beta, and PR-AUC (see **ROC-AUC, PR-AUC, and thresholds**).
+So the first move on any imbalanced problem is to **quote the majority-class baseline** and switch to metrics that ignore the sea of true negatives: precision, recall, F-beta, and precision-recall area under the curve (PR-AUC).
 
 ---
 
@@ -54,7 +54,7 @@ That is the whole problem in one table - and it also shows why the first move is
 
 ### Common issue
 
-Candidates often jump straight to SMOTE. The stronger answer starts with the threshold, because a well-trained probabilistic model plus a cost-aware threshold solves a large share of imbalance problems by itself.
+Candidates often jump straight to Synthetic Minority Over-sampling Technique (SMOTE), which creates minority examples by interpolating between nearby minority points. The stronger answer starts with the threshold, because a well-trained probabilistic model plus a cost-aware threshold solves a large share of imbalance problems by itself.
 
 ---
 

@@ -49,7 +49,7 @@ vs a HARD negative
    → this is the distinction that actually decides the ranking
 ```
 
-Only the third teaches anything the ranker could not already work out. But notice the risk in it too: if u_8812 simply never *saw* the ragu video, you have just taught the model that a perfectly good recommendation is wrong.
+These examples illustrate different distinctions; which source adds useful training signal depends on the task. But notice the risk in it too: if u_8812 simply never *saw* the ragu video, you have just taught the model that a perfectly good recommendation is wrong.
 
 ### Core intuition
 
@@ -62,7 +62,7 @@ That is the tension in one example - hard negatives carry the most signal and th
 **Random negatives** - sample uniformly from the catalogue.
 
 ```text
-+  unbiased, trivial to implement
++  uniform over the chosen catalogue, trivial to implement
 −  almost always wildly irrelevant, so the model learns only coarse distinctions
    → great offline recall, disappointing live candidates
 ```
@@ -101,11 +101,19 @@ popular items get pushed out of retrieval
 
 ### Rule of thumb
 
-The fix is to adjust each item's score by how likely it was to be sampled - subtracting a term based on its sampling frequency, commonly called a logQ correction. Without it, in-batch training systematically punishes exactly the items most people want.
+The fix is to adjust each item's score by how likely it was to be sampled. If **Q(item)** is the negative-sampling probability, a **logQ correction** subtracts a term based on \(\log Q(item)\). Without it, in-batch training systematically punishes exactly the items most people want.
 
 ---
 
-## 5. The practical recipe
+## 5. Avoid false negatives and duplicate positives
+
+A **false negative** is an item labeled as negative that the user actually likes. Remove known positives from each user's negative pool and mask duplicate positive items reused within a batch.
+
+Unknown items remain uncertain even after this cleanup. Mix negative sources and monitor new-item and long-tail performance instead of assuming every unclicked candidate is a rejection.
+
+---
+
+## 6. The practical recipe
 
 ```text
 mostly in-batch negatives       (cheap, scalable)
@@ -120,7 +128,7 @@ Hard negatives are usually mined from the model's own current top results - item
 
 ---
 
-## 6. The failure this explains
+## 7. The failure this explains
 
 ```text
 offline recall@500 is excellent
@@ -130,6 +138,14 @@ live candidates are strange
 A very common cause: the model only ever practised against easy negatives, so it can separate cooking from car repair but cannot separate a good cooking video from a poor one. Offline evaluation scores it against a similarly easy set and agrees with itself.
 
 The fix is in the training data, not the architecture.
+
+---
+
+## 8. Evaluate against realistic competition
+
+A model can look excellent when the evaluation pool contains one positive and 99 obviously unrelated items. That score does not establish recall against a million-item catalogue.
+
+Use full-catalogue retrieval where feasible, or a documented realistic candidate set. Keep the evaluation negative pool fixed across models and report how it was constructed.
 
 ---
 

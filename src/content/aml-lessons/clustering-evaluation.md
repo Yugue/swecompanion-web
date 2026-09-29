@@ -58,7 +58,7 @@ Unlike inertia, the silhouette score is comparable across values of k, so you ca
 | Calinski-Harabasz | between-cluster vs within-cluster dispersion | higher better |
 | Davies-Bouldin | average similarity of each cluster to its most similar one | lower better |
 | Gap statistic | compare inertia to what uniform random data would give | larger gap better |
-| BIC / AIC (GMM only) | likelihood penalized by parameter count | lower better |
+| Bayesian information criterion (BIC) / Akaike information criterion (AIC), for Gaussian mixture models | likelihood penalized by parameter count | lower better |
 
 ### Common issue
 
@@ -71,7 +71,7 @@ They frequently disagree. Treat agreement across several as weak confirmation, n
 Run the clustering on bootstrap samples or random 80% subsets and check whether the same points keep landing together (measured with the adjusted Rand index between runs):
 
 ```text
-k = 3 → ARI across resamples ≈ 0.86   ← stable, reproducible structure
+k = 3 → adjusted Rand index (ARI) across resamples ≈ 0.86   ← stable, reproducible structure
 k = 7 → ARI across resamples ≈ 0.31   ← the algorithm is inventing splits
 ```
 

@@ -8,6 +8,11 @@ These metrics differ mainly in **how harshly they punish the big misses**, and w
 
 ## 1. The core four
 
+- **Mean absolute error (MAE)** averages the absolute size of each error.
+- **Mean squared error (MSE)** averages squared errors, so large misses count much more.
+- **Root mean squared error (RMSE)** takes the square root of MSE to return to the target's units.
+- **R-squared (R²)** compares the model with the baseline of always predicting the target mean.
+
 \[
 \text{MAE} = \frac{1}{n}\sum_i \lvert \hat y_i - y_i\rvert
 \qquad
@@ -67,6 +72,8 @@ R² = 0.9 on a low-variance slice can be worse in absolute terms than R² = 0.6 
 
 ## 4. Percentage errors
 
+**Mean absolute percentage error (MAPE)** averages the absolute percentage error:
+
 \[
 \text{MAPE} = \frac{100}{n}\sum_i \left\lvert\frac{y_i-\hat y_i}{y_i}\right\rvert
 \]
@@ -83,13 +90,13 @@ ASYMMETRIC — over-prediction can exceed 100% error, under-prediction is capped
 meaningless for targets that can be negative
 ```
 
-That asymmetry biases predictions **low**. WAPE — total absolute error over total actuals — is the usual fix in forecasting.
+That asymmetry biases predictions **low**. **Weighted absolute percentage error (WAPE)**—total absolute error divided by total actuals—is the usual fix in forecasting.
 
 ---
 
 ## 5. Skewed targets
 
-When y spans orders of magnitude — prices, view counts, revenue — absolute error is dominated by the largest values.
+When y spans orders of magnitude—prices, view counts, revenue—absolute error is dominated by the largest values. **Root mean squared logarithmic error (RMSLE)** measures error after applying `log(1 + value)`, so it focuses on ratios rather than raw distance.
 
 \[
 \text{RMSLE} = \sqrt{\frac{1}{n}\sum_i \big(\log(1+\hat y_i) - \log(1+y_i)\big)^2}
@@ -97,7 +104,7 @@ When y spans orders of magnitude — prices, view counts, revenue — absolute e
 
 ### Intuition
 
-This measures **ratio** error: being off by 2× costs the same whether the truth is 10 or 10,000 — which is usually how the error is actually experienced.
+Being off by 2× costs roughly the same whether the truth is 10 or 10,000—which is often how the error is actually experienced.
 
 ---
 
@@ -106,7 +113,7 @@ This measures **ratio** error: being off by 2× costs the same whether the truth
 Most business regression is asymmetric:
 
 ```text
-an ETA 10 minutes late is far worse than 10 minutes early
+an estimated time of arrival (ETA) 10 minutes late is far worse than 10 minutes early
 under-stocking loses a sale; over-stocking ties up capital
 under-predicting server load causes an outage
 ```

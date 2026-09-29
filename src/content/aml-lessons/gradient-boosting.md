@@ -116,7 +116,7 @@ Saying this cleanly - *bagging attacks variance, boosting attacks bias* - is one
 | LightGBM | Histogram binning and leaf-wise growth - much faster on large data |
 | CatBoost | Ordered boosting and native categorical handling, resistant to target leakage |
 
-All three add: row and column subsampling (stochastic boosting, which also decorrelates), L1/L2 penalties on leaf weights, and native missing-value handling.
+All three add row and column subsampling (stochastic boosting, which also decorrelates), L1 penalties on absolute leaf weights, L2 penalties on squared leaf weights, and native missing-value handling.
 
 Key hyperparameters worth naming: `learning_rate`, `n_estimators` (with early stopping), `max_depth` or `num_leaves`, `min_child_weight`/`min_samples_leaf`, `subsample`, `colsample_bytree`, and the regularization terms.
 
@@ -124,7 +124,7 @@ Key hyperparameters worth naming: `learning_rate`, `n_estimators` (with early st
 
 ## 7. Strengths and limits
 
-**Strengths**: state of the art on tabular problems; handles mixed types, missing values, and nonlinear interactions; supports many losses; feature importance and SHAP come easily.
+**Strengths**: state of the art on tabular problems; handles mixed types, missing values, and nonlinear interactions; supports many losses; feature importance and SHapley Additive exPlanations (SHAP) come easily.
 
 **Limits**:
 
@@ -147,5 +147,11 @@ Key hyperparameters worth naming: `learning_rate`, `n_estimators` (with early st
 - **Bagging attacks variance; boosting attacks bias.** That is also why extra trees can *overfit* here but cannot in a forest.
 - **It is sensitive to label noise,** because it keeps concentrating on the examples it gets wrong - and mislabelled rows are exactly those.
 - **XGBoost, LightGBM, and CatBoost** add regularized objectives, subsampling, and native missing-value or categorical handling. On tabular data under a few million rows it is the model to beat.
+
+---
+
+## Chapter 3 checkpoint
+
+Choose an algorithm for three contrasting datasets and justify each choice using data size, dimensionality, linearity, feature type, interpretability, training cost, and inference cost. Name the simplest baseline each model must beat.
 
 That completes **Chapter 3 — Core supervised algorithms**. Next topic is **Loss functions for classical models**.

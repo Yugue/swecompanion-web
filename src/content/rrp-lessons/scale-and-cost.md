@@ -2,6 +2,8 @@
 
 **These are among the most expensive systems a company runs,** and the cost drivers are specific enough to name precisely.
 
+The **serving path** is the online sequence from request through retrieval, ranking, and response. This lesson performs the capacity arithmetic across its requests, candidates, embeddings, indexes, feature reads, and retraining jobs.
+
 ---
 
 ## 1. Where the money actually goes
@@ -15,7 +17,7 @@ scoring               candidates × requests × model cost
                       500 × 10,000/sec = 5,000,000 scores per second
 
 feature serving       a lookup per candidate per feature
-ANN index             memory-resident, rebuilt regularly
+approximate-nearest-neighbor (ANN) index   memory-resident, rebuilt regularly
 training              distributed, with sharded embedding tables
 ```
 
@@ -68,7 +70,15 @@ Frequency pruning usually gives the best ratio, because id distributions have en
 
 ---
 
-## 4. Precompute versus serve live
+## 4. Memory includes more than the stored vectors
+
+Ten million 128-dimensional float32 item vectors require `10,000,000 × 128 × 4 ≈ 5.12 GB` before index metadata. Replicas, caches, temporary rebuild copies, and training optimizer state add to that footprint.
+
+Estimate peak memory while old and new indexes coexist, not just steady-state storage. A build that fits on disk can still fail during a rolling update.
+
+---
+
+## 5. Precompute versus serve live
 
 ```text
 heavy users     compute their whole slate offline → serve a lookup
@@ -85,13 +95,21 @@ Because usage distributions are so concentrated, precomputing for the head often
 
 ---
 
-## 5. The cost conversation in an interview
+## 6. Provision for peaks, not theoretical saturation
+
+The CPU-core estimate above assumes perfect utilization and no other work. Add headroom for traffic bursts, failures, queueing, feature access, and uneven shard load.
+
+Measure throughput and tail latency with realistic batch sizes and hot-item distributions. Keep quality, latency, and infrastructure spend on the same comparison so a saving does not silently buy an unacceptable recommendation loss.
+
+---
+
+## 7. The cost conversation in an interview
 
 Be able to do rough arithmetic out loud:
 
 ```text
 10,000 requests/sec × 500 candidates = 5M scores/sec
-at 100 μs of CPU per score → 500 CPU-seconds per second → ~500 cores just for ranking
+at 100 μs of central-processing-unit (CPU) time per score → 500 CPU-seconds per second → ~500 cores just for ranking
                              ↓
 cut candidates to 250   →  250 cores
 cache 40% of requests   →  150 cores
@@ -108,5 +126,11 @@ Doing that in the room is worth more than naming another architecture. It also s
 - **Frequency pruning beats other table-shrinking tricks,** because most ids are too rare to support a fitted vector.
 - **Precompute for the heavy head of the distribution,** which removes much of the live traffic.
 - **Do the arithmetic out loud in an interview** - the funnel's shape is an economic decision.
+
+---
+
+## Chapter 6 checkpoint
+
+Work backwards from traffic, catalogue size, latency, availability, and cost targets. State per-stage budgets, feature freshness, caches, fallbacks, index refresh, logging, retraining trigger, exploration allocation, and the arithmetic behind the bottleneck.
 
 That completes **Chapter 6 — Production systems**. Next topic is **Connecting the model to the business**.

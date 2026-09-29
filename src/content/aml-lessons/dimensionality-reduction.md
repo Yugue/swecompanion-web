@@ -1,4 +1,4 @@
-## Dimensionality reduction and PCA
+## Dimensionality reduction and principal component analysis (PCA)
 
 **"Dimensions" here just means columns** - a table with 500 features is 500-dimensional.
 
@@ -16,7 +16,7 @@ The practical consequence is that **distances stop discriminating**:
 \frac{d_{\max} - d_{\min}}{d_{\min}} \rightarrow 0 \quad \text{as } d \rightarrow \infty
 \]
 
-Every point becomes roughly equidistant from every other, which quietly destroys k-NN, k-means, and RBF kernels. It also means each additional feature needs exponentially more data to be estimated reliably.
+Every point becomes roughly equidistant from every other, which quietly destroys k-NN, k-means, and radial-basis-function (RBF) kernels. It also means each additional feature needs exponentially more data to be estimated reliably.
 
 ### Rule of thumb
 
@@ -85,16 +85,16 @@ And when it does not: few features, tree models (which handle correlated and irr
 | Method | Idea | Caveat |
 |---|---|---|
 | Filter (correlation, mutual information, χ²) | Score each feature against the label independently | Misses features that matter only in combination |
-| Wrapper (forward/backward, RFE) | Repeatedly train and drop the weakest | Expensive; overfits if done outside CV |
-| Embedded (L1, tree importance) | The model does selection while fitting | The cheapest good default |
+| Wrapper (forward/backward, recursive feature elimination or RFE) | Repeatedly train and drop the weakest | Expensive; overfits if done outside cross-validation (CV) |
+| Embedded (sparsity-inducing L1 regularization, tree importance) | The model does selection while fitting | The cheapest good default |
 
 > Selection must happen **inside** cross-validation. Choosing features by looking at the whole dataset first is leakage, and it can inflate scores by a lot.
 
 ---
 
-## 6. t-SNE and UMAP are not feature extractors
+## 6. t-SNE and UMAP are visualization methods, not feature extractors
 
-They produce beautiful 2-D plots and are used constantly for exploration - but:
+t-distributed stochastic neighbor embedding (t-SNE) and Uniform Manifold Approximation and Projection (UMAP) produce beautiful 2-D plots and are used constantly for exploration - but:
 
 - they optimize *local* neighborhood structure, so global distances and cluster sizes in the plot are not meaningful,
 - they have no simple transform for new points (t-SNE has none at all),
@@ -113,5 +113,11 @@ Use them to look at your data. Do not feed their output to a downstream model.
 - **PCA needs three things:** scale first, fit on training data only, and remember it maximizes variance - not usefulness for the label.
 - **Feature selection must happen inside cross-validation,** or choosing features from the whole dataset leaks and inflates scores.
 - **t-SNE and UMAP are for looking at data,** not for producing features - their global distances and cluster sizes aren't meaningful.
+
+---
+
+## Chapter 2 checkpoint
+
+For one raw dataset, write the transformation order and mark which operations must be fitted on training data only. Explain how each transformation changes information, scale, dimensionality, or leakage risk—not merely which library function performs it.
 
 That completes **Chapter 2 — Data and features**. Next topic is **Linear regression**.

@@ -81,7 +81,7 @@ If evidence is missing:
 3. return an explicit unknown or blocked result.
 ```
 
-Do not make every output field mandatory when the model may not know it. The next lesson covers how schemas can represent uncertainty cleanly.
+Do not make every output field mandatory when the model may not know it. A structured schema should allow `unknown`, an omitted optional field, or a reason explaining why the value is unavailable.
 
 ---
 

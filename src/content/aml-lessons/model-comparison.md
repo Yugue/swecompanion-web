@@ -1,6 +1,8 @@
 ## Comparing models honestly
 
-A validation score is a **sample statistic**, not a fact. Declaring a winner requires knowing how much that number moves by chance - and most reported improvements are smaller than that.
+A validation score is a **sample statistic**, not a fact. Declaring a winner requires knowing how much that number moves by chance—and most reported improvements are smaller than that. **Cross-validation (CV)** estimates this variation by evaluating the model across several held-out folds.
+
+A **baseline** is the simplest credible alternative, such as the current business rule or a linear model. Model comparison asks whether a candidate beats that baseline by an amount that is stable, fairly measured, and large enough to matter under real constraints.
 
 ---
 
@@ -84,14 +86,14 @@ The bootstrap is the most generally useful: resample the test set with replaceme
 
 Two models are rarely equal on everything else. Compare across:
 
-- **latency** at p50 and p99, and throughput,
+- **latency** at the 50th percentile (p50, the median) and 99th percentile (p99, the slow tail), plus throughput,
 - **memory and model size**,
 - **training cost and retraining cadence**,
 - **interpretability** and the ability to explain a decision,
 - **robustness** to missing features and drift,
 - **operational complexity** - who maintains it, and how hard is it to debug.
 
-> A 0.3% AUC gain that triples serving latency and adds a new dependency is a loss, not a win.
+> A 0.3% gain in area under the receiver operating characteristic curve (ROC-AUC) that triples serving latency and adds a new dependency is a loss, not a win.
 
 ---
 
@@ -99,7 +101,7 @@ Two models are rarely equal on everything else. Compare across:
 
 Offline evaluation measures the *prediction*. The business cares about the *decision and its effect*, which offline data cannot show because the system's actions change what happens next.
 
-So the final comparison is an **online A/B test**:
+So the final comparison is an **online A/B test**, which randomly assigns users to the current system (A) or the candidate (B):
 
 - randomize by the right unit (user, not request), to avoid contamination,
 - run long enough to cover weekly cycles and novelty effects,

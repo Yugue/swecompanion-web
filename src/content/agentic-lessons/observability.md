@@ -113,6 +113,34 @@ Observability that only produces dashboards changes nothing. The pipeline should
 
 ---
 
+## 7. Sample without losing rare failures
+
+Full traces can be expensive and sensitive, but uniform sampling may discard the failures you need most. Keep:
+
+- every guardrail rejection and forbidden-action attempt,
+- every budget exhaustion, tool failure, and human override,
+- a representative sample of successful runs,
+- aggregated metrics for all traffic.
+
+Sample successful traffic more aggressively than failures, and retain large observations by secure reference rather than copying them into every span.
+
+---
+
+## 8. Turn metrics into actionable alerts
+
+Alerts need an owner and a response:
+
+```text
+tool error spike       → tool owner, disable or fall back
+p95 steps increase     → agent owner, inspect new loops
+cache hit collapse     → deployment owner, compare prompt prefixes
+forbidden action > 0   → security incident, halt the affected capability
+```
+
+Define normal ranges and service objectives before the incident. A dashboard that someone may notice later is not an operational control.
+
+---
+
 ## What matters most
 
 - **One trace per run, one span per step,** carrying prompt, model, tool call, observation, tokens, latency, cost, and cache hit.
@@ -121,5 +149,6 @@ Observability that only produces dashboards changes nothing. The pipeline should
 - **Make traces queryable, not just viewable.** A viewer reads one trace; finding the pattern across ten thousand needs a store you can group and aggregate.
 - **Redact at capture time,** because traces are the most widely shared artifact in an agent system and redacting at read time means the raw data is already stored.
 - **Close the loop:** observability that only produces dashboards changes nothing.
+- **Retain every high-risk failure, sample routine success, and attach an owner and response to every alert.**
 
 Next topic is **Testing and replay**.

@@ -1,4 +1,4 @@
-## Answering RRP questions
+## Answering recommendation, ranking, and personalization (RRP) questions
 
 **The graded skill is narrowing a broad prompt to one part of the funnel and explaining that part concretely** - not surveying everything you know about recommenders.
 
@@ -52,7 +52,7 @@ strong:  "recall@100 was 0.31, against 0.24 for popularity-in-context -
 
 ### Rule of thumb
 
-Popularity is the floor in this domain (Chapter 1), and quoting against it is the fastest way to sound like you have measured something rather than reported a number.
+A popularity baseline ranks items by how often they are used or clicked. Comparing against it is the fastest way to show that a more complex system creates measurable value.
 
 ---
 
@@ -82,7 +82,7 @@ Naming one of these unprompted, in the right place, is one of the strongest sign
 "What's the popularity baseline here?"
 "That score needs to be calibrated, because it's being multiplied by a bid."
 "I'd check whether the right item was even retrieved before touching the ranker."
-"Offline that's a hypothesis; I'd want it in an A/B test with guardrails."
+"Offline that's a hypothesis; I'd want a randomized A/B test—control A versus candidate B—with guardrails."
 ```
 
 **When you do not know.** Say what you do know, name the boundary, reason forward:
@@ -93,6 +93,14 @@ That answers the underlying question and is far stronger than bluffing.
 
 ---
 
+## 6. Handle a follow-up with a decision, not another survey
+
+For 'what changes at ten times the traffic?', recompute scores per second, identify the bottleneck, and name one intervention plus its quality cost. For 'new items fail', separate absent vectors, stale index entries, and lack of exposure.
+
+A useful follow-up answer states the evidence needed to distinguish causes and the result that would change your choice. This shows reasoning rather than memorized architecture names.
+
+---
+
 ## What matters most
 
 - **Say which stage you are in.** Retrieval, ranking, and re-ranking have different constraints, metrics, and models.
@@ -100,5 +108,11 @@ That answers the underlying question and is far stronger than bluffing.
 - **Quote every result against the popularity baseline,** and state the metric and the k.
 - **Raise one relevant bias unprompted** - position, exposure, feedback, or popularity - rather than reciting all four.
 - **Treat offline results as hypotheses** and say what would settle them online.
+
+---
+
+## Chapter 7 checkpoint
+
+Give a complete design for one recommendation surface: objective and guardrails, request and catalogue, funnel, candidate sources, ranking labels and features, re-ranking, offline and online evaluation, serving budget, retraining, exploration, cold start, and the most likely feedback loop.
 
 You have reached the end of this guide. Go back to any chapter and re-read the "what matters most" sections - together they are a compact summary of the whole domain.

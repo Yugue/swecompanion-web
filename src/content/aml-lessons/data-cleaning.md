@@ -2,6 +2,10 @@
 
 Cleaning looks like housekeeping before the real work. It is not. **How you handle a missing value is a modelling decision**, and it is one interviewers use to check whether you think about data or only about algorithms.
 
+### Chapter goal
+
+By the end of Chapter 2, you should be able to turn raw columns into trainable features without leakage: clean missing and duplicate data, scale numeric variables, encode categories, create useful features, and reduce dimensionality when the problem justifies it.
+
 ---
 
 ## 1. Ask why the value is missing
@@ -71,8 +75,8 @@ Options that are usually better than deletion:
 
 - **Winsorize / clip** at the 1st and 99th percentile to bound leverage,
 - **log transform** to compress a long right tail,
-- **use a robust model or loss** - trees are insensitive to monotone extremes; Huber and MAE are less swayed than MSE,
-- **use robust scaling** (median and IQR) instead of mean and standard deviation.
+- **use a robust model or loss** - trees are insensitive to monotone extremes; Huber loss and mean absolute error (MAE) are less affected by outliers than mean squared error (MSE),
+- **use robust scaling** (median and interquartile range (IQR)) instead of mean and standard deviation.
 
 ### Rule of thumb
 

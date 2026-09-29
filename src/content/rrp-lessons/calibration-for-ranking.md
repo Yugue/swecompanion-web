@@ -55,7 +55,7 @@ item    predicted    actual     ranked correctly?
   C       0.10        0.05            ✓ 3rd
 ```
 
-Every prediction is exactly **double** the truth. As a ranker this model is flawless - the order is perfect and NDCG, AUC, and precision@k are all unaffected.
+Every prediction is exactly **double** the truth. As a ranker this model is flawless: normalized discounted cumulative gain (NDCG), area under the receiver-operating-characteristic curve (ROC-AUC), and precision@k are all unaffected because the ordering did not change.
 
 Now put the same numbers into an ad auction, where you charge based on expected value:
 
@@ -80,7 +80,7 @@ That is the entire distinction, and it is the most reliable follow-up question i
 
 ## 4. The thing that breaks calibration here
 
-Down-sampling negatives is near-universal in this domain - a 1% click rate means 99 useless rows for every useful one, so you keep a fraction of them.
+Down-sampling negatives is near-universal in this domain - a 1% click rate means 99 non-click rows for each click row, so you keep a fraction of them.
 
 ```text
 true rate           1%
@@ -94,7 +94,7 @@ The model is now systematically over-confident by a large factor. The correction
 p_{\text{true}} = \frac{p}{p + (1-p)/w}
 \]
 
-where \(w\) is the down-sampling rate for negatives. Applying that at serving time restores the real scale.
+where \(w\) is the down-sampling rate for negatives. This analytic correction assumes all positives are kept, each negative is retained independently with probability w, and p estimates the sampled-data probability. It corrects the sampling shift, not other model errors.
 
 ---
 
@@ -114,7 +114,15 @@ The last row is why blending and calibration are usually discussed together.
 
 ---
 
-## 6. Fixing it
+## 6. Check buckets, not just the overall mean
+
+Group held-out predictions into ranges and compare average predicted probability with observed frequency in each range. This is a **reliability diagram**.
+
+An overall prediction of 5% matching a 5% click rate can still hide severe errors for high-score items or individual surfaces. Report bucket counts and uncertainty, and check slices large enough to support a reliable estimate.
+
+---
+
+## 7. Fixing it
 
 ```text
 1. analytic correction     when you know the sampling rate      ← do this first

@@ -24,7 +24,7 @@ test       → estimate performance on new data   (use once)
 
 ### Rule of thumb
 
-60/20/20, or 80/10/10 when data is plentiful. With little data, replace validation with cross-validation and keep the test set.
+60/20/20, or 80/10/10 when data is plentiful. With little data, replace one fixed validation set with **cross-validation**, which rotates several held-out folds through the validation role, and still keep an untouched test set.
 
 ---
 

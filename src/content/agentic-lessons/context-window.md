@@ -82,7 +82,7 @@ The transcript records what was said and observed. Task state records what is cu
 
 Structured state is easier to inspect and preserve than asking the model to reconstruct the task from twenty turns of conversation.
 
-The durable run record and long-term memory are covered later in Chapter 4. Here, the key idea is that the context should be **derived from state**, not treated as the only copy of state.
+A **durable run record** stores authoritative task state outside the model, while long-term memory stores selected information for future runs. The context should be **derived from that state**, not treated as its only copy.
 
 ---
 
@@ -117,6 +117,26 @@ This check is often more valuable than adding another prompt instruction.
 
 ---
 
+## 7. Reserve headroom before calling the model
+
+The input fitting inside the limit is not enough. Reserve space for the model response and the next tool observation. If the estimated turn would exceed the budget, compact or externalize before making the call.
+
+```text
+window limit = input context + maximum response + expected next observation
+```
+
+Emergency truncation at the hard limit tends to remove the oldest material, which is often the original goal or an early user constraint.
+
+---
+
+## 8. Diagnose context failures separately
+
+When a decision is wrong, ask whether the needed fact was present, findable, current, and distinguishable from conflicting text. A model cannot use evidence that never entered the window, and changing the prompt will not fix missing retrieval.
+
+Track constraint retention, relevant-evidence recall, duplicated tokens, and unused headroom across long runs.
+
+---
+
 ## What matters most
 
 - **The context window is the model’s working memory for one call.**
@@ -124,5 +144,6 @@ This check is often more valuable than adding another prompt instruction.
 - **More context can reduce quality** by adding noise as well as cost.
 - **Keep structured task state separate from the transcript.**
 - **Evict deliberately:** remove noise first and preserve exact constraints and identifiers.
+- **Reserve response headroom and measure context quality,** so overflow and missing evidence are diagnosed before the model is blamed.
 
 Next topic is **System prompts and instruction hierarchy**.

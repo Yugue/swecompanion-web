@@ -52,7 +52,7 @@ That is a complete answer: definition, example with numbers, the failure mode, a
 
 **Use concrete numbers.** Vague: "accuracy is misleading when data is imbalanced."
 
-Concrete: "With a 0.1% fraud rate, predicting 'never fraud' is 99.9% accurate and catches nothing - so I would report PR-AUC and recall at the review team's capacity instead."
+Concrete: "With a 0.1% fraud rate, predicting 'never fraud' is 99.9% accurate and catches nothing—so I would report precision-recall area under the curve (PR-AUC) and recall at the review team's capacity instead."
 
 ### Rule of thumb
 
@@ -127,5 +127,11 @@ The opening of "tell me about overfitting" shows the shape:
 - **Pair every number with its baseline,** or the number means nothing.
 - **Say "the model relies on it", not "it causes it".**
 - **When you do not know, reason from first principles out loud** - that scores far better than bluffing.
+
+---
+
+## Chapter 7 checkpoint
+
+Give a five-minute design for one applied ML problem: objective and harm, label and unit, split, baseline, features, model choice, offline and online metrics, serving path, drift signals, retraining trigger, and the first failure you would investigate.
 
 You have reached the end of this guide. Go back to any chapter and re-read the "what matters most" sections - together they are a compact summary of the whole domain.

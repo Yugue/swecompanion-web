@@ -62,9 +62,23 @@ Watch operational metrics during the canary, not just quality: step count and co
 ✓  config is data, versioned, hot-swappable  → rollback = flip a pointer
 ```
 
-If reverting takes a deploy pipeline, you will hesitate at exactly the moment you shouldn't. Rollback also has to consider in-flight runs: either let them finish on the old config (they were started under it) or make resumption pin the config version recorded in the run.
+If reverting takes a deploy pipeline, you will hesitate at exactly the moment you should not.
 
-**Changing tools is riskier than changing prompts.** Removing or renaming a tool breaks running agents and invalidates prompt caches. Prefer additive changes, deprecate with an overlap period, and keep the old tool answering with a deprecation note in its observation so the agent is nudged rather than broken.
+---
+
+## 5. Pin in-flight runs to their starting configuration
+
+A run should record the prompt, tool, model, and policy versions it started with. Either let it finish on those versions or restart it explicitly under the new configuration. Silently switching halfway through creates a trajectory that cannot be reproduced.
+
+Long-running sessions need the same rule on resume: reconstruct the configuration recorded in the run, or perform a deliberate migration with compatibility checks.
+
+---
+
+## 6. Evolve tool contracts compatibly
+
+Changing tools is riskier than changing prompts. Removing a tool or renaming an argument breaks running agents and invalidates prompt caches. Prefer additive changes, deprecate with an overlap period, and keep the old tool answering with a deprecation note so the agent is nudged rather than broken.
+
+Treat schema compatibility like an application programming interface migration: version breaking changes, support old callers temporarily, and measure remaining use before removal.
 
 ---
 

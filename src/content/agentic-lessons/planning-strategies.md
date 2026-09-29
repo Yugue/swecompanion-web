@@ -106,12 +106,28 @@ Without triggers you get one of two failures: rigid execution of a plan that rea
 
 ---
 
+## 5. Validate a plan before executing it
+
+Before committing time or side effects, check the plan itself:
+
+```text
+coverage       does every success criterion belong to a step?
+dependencies   does each step have the inputs it needs?
+permissions    can the runtime perform every proposed action?
+verification   does each step produce evidence of completion?
+budget         does the worst-case path fit the limits?
+```
+
+A plan that fails one of these checks should be repaired before execution. This is especially important when a human approves the plan, because approving an incomplete plan only makes the failure auditable.
+
+---
+
 ## What matters most
 
 - **The choice is how much you fix before executing,** and it is set by how predictable the environment is and whether a human must approve the work.
 - **An up-front plan is actively harmful for investigation work,** where the first observation invalidates the rest - and worse, it anchors the agent into finishing steps that no longer make sense.
 - **Hierarchical is the usual landing place:** a coarse plan for structure, auditability, and parallelism, with step-by-step reasoning inside each step.
 - **Replanning needs an explicit trigger and a cap,** or the agent either clings to a dead plan or replans forever.
-- **The next lesson turns plans into artifacts and dependency graphs,** so this lesson can stay focused on choosing the right planning strategy.
+- **Validate before execution:** check coverage, dependencies, permissions, verification, and worst-case budget.
 
 Next topic is **Task decomposition and dependency graphs**.

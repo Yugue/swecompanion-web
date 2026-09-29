@@ -1,6 +1,6 @@
 ## Implicit feedback and its biases
 
-**Real systems learn from what people do, not from what they say.** Nobody rates videos out of five, but everybody clicks, watches, skips and buys - so those become the labels.
+**Implicit feedback means learning from observed behavior rather than stated ratings.** Clicks, watches, skips, and purchases are plentiful, so many systems use them as labels alongside explicit feedback.
 
 That is free and plentiful. It is also crooked in specific, predictable ways.
 
@@ -13,10 +13,10 @@ That is free and plentiful. It is also crooked in specific, predictable ways.
 | What it is | a rating, a thumbs up | a click, a watch, a purchase |
 | How much | very little | effectively unlimited |
 | Honesty | says what they think | says what they did |
-| Negatives | a 1-star is a real negative | there are none |
+| Negatives | a low rating states dislike | skips or hides can signal dislike; non-clicks are ambiguous |
 | Bias | who bothers to rate | what the system chose to show |
 
-The missing negatives are the structural problem, and Chapter 2 spends a whole lesson on how to train without them.
+The missing negatives are the structural problem: an unobserved user–item pair usually means "unknown," not "disliked," so training needs careful negative sampling or confidence weighting.
 
 ---
 
@@ -32,11 +32,9 @@ shown  →  seen  →  clicked  →  engaged  →  satisfied
 
 What the product wants is at the right-hand end. What you can measure is in the middle. Every recommender is built on that gap, and the honest thing is to name it rather than pretend the click is the goal.
 
----
+### A worked example: 10,000 impressions
 
-## 3. What the funnel costs you
-
-Follow 10,000 impressions of one video down the chain:
+Follow one video's impressions down the chain:
 
 ```text
 shown            10,000       logged
@@ -50,7 +48,7 @@ engaged             190       logged (if you instrument it)
 satisfied           150       almost never logged
 ```
 
-You have two numbers - 10,000 and 300 - and the product cares about 150. Every layer in between is invisible.
+If only impressions and clicks are instrumented, you have two numbers—10,000 and 300—while the product cares about 150. Viewability and engagement logging can illuminate some intermediate steps, but satisfaction remains harder to measure.
 
 Now look at what that does to a single negative label. Of the 9,700 non-clicks:
 
@@ -61,11 +59,11 @@ Now look at what that does to a single negative label. Of the 9,700 non-clicks:
 
 ### Common issue
 
-Eighty percent of your "negatives" are people who never laid eyes on the item. Training on them as rejections teaches the model that anything placed low is bad - which is the position-bias problem in Chapter 5, arriving through the label rather than the feature.
+Many apparent "negatives" come from people who never saw the item. Treating them as rejections teaches the model that anything shown low is bad. This is **position bias** entering through the label: display position changes the chance of observation and clicking.
 
 ---
 
-## 4. A click is weak evidence, and a non-click is weaker
+## 3. A click is weak evidence, and a non-click is weaker
 
 ```text
 clicked      → probably some interest, or a misleading thumbnail
@@ -74,11 +72,11 @@ not clicked  → not interested, OR did not see it,
                                 OR it was at the bottom of the page
 ```
 
-This asymmetry is why click data needs correcting before it can be trusted - the correction is called position bias, and it has its own lesson in Chapter 5.
+This asymmetry is why click data needs correction for position bias before it can be interpreted as preference.
 
 ---
 
-## 5. You only see outcomes for what you showed
+## 4. You only see outcomes for what you showed
 
 ```text
 the current system chooses what to show
@@ -90,7 +88,7 @@ you train the next model on that
 it learns to agree with the current system
 ```
 
-This is **exposure bias**. The data describes the old system at least as much as it describes the user. It is the reason a model can look better offline and do nothing online, and the reason exploration exists in Chapter 6.
+This is **exposure bias**: the data describes what the old system chose to show as much as what users preferred. It can make a model look better offline without improving live results. **Exploration**, deliberately showing some uncertain items, helps collect broader evidence.
 
 ### Rule of thumb
 
@@ -98,7 +96,7 @@ This is **exposure bias**. The data describes the old system at least as much as
 
 ---
 
-## 6. Choose the signal closest to what you want
+## 5. Choose the signal closest to what you want
 
 ```text
 weakest  ── click ── long click ── watch 80% ── purchase ── kept it ──  strongest
@@ -107,14 +105,14 @@ weakest  ── click ── long click ── watch 80% ── purchase ── 
 
 ### Rule of thumb
 
-Deeper signals are more meaningful and much sparser, so systems usually predict several at once and combine them - the multi-objective lesson in Chapter 4. A practical rule: never optimize the click alone, because the click is the easiest thing to provoke.
+Deeper signals are more meaningful and much sparser, so systems often predict several outcomes at once and combine them. A practical rule is never to optimize the click alone, because clicks are easier to provoke than genuine satisfaction.
 
 ---
 
 ## What matters most
 
 - **Implicit feedback is abundant and indirect;** explicit feedback is honest and rare. Production runs on the first.
-- **There are no true negatives.** A non-click could mean unseen, unnoticed, or uninterested.
+- **Non-clicks are ambiguous negatives.** Explicit hides or complaints provide stronger evidence of dislike.
 - **You only observe outcomes for items you chose to show,** so the logs describe the old system as much as the user.
 - **The signal you can log sits in the middle of the chain** between "shown" and "satisfied" - name that gap rather than pretending the click is the goal.
 - **Pick the signal nearest the outcome you actually want,** and never optimize clicks alone.

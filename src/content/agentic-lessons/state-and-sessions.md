@@ -83,6 +83,29 @@ human marks finding[4] wrong →  it is excluded from the context
 
 ---
 
+## 6. Make lifecycle transitions explicit
+
+Use a small state machine rather than free-text status values:
+
+```text
+queued → running → waiting_for_tool ─┐
+                 → waiting_for_human ├→ running → completed
+                 → paused            │
+                 → failed / cancelled┘
+```
+
+Each transition records who or what caused it, the expected wake-up condition, and a timestamp. This prevents a run from being both "waiting" and actively executing, and makes stuck work queryable.
+
+---
+
+## 7. Store large artifacts by reference
+
+Keep run metadata small and transactional. Store documents, datasets, generated files, and large observations separately with a content hash and access-controlled reference.
+
+This avoids rewriting a large run record after every step and lets retention or deletion policies apply to artifacts independently while preserving an auditable pointer in the trace.
+
+---
+
 ## Interview mental model
 
 The context window is *derived*. The durable truth of a run is a record you can hand to another worker:
@@ -98,6 +121,7 @@ The test for your design: **if the process died right now, could another worker 
 - **Resumption needs more than "keep going."** Whether step 18's side effect actually applied must be established, not assumed - which is why side-effecting tools need idempotency keys and a status lookup.
 - **Separate task state from conversation state.** The task state is what humans, dashboards, and other services need.
 - **Make it structured and editable** so a person can correct a fact mid-run, and scope every record by tenant and user from day one.
+- **Use explicit lifecycle transitions and referenced artifacts,** so stuck runs are visible and large outputs do not become mutable blobs inside task state.
 
 ---
 

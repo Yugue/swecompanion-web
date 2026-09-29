@@ -59,9 +59,9 @@ And it comes with a matching cost. The moment the towers are separate, no featur
 ```text
 ✓ in the user tower     this user's country, history, session
 ✓ in the item tower     this item's category, creator, age
-✗ nowhere               "how many times has THIS user viewed THIS item"
-                        → impossible, because the item vector was computed
-                          last night without knowing who would ask for it
+✗ direct cross input    "how many times has THIS user viewed THIS item"
+                        → cannot feed a candidate-specific lookup into
+                          independently computed tower inputs
 ```
 
 ### Core intuition
@@ -70,15 +70,13 @@ Which is exactly why the funnel has a second stage. Retrieval trades expressiven
 
 ---
 
-## 3. What it therefore cannot do
+## 3. Direct cross features versus learned compatibility
 
-```text
-✗  "how many times has THIS user viewed THIS item"
-✗  "does this item's price sit in this user's usual band"
-✗  "is this item's language the user's language"
-```
+An arbitrary candidate-specific lookup, such as this user's count of views of this item, cannot be a direct input to two independently computed towers. That is an important expressiveness limit.
 
-Every one of those needs both inputs at once. None of them can exist in a two-tower model. They are exactly the cross features that make the ranker strong in Chapter 4 - which is why the funnel has two stages with different models rather than one good model.
+But the final dot product **does** model compatibility. A user tower can encode language or price preferences, while an item tower encodes language or price, allowing their vectors to favor suitable matches. What is unavailable is unrestricted joint computation over both inputs, not all personalization.
+
+A later ranker can consume explicit cross features when their extra precision justifies the per-candidate cost.
 
 ---
 
@@ -101,7 +99,7 @@ Putting real **features** in the item tower - not just the id - is what lets a b
 
 ```text
 positives:  (user, item they actually engaged with)
-negatives:  (user, items they did not)      ← how you pick these is the next lesson
+negatives:  (user, sampled items they did not engage with)
 
 objective:  make u · v large for positives, small for negatives
 ```
@@ -121,16 +119,32 @@ Usually this is set up as a softmax over one positive and many sampled negatives
 
 ### Common issue
 
-Steps 2 and 3 are a batch job, so a new item is only retrievable after the next index build - which is the index-freshness problem, and a real operational constraint in Chapter 6.
+Steps 2 and 3 can be batch jobs or support incremental updates. With batch-only publication, a new item is retrievable only after the next index build. This **index-freshness delay** is an important operational constraint.
+
+---
+
+## 7. Publish compatible towers and item vectors
+
+Treat the user tower, item tower, embedding normalization, and index as one versioned bundle. A new user tower compared against old item vectors may use incompatible coordinates and silently lose retrieval quality.
+
+Build and validate the new index before switching traffic. Keep the previous compatible bundle available for rollback.
+
+---
+
+## 8. Separate model learning from catalogue updates
+
+An item tower that reads content features can compute a vector for a new item without retraining the model. Making that vector searchable depends on index insertion or refresh support.
+
+Track the delay from publication to successful retrieval. This separates lack of training history from a stale catalogue index—two problems with different fixes.
 
 ---
 
 ## What matters most
 
 - **Two separate networks, one dot product** - the separation is what allows item vectors to be precomputed.
-- **Nothing needing user and item together can exist in the model,** which is precisely why the ranker is a separate stage.
+- **Arbitrary joint cross inputs are unavailable,** but the dot product still learns user–item compatibility. Ranking adds richer joint computation.
 - **Feed the item tower real features, not just ids,** or new items are invisible until the next retrain.
 - **It is trained as "pick the right item out of a crowd"** of sampled negatives, with a correction for popular items being sampled often.
-- **Item vectors and the index are built in a batch job,** so index freshness bounds how quickly new items can be retrieved.
+- **Index publication may be batch or incremental.** Its freshness bounds how quickly a feature-based tower's new item vectors become searchable.
 
 Next topic is **Choosing negatives**.

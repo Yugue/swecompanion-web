@@ -1,28 +1,34 @@
 ## Approximate nearest-neighbour search
 
-**Finding the closest vectors among ten million, in a few milliseconds, means giving up on finding them exactly.**
+**Approximate search trades some nearest-neighbor accuracy for less work.** It is useful when exact search exceeds the catalogue's latency or compute budget.
+
+This is **approximate nearest-neighbor (ANN) search**: return vectors that are probably among the closest, while avoiding a comparison with every item.
 
 ```text
 exact:        compare the query to all 10,000,000 item vectors   → far too slow
-approximate:  compare it to a few thousand carefully chosen ones → fast, ~95-99% as good
+approximate:  compare it to a few thousand carefully chosen ones → faster, with search recall to measure
 ```
 
-**Why exact search is impossible here.** Each comparison is a dot product over, say, 128 numbers. Ten million of those, per request, at thousands of requests per second, is not something you can buy your way out of.
+**Why full scans can become costly.** Each comparison is a dot product over, say, 128 numbers. At ten million items and thousands of requests per second, those scans require substantial compute and memory bandwidth. Exact search can still be appropriate for smaller pools or suitable hardware; benchmark before choosing approximation.
 
 So the index is built to avoid most comparisons entirely - by organizing vectors so that the search can skip whole regions of the space.
 
 ---
 
-## 1. The two main shapes
+## 1. Partition the space
 
-**Partition the space.** Cluster the vectors in advance, then at query time only search the nearest few clusters.
+Cluster the vectors in advance, then at query time only search the nearest few clusters.
 
 ```text
 10M vectors → 4,096 clusters
 query → find the 8 nearest cluster centres → search only those (~20k vectors)
 ```
 
-**Build a graph.** Link each vector to its neighbours, then walk the graph greedily from an entry point toward the query.
+---
+
+## 2. Build a neighbor graph
+
+Link each vector to its neighbours, then walk the graph greedily from an entry point toward the query.
 
 ```text
 start somewhere → hop to whichever neighbour is closer to the query → repeat
@@ -34,7 +40,7 @@ Graph methods usually give the best recall-per-millisecond and use more memory. 
 
 ---
 
-## 2. The dial is recall against latency
+## 3. The dial is recall against latency
 
 ```text
 search more clusters / hop more   →  higher recall, slower
@@ -47,7 +53,7 @@ search fewer / hop less           →  lower recall, faster
 ANN recall@500 = |ANN top-500 ∩ exact top-500| / 500
 ```
 
-Measure it on a sample against brute force. Do not assume it - it drifts as the catalogue changes.
+Measure it on a representative sample against exact search using the same vectors and distance measure. This measures index fidelity, not user relevance. Report latency and memory alongside recall, including new and niche items, and recheck as the catalogue changes.
 
 ### Rule of thumb
 
@@ -57,7 +63,7 @@ That caveat matters: losses are often not random.
 
 ---
 
-## 3. Compression, and what it costs
+## 4. Compression, and what it costs
 
 Storing 10 million × 128 numbers at full precision is several gigabytes. Quantizing - storing each number in a byte, or replacing groups of numbers with codebook entries - shrinks that dramatically and loses a little accuracy.
 
@@ -73,12 +79,12 @@ The usual pattern is to search cheaply on compressed vectors, then rescore the s
 
 ---
 
-## 4. The operational parts people forget
+## 5. The operational parts people forget
 
 ```text
 building     a full index build over 10M vectors is a batch job, minutes to hours
 freshness    a new item is NOT retrievable until it is in the index
-updates      most indexes handle incremental adds badly; deletes even worse
+updates      insertion/deletion support and cost depend on index implementation
 rebuilds     you rebuild on a schedule and serve the old index meanwhile
 ```
 
@@ -88,9 +94,17 @@ Index freshness is the concrete version of the cold-start problem: a listing upl
 
 ---
 
+## 6. Keep filters from emptying the result
+
+An approximate nearest-neighbor (ANN) query may return similar vectors that are unavailable in the user's region or out of stock. Filtering only afterward can leave too few results.
+
+Use supported index filters, partitions, or over-retrieval, then measure recall on the eligible set. Always recheck hard eligibility rules before display; an index can contain stale entries.
+
+---
+
 ## What matters most
 
-- **Exact nearest-neighbour search is linear in catalogue size** and cannot fit in a request budget.
+- **Full-vector scans scale with catalogue size.** Approximation is useful when their measured cost exceeds the request budget.
 - **Approximate methods partition the space or build a graph,** trading a little recall for orders of magnitude less work.
 - **Measure ANN recall against exact search on a sample,** and re-measure as the catalogue changes.
 - **Check whether the items you lose are random** - if they are systematically the new or niche ones, the loss is worse than the number suggests.

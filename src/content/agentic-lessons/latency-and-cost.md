@@ -2,9 +2,7 @@
 
 **An agent's bill is not "price per word of the answer". It is the number of steps multiplied by how much text it re-reads at every step.**
 
-Because the model remembers nothing between calls, each step re-sends the whole conversation so far. Ten steps therefore costs a good deal more than ten times one step, and every serious design answer works backwards from that.
-
-Chapter 1 introduced this growth qualitatively. This lesson turns it into production budgets, tail-latency decisions, and concrete optimization priorities.
+Because the model remembers nothing between calls, each step re-sends the assembled context. Ten steps can therefore cost much more than ten times one isolated call. Production design must work backwards from a run-level cost and latency budget.
 
 ### Chapter goal
 
@@ -129,6 +127,34 @@ Working the arithmetic out loud like this is what distinguishes a design answer 
 
 ---
 
+## 7. Allocate the budget across stages
+
+Do not give every step the entire run budget. Reserve capacity for recovery and the final response:
+
+```text
+planning          15% of tokens, 20% of time
+tool gathering    45% of tokens, 45% of time
+diagnosis         20% of tokens, 20% of time
+final response    10% of tokens, 10% of time
+recovery reserve  10% of tokens,  5% of time
+```
+
+The exact split varies, but a reserve prevents one slow lookup from leaving no budget to explain the partial result.
+
+---
+
+## 8. Measure cost per successful task
+
+Cheap failed runs are not efficient. Track:
+
+\[
+\text{cost per success} = \frac{\text{total run cost}}{\text{successful tasks}}
+\]
+
+Also report p50 and p95 cost, since retries and long trajectories create a tail. Compare the agent path with the simpler workflow or single-call route it replaced.
+
+---
+
 ## Interview mental model
 
 Turn the budget into token arithmetic before designing anything:
@@ -145,5 +171,6 @@ That number then drives every choice: a small tool set, a step cap near six, obs
 - **Latency is long-tailed** because step count varies, so design to p95 and p99 with caps, time-boxed tools, and a partial-result path.
 - **Streaming changes whether the product feels broken** without changing total time.
 - **Check what fraction of traffic needs the agent at all** - routing simple requests off the agent path is often the difference between meeting the budget and missing it.
+- **Allocate a recovery reserve and optimize cost per successful task,** not the average price of a run.
 
 Next topic is **Prompt caching and reuse**.

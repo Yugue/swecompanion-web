@@ -1,6 +1,6 @@
 ## Gaussian mixture models
 
-A GMM treats the data as coming from several Gaussian distributions mixed together. It is the probabilistic generalization of k-means, and it gives **soft** cluster memberships.
+A **Gaussian mixture model (GMM)** treats the data as coming from several Gaussian distributions mixed together. It is the probabilistic generalization of k-means, and it gives **soft** cluster memberships.
 
 ---
 
@@ -37,7 +37,7 @@ Point B is the interesting one. A hard assignment hides that ambiguity; a respon
 
 ---
 
-## 3. Fitting with EM
+## 3. Fitting with expectation-maximization (EM)
 
 There is no closed form, so expectation-maximization alternates:
 
@@ -72,7 +72,7 @@ Each iteration is guaranteed not to decrease the likelihood - but like k-means, 
 
 ## 5. Choosing the number of components
 
-Because a GMM is a likelihood model, you can use information criteria - an advantage over k-means, where inertia always improves with k:
+Because a GMM is a likelihood model, you can use the **Bayesian information criterion (BIC)** or **Akaike information criterion (AIC)**. Both reward fit while penalizing extra parameters—an advantage over k-means, where inertia always improves as k grows:
 
 \[
 \text{BIC} = -2\log \hat L + p\log n, \qquad \text{AIC} = -2\log\hat L + 2p

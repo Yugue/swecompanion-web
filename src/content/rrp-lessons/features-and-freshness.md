@@ -19,7 +19,7 @@ request-time   now                   device, hour, query, page, position
 
 ### Common issue
 
-The catch is that the second is much harder to build. It needs a streaming pipeline, it must survive bursts, and it has to be correct within seconds. A "recent behavior" feature computed by a nightly job is not a recent-behavior feature - it is the most common way the sequence modelling from Chapter 4 quietly fails to deliver.
+The catch is that the second is much harder to build. It needs a streaming pipeline, must survive bursts, and has to be correct within seconds. A "recent behavior" feature computed by a nightly job is not recent enough for a sequence model that depends on the user's latest actions.
 
 ---
 
@@ -57,12 +57,21 @@ Nothing errors. The feature is present, typed correctly, and useless.
 
 ---
 
-## 3. Train/serve skew is the expensive bug
+## 3. Event time and arrival time are different clocks
+
+A click can happen at 14:00 and arrive at 14:03. A **watermark** is a pipeline's estimate of how far event-time processing has progressed; it helps decide when a time window is sufficiently complete.
+
+Define how late events update counters, and deduplicate retries. Monitor arrival delay as well as feature age so a fresh-looking update does not hide missing recent activity.
+
+---
+
+## 4. Train/serve skew is the expensive bug
 
 **The same feature computed two different ways** in training and serving.
 
 ```text
-training pipeline   SQL over the warehouse, "clicks in the last 7 days"
+training pipeline   Structured Query Language (SQL) over the warehouse,
+                    "clicks in the last 7 days"
 serving path        a counter service, "clicks in the last 7 days"
                     ↓
             subtly different: timezone, late-arriving events,
@@ -79,7 +88,7 @@ serving path        a counter service, "clicks in the last 7 days"
 
 ---
 
-## 4. The defences, in order of effectiveness
+## 5. The defences, in order of effectiveness
 
 ```text
 1. log features AS SERVED, and train on those logs        ← the real fix
@@ -90,11 +99,11 @@ serving path        a counter service, "clicks in the last 7 days"
 
 ### Rule of thumb
 
-Option 1 makes skew structurally impossible for anything the model actually used, because the training data *is* the serving data. It costs storage and it is worth it.
+Option 1 preserves the recorded feature values and removes a major recomputation mismatch. It does not prevent later schema, preprocessing, or feature-version changes from creating new skew. It costs storage and it is worth it.
 
 ---
 
-## 5. Point-in-time correctness
+## 6. Point-in-time correctness
 
 Even with one implementation, the training pipeline has to reconstruct what was true **at the moment of the impression**, not what is true now.
 
@@ -109,7 +118,15 @@ Training on the second teaches the model to use information it will never have. 
 
 ---
 
-## 6. What to monitor
+## 7. Specify missing and stale behavior per feature
+
+Distinguish a genuine zero from an unavailable value. Zero recent clicks means something different from a feature service that failed to return a counter.
+
+Set an acceptable age and default policy for each feature. Where useful, supply a missingness indicator or age value to a model trained to handle it, then test that fallback on real outage scenarios.
+
+---
+
+## 8. What to monitor
 
 ```text
 per feature:  null rate, mean, and distribution shift vs training
@@ -129,7 +146,7 @@ A feature that silently starts arriving null for 30% of requests will degrade th
 - **Features arrive on three clocks,** and the fast ones carry the most signal and cost the most to build.
 - **A "recent behavior" feature updated nightly is not one,** and this is how sequence models quietly fail in production.
 - **Train/serve skew is the expensive bug** - the same feature computed two ways, with no error raised.
-- **Logging features as served and training on those logs** makes skew structurally impossible and fixes point-in-time correctness at the same time.
+- **Logging features as served and training on those logs** removes a major source of recomputation skew and supports point-in-time correctness; preprocessing and version checks are still required.
 - **Monitor null rate, staleness, and coverage per feature** - they catch more incidents than drift statistics.
 
 Next topic is **Building the training data**.

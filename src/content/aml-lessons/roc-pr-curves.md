@@ -1,17 +1,25 @@
-## ROC-AUC, PR-AUC, and thresholds
+## Receiver-operating-characteristic AUC, precision-recall AUC, and thresholds
 
 **A classifier does not really output "yes" or "no". It outputs a score, and you choose a cut-off.** Move the cut-off and precision and recall both move with it.
 
 Precision and recall therefore describe **one** cut-off. The curves in this lesson describe every cut-off at once, which makes them the right tool for comparing two models and the wrong tool for deciding where to actually set the dial.
 
+A binary classifier assigns a score, while a threshold converts that score into positive or negative. Precision measures how many predicted positives are correct; recall measures how many actual positives were found. This chapter builds from those definitions into threshold selection, probability quality, imbalance, fair comparison, and slice-based diagnosis.
+
+### Chapter goal
+
+By the end of Chapter 5, you should be able to choose a threshold from real costs and capacity, determine whether probabilities are calibrated, evaluate imbalance honestly, compare models with uncertainty, and turn errors into prioritized data or feature work.
+
 ---
 
 ## 1. The ROC curve
 
+The **receiver operating characteristic (ROC)** curve uses four confusion-matrix counts: true positives (TP) are positives correctly found, false positives (FP) are negatives wrongly flagged, true negatives (TN) are negatives correctly rejected, and false negatives (FN) are positives the model missed.
+
 Sweep the threshold from 1 to 0 and plot:
 
 \[
-\text{TPR} = \frac{TP}{TP+FN} \quad\text{(recall)} \qquad \text{FPR} = \frac{FP}{FP+TN}
+\underbrace{\text{TPR}}_{\text{true-positive rate}} = \frac{TP}{TP+FN} \quad\text{(recall)} \qquad \underbrace{\text{FPR}}_{\text{false-positive rate}} = \frac{FP}{FP+TN}
 \]
 
 ```text
@@ -22,7 +30,7 @@ TPR │      ╭──────── good model
     └────────────── FPR
 ```
 
-**AUC** has a clean probabilistic meaning worth quoting verbatim:
+**Area under the curve (AUC)** has a clean probabilistic meaning:
 
 > ROC-AUC is the probability that a randomly chosen positive is scored above a randomly chosen negative.
 
@@ -105,7 +113,7 @@ AUC compares models. It does not run in production - a threshold does.
 Three principled ways to pick one:
 
 1. **Constraint-driven**: "the review team can handle 500 cases a day" → set the threshold so ~500 clear it, and report the recall you achieve.
-2. **Metric-driven**: maximize F1 or \(F_\beta\) on the validation set.
+2. **Metric-driven**: maximize the **F1 score**, the harmonic mean of precision and recall, or its weighted form \(F_\beta\) on the validation set.
 3. **Cost-driven**, which is the strongest answer:
 
 \[

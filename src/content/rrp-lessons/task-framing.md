@@ -35,11 +35,19 @@ Get the unit wrong and the model learns the wrong thing. Get the timing wrong an
 
 ### Rule of thumb
 
-Ranking a slate needs impression-level rows, because the same item shown in position 1 and position 9 is two different events with two different outcomes.
+Impression-level rows suit click prediction. Pairwise or listwise ranking also needs request-level grouping, because candidates compete within a particular list. Repeated displays of an item remain distinct events.
 
 ---
 
-## 3. Continuous targets are not free
+## 3. Define the denominator before the target
+
+Compare **purchase per impression** with **purchase given a click**. The first asks whether showing an item leads to a purchase; the second asks what happens after an interested user opens it. Their probabilities are not interchangeable.
+
+If purchase requires a click, then `P(purchase per impression) = P(click) × P(purchase | click)`, with a consistent time window. Write the conditioning explicitly before combining model outputs.
+
+---
+
+## 4. Continuous targets are not free
 
 "Predict watch time" sounds better than "predict a click", and it brings problems:
 
@@ -55,7 +63,7 @@ A common fix is to predict a bounded, well-behaved version instead - the probabi
 
 ---
 
-## 4. Label timing bounds everything
+## 5. Label timing bounds everything
 
 ```text
 click       → known in seconds        → retrain daily
@@ -63,7 +71,7 @@ purchase    → known in hours          → retrain daily, with a wait
 return/keep → known in 14-30 days     → freshest training data is 30 days old
 ```
 
-If the label matures in 14 days, no amount of engineering makes the model react to something that happened yesterday. This constraint shapes the retraining schedule in Chapter 6, so raise it early.
+If the label matures in 14 days, yesterday's examples are not yet complete labels. A model may still learn from fast proxies or an explicitly delay-aware objective. The retraining schedule must account for that delay, so raise it early.
 
 ### Rule of thumb
 
@@ -71,7 +79,7 @@ If the label matures in 14 days, no amount of engineering makes the model react 
 
 ---
 
-## 5. Proxies are fine if you name them
+## 6. Proxies are fine if you name them
 
 You will almost never be able to train on the thing you actually care about. Long-term retention is the goal; a click is what you can measure this afternoon.
 
@@ -87,10 +95,18 @@ Saying the sentence that way - proxy, how it diverges, what you do about it - is
 
 ---
 
+## 7. Check that inputs exist at decision time
+
+For a recommendation made at 14:00, the inputs may include earlier behavior, but not the purchase at 14:20 or the item's end-of-day click rate. Using either is **leakage**: training with information unavailable when making the real decision.
+
+A useful target specification names the row, eligible items, observation window, available inputs, and how missing or unfinished outcomes are handled.
+
+---
+
 ## What matters most
 
 - **Write the predicted quantity as one sentence.** It settles the rows, the label, the loss, and most later arguments.
-- **Name the unit.** Impression, session, and user-item pair give three different models; ranking a slate needs impressions.
+- **Name the unit.** Impression, session, and user-item pair give three different models; impression-based click prediction also needs request grouping for list-level training.
 - **Continuous targets bring skew, censoring, and a bias toward long items** - a bounded version is often better behaved.
 - **Label timing bounds the whole system.** A 30-day label means 30-day-old training data, whatever you build.
 - **Proxies are unavoidable and fine, provided you say how yours diverges** and what you do about the divergence.

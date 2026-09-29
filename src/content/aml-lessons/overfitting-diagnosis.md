@@ -1,6 +1,8 @@
 ## Diagnosing overfitting and underfitting
 
-You already know the definitions. The graded skill is **reading the evidence** and choosing a fix that targets the actual failure.
+**Underfitting** means the model cannot fit even the training pattern; both training and validation performance are poor. **Overfitting** means it fits the training sample much better than unseen validation data.
+
+The practical skill is reading learning curves and train/validation gaps, deciding which failure is present, and choosing a fix that targets that failure.
 
 ---
 
@@ -88,7 +90,7 @@ The peak is the capacity the data can support. Past it, training keeps improving
 
 ## 5. Curves over training iterations
 
-For iteratively fitted models (boosting, SGD, neural networks):
+For iteratively fitted models such as boosting, **stochastic gradient descent (SGD)**, and neural networks:
 
 ```text
 iteration   1     50    200   500
@@ -134,7 +136,7 @@ A tiny validation set is the most common false alarm: with 200 rows, ±3% is jus
 
 **Overfitting**
 - more data, or augmentation where it applies,
-- stronger regularization (L1/L2, pruning, min samples per leaf),
+- stronger regularization (penalties on absolute or squared weights, pruning, or more minimum samples per leaf),
 - fewer features, or a simpler model,
 - early stopping,
 - ensembling by averaging.

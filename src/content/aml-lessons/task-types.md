@@ -22,7 +22,7 @@ Picking the shape commits you to everything downstream — what the model minimi
 | Ranking | an ordering over candidates | whether the good items reached the top |
 | Clustering | a group assignment | how tight and how separated the groups are |
 
-> **New to this?** Each scoring idea has a proper name — MSE, log loss, NDCG, silhouette — and its own lesson later. For now only the shape matters.
+> **New to this?** Common scores include **mean squared error (MSE)** for numeric predictions, **log loss** for predicted class probabilities, **normalized discounted cumulative gain (NDCG)** for ranked lists, and the **silhouette score** for cluster separation. For now, only the task shape matters.
 
 ---
 
@@ -46,7 +46,7 @@ Multiclass says they do, so the probabilities are forced to sum to 1 — more co
 
 > If two labels can be true at once, you cannot use softmax.
 
-The machinery is **sigmoid** (one score → one probability) and **softmax** (C scores → C probabilities summing to 1), covered in logistic regression in Chapter 3.
+The machinery is the **sigmoid function**, which turns one score into one probability, and **softmax**, which turns one score per class into probabilities that sum to 1.
 
 ---
 
@@ -76,7 +76,7 @@ If the team can only call 500 people, ranking is the honest framing — and the 
 
 A ranking model only has to get the **order** right. Its scores can be systematically too high and it loses nothing.
 
-So a ranking-only system does not care whether the scores are believable as probabilities — but a system that multiplies the score by a dollar amount **does**. If the model says 0.7, the thing had better happen about 70% of the time. That property is **calibration**, and it gets its own lesson in Chapter 5.
+So a ranking-only system does not care whether the scores are believable as probabilities — but a system that multiplies the score by a dollar amount **does**. If the model says 0.7, the event should happen about 70% of the time among predictions near 0.7. That property is **calibration**.
 
 ---
 
@@ -104,7 +104,7 @@ what output shape does that decision need?
 task type → loss → metric → threshold
 ```
 
-Worked example — food delivery ETA:
+Worked example—food delivery estimated time of arrival (ETA):
 
 - the decision is a number shown to the user → regression,
 - but the cost is asymmetric (10 minutes late hurts far more than 10 early), so plain MSE is wrong,

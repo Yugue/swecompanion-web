@@ -19,7 +19,7 @@ Raw counts are weak features because they conflate activity with intensity. A us
 \text{failure\_rate} = \frac{\text{failed\_logins}}{\text{total\_attempts} + 1}
 \]
 
-The `+1` avoids dividing by zero and shrinks the rate for users with almost no history - the same smoothing idea as in target encoding.
+The `+1` avoids dividing by zero and shrinks the rate for users with almost no history, making sparse observations less extreme.
 
 ### Rule of thumb
 
@@ -67,7 +67,7 @@ Including several windows lets the model compare them, which is how "this week i
 
 ### Common issue
 
-Every window must end **before** the prediction time. A window that straddles it is leakage (see the **data leakage** lesson).
+Every window must end **before** the prediction time. A window that straddles it causes **data leakage** because it includes information that would not yet exist when the prediction is made.
 
 ---
 

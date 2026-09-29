@@ -57,7 +57,7 @@ TargetEncoder(smooth="auto", cv=5)
 
 ### Common issue
 
-Getting this wrong is a classic silent failure: training AUC jumps, validation AUC does not, and the encoded column looks like a brilliant feature.
+Getting this wrong is a classic silent failure: training receiver-operating-characteristic AUC (ROC-AUC) jumps, validation ROC-AUC does not, and the encoded column looks like a brilliant feature.
 
 ---
 

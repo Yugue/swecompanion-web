@@ -2,7 +2,7 @@
 
 An agent trades predictability for flexibility. If the flexibility is not required—or the consequences of unpredictable behavior are unacceptable—the right design is something simpler.
 
-This lesson is the final decision check for Chapter 1.
+This chapter is a practical decision check: choose the least autonomous design that can complete the task reliably.
 
 ---
 

@@ -131,10 +131,10 @@ export const amlParts: AmlPart[] = [
         summary:
           "Every classification metric is a different summary of the same four counts, chosen to match which mistake is expensive.",
         keyPoints: [
+          "TP and TN are correct positive and negative predictions; FP is a false alarm; FN is a missed positive case.",
           "Precision = TP/(TP+FP) answers 'when we flagged it, were we right'; recall = TP/(TP+FN) answers 'of the real positives, how many did we catch'.",
           "F1 is the harmonic mean, which punishes a lopsided pair more than an arithmetic mean would.",
-          "Accuracy is only informative when the classes are roughly balanced and both errors cost the same.",
-          "Macro averaging treats every class equally; micro averaging is dominated by the frequent classes.",
+          "Accuracy is only informative when the classes are roughly balanced and both errors cost the same; macro and micro averaging handle multiclass imbalance differently.",
         ],
         interviewPrompt:
           "Cancer screening versus spam filtering: which metric leads in each case, and what is the cost of getting that choice backwards?",

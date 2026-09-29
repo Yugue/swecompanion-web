@@ -124,6 +124,22 @@ These four run over every production trace for free and surface the cases worth 
 
 ---
 
+## 7. Compare successful and failed cohorts
+
+Aggregate trajectories by task type and outcome. Compare tool sequences, step counts, retrieval empties, retries, and the first divergence point.
+
+If successful runs usually call `get_policy` before `issue_refund` and failed runs skip it, the difference suggests a targeted assertion rather than a general prompt rewrite.
+
+---
+
+## 8. Turn each diagnosis into a regression case
+
+Preserve the minimal input, mocked observations, expected invariants, and failing configuration. After the fix, run the case repeatedly and keep it in the suite.
+
+A diagnosis that does not leave behind a detector or test is only an explanation of the last incident.
+
+---
+
 ## Interview mental model
 
 Do not read forward. Bisect:
@@ -142,5 +158,6 @@ Everything after the first bad step is a consequence, not a separate bug - and j
 - **The classification decides the layer you fix,** and it is rarely the system prompt.
 - **The single highest-value check:** every tool argument should trace back to an observation or the user's request. An argument from nowhere explains most confident wrong answers.
 - **Automate the detectors** - repeated calls, ungrounded arguments, ignored errors, claimed-but-missing actions - and read the flagged traces rather than random ones.
+- **Compare cohorts and preserve every diagnosed failure as a regression case,** so trajectory reading improves the system rather than only explaining it.
 
 Next topic is **LLM-as-judge**.

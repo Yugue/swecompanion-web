@@ -2,6 +2,8 @@
 
 A deployed model decays. Not because the code changed, but because the world did. Monitoring exists so that you notice before the business does.
 
+Offline evaluation assumes a fixed dataset. Production monitoring handles the harder setting where the input distribution, label availability, and even the decision policy change over time.
+
 ---
 
 ## 1. Monitor three layers
@@ -75,7 +77,7 @@ PSI < 0.1   stable
 > 0.25      significant shift, act
 ```
 
-- **KS test** for continuous features, **chi-square** for categorical ones,
+- **Kolmogorov-Smirnov (KS) test** for continuous features, **chi-square** for categorical ones,
 - simple guardrails that catch more real incidents than any statistic: null rate, min/max range, cardinality, and **staleness** of each feature.
 
 ### Common issue

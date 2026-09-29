@@ -59,7 +59,7 @@ They sound symmetric. In production they are not.
 
 ---
 
-## 3. Why production uses item-based
+## 3. Why item-based methods are convenient to serve
 
 | | User-based | Item-based |
 |---|---|---|
@@ -72,11 +72,19 @@ The stability point is the one to say out loud. Your taste changes every session
 
 ### Rule of thumb
 
-> User-based is easier to explain in a lecture. Item-based is what gets shipped.
+> Item-based neighborhood lists are convenient to precompute; the best method still depends on entity counts, freshness, and traffic.
 
 ---
 
-## 4. What makes it powerful
+## 4. Convert neighbors into a recommendation score
+
+For each item in the user's recent history, look up its similar items. Add their similarity contributions, optionally weighted by recency or interaction strength, then remove ineligible candidates.
+
+If a candidate has similarity 0.6 to one watched item and 0.3 to another, its simple score is 0.9. A rival matching only the first at 0.7 scores lower. This combines evidence rather than taking just one neighbor's list.
+
+---
+
+## 5. What makes it powerful
 
 It finds relationships that no attribute captures.
 
@@ -92,7 +100,7 @@ That is the whole appeal. You get patterns out of behavior that nobody thought t
 
 ---
 
-## 5. What breaks it
+## 6. What breaks it
 
 ```text
 new item      → nobody has interacted with it → it appears in no co-occurrence → invisible
@@ -100,18 +108,26 @@ sparse data   → few overlaps between users    → similarities are noise
 popular items → co-occur with everything      → they swamp every similarity list
 ```
 
-The first is the mirror image of content-based filtering's strength, which is why real systems run both. The third is a real, common bug and it gets its own treatment in the next lesson.
+The first is the mirror image of content-based filtering's strength, which is why real systems run both. The third is **popularity bias**: frequently used items overlap with many users and can dominate unless similarity scores are normalized.
 
 **The shape that survives today.** Neighbourhood methods are simple and are still used, mostly as a **retrieval source**: for each item, precompute its top few hundred co-occurring items, store the list, look it up when that item appears in the user's history.
 
-It is cheap, it is explainable, it needs no training in the usual sense, and it covers cases the learned models miss. That is why a modern system still has it, sitting alongside the embedding index from Chapter 3.
+It is cheap, explainable, and needs no training in the usual sense. That is why modern systems still use it alongside an **embedding index**, which retrieves items represented by similar learned vectors.
+
+---
+
+## 7. Control noisy histories and overlaps
+
+Count distinct users or sessions when repeated events would inflate co-occurrence. Exclude bots and accidental refreshes, require enough shared observations, and use a recent window when relationships change quickly.
+
+Whether to remove already-consumed items depends on the surface: it makes sense for a discovery feed, but can be wrong for repeat purchases or continue-watching recommendations.
 
 ---
 
 ## What matters most
 
 - **It uses behavior rather than item attributes,** which is how it finds relationships no feature encodes.
-- **Item-based beats user-based in production** because item-item similarity is stable over time and can be precomputed.
+- **Item-based methods are often convenient to serve** because neighbor lists can be precomputed; their stability depends on the catalogue.
 - **It needs no item features at all** - its strength - and it cannot touch an item nobody has interacted with - its weakness.
 - **Popular items co-occur with everything** and will dominate every similarity list unless you normalize.
 - **It survives in modern systems as a cheap, explainable retrieval source** next to the learned models.

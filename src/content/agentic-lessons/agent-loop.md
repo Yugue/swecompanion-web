@@ -50,7 +50,7 @@ result is normalized into an observation
 observation is appended for the next decision
 ```
 
-The model never executes the action directly. Function calling and tool-runtime design are covered in Chapter 2; for now, remember that the request and the execution are different events.
+The model never executes the action directly. It emits a structured request; the runtime validates permissions and arguments, performs the operation, and returns the result. The request and execution are different events.
 
 ---
 
@@ -126,6 +126,28 @@ That is enough to replay and diagnose behavior. Do not treat generated reasoning
 
 ---
 
+## 7. Require evidence before declaring success
+
+The model saying "done" is only a proposal to stop. The runtime should verify the observable completion condition:
+
+```text
+goal says send an email     → trace contains one successful send call
+goal says create a file     → artifact exists and passes validation
+goal says answer with facts → required claims cite retrieved evidence
+```
+
+This catches premature completion without another model call.
+
+---
+
+## 8. Recover from an interrupted step
+
+Persist state after every observation. If the process stops during a side effect, resume by checking the external system or idempotency key before retrying. Never infer success or failure from the missing response alone.
+
+The loop is reliable only when each iteration has a durable boundary: requested, authorized, executed, observed, and recorded.
+
+---
+
 ## What matters most
 
 - **The loop is decide → act → observe, repeated.**
@@ -133,5 +155,6 @@ That is enough to replay and diagnose behavior. Do not treat generated reasoning
 - **New observations can change the path, which is the reason to use an agent.**
 - **Every run needs success, budget, and safety stopping conditions.**
 - **Debug from the trajectory:** calls, observations, and state transitions.
+- **Validate completion and persist every iteration boundary,** so a confident final message or interrupted write cannot silently corrupt the run.
 
 Next topic is **The context window as working memory**.

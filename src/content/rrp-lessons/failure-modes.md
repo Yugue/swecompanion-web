@@ -51,7 +51,7 @@ This is the failure with the clearest business consequence: supply leaves.
 ## 4. Offline-online divergence
 
 ```text
-symptom   consistent offline gains that never appear in A/B tests
+symptom   offline gains that never appear in randomized A/B tests
 cause     exposure bias, position bias, a random rather than time split,
           train/serve skew, or a metric that does not match the business
 check     re-run the offline evaluation with a chronological split;
@@ -66,12 +66,12 @@ fix       position-bias correction, propensity logging, features-as-served
 ```text
 train/serve skew        performance decays with no code change (Ch.6)
 stale features          a counter service silently stops updating
-cache poisoning         a bad slate cached and served for hours
+bad cache entry         a stale or incorrect slate served for hours
 retrieval regression    a source fails; recall drops; the ranker looks fine
-position feature leak   position included at serving, not just training
+position shortcut       old output positions reused as candidate relevance inputs
 ```
 
-The retrieval regression is worth calling out: every ranking metric stays healthy, because the ranker is still doing a good job on the candidates it receives. Only a retrieval-specific recall metric (Chapter 3) catches it.
+The retrieval regression is worth calling out: ranking metrics can stay healthy because the ranker still orders the candidates it receives well. A retrieval-specific **recall metric**—the fraction of relevant items that candidate generation finds—is needed to catch it.
 
 ### Rule of thumb
 
@@ -92,6 +92,14 @@ The retrieval regression is worth calling out: every ranking metric stays health
 ### Rule of thumb
 
 Working it in that order - cheapest and most common first - is the answer to "the feed feels worse", and it is what an interviewer is listening for.
+
+---
+
+## 7. Recover first, then test the suspected cause
+
+If users are currently affected, switch to a known-good model, index, or safe fallback using the incident procedure. Preserve request samples and versions before changing several components.
+
+Reproduce the symptom on those samples and change one suspected cause at a time. Validate recovery using both serving health and affected quality slices, not just an aggregate click-rate rebound.
 
 ---
 

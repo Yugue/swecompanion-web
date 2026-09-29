@@ -14,7 +14,7 @@ Take every case the model scored 0.30. If about 30% of them are positive, the mo
 
 ### Core intuition
 
-A model can rank **perfectly** and be badly calibrated: multiply every score by 0.5 and the ordering - and therefore the AUC - is unchanged, while every probability is now wrong.
+A model can rank **perfectly** and be badly calibrated: multiply every score by 0.5 and the ordering - and therefore the receiver-operating-characteristic area under the curve (ROC-AUC) - is unchanged, while every probability is now wrong.
 
 ---
 
@@ -52,7 +52,7 @@ predicted   count   actually positive   observed rate     verdict
 
 Read the last two columns together. When this model says 0.8, the event happens 25% of the time. When it says 0.95, it happens 28% of the time. Above about 0.3 the number has stopped meaning anything.
 
-Now notice what is still true: **the ordering is perfect.** Every bucket has a higher observed rate than the one below it, so AUC, NDCG, and precision@k are all excellent. A ranking metric cannot see any of this.
+Now notice what is still true: **the ordering is perfect.** Every bucket has a higher observed rate than the one below it, so ROC-AUC, normalized discounted cumulative gain (NDCG), and precision@k are all excellent. A ranking metric cannot see any of this.
 
 But feed it into an expected-value calculation:
 
@@ -98,7 +98,7 @@ Brier score combines calibration and discrimination in one number (lower is bett
 |---|---|
 | Logistic regression | Well calibrated by construction (it maximizes Bernoulli likelihood) |
 | Naive Bayes | Badly over-confident - the independence assumption multiplies correlated evidence |
-| SVM | Outputs a distance, not a probability at all |
+| Support-vector machine (SVM) | Outputs a distance, not a probability at all |
 | Random forest | Under-confident at the extremes - averaging votes pulls scores toward the middle |
 | Boosted trees | Often over-confident, especially with many trees |
 | Any model after resampling or class weighting | Shifted away from the true base rate |

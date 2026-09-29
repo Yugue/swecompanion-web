@@ -20,7 +20,22 @@ Reach for deterministic checks first. Teams routinely build an LLM judge for som
 
 ---
 
-## 2. Absolute scoring vs. pairwise
+## 2. Turn quality into a concrete rubric
+
+A useful rubric describes observable criteria and failure conditions:
+
+```text
+criterion: groundedness
+pass: every factual claim is supported by one of the supplied sources
+fail: any claim introduces a fact absent from those sources
+evidence required: quote the claim and source passage
+```
+
+Avoid overlapping criteria such as "helpful," "complete," and "high quality" unless each has a distinct definition. A judge cannot apply a standard that reviewers themselves cannot explain consistently.
+
+---
+
+## 3. Absolute scoring vs. pairwise
 
 ```text
 absolute:  "rate this answer 1-10"
@@ -38,7 +53,7 @@ Pairwise with randomized order is the default. If you need a single number, use 
 
 ---
 
-## 3. Known biases
+## 4. Known biases
 
 | Bias | Effect | Mitigation |
 |---|---|---|
@@ -50,7 +65,7 @@ Pairwise with randomized order is the default. If you need a single number, use 
 
 ---
 
-## 4. Validate against humans
+## 5. Validate against humans
 
 ```text
 1. label 100-200 examples by hand (two labellers, resolve disagreements)
@@ -66,7 +81,7 @@ The number you quote is judge-human agreement. Without it, "our judge says quali
 
 ---
 
-## 5. Judging trajectories, not just outputs
+## 6. Judging trajectories, not just outputs
 
 For agents, a judge can also grade the path:
 
@@ -81,6 +96,14 @@ Asking for **specific step numbers and evidence** makes the verdict checkable, w
 
 ---
 
+## 7. Monitor judge drift and disagreement
+
+Pin the judge model and rubric version in every score. Re-run the human-labelled calibration set after either changes, and periodically sample production disagreements for review.
+
+Use multiple judges only when their errors are meaningfully different; averaging several copies of the same biased judge produces a more stable bias, not truth.
+
+---
+
 ## What matters most
 
 - **Check first whether a deterministic test could answer it.** Teams routinely build a judge for something an assertion would settle.
@@ -88,5 +111,6 @@ Asking for **specific step numbers and evidence** makes the verdict checkable, w
 - **Know the biases:** position, length, self-preference for its own style, and clustering toward the middle. Use a different model as judge and say in the rubric that length is not a criterion.
 - **Validate against human labels and quote the agreement,** re-validating whenever the judge or rubric changes. Without that number, "quality improved 8%" is a claim about the judge.
 - **Require the judge to cite the step number or evidence for its verdict** - the single biggest improvement you can make to any judge prompt.
+- **Version and recalibrate the judge,** because a silent model or rubric change alters the measuring instrument itself.
 
 Next topic is **Characteristic failure modes**.

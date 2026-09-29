@@ -87,6 +87,18 @@ Running each case once turns a flaky change into a green build. Five runs and a 
 
 ---
 
+## 6. Keep a small real-system layer
+
+Mocks and replay cannot reveal expired credentials, changed permissions, provider limits, or an external application whose behavior changed. Maintain a small end-to-end suite against safe test accounts and non-destructive tools.
+
+Before a risky rollout, use **shadow mode** where the new agent observes live inputs and proposes actions without executing them. Compare its proposed trajectory, cost, and latency with the production path.
+
+### Rule of thumb
+
+Use mocks for breadth, replay for realistic regressions, and real integrations for the narrow set of failures only reality can expose.
+
+---
+
 ## Interview mental model
 
 Non-determinism changes how you test, not whether you test:
@@ -101,5 +113,6 @@ end-to-end, real tools    pre-release    slow, flaky, few
 - **Mock the error paths too** - timeouts, empty results, rejections - since that is where agents break and where tests are cheapest.
 - **Replay is the best model-upgrade tool** because it uses real inputs rather than a curated set.
 - **Gate on pass rate over repeated runs,** or one green run lets a flaky change ship.
+- **Keep a narrow end-to-end layer** for credentials, permissions, limits, and external behavior that mocks cannot reproduce.
 
 Next topic is **Deployment and versioning**.

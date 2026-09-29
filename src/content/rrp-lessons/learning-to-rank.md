@@ -20,7 +20,7 @@ Train an ordinary classifier or regressor on each item independently, then sort 
 (user, item₃) → 0.64
 ```
 
-- **Simple** - it is just click prediction, reusing everything from the last lesson.
+- **Simple** - it is ordinary binary classification: predict whether each shown item will be clicked, then sort by that score.
 - **Produces a meaningful number** - which auctions and blending need.
 - **Ignores that only order matters.** It spends effort getting 0.82 exactly right when all that mattered was that it exceeded 0.64.
 
@@ -39,6 +39,8 @@ objective:          score(item₁) > score(item₂)
 \text{loss} = -\log \sigma\big(s_i - s_j\big)
 \]
 
+Here s_i and s_j are the two scores, and σ is the sigmoid function, `1 / (1 + exp(−z))`. A positive score gap reduces the loss; reversing the desired order increases it.
+
 - **Matches the task** far better, because it optimizes relative order directly.
 - **Comparisons come from within one list,** which cancels out anything common to that impression - the query, the page, the user's mood that day.
 - **Weights every pair equally,** including a pair at positions 40 and 41 that nobody will see. Refinements weight pairs by how much swapping them would change the metric.
@@ -47,7 +49,7 @@ objective:          score(item₁) > score(item₂)
 
 ## 3. Listwise
 
-Optimize a whole-list metric - NDCG from Chapter 1 - directly.
+Optimize a whole-list metric such as **normalized discounted cumulative gain (NDCG)**, which rewards placing highly relevant items near the top.
 
 ### Common issue
 
@@ -58,7 +60,15 @@ The obstacle is that ranking metrics are not differentiable: sorting is a step f
 
 ---
 
-## 4. The same list, scored three ways
+## 4. Keep comparisons inside the right request
+
+A **query group** contains candidates competing for the same request, query, or session decision. Pairwise and listwise training must preserve these groups.
+
+A clicked pasta video for a cooking query should not automatically outrank an unclicked motorbike video for a different query. Comparing unrelated requests confuses relevance with differences in audience or intent.
+
+---
+
+## 5. The same list, scored three ways
 
 One query, four candidates. ✓ marks what the user actually clicked.
 
@@ -71,7 +81,7 @@ One query, four candidates. ✓ marks what the user actually clicked.
   item D      ✓         0.64
 ```
 
-**Pointwise** spends effort on the values. It is penalized for predicting 0.82 instead of 1.0 for item A - even though the ordering is already correct and nothing downstream would change.
+**Pointwise** spends effort on the values. It is penalized for predicting 0.82 instead of 1.0 for item A - even though A is already first. Its probability still matters if downstream logic consumes it; B also incorrectly outranks D.
 
 **Pairwise** only sees the comparisons. It is penalized only where the order is wrong - here, that B (0.79) outranks D (0.64) when D was the click. It does not care that A scored 0.82 rather than 0.95.
 
@@ -85,11 +95,11 @@ listwise    weights each pair by how much swapping them would move NDCG
 
 ### Core intuition
 
-Which is the case for listwise: it is the only one of the three whose loss knows that the top of the list is where the value is.
+Which is the case for listwise: top-weighted objectives focus learning near visible positions. Pairwise losses can also use metric-based weights.
 
 ---
 
-## 5. So why is pointwise still everywhere?
+## 6. So why is pointwise still everywhere?
 
 ```text
 the score is consumed by something else
@@ -103,11 +113,19 @@ A pairwise model's scores are only meaningful *relative to each other within one
 
 ### Rule of thumb
 
-> If the score leaves the ranker and meets money, a threshold, or another model, it must be pointwise and calibrated.
+> If downstream logic needs probabilities, use probability estimation and calibration. A pure pairwise score does not supply that scale on its own.
 
 ---
 
-## 6. Choosing
+## 7. Treat click-derived preferences as uncertain
+
+Clicked versus unclicked is not the same as relevant versus irrelevant: lower items may not have been examined. Pairwise grouping does not remove position bias or exposure bias by itself.
+
+Use trustworthy judgments, suitable exposure assumptions, or a bias-aware objective. Validate on requests and users not used for tuning, with the same candidate protocol across approaches.
+
+---
+
+## 8. Choosing
 
 | Situation | Approach |
 |---|---|

@@ -19,7 +19,15 @@ That is not a modelling gap to be closed - it is a property of the problem. Henc
 
 ---
 
-## 1. The standard mechanism
+## 1. Separate hard rules from preferences
+
+Hard rules remove disallowed, unavailable, or duplicate items. Soft preferences trade relevance against variety, freshness, or novelty. Apply eligibility checks before selection, then revalidate the final response.
+
+Do not let a high score buy its way around a hard rule. When soft preferences conflict, the weighting or priority order should be explicit.
+
+---
+
+## 2. The standard mechanism
 
 Pick items one slot at a time, trading relevance against difference from what is already selected:
 
@@ -41,7 +49,15 @@ The slot-by-slot structure is what lets each choice depend on the ones before it
 
 ---
 
-## 2. What else happens in this stage
+## 3. A diversity trade-off with three items
+
+Suppose A is already selected. B has relevance 0.9 and similarity to A of 0.95; C has relevance 0.8 and similarity 0.2. With score `relevance − 0.3 × similarity`, B scores 0.615 and C scores 0.74.
+
+The reranker chooses C even though B's individual relevance is higher. The penalty buys list variety; its scale must be comparable with the relevance score.
+
+---
+
+## 4. What else happens in this stage
 
 Re-ranking is where every whole-list rule lands, because it is the only stage where the whole list exists:
 
@@ -56,11 +72,11 @@ deduplication    the same item arriving from several retrieval sources
 
 ### Rule of thumb
 
-Policy belongs here as a **hard filter**, not as a penalty added to a score. A score is soft and can always be outweighed; a rule that must never be broken has to be applied as a filter. That distinction comes back in Chapter 7.
+Policy belongs here as a **hard filter**, not as a penalty added to a score. A score is soft and can always be outweighed; a rule that must never be broken has to be applied as a filter.
 
 ---
 
-## 3. Position effects
+## 5. Position effects
 
 Re-ranking is also where you can act on the fact that position itself changes behavior:
 
@@ -72,11 +88,19 @@ what you put in slot 1 is not just "the best item"
 it is also the item whose exposure you are choosing to buy
 ```
 
-Placing a new or uncertain item high is how exploration actually gets implemented in the product - see Chapter 6.
+Placing a new or uncertain item high is **exploration**: deliberately trying uncertain options so the system can learn how users respond.
 
 ---
 
-## 4. Measuring it
+## 6. What if the requested list is impossible?
+
+A six-slot list with at most one item per creator needs six eligible creators. If retrieval returns only four, the reranker cannot satisfy both requirements.
+
+Fetch more candidates or relax documented soft diversity targets in priority order. Return fewer items when necessary rather than violating hard safety or availability rules. Log how often constraints are infeasible.
+
+---
+
+## 7. Measuring it
 
 Diversity work is invisible to per-item metrics, so it needs its own:
 
@@ -84,12 +108,12 @@ Diversity work is invisible to per-item metrics, so it needs its own:
 intra-list similarity   average pairwise similarity within one shown list
 unique creators         how many distinct sources in the top 6
 category entropy        how spread across categories
-catalogue coverage      what fraction of inventory is ever shown  (Chapter 5)
+catalogue coverage      what fraction of inventory is ever shown
 ```
 
 ### Common issue
 
-And because it trades against engagement in the short term, the honest way to evaluate it is an A/B test with engagement as a guardrail rather than as the target.
+Because it trades against engagement in the short term, evaluate it with a randomized **A/B test**—control system A versus candidate B—with engagement as a guardrail rather than as the target.
 
 ---
 
@@ -100,5 +124,11 @@ And because it trades against engagement in the short term, the honest way to ev
 - **Diversity costs relevance by construction,** and how much to pay is a product decision.
 - **Policy belongs here as a hard filter, not a score penalty,** because a score can always be outweighed.
 - **It needs its own metrics** - intra-list similarity, unique creators, coverage - since per-item metrics cannot see it.
+
+---
+
+## Chapter 4 checkpoint
+
+For one ranked surface, specify labels, sampling, feature availability, model family, loss, calibration requirement, serving budget, and final-list constraints. Explain which decisions operate per item and which require seeing the whole slate.
 
 That completes **Chapter 4 — Ranking models**. Next topic is **Offline evaluation and its limits**.

@@ -1,6 +1,6 @@
 ## Online testing
 
-**The only measurement that settles the question is running both systems on real traffic.** Everything offline is preparation for this.
+**The only measurement that settles the question is running both systems on real traffic.** An **A/B test** randomly assigns users to a control version (A) or a candidate version (B) and compares their outcomes. Everything offline is preparation for this.
 
 ---
 
@@ -15,7 +15,7 @@
 
 ### Common issue
 
-Request-level randomization contaminates the comparison and makes an inconsistent product. For anything with a learning or habit effect, user-level assignment is the only valid unit - and it must be sticky across sessions and devices where possible.
+Request-level randomization contaminates the comparison and makes an inconsistent product. For many personalized products with learning or habit effects, user-level assignment is a useful starting point - and it must be sticky across sessions and devices where possible.
 
 ---
 
@@ -36,27 +36,19 @@ Nothing changed except elapsed time. The early lift is people poking at somethin
 Reading this at day 2 and shipping is one of the most common ways a recommender gets worse while every dashboard says it improved.
 
 ```text
-minimum duration = novelty decay + at least one full weekly cycle
-                 ≈ two to three weeks for most consumer surfaces
+duration should cover: required sample size, relevant usage cycles,
+                       label maturity, and plausible novelty/carryover effects
 ```
 
 And the reverse case is just as real: a change people dislike at first can show a false negative in week one and be fine by week four.
 
 ---
 
-## 3. Outlast the novelty effect
+## 3. Plan sample size and stopping before launch
 
-```text
-engagement
-   │    ╱╲
-   │   ╱  ╲___________     ← the real effect
-   │  ╱
-   │ ╱  ← "it changed, so people poke at it"
-   └──────────────────── time
-       week 1    week 2-3
-```
+The **minimum detectable effect** is the smallest improvement the experiment is designed to detect. **Power** is its chance of detecting an effect that size. Smaller effects or noisier user outcomes require more traffic or time.
 
-Any visible change lifts engagement briefly just by being different. Reading the result in week one systematically overstates it. Run long enough to cover weekly cycles and let the novelty decay - and expect the same effect in reverse for changes people initially dislike.
+Choose an analysis horizon or a valid sequential testing procedure in advance. Repeatedly checking ordinary significance tests and stopping at the first positive result inflates false positives.
 
 ---
 
@@ -76,7 +68,15 @@ Pre-registering this is what turns a launch decision from an argument into a rul
 
 ---
 
-## 5. Interleaving, when you are only comparing rankings
+## 5. Account for shared inventory and spillovers
+
+User randomization works best when one user's treatment does not change another user's outcome. Limited stock, shared seller incentives, or marketplace congestion can violate this assumption.
+
+Consider cluster assignment or **switchback tests**, which alternate policies over time blocks, when appropriate. These need their own power analysis and controls for time effects and carryover; they are not automatic fixes.
+
+---
+
+## 6. Interleaving, when you are only comparing rankings
 
 Instead of splitting users, mix the two rankers' results into one list and see which side's items get clicked.
 
@@ -97,11 +97,11 @@ The usual pattern is interleaving to triage many ranker candidates quickly, then
 
 ---
 
-## 6. Things that quietly invalidate the test
+## 7. Things that quietly invalidate the test
 
 | Problem | Symptom |
 |---|---|
-| Sample ratio mismatch | the split is not 50/50 - assignment is broken, stop and fix |
+| Sample ratio mismatch | observed assignment significantly differs from the planned ratio; investigate |
 | Network effects | users interact, so treatment leaks into control |
 | Marketplace interference | both arms compete for the same finite inventory |
 | Peeking | checking daily until it is significant, then stopping |
@@ -113,10 +113,18 @@ The marketplace row is specific to this domain and easy to miss: if the new rank
 
 ---
 
+## 8. Interpret relative lift and uncertainty
+
+If control CTR is 4.0% and treatment CTR is 4.2%, the increase is 0.2 percentage points, or 5% relative—not 5 percentage points.
+
+Read the confidence interval alongside that lift. If the interval includes both a meaningful loss and a meaningful gain, the result is inconclusive; a positive point estimate alone does not justify launch.
+
+---
+
 ## What matters most
 
 - **Randomize by user and keep the assignment sticky,** or you contaminate the comparison and the product.
-- **Run past the novelty effect,** which inflates week-one results for any visible change.
+- **Run past the novelty effect,** which can distort early results for a visible change.
 - **Pre-register the primary metric and the guardrails,** so a mixed result has a decision rule rather than an argument.
 - **Interleaving is far more sensitive and only compares orderings** - use it to triage, then A/B test the winner.
 - **Watch for sample ratio mismatch, peeking, and marketplace interference,** where the two arms compete for the same inventory.

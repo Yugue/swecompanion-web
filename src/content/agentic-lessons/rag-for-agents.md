@@ -4,7 +4,7 @@
 
 The classic arrangement (usually called RAG, retrieval-augmented generation) looks things up **once**, before answering. An agent instead treats retrieval as an **action it can repeat**: read what came back, notice it is not enough, and search again with better words. That fixes the single-shot query's biggest weakness and costs you round trips.
 
-The context-engineering lesson decides how much evidence may enter the window. This lesson focuses only on how that evidence is found and grounded.
+This chapter focuses on how evidence is found, limited, and grounded before it enters the model's working context.
 
 ---
 
@@ -109,7 +109,7 @@ agent: search_orders(customer, limit=2)        ← resolve "last" and "usual"
 
 ### Intuition
 
-Note that the first "retrieval" is a structured lookup, not a search by meaning. Agents that can only search by meaning will turn "more expensive than usual" into a numeric fingerprint (an **embedding** - two lessons from here) and retrieve nothing useful, because the phrase does not resemble any stored text. Give the agent both structured filters and semantic search.
+The first "retrieval" is a structured lookup, not a search by meaning. Agents that only use semantic similarity may turn "more expensive than usual" into an **embedding**, a numeric representation of meaning, and still retrieve nothing useful because the question requires order records and arithmetic. Give the agent structured filters as well as semantic search.
 
 ---
 
@@ -121,7 +121,11 @@ answer must cite ──► citations checked against retrieved passages ──�
 
 A cheap post-check - does every cited source appear in what was actually retrieved, and does the quoted text exist in it - catches the most damaging class of RAG error at almost no cost. This is grounded reflection, and it belongs in any production answer.
 
-**Knowing when to stop searching.** Give the agent a stopping rule and a budget. Something like: stop once two independent sources agree, or after four searches - then say what you could not find.
+---
+
+## 6. Define when retrieval stops
+
+Give the agent a stopping rule and a budget. For example: stop once two independent sources agree, or after four searches, then state what could not be found.
 
 Without one you get the search-forever failure. Every query looks defensible, and none of them conclude.
 

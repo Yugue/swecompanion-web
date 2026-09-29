@@ -2,7 +2,7 @@
 
 The domain interview is not a vocabulary test. The graded skill is narrowing a broad prompt to one concept and explaining that concept clearly - with mechanism, tradeoff, and a concrete example. This lesson is the script.
 
-The previous lesson covered what a complete design contains. This lesson covers delivery: how to make that reasoning easy to follow under interview time pressure.
+This chapter focuses on delivery: how to make technical reasoning easy to follow under interview time pressure.
 
 ---
 
@@ -72,7 +72,11 @@ Every strong version names the context window, the tool boundary, or the loop. T
 
 Each one signals production experience in a sentence.
 
-**What to do when you don't know.** Say what you do know, name the boundary, and reason forward:
+---
+
+## 5. Handle unfamiliar frameworks without bluffing
+
+Say what you do know, name the boundary, and reason forward:
 
 > I haven't used that specific framework, but the problem it solves is coordinating subagents with isolated contexts, which I'd approach as an orchestrator with typed briefs and structured returns. What matters is the handoff contract, so I'd want to know how it handles that.
 

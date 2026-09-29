@@ -1,8 +1,6 @@
 ## The orchestrator-worker pattern
 
-The dominant multi-agent shape: one agent holds the goal and the plan, and dispatches bounded subtasks to workers that return compact, structured results. It works because the information asymmetry is deliberate.
-
-Chapter 3 decomposed work into artifacts and dependencies without assuming multiple agents. Here, those units are assigned to separate contexts only when parallelism or isolation justifies the coordination cost.
+The dominant multi-agent shape uses one agent to hold the goal and plan, then dispatches bounded subtasks to workers that return compact, structured results. Separate worker contexts are justified only when parallelism or isolation is worth the coordination cost.
 
 ---
 
@@ -98,6 +96,29 @@ If two workers need to talk to each other to finish, they were one task that has
 
 ---
 
+## 6. Handle worker timeout and partial completion
+
+The orchestrator needs a policy for the slow or failed worker:
+
+```text
+required artifact missing   → retry once or reassign, then escalate
+optional artifact missing   → continue and state the gap
+partial artifact returned   → validate usable fields, preserve missing list
+global deadline reached     → cancel remaining work and merge what is valid
+```
+
+Waiting forever for the slowest worker defeats the latency benefit of parallelism. The brief should state whether partial output is acceptable before dispatch.
+
+---
+
+## 7. Make dispatch and merge idempotent
+
+A timeout can occur after a worker completed but before the orchestrator received its result. Give each assignment a stable task id, deduplicate returned artifacts, and make merge operations safe to repeat.
+
+Without this, retrying a worker can duplicate writes or count the same finding twice.
+
+---
+
 ## What matters most
 
 - **The information asymmetry is deliberate:** only the orchestrator holds the plan and the whole picture, which is what keeps every worker's context small.
@@ -106,5 +127,6 @@ If two workers need to talk to each other to finish, they were one task that has
 - **Always include gaps.** A worker that found three of five tiers and says so lets the orchestrator follow up; one that silently returns three implies five do not exist.
 - **The merge step reconciles rather than concatenates:** resolve contradictions, dispatch for gaps, drop unsourced claims, and check the deliverable answers the original goal.
 - **It fits wide-read/narrow-write work** and fits badly where subtasks must negotiate mid-flight.
+- **Define timeout, partial-result, cancellation, and retry behavior before dispatch,** and make repeated delivery safe through stable task ids.
 
 Next topic is **Handoffs and shared state**.

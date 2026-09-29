@@ -4,6 +4,10 @@
 
 A spam filter is never told "mail containing FREE MONEY is spam". It is shown a few million messages people already marked, and it works out the patterns itself.
 
+### Chapter goal
+
+By the end of Chapter 1, you should be able to frame an ML task, identify examples, features and labels, choose the right task type and split, establish a baseline, select an evaluation metric, and diagnose bias versus variance.
+
 Everyone can recite a definition. What scores well is knowing **when it is the right tool**.
 
 ---

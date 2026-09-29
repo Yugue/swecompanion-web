@@ -4,6 +4,10 @@
 
 That sentence contains the whole difficulty. A video app has ten million videos and six slots on the home screen. The job is not to predict a number - it is to *choose*.
 
+### Chapter goal
+
+By the end of Chapter 1, you should be able to frame a recommendation surface, explain the retrieval-ranking funnel, distinguish explicit and implicit signals, choose ranking metrics and baselines, and design first-step strategies for new users and items.
+
 ---
 
 ## 1. The same machine with different names
@@ -29,12 +33,12 @@ All four score candidates for a user in a context, then show the best few. Learn
 ```text
 surface            candidates      what "good" means            metric
 home feed          everything      something worth watching     watch time / session
-search results     query-matched   answers THIS query           NDCG, relevance
+search results     query-matched   answers THIS query           ranking quality, relevance
 "up next"          related to now  keeps the session going      continuation rate
 notifications      everything      worth interrupting for       precision, unsubscribes
 ```
 
-Notice the last row. The same model that is excellent at the home feed is dangerous in notifications, because the cost of a bad recommendation jumps from "you scroll past" to "you turn notifications off permanently". Precision has to dominate there in a way it never does in a feed.
+Notice the last row. The same model that is excellent at the home feed is dangerous in notifications, because the cost of a bad recommendation jumps from "you scroll past" to "you turn notifications off permanently". Avoiding bad interruptions matters especially here; the same relevance objective and error costs should not be copied blindly from a feed.
 
 ### Rule of thumb
 
@@ -50,7 +54,7 @@ That is why the first question in any of these interviews is *which surface*, an
              6 shown on screen
 ```
 
-You cannot run a good model over ten million items in the 50 milliseconds a page load allows. Everything in Chapter 3 exists because of this one constraint.
+You cannot run an expensive ranking model over ten million items within a typical page-load budget. Systems therefore retrieve a smaller candidate set first and rank only those candidates.
 
 ---
 
@@ -77,12 +81,12 @@ You only ever find out what happened for the items you chose to show.
 
 ```text
 shown     → you observe a click or no click
-not shown → you observe NOTHING, ever
+not shown → no outcome from this exposure; preference remains unknown
 ```
 
 ### Common issue
 
-An ordinary classifier sees a fixed dataset. A recommender **creates** its dataset by deciding what to show, then trains on the result. That circularity is behind position bias, feedback loops, and the reason offline numbers mislead - all covered in Chapter 5.
+An ordinary classifier often sees a fixed dataset. A recommender **creates** much of its own data by deciding what to show, then training on the resulting interactions. This circularity causes **position bias**—higher items are seen more—and **feedback loops**, where past recommendations shape future training data. It can also make offline results overstate live performance.
 
 ---
 

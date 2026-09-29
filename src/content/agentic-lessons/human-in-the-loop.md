@@ -76,7 +76,25 @@ undo:        cheaper than approval where the action supports it
 
 "Agent prepares, human commits" is often better than approve/reject: the human gets the artifact rather than a yes/no question, and can edit it.
 
-**Approvals are training data.** Log the action, the justification, the decision, the editor's changes, and the reason for rejection. That log is the highest-quality eval set you will ever have, because it is real cases labelled by people with authority over the outcome. Feed it back into the eval suite and into the rules.
+---
+
+## 5. Treat review decisions as labelled evidence
+
+Log the action, justification, decision, editor's changes, and rejection reason. That log is a high-quality evaluation set because it contains real cases labelled by people with authority over the outcome. Feed recurring rejection patterns back into the eval suite and deterministic rules.
+
+---
+
+## 6. Measure the review system itself
+
+Human review creates an operational queue. Track:
+
+- time waiting for review and total resolution time,
+- approval, rejection, and edit rates,
+- harmful actions caught before execution,
+- reviewer disagreement and repeated overrides,
+- queue size by risk level.
+
+A safe gate that takes two days may make the product unusable. A fast gate with no rejections may be rubber-stamping. Both are system failures, not merely reviewer behavior.
 
 ---
 
@@ -87,6 +105,7 @@ undo:        cheaper than approval where the action supports it
 - **Approval fatigue is worse than no gate,** because it manufactures false assurance. Watch rejection rate and approval latency; near-zero and sub-second means nobody is reading.
 - **"Agent prepares, human commits" often beats approve/reject** - the reviewer gets an editable artifact instead of a yes/no question.
 - **Log every approval, edit, and rejection reason.** That log is the highest-quality eval set you will ever have.
+- **Measure the queue:** safety, review latency, edit rate, and reviewer disagreement must all remain acceptable.
 
 ---
 

@@ -17,13 +17,13 @@ So real rankers predict several outcomes and combine them.
 Rank purely by predicted click rate and watch what wins over six months:
 
 ```text
-week 1    CTR 4.1%   avg watch 8m12s   complaints 0.2%   sessions/user 5.1
+week 1    click-through rate (CTR) 4.1%   avg watch 8m12s   complaints 0.2%   sessions/user 5.1
 week 8    CTR 5.3%   avg watch 6m40s   complaints 0.5%   sessions/user 5.0
 week 16   CTR 6.8%   avg watch 4m05s   complaints 1.4%   sessions/user 4.6
 week 24   CTR 7.9%   avg watch 2m50s   complaints 2.9%   sessions/user 3.9
 ```
 
-The optimized metric nearly doubled. Everything else fell.
+In this illustrative scenario the optimized metric nearly doubled, while satisfaction-related outcomes worsened.
 
 Nothing malfunctioned. The system searched for what makes people click and found it: shocking thumbnails, overstated titles, and content engineered for the first five seconds. Those genuinely do raise click rate, and they are why the user is now opening the app less often.
 
@@ -49,7 +49,15 @@ The body is shared, which is the main technical benefit: the abundant signal (cl
 
 ---
 
-## 3. Combining into one score
+## 3. Handle outcomes that are only defined after a click
+
+Watch duration may be observed only for clicked videos. Do not treat every unclicked impression as an observed zero for a conditional watch-duration task.
+
+Use a loss mask for unavailable labels, or define unconditional watch time per impression explicitly. If the head predicts watch time given a click, multiply by click probability before interpreting it as expected watch time per impression.
+
+---
+
+## 4. Combining into one score
 
 ```text
 score = w₁·P(click) + w₂·E[watch] + w₃·P(share) − w₄·P(complaint)
@@ -58,7 +66,7 @@ score = w₁·P(click) + w₂·E[watch] + w₃·P(share) − w₄·P(complaint)
 Two things are worth saying about those weights:
 
 - **They are a product decision, not a modelling one.** How much is a share worth relative to a complaint is a question for the people who own the product, and it should be argued explicitly rather than tuned quietly.
-- **They only mean anything if the predictions are comparable.** Adding a well-calibrated probability to a badly calibrated one produces a number with no interpretation - which is the subject of the next lesson.
+- **They only mean anything if the predictions are comparable.** A probability is **calibrated** when predictions near 0.7 occur about 70% of the time. Adding a calibrated probability to a badly calibrated score produces a number with no clear interpretation.
 
 ### Rule of thumb
 
@@ -66,7 +74,7 @@ Two things are worth saying about those weights:
 
 ---
 
-## 4. When tasks help and when they fight
+## 5. When tasks help and when they fight
 
 ```text
 help:   click and watch-time are related
@@ -82,7 +90,7 @@ Architectures exist specifically to give conflicting tasks room to diverge - mix
 
 ---
 
-## 5. Negative objectives are the important ones
+## 6. Negative objectives are the important ones
 
 ```text
 P(complaint)        "report", "not interested", "hide"
@@ -96,7 +104,15 @@ These are rare, which makes them hard to model, and they are the only thing stan
 
 ---
 
-## 6. What this looks like in an interview
+## 7. Separate training weights from product weights
+
+Loss weights control how strongly each task updates the shared model; serving weights control how predictions combine into a recommendation score. They solve different problems.
+
+Evaluate each task separately and compare with single-task baselines. A combined metric can hide a complaint head that deteriorated because abundant click examples dominated training.
+
+---
+
+## 8. What this looks like in an interview
 
 The strong version of this answer names the trade-off explicitly:
 
@@ -104,10 +120,10 @@ The strong version of this answer names the trade-off explicitly:
 "Engagement is up 5% and complaints are up 8%. That is not obviously a win.
  I'd put the complaint rate into the ranker as a negative term with a weight
  set from how much a complaint costs us in retention, and I'd hold the
- complaint rate as a guardrail in the A/B test rather than as a tuning knob."
+ complaint rate as a guardrail in a randomized A/B test—control A versus candidate B—rather than as a tuning knob."
 ```
 
-Guardrail metrics come from Chapter 5, and naming one here is what makes the answer sound like it came from a real launch.
+A **guardrail metric** is an outcome that must not degrade, such as complaint rate or latency. Naming one makes the launch criterion concrete.
 
 ---
 

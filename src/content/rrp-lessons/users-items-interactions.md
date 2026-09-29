@@ -16,11 +16,19 @@ u_2290    v_11762   skip       2026-03-02 19:04     web, search "pasta"
 
 ### Rule of thumb
 
-Note there are several *actions*, not one. Which of them you treat as the label is a decision, and it gets its own lesson shortly.
+There are several *actions*, not one. The **label** is the outcome the model learns to predict, so choosing clicks, purchases, watch time, or a combination changes the problem.
 
 ---
 
-## 2. The same data as a grid
+## 2. Log exposure separately from engagement
+
+An **impression** records that an item was displayed; an interaction records what happened next. Keep an impression ID so repeated displays of the same item remain separate events.
+
+For example, a video shown at 09:00 with no click and shown again at 18:00 with a click creates two training examples, not one contradictory user–video label. A viewability event, when available, additionally records whether the tile entered the visible screen.
+
+---
+
+## 3. The same data as a grid
 
 Lay users down the side and items across the top:
 
@@ -36,11 +44,11 @@ This is the **interaction matrix**, and the striking thing is how empty it is. A
 
 ### Core intuition
 
-That emptiness is not a data-quality problem to be fixed. It is the permanent condition of the field, and the methods in Chapter 2 exist to cope with it.
+That emptiness is not a data-quality problem to be fixed. It is the permanent condition of the field, so recommender methods must learn from the small observed subset without treating every blank cell as dislike.
 
 ---
 
-## 3. Empty does not mean bad
+## 4. Empty does not mean bad
 
 The single most consequential misreading in this domain:
 
@@ -54,11 +62,11 @@ Almost always the second. With ten million items, a user has seen a few thousand
 
 ### Rule of thumb
 
-> A missing interaction means "not shown", not "not wanted". Any method that forgets this will systematically punish everything unpopular.
+> A missing interaction means "unknown", not "not wanted". Without an impression log, you cannot tell whether it was unseen or shown without engagement.
 
 ---
 
-## 4. Context belongs on the row
+## 5. Context belongs on the row
 
 The same user wants different things at different moments:
 
@@ -73,7 +81,15 @@ So the row carries context: device, hour, day, location, the search query, the p
 
 ---
 
-## 5. Three tables, not one
+## 6. Turn events into a training example
+
+Join outcomes back to their impression, then apply a stated observation window. For a click-within-30-minutes target, wait until that window closes before assigning 0.
+
+Keep event time (when the action occurred) and arrival time (when it reached the log). A late click should not silently become a negative because the pipeline ran too early.
+
+---
+
+## 7. Three tables, not one
 
 In practice you keep the interactions plus two side tables:
 
@@ -83,7 +99,7 @@ In practice you keep the interactions plus two side tables:
 | Items | title, category, creator, price, age | new items with no history |
 | Users | signup date, country, declared preferences | new users with no history |
 
-The two side tables are what make cold start solvable at all - the last lesson of this chapter.
+The two side tables make **cold start**—recommending for a new user or item with little interaction history—solvable at all.
 
 ---
 
@@ -91,8 +107,8 @@ The two side tables are what make cold start solvable at all - the last lesson o
 
 - **One row is a user, an item, an action, a timestamp, and the context.** Several actions exist; picking the label is a separate decision.
 - **As a grid it is over 99.9% empty,** and that sparsity is the permanent condition the whole field is built around.
-- **An empty cell means "not shown", not "disliked".** Forgetting this systematically punishes unpopular items.
+- **An empty cell means "unknown", not "disliked".** Separate exposure from engagement before interpreting it.
 - **Context belongs on the row,** or the model can only learn who someone is, never what they want right now.
-- **Keep item and user side tables,** because they are the only thing that works when there is no history.
+- **Keep item and user side tables,** because they provide useful information when there is no history.
 
 Next topic is **Implicit feedback and its biases**.

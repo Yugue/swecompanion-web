@@ -113,6 +113,34 @@ So pair offline evals with online signals: user corrections, escalations, retrie
 
 ---
 
+## 7. Slice results before averaging them
+
+An overall 92% success rate can hide a dangerous 55% rate on high-value refunds or non-English requests. Report performance by meaningful slice:
+
+```text
+task type · tool used · risk level · input language · customer tier · trajectory length
+```
+
+Choose slices before looking at the result when possible, and require enough examples to avoid treating noise as a pattern.
+
+---
+
+## 8. Define the release gate before running the eval
+
+A release rule combines quality, safety, and efficiency:
+
+```text
+ship only if:
+  success pass^5 does not regress
+  zero forbidden side effects in the safety suite
+  p95 cost and steps stay within budget
+  no critical slice falls below its floor
+```
+
+Defining this after seeing results invites moving the threshold until the preferred model passes.
+
+---
+
 ## What matters most
 
 - **Measure outcome *and* process.** A right answer reached by a broken path will fail tomorrow, and "did it refund the right amount" and "did it refund anything else" are different questions.
@@ -120,5 +148,6 @@ So pair offline evals with online signals: user corrections, escalations, retrie
 - **Build the eval set from real traces.** Synthetic cases are clean, and agents fail on ambiguity, missing records, and ugly tool output.
 - **Put assertions at three levels** - unit with mocked tools, step-level, end-to-end - because end-to-end alone tells you something broke, not what.
 - **Offline evals lie in known ways** - drift, overfitting to the set, a missing tail, mocked tools - so pair them with online signals like escalations, corrections, and cost per successful task.
+- **Report important slices and predefine the release gate,** so a strong average cannot hide a dangerous subgroup and thresholds cannot move after results arrive.
 
 Next topic is **Trajectory analysis**.

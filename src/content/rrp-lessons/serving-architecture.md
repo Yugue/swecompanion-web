@@ -2,6 +2,10 @@
 
 **The entire funnel has to finish in the time a page takes to load.** That budget, not model quality, is what fixes the shape of the system.
 
+### Chapter goal
+
+By the end of Chapter 6, you should be able to allocate a serving budget across funnel stages, preserve online/offline feature consistency, build training and retraining pipelines, detect drift, introduce exploration safely, and estimate storage, compute, and network cost.
+
 ---
 
 ## 1. A worked budget
@@ -18,11 +22,19 @@
 
 ### Core intuition
 
-Two things surprise people about this. First, **feature fetching usually costs more than inference**. Second, the budget is not spent evenly - and knowing where it actually goes is the difference between fixing the problem and shrinking the model for no reason.
+Two things surprise people about this. First, **feature fetching can cost as much as inference**—they tie in this illustrative budget. Second, the budget is not spent evenly - and knowing where it actually goes is the difference between fixing the problem and shrinking the model for no reason.
 
 ---
 
-## 2. Why feature fetching dominates
+## 2. Budget tail latency rather than just averages
+
+The **95th-percentile latency (p95)** is the time within which 95% of requests complete. A feature store averaging 3 ms but occasionally taking 80 ms can break a 50 ms request budget.
+
+Measure end-to-end latency under load; adding individual stage percentiles does not give the end-to-end percentile. Use deadlines and bounded queues so overloaded services do not accumulate unlimited work.
+
+---
+
+## 3. Why feature fetching dominates
 
 ```text
 500 candidates × 40 item features   → a lot of lookups
@@ -46,10 +58,10 @@ shrink the candidate set   fewer candidates is the bluntest lever
 
 ---
 
-## 3. Precompute whatever does not depend on the request
+## 4. Precompute whatever does not depend on the request
 
 ```text
-nightly / hourly        item embeddings, the ANN index, item-item lists,
+nightly / hourly        item embeddings, the approximate-nearest-neighbor (ANN) index, item-item lists,
                         item quality scores, popularity by segment
 per user, periodically  long-term interest vectors, heavy users' full slates
 at request time         only what genuinely needs the live context
@@ -61,22 +73,22 @@ For very heavy users, computing the whole recommendation list offline and servin
 
 ---
 
-## 4. Every stage needs a timeout and a fallback
+## 5. Every stage needs a timeout and a fallback
 
 ```text
 retrieval source times out   → use the others, log it
 feature store slow           → serve with default/stale features, log it
-ranker unavailable           → fall back to the popularity list (Chapter 1)
+ranker unavailable           → fall back to a cached popularity list
 everything fails             → show a sensible static list, never an error
 ```
 
 ### Common issue
 
-The product requirement is that the page renders. A worse list is always better than a broken page, and the fallback chain should be explicit rather than accidental.
+The product requirement is that the page renders. An eligible fallback list is often better than a failed page; policy checks must still hold, and the fallback chain should be explicit rather than accidental.
 
 ---
 
-## 5. Caching
+## 6. Caching
 
 ```text
 per user     the computed slate, for a short window - careful, it freezes the feed
@@ -86,6 +98,14 @@ per query    for search, the head of the query distribution is tiny and hot
 ```
 
 The head of almost every distribution here is extremely concentrated, so a small cache usually gets a large hit rate. The risk is staleness: a cached slate that does not respond to what the user just did will feel broken, so user-level caches need short lifetimes and invalidation on new activity.
+
+---
+
+## 7. Log what actually reached the user
+
+Record the request ID, final displayed items and positions, model/index versions, features or feature snapshot references, and any fallback used. Candidate selection is not the same event as a rendered impression.
+
+Connect subsequent outcomes to those impressions. Otherwise the training pipeline may learn from items that were ranked but never displayed, or attribute fallback traffic to the primary model.
 
 ---
 

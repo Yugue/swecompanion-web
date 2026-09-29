@@ -87,12 +87,12 @@ That sentence - reportable, auditable, defensible - is why logistic regression s
 
 ## 5. Regularization is on by default
 
-scikit-learn's `LogisticRegression` applies L2 with strength `C` (where **C is the inverse** of the penalty: small C = strong regularization). Two consequences:
+scikit-learn's `LogisticRegression` applies **L2 regularization**, which penalizes the sum of squared coefficients, with strength `C` (where **C is the inverse** of the penalty: small C = strong regularization). Two consequences:
 
 - you must **scale your features**, or the penalty punishes features by their unit of measurement,
 - C is the one hyperparameter genuinely worth tuning.
 
-Use `penalty="l1"` when you want sparse coefficients for feature selection.
+Use **L1 regularization**, which penalizes the sum of absolute coefficient values, when you want many coefficients to become exactly zero for feature selection.
 
 ---
 
@@ -126,7 +126,7 @@ For **multilabel** problems (several labels can be true at once), use C independ
 
 ### Intuition
 
-The calibration point is underrated: logistic regression is a *probability* model, so its 0.7 usually means 70%. Random forests and SVMs do not give you that for free (see the **calibration** lesson).
+The calibration point is underrated: logistic regression is a *probability* model, so among predictions near 0.7, the event should occur about 70% of the time. Random forests and support-vector machines (SVMs) do not provide that **probability calibration** automatically.
 
 ---
 

@@ -1,8 +1,6 @@
 ## Guardrails and permissioning
 
-Guardrails are **deterministic checks around a non-deterministic core**. The defining property is that they hold even if the model is fully adversarial, which means they live in code. Anything expressible only as a sentence in the prompt is a preference, not a guardrail.
-
-Chapter 2 established that execution belongs to the runtime. This lesson specifies the controls that runtime must enforce around consequential actions.
+Guardrails are **deterministic checks around a non-deterministic core**. The defining property is that they hold even if the model is fully adversarial, which means they live in the runtime. Anything expressible only as a sentence in the prompt is a preference, not a guardrail.
 
 ---
 
@@ -127,7 +125,21 @@ Without them a bug becomes a bill. Exhaustion should be a **defined outcome** - 
 
 That last one is cheap and catches premature completion before the user sees it.
 
-**Fail closed.** When a guardrail can't evaluate - the validator is down, the policy service times out - block and escalate rather than proceeding. An agent that treats an unavailable check as a pass has no check.
+---
+
+## 7. Fail closed when a check is unavailable
+
+When a guardrail cannot evaluate—the validator is down or the policy service times out—block and escalate rather than proceeding. An agent that treats an unavailable check as a pass has no check.
+
+Define the degraded path explicitly: which read-only work can continue, which actions must stop, and what evidence the escalation should contain.
+
+---
+
+## 8. Test guardrails against an adversarial caller
+
+Call tools directly with oversized amounts, another user's identifiers, repeated idempotency keys, malformed arguments, and missing prerequisites. The tests should pass even without a model or prompt.
+
+Also test the failure of the guardrail itself: unavailable policy service, expired credentials, and a rate-limit store that cannot be reached.
 
 ---
 
@@ -139,5 +151,6 @@ That last one is cheap and catches premature completion before the user sees it.
 - **Gate on reversibility and blast radius, never on model confidence** - confidence is generated text, poorly calibrated, and influenceable by the same input that caused the problem.
 - **Budgets are guardrails too,** and exhaustion should be a defined outcome rather than an exception at step 47.
 - **Do not forget output checks** - schema, citations, leakage, and action-claim consistency - and **fail closed** when a check cannot run.
+- **Test guardrails without the model, as if the caller were hostile,** including failure of the validator itself.
 
 Next topic is **Prompt injection and untrusted content**.

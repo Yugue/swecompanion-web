@@ -28,11 +28,11 @@ is THIS item's price within THIS user's usual band?             → yes
 days since THIS user last engaged with THIS category            → 2
 ```
 
-Note that none of these can exist in the two-tower retrieval model from Chapter 3, because each needs the user and the item together. That is precisely why ranking is a separate stage with a different model.
+These explicit lookup features need user and item together, so they do not fit the independently computed inputs of a **two-tower retrieval model**. Separate towers can still learn compatibility from user and item attributes; ranking adds unrestricted joint features.
 
 ### Rule of thumb
 
-> If a feature does not mention both the user and the item, it is not doing personalization work.
+> Cross features provide explicit relationship evidence. User and item features can also personalize through learned interactions.
 
 ---
 
@@ -41,7 +41,7 @@ Note that none of these can exist in the two-tower retrieval model from Chapter 
 Add one family at a time and watch the metric:
 
 ```text
-features in the model                          NDCG@10
+features in the model                          normalized discounted cumulative gain at 10 (NDCG@10)
 item only        (category, age, quality)       0.31     ← a popularity model
 + user           (country, tenure, interests)   0.34     ← who they are
 + context        (device, hour, surface)        0.36     ← the moment
@@ -55,7 +55,15 @@ The reason is that the first three can only ever express "this item is generally
 
 ---
 
-## 4. Counters over several windows
+## 4. Smooth rates with little evidence
+
+One click from one impression gives an observed click rate of 100%, but very little confidence. A **smoothed rate** blends this evidence with a prior, such as `(clicks + α × baseline_rate) / (impressions + α)`.
+
+With baseline rate 5% and α=20, one click from one impression gives `(1+1)/21 ≈ 9.5%`, not 100%. Include observation counts as well so the model can distinguish established affinity from a lucky first event.
+
+---
+
+## 5. Counters over several windows
 
 Most behavioral features are a count or a rate over a time window, and the window length is part of the feature:
 
@@ -71,21 +79,15 @@ Including several lets the model compare them, which is how "this is unusual for
 
 ---
 
-## 5. Position is a feature, and a trap
+## 6. Position is a feature, and a trap
 
-The position an item was shown in strongly predicts whether it was clicked. Including it as a training feature is standard, and serving it is impossible - you do not know the position until after you rank.
+Observed display position strongly predicts clicks, but the final position is not known before ranking. One approach trains a click model with observed position, then holds that input constant for all candidates when estimating comparable scores.
 
-```text
-training:  include position, so the model can separate "clicked because good"
-           from "clicked because it was at the top"
-serving:   set it to a constant (say, position 1) for every candidate
-```
-
-This is one standard way of handling position bias; Chapter 5 covers the idea properly.
+This relies on modeling assumptions; it does not automatically disentangle relevance from visibility. Never feed the old model's output position as though it were an intrinsic item attribute. Validate using suitable intervention or visibility evidence, and use a bias-aware objective when justified.
 
 ---
 
-## 6. Every feature is a production commitment
+## 7. Every feature is a production commitment
 
 ```text
 can it be computed at request time, within budget?
@@ -96,16 +98,24 @@ will it still mean the same thing in six months?
 
 ### Common issue
 
-The second question is the expensive one. A feature computed one way in the training pipeline and another way at serving time produces a model that quietly receives inputs unlike the ones it learned on - and nothing errors. Chapter 6 covers the defence, which is to log features exactly as served and train on those logs.
+The second question is the expensive one. A feature computed differently during training and serving creates **training-serving skew**: the model quietly receives inputs unlike the ones it learned from. The main defence is to log features exactly as served and train on those logged values.
+
+---
+
+## 8. Measure value with feature ablations
+
+Train comparable models with and without one feature family. Evaluate quality by slice, feature-fetch latency, missing-value behavior, and freshness requirements.
+
+The example gains above illustrate a possible pattern, not a promise that cross features always provide the biggest lift. Keep a costly feature only when it adds repeatable value over a simpler alternative.
 
 ---
 
 ## What matters most
 
 - **Four families: user, item, context, and cross** - and the cross features are where personalization actually lives.
-- **Cross features cannot exist in the retrieval model,** which is the concrete reason ranking is a separate stage.
+- **Explicit candidate-specific cross inputs do not fit independently computed towers.** Ranking can use richer joint features; retrieval still learns compatibility.
 - **Use rates over several time windows,** so the model can see both a durable habit and a sudden change.
-- **Position is included in training and faked at serving,** because you cannot know it before you rank.
+- **Position needs an explicit treatment,** because visibility affects clicks and the final display position is unknown before ranking.
 - **Every feature is a serving dependency** that must be fast, available, and computed identically offline and online.
 
 Next topic is **Deep ranking models**.

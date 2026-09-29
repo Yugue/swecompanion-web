@@ -75,11 +75,26 @@ accuracy
 
 Sweep it per task type on your eval set, plot accuracy against cost and p95 latency, and pick the knee. Reporting this curve is a strong interview answer because it shows the decision was measured rather than asserted.
 
-**Interaction with agent loops**
+---
+
+## 5. Account for the surrounding agent loop
 
 - Reasoning traces occupy context afterward; consider dropping them during compaction while keeping decisions and observations.
 - Latency is the binding constraint in interactive products - a 12-second thinking step is fine in a batch pipeline and unusable in a chat.
 - Per-step reliability compounds, so a reasoning model on the one step that gates everything else can raise end-to-end success more than upgrading every step.
+
+---
+
+## 6. Watch for overthinking and budget variance
+
+More thinking can produce a longer but not better path. Monitor:
+
+- task success against thinking tokens,
+- time to first useful action,
+- unnecessary tool calls after the answer was already available,
+- p95 cost and latency, not only the average.
+
+Set a maximum budget and permit an early stop. A reasoning model should not be required to spend the full allowance when the decision is easy.
 
 ---
 
@@ -90,6 +105,7 @@ Sweep it per task type on your eval set, plot accuracy against cost and p95 late
 - **Route by step kind within a single run.** Two expensive steps out of twenty costs far less than twenty, and usually measures no worse.
 - **Treat the thinking budget as a hyperparameter:** sweep it per task type, plot accuracy against cost and p95 latency, and pick the knee rather than the plateau.
 - **Latency is the binding constraint in interactive products,** and reasoning traces keep occupying context afterwards - consider dropping them during compaction.
+- **More thinking is not monotonically better.** Watch for delayed first actions, redundant calls, and tail-cost growth, and allow early stopping below the cap.
 
 ---
 

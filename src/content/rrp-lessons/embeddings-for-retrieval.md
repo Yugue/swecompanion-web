@@ -32,11 +32,11 @@ A vector tells you *how* related they are, on a continuous scale, so the model c
 
 | Source | Produces | Handles new items? |
 |---|---|---|
-| Matrix factorization (Chapter 2) | one vector per known id | no |
+| Matrix factorization | one vector per known identifier | no |
 | A model that reads item **features** | a vector from title, category, image | yes |
 | A pretrained text or image model | a vector from raw content | yes |
 
-The distinction in the last column is the one that matters. A vector learned per id needs interaction history. A vector *computed from features* exists the moment the item does - which is the cold-start fix from Chapter 1, made concrete.
+The distinction in the last column is the one that matters. A vector learned per identifier needs interaction history. A vector *computed from features* exists the moment the item does, so it can represent a new item with no interactions—a solution to item cold start.
 
 ### Rule of thumb
 
@@ -58,7 +58,15 @@ Cosine and normalized dot products are the usual choices. Whichever you train wi
 
 ---
 
-## 4. Embeddings encode whatever you trained them on
+## 4. Calculate a match rather than picturing it
+
+For user vector `[1, 2]`, item A `[2, 1]` scores `1×2 + 2×1 = 4`; item B `[−1, 0]` scores −1. A ranks above B under the dot-product objective.
+
+These values are compatibility scores, not probabilities. Changing to cosine normalizes vector lengths and can change the ordering, so it is a modeling decision rather than a harmless index setting.
+
+---
+
+## 5. Embeddings encode whatever you trained them on
 
 This is the part people skip.
 
@@ -76,12 +84,20 @@ So "these two items are close" always means "close with respect to the objective
 
 ---
 
-## 5. Practical notes
+## 6. Practical notes
 
 - **Dimension** is a capacity-versus-cost dial; 64-256 is typical. Bigger vectors cost memory in the index and time in the lookup.
-- **Freshness**: id-based vectors go stale as the catalogue turns over, which is a retraining driver in Chapter 6.
-- **One space or several**: users and items must live in the *same* space for a dot product to mean anything, which is what the next lesson arranges.
-- **Size**: hundreds of millions of ids times 128 numbers is the dominant cost in these systems, and it gets its own lesson in Chapter 6.
+- **Freshness**: identifier-based vectors go stale as the catalogue changes, so the model and index need regular updates.
+- **One space or several**: users and items must live in the *same* vector space for a dot product to measure compatibility. A two-tower model achieves this by training separate user and item encoders together.
+- **Size**: hundreds of millions of identifiers multiplied by 128 numbers can dominate storage and memory cost.
+
+---
+
+## 7. Check representation quality before index tuning
+
+Inspect neighbors for common, rare, and new items. Evaluate whether held-out positive items rank highly under an exact vector search on a manageable sample.
+
+If exact search returns poor matches, a faster approximate index cannot fix the embedding objective. If exact search is good but the index misses those matches, tune the search stage instead.
 
 ---
 

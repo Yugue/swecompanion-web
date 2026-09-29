@@ -26,7 +26,7 @@ Instead of storing ten trillion cells, you store 350 million numbers - and you c
 
 ### Core intuition
 
-A prediction is a **dot product**: multiply the two lists element by element and add up. That is cheap, and being cheap is why this shape is still at the heart of retrieval in Chapter 3.
+A prediction is a **dot product**: multiply the two lists element by element and add up. Because this calculation is cheap, it remains useful for retrieving candidates from very large catalogues.
 
 ---
 
@@ -42,7 +42,7 @@ Four users, four films, and a grid that is mostly empty. `?` is what we want to 
    Dan        ?      1        4      5
 ```
 
-Fit two factors. The model invents them - nobody labelled these axes:
+Consider two illustrative factor vectors. They show the scoring mechanism; they are not a claimed fit to the exact ratings above:
 
 ```text
               factor 1   factor 2            factor 1   factor 2
@@ -64,11 +64,11 @@ And Cara's for Alien:
 (-1.0)(1.7) + (1.7)(-1.0) = -3.4 \;\rightarrow\; \text{also low}
 \]
 
-Both blanks are filled without anyone describing the films. The model worked out that there are two groups of users and two groups of films, that they line up, and that Ann belongs to the first - **purely from the ratings that were present**.
+The dot products fill the blanks without film descriptions. To predict ratings on the original star scale, the fitted model also needs its offsets and rating loss. These illustrative scores show relative compatibility, not exact star predictions.
 
 ### Common issue
 
-Looking at it afterwards you might say factor 1 is "action" and factor 2 is "gentle drama". That is a story you are telling about the numbers; the model has no such concept, and retraining will produce different axes that work equally well.
+Looking at it afterwards you might say factor 1 is "action" and factor 2 is "gentle drama". That interpretation is optional: rotating both sets of vectors together can preserve dot products without preserving the axis labels.
 
 ---
 
@@ -108,7 +108,15 @@ Only what is left after removing those three is genuine personalization. Fitting
 
 ---
 
-## 5. How it is fitted
+## 5. Choose the loss to match the observations
+
+For explicit ratings, minimize prediction error on observed ratings, plus regularization. A missing rating is not a zero-star rating.
+
+For implicit engagement, the zeros are uncertain rather than dislikes. Use a confidence-weighted or sampled ranking objective instead of fitting the same rating loss blindly. The vector architecture alone does not determine what its scores mean.
+
+---
+
+## 6. How it is fitted
 
 Two standard approaches, and the choice is practical:
 
@@ -125,7 +133,7 @@ Both need regularization - a penalty that keeps the vectors small - or the model
 
 ---
 
-## 6. What it cannot do
+## 7. What it cannot do
 
 ```text
 new item   → no vector has been learned → cannot be scored at all

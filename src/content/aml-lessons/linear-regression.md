@@ -2,6 +2,10 @@
 
 **Linear regression predicts a number by multiplying each feature by its own weight and adding everything up.**
 
+### Chapter goal
+
+By the end of Chapter 3, you should be able to explain the assumptions, decision boundary, training behavior, prediction cost, strengths, and failure modes of the core supervised algorithms—and choose a sensible tabular baseline before reaching for a more complex model.
+
 ```text
 predicted_price =  180 × size_m2  +  12,000 × bedrooms  -  900 × age_years  +  45,000
                    └──────── weights learned from the data ────────┘         └ intercept ┘

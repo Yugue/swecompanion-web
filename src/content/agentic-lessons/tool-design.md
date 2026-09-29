@@ -118,6 +118,27 @@ Three habits that follow from that:
 
 ---
 
+## 7. Make side effects visible in the contract
+
+State whether a tool is read-only, reversible, idempotent, approval-gated, and safe to retry. The runtime enforces these properties, but the model also needs them to plan sensibly.
+
+```json
+{"name":"issue_refund", "side_effect":"financial_write",
+ "reversible":false, "idempotency_key":"required", "approval_over_usd":500}
+```
+
+Do not rely on a vague name such as `process_order` to communicate risk.
+
+---
+
+## 8. Evolve tools without breaking active runs
+
+Prefer adding fields or a new version over changing an argument's meaning in place. Keep an overlap period for renamed tools, return a deprecation warning, and record the tool-schema version in each run.
+
+An agent resuming yesterday's task should not discover that today's tool now expects different arguments.
+
+---
+
 ## What matters most
 
 - **Granularity is the biggest reliability lever.** One tool call should map to one thing a human would say they did - "issued the refund", not "sent a POST".
@@ -125,5 +146,6 @@ Three habits that follow from that:
 - **Make wrong arguments impossible:** enums over free text, units in the name, defaults instead of required fields the model cannot know.
 - **The return value lands in the context on every later turn,** so return the few fields the next decision needs, not the full API payload.
 - **If the agent consistently misuses a tool, the tool is wrong, not the agent.** Read your own traces before rewriting the prompt.
+- **Expose side-effect and retry semantics, and version breaking changes,** so planning and resumed runs do not rely on hidden behavior.
 
 Next topic is **Errors, retries, and idempotency**.

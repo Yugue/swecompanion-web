@@ -32,7 +32,7 @@ novelty detection : the training data is clean "normal" data,
 
 ### Common issue
 
-They need different validation setups, and scikit-learn splits the API accordingly (`fit_predict` vs `predict`).
+They need different validation setups, and scikit-learn splits its application programming interface (API) accordingly (`fit_predict` vs `predict`).
 
 ---
 
@@ -40,7 +40,7 @@ They need different validation setups, and scikit-learn splits the API according
 
 **Statistical / distance**
 
-- z-score or IQR rules per feature - trivial, univariate, misses combinations,
+- z-score or interquartile-range (IQR) rules per feature - trivial, univariate, misses combinations,
 - Mahalanobis distance - accounts for feature correlation,
 - k-NN distance - distance to the k-th nearest neighbor as the score.
 
@@ -54,17 +54,17 @@ score = average path length to isolate the point
 
 Linear time, handles high dimensions, no distribution assumption.
 
-**One-class SVM** - learns a boundary enclosing the normal data. Powerful, but \(O(n^2)\)-ish and sensitive to its kernel parameters.
+**One-class support-vector machine (SVM)** - learns a boundary enclosing the normal data. Powerful, but \(O(n^2)\)-ish and sensitive to its kernel parameters.
 
-**Density-based** - a GMM, or a kernel density estimate: anomalies are points with low likelihood. Gives a probabilistic score.
+**Density-based** - a Gaussian mixture model (GMM), or a kernel density estimate: anomalies are points with low likelihood. Gives a probabilistic score.
 
-**Reconstruction-based** - fit an autoencoder (or PCA) on normal data; unusual inputs reconstruct badly, and the reconstruction error is the score.
+**Reconstruction-based** - fit an autoencoder (or principal component analysis, PCA) on normal data; unusual inputs reconstruct badly, and the reconstruction error is the score.
 
 ```python
 IsolationForest(contamination=0.001, random_state=0).fit(X_train)
 ```
 
-**DBSCAN** also qualifies: its noise label (-1) is an anomaly flag as a by-product of clustering.
+**Density-Based Spatial Clustering of Applications with Noise (DBSCAN)** also qualifies: its noise label (-1) is an anomaly flag as a by-product of clustering.
 
 ---
 
@@ -127,5 +127,11 @@ Anomaly detection covers the unknown-unknowns and generates the labels; the supe
 - **The threshold is the product decision.** Flag rate times traffic is alerts per day, so set it from review capacity rather than from a statistical rule.
 - **Anomalous does not mean bad.** Someone buying a car is an outlier; a human still has to decide which unusual is actionable.
 - **The common production shape is a hybrid:** the detector surfaces unknown-unknowns and generates labels, and a supervised model takes over the patterns that repeat.
+
+---
+
+## Chapter 6 checkpoint
+
+For an unlabeled dataset, state what structure you expect, which distance or density assumptions are reasonable, how preprocessing changes them, how you will test stability, and what human or downstream decision gives the output meaning.
 
 That completes **Chapter 6 — Unsupervised learning**. Next topic is **The applied ML workflow**.

@@ -81,10 +81,26 @@ In a real environment, step 2 usually fails: you cannot un-send an email or un-c
 ✗  subjective writing               - verifier is a judge with known biases
 ```
 
-**Cost discipline.** N candidates cost roughly N times the tokens, though input caching softens it because the prompt prefix is shared. Two ways to keep it economical:
+---
+
+## 5. Control the search cost
+
+N candidates cost roughly N times the output tokens, though input caching can soften the repeated prompt cost. Two ways to keep it economical:
 
 - **Escalate**: try once, sample more only when the first attempt fails verification.
 - **Prune early**: generate short plans, verify cheaply, and only expand the survivors into full solutions.
+
+---
+
+## 6. Diversity and stopping matter as much as N
+
+The probability formula assumes independent attempts. Model samples are correlated: five nearly identical solutions do not provide five independent chances.
+
+Encourage useful diversity by varying the approach or decomposition, not merely the wording. Stop when a candidate passes a trusted verifier, when marginal improvement flattens, or when the fixed compute budget is exhausted.
+
+### Common issue
+
+Generating all N candidates after the first one already passed a strong verifier wastes compute without improving the decision.
 
 ---
 
@@ -95,5 +111,6 @@ In a real environment, step 2 usually fails: you cannot un-send an email or un-c
 - **That is the whole reason best-of-N helps on code and not on open-ended writing.**
 - **Search over action *sequences* needs reversible steps and cheap partial evaluation,** which production rarely offers - you cannot un-send an email.
 - **Keep it economical:** escalate only after the first attempt fails verification, and prune short plans before expanding them.
+- **Count distinct approaches, not raw samples,** and stop as soon as trusted verification or the budget says the search is over.
 
 Next topic is **Reasoning models and thinking budgets**.

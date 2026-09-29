@@ -42,7 +42,7 @@ These features are wildly predictive and completely useless. The model learns to
 
 ### Common issue
 
-Symptom: a single feature dominates importance, and AUC is suspiciously close to 1.
+Symptom: a single feature dominates importance, and the classifier's **area under the receiver operating characteristic curve (ROC-AUC)** is suspiciously close to 1.
 
 ---
 
@@ -59,7 +59,7 @@ X_train, X_test = train_test_split(X)
 Pipeline([("scale", StandardScaler()), ("clf", LogisticRegression())])
 ```
 
-The same applies to imputation medians, target encodings, feature selection, resampling, and PCA rotations. All of them learn something from the data, so all of them belong inside the pipeline.
+The same applies to imputation medians, target encodings, feature selection, resampling, and **principal component analysis (PCA)** rotations. All of them learn something from the data, so all of them belong inside the pipeline.
 
 ### Intuition
 
@@ -152,4 +152,4 @@ other rows    target encoding or full-history aggregates that see the future
 
 Leakage raises no error; it produces excellent numbers. So treat any sudden metric jump as a bug until proven otherwise, and rely on procedure over inspection: an explicit prediction timestamp per row, every transformation inside a `Pipeline`, and chronological validation whenever time exists.
 
-Next topic is **Dimensionality reduction and PCA**.
+Next topic is **Dimensionality reduction and principal component analysis**.

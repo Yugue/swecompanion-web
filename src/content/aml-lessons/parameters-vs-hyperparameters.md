@@ -29,7 +29,7 @@ model.fit(X_train, y_train)                                    # parameters
 
 ### Intuition
 
-Everything in the right-hand column is something a person chose. **Regularization**, in that first row, is a dial pushing the model to stay simple — Chapter 4 covers it.
+Everything in the right-hand column is something a person chose. **Regularization**, in that first row, is a penalty that discourages the model from becoming unnecessarily complex.
 
 ### Common issue
 
@@ -94,7 +94,7 @@ Some settings do not sit neatly in either box, and saying so is a good sign:
 | Gradient boosting | learning rate (with n_estimators) | subsample, column sampling |
 | Random forest | max features, min leaf size | number of trees — more is just slower |
 | Logistic regression | C (regularization strength) | solver |
-| SVM (RBF) | C and gamma together | kernel cache, tolerance |
+| Support-vector machine (SVM) with a radial-basis-function (RBF) kernel | C and gamma together | kernel cache, tolerance |
 | k-NN | k, and the feature scaling | index leaf size |
 
 ### Intuition

@@ -42,7 +42,7 @@ Raw counts measure popularity, not similarity. This is the classic bug behind "e
 \text{Jaccard}(A, B) = \frac{|A \cap B|}{|A \cup B|}
 \]
 
-**Pointwise mutual information** compares observed co-occurrence with what you would expect by chance:
+**Pointwise mutual information (PMI)** compares observed co-occurrence with what you would expect by chance:
 
 \[
 \text{PMI}(A,B) = \log \frac{P(A, B)}{P(A)\,P(B)}
@@ -54,7 +54,15 @@ PMI is the sharpest at surfacing genuinely surprising pairs, and the noisiest fo
 
 ---
 
-## 3. Picking one
+## 3. A numerical comparison
+
+Let 100 users engage with A, 400 with B, and 20 with C. Suppose 20 users engage with both A and B, while 10 engage with A and C.
+
+Raw overlap prefers B: 20 versus 10. Cosine gives `20 / √(100 × 400) = 0.10` for B and `10 / √(100 × 20) ≈ 0.224` for C. Normalization reveals that C overlaps much more strongly relative to its audience size.
+
+---
+
+## 4. Picking one
 
 | Situation | Reach for |
 |---|---|
@@ -69,7 +77,15 @@ None of these is subtle. The mistake is skipping the normalization step, not cho
 
 ---
 
-## 4. Similarity inherits every bias in the log
+## 5. Small samples need less confidence
+
+Two obscure items touched by the same single user can have perfect cosine similarity. That is not strong evidence of a reliable recommendation.
+
+Require a minimum overlap or **shrink** the score toward zero when support is small. For example, multiply similarity by `overlap / (overlap + 10)`: one shared user retains only 1/11 of the score, while 100 retain 100/110. The constant is a validation choice, not a universal setting.
+
+---
+
+## 6. Similarity inherits every bias in the log
 
 ```text
 the system showed A and B together on the same page
@@ -81,11 +97,11 @@ A and B look similar
 the system shows A and B together even more
 ```
 
-That is a feedback loop dressed up as a similarity score. It is a real reason "related items" lists ossify, and it is why Chapter 5 spends a lesson on the effect.
+That is a **feedback loop** disguised as a similarity score: frequently displayed pairs collect more interactions and then appear even more similar. It is a common reason "related items" lists stop changing.
 
 Practical guards: a minimum interaction count before an item may enter a similarity list, a cap on how often any single item may appear across lists, and periodic recomputation from a window rather than from all history.
 
-**Beyond co-occurrence.** Co-occurrence is one way to get a similarity. The next lesson gets one by *learning* a vector per item, which handles sparsity far better - two items can end up close even if no single person engaged with both, as long as they relate to the same third things.
+**Beyond co-occurrence.** A model can also learn an **embedding**, a short numeric vector for each item. Embeddings handle sparsity better because two items can end up close even if no person engaged with both, as long as their interaction patterns are similar.
 
 That is the step from counting to learning, and it is the point of the rest of this chapter.
 

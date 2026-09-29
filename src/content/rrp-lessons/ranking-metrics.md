@@ -1,12 +1,20 @@
 ## How a ranked list is scored
 
-**Ranking metrics only care about the top of the list, because that is all anyone looks at.** An excellent item at position 40 is worth nothing.
+**Top-k ranking metrics emphasize the part of the list the product displays.** An excellent item at position 40 contributes nothing to NDCG@10, even though users may reach it on a scrolling surface.
 
 That is the difference between these metrics and ordinary accuracy, and everything below follows from it.
 
 ---
 
-## 1. Precision@k and recall@k
+## 1. What counts as relevant?
+
+A relevance label might be a human judgment, a purchase, or watching beyond a threshold. These answer different questions. A logged click is observable evidence, not a complete list of everything the user would have liked.
+
+For next-item retrieval with one held-out positive, recall@100 is 1 if that item appears among the 100 candidates, otherwise 0. Average across requests. Do not describe that number as recall of all the user's true interests.
+
+---
+
+## 2. Precision@k and recall@k
 
 Show `k` items. Of those, some are good ("relevant"):
 
@@ -29,7 +37,7 @@ Precision matters for the ranking stage, where slots are scarce. Recall matters 
 
 ---
 
-## 2. Position matters, and precision@k ignores it
+## 3. Position matters, and precision@k ignores it
 
 ```text
 list A:   ✓  ✓  ✓  ✗  ✗  ✗        precision@6 = 0.5
@@ -42,9 +50,9 @@ Identical score, obviously different experience. So we need a metric that discou
 
 ---
 
-## 3. NDCG
+## 4. NDCG
 
-Normalized Discounted Cumulative Gain does exactly that. Each position gets a weight that falls as you go down:
+**Normalized discounted cumulative gain (NDCG)** does exactly that. It first calculates **discounted cumulative gain (DCG)** by giving lower positions less weight, then divides by the best DCG the list could achieve:
 
 ```text
 position:   1      2      3      4      5      6
@@ -60,7 +68,7 @@ NDCG = 0.0  → nothing relevant anywhere
 
 ---
 
-## 4. NDCG, worked through
+## 5. NDCG, worked through
 
 Grade each item 0-3 for relevance. Here are two orderings of the same six items:
 
@@ -76,22 +84,22 @@ Grade each item 0-3 for relevance. Here are two orderings of the same six items:
                       DCG =    6.28                       DCG =    3.74
 ```
 
-The best possible ordering of those items - 3, 3, 2, 1, 0, 0 - scores 6.28, so:
+The best possible ordering of those items - 3, 3, 2, 1, 0, 0 - scores about 6.32, so:
 
 ```text
-list A   NDCG = 6.28 / 6.28 = 1.00      perfect ordering
-list B   NDCG = 3.74 / 6.28 = 0.60      same items, the good ones buried
+list A   NDCG ≈ 6.28 / 6.32 = 0.99      nearly ideal; relevance 1 is below a 0
+list B   NDCG ≈ 3.74 / 6.32 = 0.59      same items, the good ones buried
 ```
 
 Note what precision@6 says about these two lists: **identical**, because the same four relevant items appear in both. NDCG separates them because it is the only one of the three that knows position 1 is worth nearly three times position 6.
 
-That is why NDCG is the default when relevance has degrees - "very relevant", "somewhat", "not".
+This example uses linear gain equal to the relevance grade and rounded weights `1/log₂(position+1)`. Another common convention uses gain `2^relevance − 1`. State the gain convention and keep it fixed across comparisons.
 
 ---
 
-## 5. MRR, when there is one right answer
+## 6. MRR, when there is one right answer
 
-Mean Reciprocal Rank looks only at where the *first* correct item landed:
+**Mean reciprocal rank (MRR)** looks only at where the *first* correct item landed:
 
 ```text
 first correct at position 1  →  1/1 = 1.00
@@ -106,7 +114,7 @@ Average that over all queries. It suits problems with a single right answer - a 
 
 ---
 
-## 6. Choosing
+## 7. Choosing
 
 | Situation | Metric |
 |---|---|
@@ -119,6 +127,14 @@ Average that over all queries. It suits problems with a single right answer - a 
 ### Rule of thumb
 
 Always quote the k. "NDCG improved" is not a result; "NDCG@10 improved from 0.41 to 0.44" is.
+
+---
+
+## 8. Aggregate without hiding weak segments
+
+Report whether each request or each user receives equal weight. A user with 100 sessions otherwise contributes 100 times as much as someone with one.
+
+Also report new-user, new-item, and surface-specific results. A mean improvement can hide a regression for the very users the new model was intended to help.
 
 ---
 

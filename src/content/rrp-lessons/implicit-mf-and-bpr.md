@@ -1,6 +1,6 @@
 ## Factorization for implicit feedback
 
-**With clicks instead of ratings, every example you have is a positive.** There is no such thing as a logged "this user disliked this item", so a training objective has to be invented.
+**A click-only interaction table contains observed positives and uncertain missing entries.** Explicit hides or dislikes, if available, are additional evidence; they are not equivalent to ordinary missing clicks.
 
 ```text
 ratings:   1★ 2★ 3★ 4★ 5★     positives AND negatives, both observed
@@ -9,24 +9,7 @@ clicks:    ✓  ✓  ✓            positives only; everything else is a blank
 
 ---
 
-## 1. The trap at both extremes
-
-```text
-treat every blank as a 0   →  claims the user rejected 10 million items
-                              they never saw. Wildly wrong, and it buries
-                              everything unpopular.
-
-ignore every blank         →  the model has nothing to push down, so it
-                              learns "everything is good" and ranks nothing.
-```
-
-### Core intuition
-
-Neither works. The two standard fixes take opposite routes out.
-
----
-
-## 2. Why the obvious approaches both fail
+## 1. Why the obvious approaches both fail
 
 One user, five items. They watched two:
 
@@ -48,12 +31,12 @@ The two fixes take opposite routes out of that, and both are honest about what a
 
 ```text
 weighted     keep the blanks, but say you are not sure about them
-pairwise     never score a blank at all - only claim A ranks above C
+pairwise     score both items, but train on the gap: A should rank above C
 ```
 
 ---
 
-## 3. Route one: weighted, with confidence
+## 2. Route one: weighted, with confidence
 
 Treat all cells as observed, but say how much you trust each one.
 
@@ -66,15 +49,17 @@ not interacted →  target 0,  LOW  confidence
 \text{loss} = \sum_{u,i} c_{ui}\big(x_{ui} - \mathbf{p}_u \cdot \mathbf{q}_i\big)^2 + \lambda(\lVert \mathbf p\rVert^2 + \lVert \mathbf q\rVert^2)
 \]
 
-where confidence grows with how much the user engaged - watched once versus watched ten times. The blanks still pull the score down, but gently, which is the honest statement of what a blank actually means.
+Here x_ui is 1 for an observed interaction and 0 otherwise; c_ui is its confidence weight; λ controls regularization. Confidence can grow with engagement count, such as watching once versus ten times. The blanks still pull the score down, but gently, which is the honest statement of what a blank actually means.
 
 ### Rule of thumb
 
-This is what "implicit ALS" refers to, and it is a workhorse.
+This is **implicit alternating least squares (ALS)**: alternate between solving user vectors and item vectors while holding the other side fixed. It is a production workhorse.
 
 ---
 
-## 4. Route two: learn from comparisons
+## 3. Route two: Bayesian Personalized Ranking
+
+**Bayesian Personalized Ranking (BPR)** is a pairwise objective: it learns that an observed item should rank above an unobserved sampled item, rather than trying to predict an absolute rating.
 
 Do not predict a value at all. Predict an **order**.
 
@@ -97,6 +82,14 @@ Only the *difference* matters, so the model never has to claim that an un-clicke
 
 ---
 
+## 4. Read the pairwise loss with numbers
+
+The sigmoid `σ(z) = 1 / (1 + exp(−z))` turns a score difference into a number between 0 and 1. BPR minimizes `−log σ(score(i) − score(j))`.
+
+If positive i scores 2 and sampled j scores 1, the gap is 1 and loss is about 0.31. Reversing them gives a gap of −1 and loss about 1.31. Training favors the correct ordering; it does not turn either score into a click probability.
+
+---
+
 ## 5. Which j do you compare against?
 
 The un-clicked item is sampled, and how you sample it changes what the model learns:
@@ -107,7 +100,7 @@ popular items      → corrects for popularity bias → but over-punishes good p
 plausible-but-not  → sharpens the boundary → and destabilizes training if overdone
 ```
 
-This is the same question that dominates retrieval training, where it gets a full lesson in Chapter 3. The short version: easy negatives teach little, hard negatives teach a lot and are temperamental.
+Negative sampling also shapes retrieval training. Easy negatives teach little; **hard negatives**—items the current model scores highly even though the user did not choose them—teach more but can make training unstable.
 
 ---
 
@@ -116,19 +109,19 @@ This is the same question that dominates retrieval training, where it gets a ful
 | | Weighted / confidence | Pairwise ranking |
 |---|---|---|
 | Optimizes | reconstruction of the matrix | the ordering |
-| Scales by | passes over all cells, parallelizes well | sampled pairs |
-| Output score | closer to a calibrated value | ordering only |
+| Scales by | efficient ALS updates using sparse observations | sampled pairs |
+| Output score | preference score, not a calibrated probability | ordering only |
 | Reach for it when | you want a solid batch retrieval model | you care only about rank order |
 
 ### Common issue
 
-Both are still fitted with regularization, and both still learn one vector per id - so both still have the cold-start problem from the previous lesson.
+Both are still fitted with regularization, and both still learn one vector per id. A new user or item has no interactions and therefore no learned vector—the cold-start problem.
 
 ---
 
 ## What matters most
 
-- **Implicit data has no negatives,** so an objective has to be constructed rather than taken off the shelf.
+- **A click-only log has uncertain missing entries,** so the objective must state how those entries are treated.
 - **Treating blanks as zeros over-claims; ignoring them leaves nothing to push down.** Both extremes fail.
 - **Weighted approaches keep the blanks as low-confidence negatives,** which matches what a blank actually means.
 - **Pairwise approaches learn "this beats that",** which is a weaker claim and a better match for ranking.

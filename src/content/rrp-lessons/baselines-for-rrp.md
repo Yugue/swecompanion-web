@@ -20,7 +20,7 @@ Attention is extremely concentrated. In most catalogues a tiny fraction of items
 
 ### Core intuition
 
-Guessing "the popular thing" is right surprisingly often, because the popular thing genuinely is what most people want.
+Guessing "the popular thing" is right surprisingly often, because frequently consumed items capture substantial demand—although their counts also reflect past exposure.
 
 ---
 
@@ -66,7 +66,7 @@ matrix factorization               = 0.31
 a learned retrieval model          = 0.34
 ```
 
-(The named methods on that ladder are the subject of Chapters 2 and 3 - here only the shape matters.)
+The important result is not the method names but how much improvement each additional level of complexity contributes.
 
 The shape of that ladder is the finding. If most of the value arrives on the second rung, the sophisticated model is buying a little accuracy for a lot of operational cost - a trade worth making explicitly rather than by default.
 
@@ -76,7 +76,15 @@ And if a large model barely beats popularity, suspect one of three things:
 - the features do not carry the signal,
 - the metric is not measuring what the model improved.
 
-**Baselines are also a safety net.** Keep the popularity list running in production. It is your fallback when the model service times out, your control in an A/B test, and your canary when something upstream breaks - if the model cannot beat popularity this morning, something is wrong today.
+**Baselines are also a safety net.** Keep the popularity list running in production. It is your fallback when the model service times out, your control in a randomized **A/B test** (current system A versus candidate B), and your canary when something upstream breaks—if the model cannot beat popularity this morning, something is wrong today.
+
+---
+
+## 5. Make the comparison fair
+
+Use the same eligible catalogue, held-out requests, list length, and policy filters for every baseline. Compute popularity using only events before each evaluation period; tomorrow's clicks are not a legitimate baseline feature.
+
+Report quality alongside serving cost. A complex model that barely improves the score but doubles latency has not automatically earned a launch.
 
 ---
 

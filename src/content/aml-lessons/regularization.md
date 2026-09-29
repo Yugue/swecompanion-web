@@ -2,7 +2,7 @@
 
 **Regularization is telling the model "keep it simple" by charging it a fee for complexity.**
 
-You add a penalty to the training objective that grows as the model's coefficients grow. The model then deliberately fits the training data *worse* in exchange for doing better on data it has never seen - the variance half of the bias-variance trade.
+You add a penalty to the training objective that grows with the model's coefficients. The model accepts a little more training error in exchange for being less sensitive to noise and performing better on unseen data. L1 and L2 create that trade in different ways.
 
 ---
 
@@ -126,7 +126,7 @@ The idea is universal; only the mechanism changes:
 | Decision tree | max depth, min samples per leaf, cost-complexity pruning |
 | Random forest | tree depth, min leaf size, feature subsampling |
 | Gradient boosting | learning-rate shrinkage, fewer trees (early stopping), subsampling, L1/L2 on leaf weights |
-| SVM | C (and the margin itself is a regularizer) |
+| Support-vector machine (SVM) | C (and the margin itself is a regularizer) |
 | k-NN | larger k |
 | Any iterative model | early stopping |
 | Any model | more data, which is the regularizer you cannot buy with a hyperparameter |

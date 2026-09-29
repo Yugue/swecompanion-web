@@ -1,4 +1,4 @@
-## Support Vector Machines
+## Support vector machines (SVMs)
 
 **A support vector machine separates two classes by drawing the dividing line as far away from both of them as it can.**
 
@@ -81,11 +81,12 @@ K(x, x') = \phi(x)^{\top}\phi(x')
 |---|---|---|
 | Linear | \(x^{\top}x'\) | High-dimensional sparse data (text); fastest |
 | Polynomial | \((\gamma x^{\top}x' + r)^p\) | Explicit interaction terms |
-| RBF (Gaussian) | \(\exp(-\gamma\lVert x-x'\rVert^2)\) | The nonlinear default |
+| Radial basis function (RBF, Gaussian) | \(\exp(-\gamma\lVert x-x'\rVert^2)\) | The nonlinear default |
 
 For RBF, **gamma** sets how far a single training point's influence reaches: large gamma means a tight, wiggly boundary (overfitting); small gamma means a smooth, nearly linear one. C and gamma must be tuned **together** - they trade off against each other.
 
 ```python
+# SVC means support-vector classifier
 SVC(kernel="rbf", C=1.0, gamma="scale")
 ```
 
@@ -95,9 +96,9 @@ SVC(kernel="rbf", C=1.0, gamma="scale")
 
 | Property | Consequence |
 |---|---|
-| Training is roughly O(n²)-O(n³) | Painful past ~100k rows; use `LinearSVC` or SGD instead |
+| Training is roughly O(n²)-O(n³) | Painful past ~100k rows; use `LinearSVC` or stochastic gradient descent (SGD) instead |
 | Needs scaled features | Both the margin and the RBF distance are scale-dependent |
-| Outputs a signed distance, not a probability | `probability=True` fits Platt scaling, which costs an internal CV |
+| Outputs a signed distance, not a probability | `probability=True` fits Platt scaling, which costs internal cross-validation (CV) |
 | Multiclass is one-vs-one or one-vs-rest | Not native; cost grows with the number of classes |
 | Memory holds the support vectors | Serving cost grows with how many there are |
 

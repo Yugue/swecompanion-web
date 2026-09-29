@@ -1,6 +1,8 @@
 ## Cross-validation
 
-Cross-validation buys a lower-variance estimate of generalization by rotating which slice of the data is held out. It trades compute for reliability, and it is the standard tool whenever data is limited.
+Cross-validation (CV) estimates performance by repeatedly fitting on part of the data and evaluating on a different held-out part. It trades compute for a more reliable estimate when data is limited.
+
+For classification examples below, **area under the receiver operating characteristic curve (ROC-AUC)** measures how often the model ranks a randomly chosen positive above a randomly chosen negative.
 
 ---
 
@@ -30,7 +32,7 @@ Five folds on the same model and data:
 
 ```text
 fold       1      2      3      4      5
-AUC      0.842  0.871  0.836  0.859  0.848      mean 0.851, std 0.014
+ROC-AUC  0.842  0.871  0.836  0.859  0.848      mean 0.851, std 0.014
 ```
 
 That spread is the point. Now suppose a colleague reports a new model at 0.860 and calls it an improvement. It sits comfortably inside one standard deviation of the old model's fold-to-fold noise, so nothing has been demonstrated.
@@ -107,7 +109,7 @@ Feature selection is the worst offender. Selecting the 20 features most correlat
 
 ### Rule of thumb
 
-> Anything that calls `.fit()` belongs inside the Pipeline: scalers, imputers, encoders, selectors, PCA, resamplers, calibrators.
+> Anything that calls `.fit()` belongs inside the Pipeline: scalers, imputers, encoders, selectors, principal component analysis (PCA), resamplers, and calibrators.
 
 ---
 

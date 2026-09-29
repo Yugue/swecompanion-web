@@ -109,12 +109,37 @@ Scoring a million documents with a cross-encoder is a million forward passes per
 
 ---
 
-## 6. Practical notes
+## 6. Keep the index consistent
 
 - Embed queries and documents with the **same** model and the same preprocessing; re-embed the whole corpus when the model changes.
 - Match the embedding model to the domain - code, multilingual text, and long documents have specialized options.
-- Pass fewer, better passages: five well-ranked passages beat twenty mediocre ones, both for accuracy and for cost.
-- Measure recall@100 and nDCG@5 separately, so you know which stage to fix.
+
+Store the embedding-model version with every vector. Mixing vectors from different models in one index makes distance meaningless even though the system continues returning results.
+
+---
+
+## 7. Filter before similarity when constraints are exact
+
+Metadata such as tenant, language, date, product, and permission should be applied as hard filters rather than left for semantic ranking to infer.
+
+```text
+filter: tenant=acme AND language=en AND updated_after=2025-01-01
+then:   rank the remaining passages by hybrid relevance
+```
+
+This improves relevance and prevents a high-similarity passage from the wrong tenant or permission scope from entering the context.
+
+---
+
+## 8. Evaluate each retrieval stage separately
+
+Pass fewer, better passages: five well-ranked passages beat twenty mediocre ones for both accuracy and cost. Measure:
+
+- candidate recall at a wide cutoff, such as recall@100,
+- reranking quality near the top, such as normalized discounted cumulative gain at 5,
+- answer grounding after the selected passages enter context.
+
+If the answer was absent from the candidate set, fix retrieval. If it was present but ranked low, fix fusion or reranking. If it was ranked first and the response ignored it, fix context use or generation.
 
 ---
 
@@ -126,5 +151,6 @@ Scoring a million documents with a cross-encoder is a million forward passes per
 - **The two stages have different jobs:** a cheap wide stage optimizes recall, an expensive narrow one optimizes precision.
 - **A cross-encoder cannot scale** because it reads query and passage together, so nothing precomputes - one forward pass per pair. That is why it only sees the top ~50.
 - **Measure recall@100 and nDCG@5 separately,** so you know which stage to fix.
+- **Filter exact constraints before similarity and version every vector,** so relevance never crosses a permission boundary and incompatible embeddings never share an index.
 
 Next topic is **Short-term and long-term memory**.

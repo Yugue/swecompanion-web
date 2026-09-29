@@ -22,7 +22,7 @@ x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}}
 
 Bounded to [0, 1], but a single extreme value squashes everything else.
 
-**Robust scaling** - when outliers are present:
+**Robust scaling** - when outliers are present, subtract the median and divide by the **interquartile range (IQR)**, the distance between the 25th and 75th percentiles:
 
 \[
 x' = \frac{x - \text{median}}{\text{IQR}}
@@ -42,16 +42,16 @@ Standardize by default. Reach for robust scaling when outliers are present, and 
 
 | Model | Needs scaling? | Why |
 |---|---|---|
-| k-NN, k-means, SVM (RBF) | **Yes** | They compute distances; a feature in dollars dominates one in years |
-| Logistic / linear regression with L1 or L2 | **Yes** | The penalty is applied to raw coefficient size |
+| k-nearest neighbors (k-NN), k-means, support-vector machines (SVMs) with a radial-basis-function (RBF) kernel | **Yes** | They compute distances; a feature in dollars dominates one in years |
+| Logistic / linear regression with L1 (absolute-value) or L2 (squared-value) regularization | **Yes** | The penalty is applied to raw coefficient size |
 | Any model fitted with gradient descent | **Yes** | Wildly different scales make the loss surface elongated and slow to descend |
-| PCA | **Yes** | It maximizes variance, and variance is scale-dependent |
+| Principal component analysis (PCA) | **Yes** | It maximizes variance, and variance is scale-dependent |
 | Neural networks | **Yes** | Same gradient argument, plus saturation |
 | Decision trees | No | A split is a threshold; monotone rescaling does not change the ordering |
 | Random forest, gradient boosting | No | Built from trees |
 | Naive Bayes (categorical/multinomial) | No | Works on counts and probabilities |
 
-> **Gradient descent** is the standard way of training a model: nudge the numbers a little, check whether the error went down, and repeat. Chapter 4 covers it properly.
+> **Gradient descent** is a training method that repeatedly nudges model parameters in the direction that reduces error.
 
 ### Rule of thumb
 
@@ -97,7 +97,7 @@ The same statistics must also be shipped to production: the serving path applies
 
 - **Log / Box-Cox / Yeo-Johnson**: change the *shape* of a skewed distribution, not just its scale.
 - **Quantile transform**: forces a feature to a uniform or normal distribution; powerful and lossy.
-- **L2 row normalization**: scales each *row* to unit length - used for text/TF-IDF and cosine similarity, a different operation from column scaling.
+- **L2 row normalization**: scales each *row* to unit length - used for text represented by term frequency-inverse document frequency (TF-IDF) and compared with cosine similarity, a different operation from column scaling.
 
 ---
 

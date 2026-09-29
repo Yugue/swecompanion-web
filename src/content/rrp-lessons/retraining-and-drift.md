@@ -14,7 +14,7 @@ a recommender       the catalogue turns over WEEKLY
                     a user's interests move within a session
 ```
 
-An item uploaded today has no embedding until the next training run and no index entry until the next index build. Until then it is not merely ranked badly - it is **invisible**. That is a business problem in any marketplace or media product.
+An identifier-only model cannot learn a new item's vector without training evidence. A feature-based tower can encode it immediately, but it remains invisible to retrieval until its vector is inserted or published in the index. That is a business problem in any marketplace or media product.
 
 ### Rule of thumb
 
@@ -28,7 +28,7 @@ An item uploaded today has no embedding until the next training run and no index
 counters and features      seconds to minutes   streaming
 popularity lists           minutes to hours     batch
 item embeddings + index    hours to daily       batch, then index build
-ranker model               daily                full retrain, or incremental
+ranker model               example: daily       full retrain, or incremental
 two-tower retrieval        daily to weekly      expensive; both towers must agree
 ```
 
@@ -44,7 +44,7 @@ Note the constraint hiding in the last row: if you retrain the item tower, every
 |---|---|---|---|
 | Population | who is using it | a new country launches | yes |
 | Catalogue | what is available | a seasonal inventory turnover | yes |
-| Behavioral | what a signal means | a UI change alters click rates | only with new data after the change |
+| Behavioral | what a signal means | a user-interface (UI) change alters click rates | only with new data after the change |
 
 ### Core intuition
 
@@ -52,7 +52,15 @@ The third is the dangerous one. After a layout change, historical clicks describ
 
 ---
 
-## 4. Monitoring, when quality signals arrive late
+## 4. Separate drift from a broken data path
+
+**Drift** is a change in the population, input distribution, or relationship between inputs and outcomes. A counter that stops updating is an incident, not evidence that user preferences changed.
+
+Inspect staleness, missing values, join counts, and fallback traffic before launching a retraining job. Retraining on corrupted inputs can make the incident harder to recover from.
+
+---
+
+## 5. Monitoring, when quality signals arrive late
 
 Purchases confirm in days and retention in weeks, so quality metrics cannot be your alarm. Watch the fast proxies:
 
@@ -68,17 +76,21 @@ That last one is specific to this domain and worth naming.
 
 ---
 
-## 5. Every retrain is a deploy
+## 6. Choose the history window deliberately
 
-```text
-train → validate offline → shadow → small % → ramp → full
-                                    ↑
-            and RE-TUNE the threshold and blending weights afterwards
-```
+A short training window adapts quickly but loses evidence about rare users and items. A long window stabilizes estimates but can over-weight obsolete behavior.
 
-### Rule of thumb
+Compare windows on a later time period and on rare/cold slices. Recency weighting or a mix of recent and historical data can balance adaptation with coverage; do not select a cadence independently of the available label maturity.
 
-The score distribution moves with every retrain, so any fixed threshold or blend weight now means something different. Skipping that step causes a surprising share of post-retrain incidents. Keep the previous model loadable so rollback is a config change.
+---
+
+## 7. Roll out a compatible bundle and keep rollback ready
+
+A deployable bundle may include the model, feature schema, calibrator, item vectors, and retrieval index. Validate compatibility before switching traffic, then use a small controlled rollout with predefined rollback thresholds.
+
+Keep the previous bundle and monitor immediate serving failures separately from slower outcome metrics. Retraining completion is not the same as a safe release.
+
+Recheck calibration, thresholds, and blend weights on held-out data before promotion. A changed score distribution can alter downstream decisions even if the ranking metric improves.
 
 ---
 
@@ -88,6 +100,6 @@ The score distribution moves with every retrain, so any fixed threshold or blend
 - **Different parts refresh at different rates,** and the item tower and its index must move together.
 - **Behavioral drift is the dangerous kind:** after a UI change, historical clicks describe a product that no longer exists.
 - **Quality signals arrive late,** so alert on click rate, score distribution, coverage, and new-item impression share.
-- **Treat every retrain as a deploy, and re-tune thresholds and blend weights afterwards,** because the score distribution moved.
+- **Treat every retrain as a deploy.** Validate calibration, thresholds, and blend weights before promotion, and keep rollback ready.
 
 Next topic is **Exploration**.

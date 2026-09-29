@@ -81,7 +81,28 @@ The sandbox breaks the chain at the last link: no credentials in the environment
 
 The common production shape uses both: narrow, permissioned tools for anything with side effects, and a sandboxed code tool for computation over the data those tools return.
 
-**Make it debuggable.** Log the source, stdout, stderr, exit code, and wall time for every execution. Generated code is the part of a trace you will most often need to read, and an agent that "computed the total" without a visible program is not auditable.
+---
+
+## 6. Validate the result, not only the sandbox
+
+A secure program can still compute the wrong answer. Treat execution success and task correctness as separate checks:
+
+```text
+execution checks   exit code, timeout, memory, output size
+result checks      row counts, totals, schema, invariants, spot checks
+```
+
+For example, a script that joins orders to customers can exit cleanly while duplicating every order. Compare input and output counts, assert that money totals remain plausible, and require the program to report assumptions such as dropped null rows.
+
+### Common issue
+
+Sandboxing limits damage; it does not make generated code correct.
+
+---
+
+## 7. Make executions reproducible
+
+Log the source, inputs or input hashes, runtime version, stdout, stderr, exit code, produced artifacts, and wall time for every execution. Generated code is the part of a trace you will most often need to read, and an agent that "computed the total" without a visible program is not auditable.
 
 ---
 
@@ -92,5 +113,6 @@ The common production shape uses both: narrow, permissioned tools for anything w
 - **Generated code is untrusted input,** especially once the agent has read anything from the outside world - so the sandbox is the control, not the prompt.
 - **The defaults that matter:** no ambient credentials, no outbound network, a scratch filesystem scoped to the run, hard CPU and wall-clock limits, and capped output.
 - **Production usually runs both shapes:** narrow permissioned tools for anything with side effects, where you want per-argument authorization and a named audit entry, and the code tool for computation over what they return.
+- **Sandboxing controls impact, not correctness.** Validate result-level invariants and retain enough execution metadata to reproduce the answer.
 
 Next topic is **Tool servers and the Model Context Protocol**.

@@ -124,6 +124,30 @@ An agent given this can finish the job. An agent given `"Error"` will either red
 
 ---
 
+## 7. Use backoff and circuit breakers below the model
+
+Transient retries should usually happen in the runtime with exponential backoff and jitter. If a service keeps failing, open a circuit breaker and return one clear observation instead of spending model turns rediscovering the outage.
+
+```text
+timeout → runtime retry 200 ms → 500 ms → 1 s → circuit open
+agent receives: service unavailable; do not retry this run; use fallback or escalate
+```
+
+---
+
+## 8. Plan compensation for multi-step writes
+
+Some operations cannot be atomic across systems. If step two fails after step one succeeds, define whether to compensate, continue partially, or require human recovery.
+
+```text
+reserve inventory ✓ → charge card ✗
+policy: release reservation, record both outcomes, return recovery status
+```
+
+Compensation is a workflow owned by the runtime, not an improvised sequence the model invents during an incident.
+
+---
+
 ## What matters most
 
 - **Tool failure is the normal case,** and the wording of the error decides whether the agent recovers or spirals. Name what was wrong, what the valid form is, and what to do next - including "do not retry".
@@ -132,5 +156,6 @@ An agent given this can finish the job. An agent given `"Error"` will either red
 - **Any tool with side effects needs a caller-supplied idempotency key.** The agent cannot tell "failed" from "succeeded but I didn't hear back" - only the tool can.
 - **Cap retries per tool and per run,** or a transient blip consumes the entire budget at growing context size.
 - **Give partial failure a shape** - what succeeded, what failed and why, what is safe to retry - so the agent can finish the job instead of redoing it.
+- **Keep backoff, circuit breaking, and compensation in the runtime,** where recovery remains bounded and repeatable.
 
 Next topic is **Parallel and sequential calls**.

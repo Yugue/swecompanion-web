@@ -87,6 +87,14 @@ Without this step, the loop is a treadmill: the same failure returns three promp
 
 ---
 
+## 6. Change one layer at a time
+
+When a release changes the prompt, model, retrieval settings, and tool schema together, any improvement or regression becomes unattributable. Prefer one hypothesis per experiment and record the full configuration in every trace.
+
+For interacting changes that must ship together, use an ablation: compare the full bundle with versions that remove one change at a time. The goal is to learn which mechanism produced the effect, not merely whether the bundle won once.
+
+---
+
 ## Interview mental model
 
 Improvement is a loop, and the discipline is choosing what to fix and where:
@@ -112,5 +120,6 @@ Escalate through the layers in order, because most teams start at step 3 and ski
 - **Fix the cluster, not the case.** One-off prompt patches become a system prompt nobody can reason about.
 - **If your fix is another sentence in the system prompt, ask which layer you are avoiding.**
 - **Fine-tuning suits consistent formatting, a narrow stable domain, or cost reduction** - rarely reasoning, and never as a substitute for retrieval.
+- **Change one layer at a time when possible,** so traces can attribute gains and regressions to a mechanism rather than a bundle.
 
 Next topic is **An agentic system design answer**.

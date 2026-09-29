@@ -93,6 +93,29 @@ Note that step 1 is organizational and step 6 is what tells you whether the rest
 
 ---
 
+## 6. Give the selector a safe miss path
+
+The retriever will sometimes omit the correct tool. The agent needs an explicit response other than choosing the closest wrong option:
+
+```text
+no candidate clearly fits
+  → search_tools with a reformulated intent
+  → ask for the missing detail
+  → escalate or finish with "unsupported"
+```
+
+Treat abstention as a valid selection outcome. A confident call to the wrong write tool is worse than one extra selection step.
+
+---
+
+## 7. Version the catalogue and index together
+
+The tool index, exposed schemas, and executing runtime must describe the same catalogue version. Otherwise retrieval can return a removed tool or an old argument shape.
+
+Record the catalogue version in every trace, rebuild the index on tool changes, and canary retrieval changes using the same selection set before enabling them globally.
+
+---
+
 ## What matters most
 
 - **Accuracy is not constant in catalogue size.** Past a few dozen tools, near-duplicates get chosen at random and most of the window becomes a menu.
@@ -100,6 +123,8 @@ Note that step 1 is organizational and step 6 is what tells you whether the rest
 - **Then treat selection as retrieval:** index tool descriptions, expose the top ten or fifteen per turn, and keep a few always-on tools so the agent is never stranded.
 - **Write tool descriptions to be retrievable,** not just readable, since the same failure modes as document search now apply.
 - **Measure candidate recall separately** - whether the right tool was even in the retrieved set. That separates a retriever problem from a model problem, and no prompt fixes the former.
+- **Support abstention and second-stage search** so a retrieval miss does not become a call to the nearest wrong tool.
+- **Version the index with the schemas and runtime** or the selector can retrieve tools that no longer exist.
 
 ---
 

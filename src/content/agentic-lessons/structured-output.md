@@ -124,6 +124,26 @@ This also makes permissions clearer: producing an investigation result is not th
 
 ---
 
+## 7. Version schemas as public contracts
+
+Store the schema version with every output and trace. Add optional fields compatibly; version renamed fields, changed meanings, or new required values.
+
+Consumers should reject unsupported versions explicitly rather than silently interpreting a new object with old assumptions.
+
+---
+
+## 8. Keep generation and authorization separate
+
+A structured action proposal can be perfectly valid and still unauthorized. Parse and validate the object first, then run authorization and policy checks using trusted session state.
+
+```text
+model output → schema validation → semantic validation → authorization → execution
+```
+
+Constrained decoding protects the first arrow only.
+
+---
+
 ## What matters most
 
 - **Structured output is an interface contract between the model and code.**
@@ -132,5 +152,6 @@ This also makes permissions clearer: producing an investigation result is not th
 - **Validate both structure and domain meaning.**
 - **Define repair, clarification, retrieval, and safe-stop behavior before failure occurs.**
 - **Prefer several small contracts over one oversized schema.**
+- **Version schemas and authorize after parsing,** because valid structure never grants permission to act.
 
 Next topic is **Defining the agent task contract**.

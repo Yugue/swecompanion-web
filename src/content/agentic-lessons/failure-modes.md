@@ -2,7 +2,7 @@
 
 Agent failures repeat across systems and domains. Naming them turns debugging into diagnosis, and being able to list them with their detectors is a strong interview signal.
 
-Chapter 1 introduced visible loop failures. Here the goal is different: map each symptom to a detector, likely layer, and appropriate fix.
+The useful skill is not merely naming a visible failure but mapping each symptom to a detector, likely layer, and appropriate fix.
 
 ---
 
@@ -88,6 +88,22 @@ Run these over every production trace. They cost nothing, they catch the majorit
 
 ---
 
+## 7. Stale observations and state races
+
+An agent can reason correctly from information that is no longer true: inventory changed, another worker edited the file, or the user revoked approval.
+
+**Detector:** attach versions or timestamps to observations and reject writes based on stale state. **Fix:** re-read authoritative state immediately before consequential actions and use optimistic concurrency for shared records.
+
+---
+
+## 8. Silent partial success
+
+A multi-item operation may complete three of five actions while the final answer says either "done" or "failed." Both are misleading.
+
+**Detector:** compare requested items with per-item tool results. **Fix:** require structured partial status listing succeeded, failed, unknown, and safe-to-retry items.
+
+---
+
 ## Interview mental model
 
 Six failures repeat across every agent system, and each has a mechanical detector - build the detectors before tuning the prompt:
@@ -104,5 +120,6 @@ budget exhaustion   retry storm                  → classify errors, cap per to
 - **Looping means the observation never changed the model's belief,** so the real fix is a tool that returns something conclusive.
 - **Error cascades are the quiet one:** one wrong intermediate fact becomes every later step's premise, which is why facts need provenance and freshness before they are used in computation.
 - **Goal drift usually traces back to compaction** dropping the goal or the constraints.
+- **Also watch stale state and silent partial success,** which can produce a fluent answer even when the world changed mid-run or only part of the request completed.
 
 Next topic is **Guardrails and permissioning**.

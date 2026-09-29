@@ -49,7 +49,7 @@ Every row has an implicit prediction time \(t\):
 
 ### Common issue
 
-Breaking that rule is called **leakage** — the model is shown something it could not possibly know yet, so it looks brilliant offline and is worthless in production. It is the single most common serious bug in applied ML, and it gets a full lesson in Chapter 2.
+Breaking that rule is called **data leakage** — the model is shown information it could not possibly know at prediction time, so it looks brilliant during evaluation but fails in production.
 
 ---
 
@@ -89,7 +89,7 @@ Implicit labels carry **exposure bias** — you only observe outcomes for items 
 
 ---
 
-## 5. A worked example: delivery ETA
+## 5. A worked example: delivery estimated time of arrival (ETA)
 
 ```text
 unit        one order, at the moment it is placed

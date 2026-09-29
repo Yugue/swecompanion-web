@@ -8,10 +8,10 @@
 
 ```text
   10,000,000 items
-        │  retrieval        cheap, ~microseconds per item
+        │  retrieval        fast indexed candidate lookup
         ▼
       ~500 candidates
-        │  ranking          expensive, ~milliseconds per candidate
+        │  ranking          batched scoring of candidates
         ▼
        ~50 scored
         │  re-ranking       sees the whole list at once
@@ -29,8 +29,8 @@ Each stage buys the next one time. Retrieval's cheapness is what lets ranking af
 
 | Stage | Question | Judged on | Budget |
 |---|---|---|---|
-| Retrieval | which items are even worth considering? | did the good ones get in? | microseconds per item |
-| Ranking | in what order? | is the top of the list right? | milliseconds per candidate |
+| Retrieval | which items are even worth considering? | did the good ones get in? | request-level index lookup |
+| Ranking | in what order? | is the top of the list right? | measured batch inference time |
 | Re-ranking | does this *list* work? | variety, rules, freshness | one pass over ~50 |
 
 ### Common issue
@@ -50,12 +50,12 @@ ranking              800         50      15ms      19 microseconds
 re-ranking            50         10       3ms      60 microseconds
 ```
 
-Look at the per-item column. Each stage can afford roughly **a thousand times more compute per item** than the one before it, because it is looking at a thousand times fewer items.
+These numbers are an illustrative request budget, not measured per-item runtimes. Retrieval's 1 nanosecond is the total budget divided by catalogue size; an index avoids visiting most of those items. Ranking and re-ranking operate on much smaller pools, so they can afford richer computation.
 
 That is the entire logic of the funnel, and it explains what each stage can be:
 
 ```text
-retrieval    1 nanosecond/item   → a precomputed index lookup. No model runs per item.
+retrieval    index query         → avoid scoring every catalogue item at request time
 ranking      19 µs/item          → a real model with hundreds of features
 re-ranking   60 µs/item          → whole-list logic, comparisons between items
 ```
@@ -79,7 +79,7 @@ This is why retrieval gets its own metric - how often the item the user eventual
 
 > Before tuning the ranker, check whether the right answer was even a candidate.
 
-**The funnel exists for cost, not accuracy.** This is worth saying plainly in an interview. If you could afford to score all ten million items with your best model, you would, and the result would be better. The funnel is an approximation you accept to fit the budget.
+**The funnel primarily manages cost and latency.** It approximates a more expensive search over the catalogue; scoring everything removes retrieval omissions but does not guarantee that the model or final list is better.
 
 That framing tells you where to spend: widening retrieval is often a bigger win than improving the ranker, because it raises the ceiling rather than the polish.
 
@@ -99,12 +99,20 @@ Not every product needs the full funnel. Saying "with ten thousand items I would
 
 ---
 
+## 6. Decide where a failure belongs
+
+Trace a known relevant item through the request: was it eligible, retrieved, scored highly, retained by re-ranking, and actually displayed?
+
+Each step has a different owner and diagnostic. A missing candidate calls for retrieval work; a duplicate-heavy final list calls for list-level selection. Do not expect one aggregate click metric to reveal which stage failed.
+
+---
+
 ## What matters most
 
 - **Retrieval cuts millions to hundreds cheaply; ranking orders those hundreds carefully; re-ranking fixes the list.**
 - **The stages are judged differently** - retrieval on whether the good items got in, ranking on the order, re-ranking on the slate.
 - **Retrieval sets a hard ceiling.** Anything it misses can never be recommended, however good the ranker is.
-- **The funnel is a cost approximation,** not an accuracy improvement - which tells you that widening retrieval often beats polishing the ranker.
+- **The funnel manages cost and latency.** Measure the quality gain from widening retrieval against its downstream cost.
 - **Small catalogues do not need it.** Score everything if you can afford to.
 
 Next topic is **Users, items, and the interaction table**.

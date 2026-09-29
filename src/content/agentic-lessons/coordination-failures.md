@@ -96,6 +96,33 @@ Caps that exist only per worker do not bound the system. Enforce a run-level ste
 
 ---
 
+## 6. Detect stale reads and conflicting writes
+
+Shared state adds another quiet failure: one worker reads version 3 while another has already written version 4. Record the version each artifact was derived from and reject writes based on stale inputs when correctness matters.
+
+```text
+read artifact@v3 → compute update → write only if current_version == v3
+                                  → otherwise re-read or surface conflict
+```
+
+Optimistic concurrency turns silent overwrites into visible, recoverable conflicts.
+
+---
+
+## 7. Test coordination as a system property
+
+Add eval cases where workers disagree, time out, duplicate a result, return incomplete schemas, or finish in a different order. Assertions belong at the orchestrator level:
+
+- every planned subtask had one owner,
+- every final claim retained provenance,
+- contradictions remained visible,
+- the global budget held,
+- partial completion was labelled honestly.
+
+Testing workers independently cannot reveal a broken merge.
+
+---
+
 ## Interview mental model
 
 Multi-agent failures are quiet, and three of the five are invisible in the output:
@@ -114,6 +141,7 @@ The structural fixes, in order of value:
 - **Exclusive ownership per subtask,** asserted before dispatch, which removes duplication and gaps together.
 - **A merge that reconciles:** surface contradictions with both sources, state gaps explicitly, and check the deliverable answers the original goal rather than the subtasks.
 - **Global budgets, not per-worker ones,** with exhaustion as a defined partial-result outcome.
+- **Version shared state and test adversarial coordination cases,** because individually correct workers can still produce an incorrect system.
 
 ---
 

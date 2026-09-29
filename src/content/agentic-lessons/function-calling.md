@@ -116,7 +116,26 @@ call_id c3 → search    → error   ┘
 
 If results are appended in completion order without ids, the model silently attributes one tool's output to another. This is a real and hard-to-spot bug in hand-rolled loops.
 
-**What the model is actually good and bad at.** Good: picking a plausible tool, filling arguments that appear in the context, following enum constraints.
+---
+
+## 6. Validate arguments before execution
+
+Schema validation checks types and required fields. Semantic validation checks whether the request makes sense:
+
+```text
+schema       amount is a number
+semantic     amount is positive and no greater than the order total
+authorization session user owns the order
+policy       this run verified identity before refunding
+```
+
+A valid object is still an untrusted request. Reject invalid calls with a compact, actionable observation so the agent can correct an honest mistake without weakening the rule.
+
+---
+
+## 7. Match model strengths to runtime guarantees
+
+The model is good at picking a plausible tool, filling arguments that appear in the context, and following enum constraints.
 
 Bad: inventing values not present in context (IDs, dates, amounts), knowing whether a tool has side effects, and judging whether it is permitted to run.
 
@@ -133,5 +152,6 @@ That last item is why the answer to "how do you stop it doing X" is never "tell 
 - **Tool schemas are prompt text re-sent every turn,** so 40 tools can cost thousands of input tokens per step, and a bigger catalogue makes selection harder.
 - **Bind every result to its call id.** Parallel results return out of order, and appending by completion order silently misattributes one tool's output to another.
 - **The model is good at picking a plausible tool and filling arguments it can see;** it is bad at knowing whether a tool has side effects or whether it is allowed to run.
+- **Validation has layers:** shape, semantics, authorization, and policy all run before execution.
 
 Next topic is **Designing tools a model can use**.

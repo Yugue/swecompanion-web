@@ -91,6 +91,22 @@ Diversity of *sources* is not the same as diversity of *candidates*. Measure the
 
 ---
 
+## 6. Do not compare unrelated source scores directly
+
+A cosine score of 0.8, a co-occurrence count of 200, and a popularity score of 50,000 are not on one scale. Sorting the raw union by those numbers lets the units choose the winner.
+
+Use source quotas or an explicitly normalized merge. Preserve all contributing source tags for duplicates; the ranker can then use provenance without losing attribution.
+
+---
+
+## 7. Measure marginal value and partial failures
+
+Disable one source at a time and measure the change in recall, final-list quality, latency, and new-item coverage. This is an **ablation**: testing what that component adds beyond the others.
+
+Set a deadline for each source and merge the successful responses. Track source-specific timeouts and an empty-union fallback so a slow optional source does not hold the whole request hostage.
+
+---
+
 ## What matters most
 
 - **Several sources run in parallel** because each covers a different reason to show something.
@@ -98,5 +114,11 @@ Diversity of *sources* is not the same as diversity of *candidates*. Measure the
 - **Tag every candidate with its source.** Without provenance you cannot attribute wins, debug recall drops, or spot a source that never survives ranking.
 - **Adding a source raises the ceiling;** improving the ranker only reorders what it was already given.
 - **Measure overlap between sources** - trained on the same logs, they can converge on nearly identical candidates.
+
+---
+
+## Chapter 3 checkpoint
+
+Design retrieval for one surface: define source-specific candidate budgets, training pairs and negatives, embedding refresh cadence, approximate-nearest-neighbor (ANN) index, filters, fallback source, deduplication, and the recall test that determines whether ranking ever gets a chance.
 
 That completes **Chapter 3 — Retrieval and candidate generation**. Next topic is **Click-through rate prediction**.

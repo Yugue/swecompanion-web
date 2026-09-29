@@ -1,6 +1,10 @@
 ## Click-through rate prediction
 
-**Given this user, this item, and this context, how likely is a click?** That single number is what most ranking systems are built on.
+**Click-through rate (CTR) is clicks divided by impressions. Given this user, this item, and this context, how likely is a click?** That probability is what most ranking systems are built on.
+
+### Chapter goal
+
+By the end of Chapter 4, you should be able to build and compare pointwise, pairwise, listwise, deep, sequential, and multi-task rankers; assemble freshness-safe features; calibrate scores when necessary; and re-rank the final slate for diversity and policy.
 
 ```text
 row    = one impression (one item shown to one user, once)
@@ -59,12 +63,20 @@ And one more property that catches people: every row is an impression the **old 
 
 ---
 
-## 3. The model progression
+## 3. Use a loss that fits probability prediction
+
+For label y in {0,1} and predicted click probability p, **binary log loss** is `−y log(p) − (1−y) log(1−p)`. It penalizes confident mistakes strongly: predicting 0.99 for a non-click is much worse than predicting 0.1.
+
+Compare held-out log loss with a constant prediction equal to the training click rate. Then check ranking quality and calibration separately; none of these alone establishes a product improvement.
+
+---
+
+## 4. The model progression
 
 | Stage | Model | Why people moved on |
 |---|---|---|
 | 1 | Logistic regression on hand-crossed features | someone has to invent every cross by hand |
-| 2 | Factorization machines (Chapter 2) | learns pairwise crosses automatically |
+| 2 | Factorization machines | learns pairwise crosses automatically |
 | 3 | Gradient-boosted trees | strong on dense numeric features, weak on huge sparse ids |
 | 4 | Deep models with embeddings | handles millions of ids, learns richer interactions |
 
@@ -74,23 +86,23 @@ A notable practical point: logistic regression with good crossed features remain
 
 ---
 
-## 4. Rare positives change the metric
+## 5. Rare positives change the metric
 
 ```text
 1% click rate  →  "always predict no click" is 99% accurate and useless
 ```
 
-So accuracy is out. Use the ranking metrics from Chapter 1 for list quality, and log loss for the score itself - it rewards a probability that is actually right, not just ordered right.
+So accuracy is out. Use list-quality metrics such as **precision@k** (the fraction of the top k results that are relevant) or **normalized discounted cumulative gain (NDCG)**, which rewards relevant items more when they appear near the top. Use log loss for the score itself because it rewards probabilities that are actually right, not merely ordered correctly.
 
 Negatives are also usually down-sampled to keep the data manageable, which distorts the predicted rate. That has to be corrected, and it gets a lesson of its own later in this chapter.
 
 ### Rule of thumb
 
-> Quote click-rate models against the base rate, always. "AUC 0.78" means little without knowing what the trivial model scores.
+> Quote click-rate models against the base rate, always. "Receiver-operating-characteristic area under the curve (ROC-AUC) is 0.78" means little without knowing what the trivial model scores.
 
 ---
 
-## 5. The bias you must name
+## 6. The bias you must name
 
 ```text
 the ranker chose what to show
@@ -104,11 +116,11 @@ it learns to agree with the ranker that produced them
 
 ### Core intuition
 
-This is why a model can be clearly better offline and do nothing live. The offline data is a record of the old policy's choices. Chapter 5 covers position bias and counterfactual evaluation, which are the two standard responses.
+This is why a model can be clearly better offline and do nothing live. The data records the old system's choices. **Position-bias correction** accounts for the fact that high-ranked items receive more clicks simply because they are seen more often; **counterfactual evaluation** estimates how a new policy would perform from data collected by the old one.
 
 ---
 
-## 6. What the score is used for
+## 7. What the score is used for
 
 ```text
 ranking only     → order is all that matters

@@ -3,14 +3,22 @@
 **Turning raw logs into training rows involves several choices, and each one silently decides what the model can learn.**
 
 ```text
-impression log  +  outcome log  →  joined on (user, item, time)  →  training rows
+impression log  +  outcome log  →  joined by impression/event keys  →  training rows
                                           ↑
                         every decision about this join is a modelling decision
 ```
 
 ---
 
-## 1. The join, and its window
+## 1. Join with stable event keys and deduplicate
+
+Use an impression ID or request ID plus slot to attach outcomes to the exact display. Joining only on user, item, and an approximate timestamp can merge repeated impressions or assign a click to the wrong exposure.
+
+Deduplicate retried events using event IDs and define attribution when one outcome follows several exposures. Check row counts and join multiplicity before training.
+
+---
+
+## 2. The join, and its window
 
 ```text
 impression at 14:00
@@ -33,14 +41,14 @@ There is no correct answer. There is a decision, and it should be stated in the 
 
 ---
 
-## 2. Down-sampling negatives
+## 3. Down-sampling negatives
 
 ```text
 1% click rate → 99 negatives per positive
 keep 1 in 10 negatives → manageable data, distorted base rate
 ```
 
-This is near-universal and almost free, provided you remember two things: the predicted rate must be corrected afterwards (Chapter 4), and the sampling must not be correlated with anything the model uses - sampling negatives only from certain hours or surfaces builds that bias straight in.
+This is near-universal and almost free, provided you remember two things: the predicted probability must be recalibrated to the original class rate, and sampling must not be correlated with anything the model uses. Sampling negatives only from certain hours or surfaces builds that bias straight in.
 
 ### Rule of thumb
 
@@ -48,38 +56,54 @@ This is near-universal and almost free, provided you remember two things: the pr
 
 ---
 
-## 3. Label delay bounds everything
+## 4. Wait for label maturity and handle late events
 
-```text
-click      seconds     → can retrain hourly
-purchase   hours       → retrain daily
-return     14-30 days  → your freshest complete label is a month old
-```
+Define an observation window for every label and a cutoff for accepting late arrivals. A purchase not yet observed is an unfinished example, not necessarily a negative.
 
-### Common issue
-
-Systems with slow labels usually train on a fast proxy and correct with the slow one later, or accept that the slow objective responds slowly. Either way it belongs in the design discussion, because it caps how quickly the system can react to anything.
+For delayed targets, train on mature cohorts or use an explicit delay-aware method. Track label-completion rates so ingestion problems do not look like a sudden drop in user engagement.
 
 ---
 
-## 4. What a row should carry
+## 5. What a row should carry
 
 ```text
 identifiers      user, item, request, session, timestamp
-features         AS SERVED (Chapter 6) - not recomputed
-position         the slot it was shown in (Chapter 5)
-propensity       the probability it was selected (Chapter 5)
+features         AS SERVED - log the exact values seen by the model
+position         the slot in which the item was shown
+propensity       the probability that the serving policy selected it
 outcome          click, dwell, purchase, complaint - several labels, not one
 provenance       which retrieval source, which model version
 ```
 
 ### Rule of thumb
 
-The last three are the ones people omit and then cannot add retrospectively. Logging propensity and position costs almost nothing today and is the difference between being able to correct for bias next quarter and not.
+The last three are the ones people omit and then cannot add retrospectively. Position is straightforward to log; an exact selection propensity requires a policy whose action probabilities are known. A deterministic score is not a selection probability. Capture these fields deliberately if you intend to use bias-aware evaluation.
 
 ---
 
-## 5. The pipeline as a product
+## 6. Reconstruct only features available at the impression
+
+For an impression at 14:00, a purchase at 14:20 can become the label, but it cannot become an input feature. Likewise, an end-of-day item click rate includes events the live model could not know at 14:00.
+
+Use logged serving values or a **point-in-time join**, which retrieves the most recent feature version available before the decision. Check both event time and availability time: a historical event arriving later was still unavailable to the original request.
+
+---
+
+## 7. Version the dataset so a result can be reproduced
+
+Record the extraction period, feature definitions, eligibility rules, sampling rates, label windows, code version, and train/validation/test boundaries. Keep evaluation data fixed while comparing model variants.
+
+---
+
+## 8. Validate data before fitting a model
+
+Check future-feature leakage, duplicate rows across splits, join multiplicity, unexpected class rates, and missing user/item slices. Compare row counts and feature distributions with the previous run.
+
+If click labels suddenly halve, investigate outcome ingestion and attribution before accepting that behavior changed. Block training or promotion when a critical check fails; a successful job can still produce an invalid dataset.
+
+---
+
+## 9. The pipeline as a product
 
 ```text
 raw logs → dedupe → join impressions to outcomes → attribute
@@ -87,7 +111,7 @@ raw logs → dedupe → join impressions to outcomes → attribute
         → validate → partition by time → train
 ```
 
-Put data validation in the middle: row counts, label rates, null rates, and feature distributions against the previous run. An upstream change that halves your click rate should stop the pipeline, not silently produce a model that ships.
+Assign ownership and alerting to each transition, and retain the dataset version used by every deployed model. A reproducible pipeline lets you trace a quality regression back to a specific data or attribution change.
 
 ---
 
@@ -96,7 +120,7 @@ Put data validation in the middle: row counts, label rates, null rates, and feat
 - **A training row is an impression joined to what happened next,** and the attribution window is a real modelling choice.
 - **Down-sample negatives randomly, record the rate, and correct the predictions.**
 - **Label delay bounds how fast the system can react,** whatever else you build.
-- **Log position, propensity, and features-as-served** - they cost nothing now and cannot be reconstructed later.
+- **Log position, known action propensities, and features-as-served deliberately.** Missing action probabilities may not be recoverable later.
 - **Validate the pipeline against the previous run,** so an upstream break stops the build instead of shipping a model.
 
 Next topic is **Retraining and drift**.

@@ -26,7 +26,7 @@ On a fraud dataset with a 0.8% positive rate, that dummy scores **99.2% accuracy
 
 ### Rule of thumb
 
-> Quote the baseline in the same breath as the model. "0.91 AUC" means nothing; "0.91 vs 0.74 for the current rule" is a result.
+> Quote the baseline in the same breath as the model. "0.91 area under the receiver operating characteristic curve (ROC-AUC)" means little; "0.91 vs 0.74 for the current rule" is a result.
 
 ---
 
@@ -68,14 +68,14 @@ simple model is TERRIBLE       →  suspect the features or the labels,
 ## 4. Reading the gaps
 
 ```text
-dummy        0.50 AUC
-current rule 0.74 AUC
-logistic     0.86 AUC   ← most of the value is here
-boosted tree 0.89 AUC   ← the extra 0.03 has a cost
-deep model   0.895 AUC  ← probably noise
+dummy        0.50 ROC-AUC
+current rule 0.74 ROC-AUC
+logistic     0.86 ROC-AUC   ← most of the value is here
+boosted tree 0.89 ROC-AUC   ← the extra 0.03 has a cost
+deep model   0.895 ROC-AUC  ← probably noise
 ```
 
-> **AUC** is a single score for how well a classifier separates the two classes: 0.5 is coin-flipping, 1.0 is perfect. Chapter 5 covers it properly; here it is just a consistent yardstick.
+> **Area under the receiver operating characteristic curve (ROC-AUC)** is a single score for how well a classifier ranks positive examples above negative ones: 0.5 is coin-flipping and 1.0 is perfect.
 
 ### Core intuition
 
@@ -117,7 +117,7 @@ is cheap to keep running   in shadow mode, as a canary
 
 ## What matters most
 
-- **Quote the baseline in the same breath as the model.** "0.91 AUC" is a number; "0.91 vs 0.74 for the current rule" is a result.
+- **Quote the baseline in the same breath as the model.** "0.91 ROC-AUC" is a number; "0.91 vs 0.74 for the current rule" is a result.
 - **There are three baselines:** the trivial one (majority class, mean), whatever the business does today, and a simple model you can build in an hour.
 - **The shape of the ladder is the finding.** Most of the value arrives with the first honest model; the rest is a trade against latency and maintenance.
 - **A model that can't beat the trivial baseline signals a bug,** and one that barely beats the rules may not be worth shipping.

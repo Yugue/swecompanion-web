@@ -22,7 +22,7 @@ unsupervised     (x)            find structure with no target
 self-supervised  (x, y = g(x))  invent the target from the input itself
 ```
 
-Reinforcement learning is a fourth family — no fixed dataset, an agent taking actions for rewards. It is its own Google domain; recognize it and move on.
+**Reinforcement learning** is a fourth family: an agent learns by taking actions and receiving rewards instead of training from a fixed set of correct answers. It is a separate problem setting from the three covered here.
 
 ---
 
@@ -44,7 +44,7 @@ Almost every production system you will be asked to design is supervised, becaus
 
 ### Common issue
 
-The hard part is rarely the algorithm. It is that **labels are expensive, delayed, or noisy** — which is what the data chapter is about.
+The hard part is rarely the algorithm. It is that **labels—the correct outcomes attached to examples—are often expensive, delayed, or noisy**.
 
 ---
 

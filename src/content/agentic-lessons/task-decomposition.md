@@ -104,6 +104,32 @@ Do not replan after every inconvenience. Replan when an assumption is contradict
 
 ---
 
+## 7. Give each step a local budget
+
+One vague subtask can consume the entire run. Allocate maximum steps, time, or spend per node and decide what happens when it reaches the limit.
+
+```json
+{"id":"pricing", "max_steps":6, "timeout_s":90,
+ "on_failure":"return_partial_with_missing_fields"}
+```
+
+Local limits make the global budget schedulable and stop one branch from starving the rest.
+
+---
+
+## 8. Design the merge before dispatch
+
+Parallel artifacts are useful only if they fit together. Define the shared keys, schema, provenance fields, and conflict rule before work begins.
+
+```text
+all workers return: {entity_id, fields, sources, missing, confidence}
+merge rule: join by entity_id; conflicting values remain visible for review
+```
+
+Without a merge contract, the final step spends its context interpreting incompatible prose instead of synthesizing results.
+
+---
+
 ## What matters most
 
 - **Decomposition creates verifiable units of work; it does not imply multiple agents.**
@@ -112,5 +138,6 @@ Do not replan after every inconvenience. Replan when an assumption is contradict
 - **Choose granularity that reduces complexity rather than adding coordination overhead.**
 - **Map every requirement to one owner** before execution.
 - **Replan only after a meaningful trigger.**
+- **Budget each node and design the merge before dispatch,** so one branch cannot consume the run and parallel results remain compatible.
 
 Next topic is **Reflection and self-critique**.

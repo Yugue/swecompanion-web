@@ -1,6 +1,6 @@
-## Hierarchical clustering and DBSCAN
+## Hierarchical clustering and Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 
-Two alternatives to k-means, each dropping one of its constraints: hierarchical clustering does not need k up front, and DBSCAN does not assume cluster shape.
+Two alternatives to k-means, each dropping one of its constraints: hierarchical clustering does not need k up front, and DBSCAN groups dense regions without assuming a spherical cluster shape.
 
 ---
 
@@ -72,7 +72,7 @@ That third property is genuinely useful: it is a built-in outlier detector.
 
 ## 4. Where DBSCAN struggles
 
-- **Varying density.** A single global eps cannot fit a dataset where one region is dense and another sparse: either the sparse cluster becomes noise, or the dense clusters merge. **HDBSCAN** fixes this by varying the density threshold hierarchically.
+- **Varying density.** A single global `eps` cannot fit a dataset where one region is dense and another sparse: either the sparse cluster becomes noise, or the dense clusters merge. **Hierarchical DBSCAN (HDBSCAN)** fixes this by varying the density threshold hierarchically.
 - **High dimensionality**, where distances concentrate and eps stops separating anything.
 - **Parameter sensitivity.** eps is set by looking at a k-distance plot and finding the knee - less intuitive than picking k.
 - **Border-point assignment** can depend on processing order.

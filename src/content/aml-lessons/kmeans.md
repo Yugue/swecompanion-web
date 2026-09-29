@@ -2,6 +2,10 @@
 
 **k-means sorts data into k groups by repeatedly asking "which group centre is each point nearest?", then moving each centre to the middle of the points that chose it.**
 
+### Chapter goal
+
+By the end of Chapter 6, you should be able to distinguish clustering assumptions, choose among centroid, density, hierarchical, and probabilistic methods, evaluate stability without labels, and decide when anomaly detection is a better framing than classification.
+
 ```text
    place k centres  →  assign every point to its nearest centre
           ↑                               │
@@ -105,7 +109,7 @@ There is no label to validate against, so k is chosen by internal criteria plus 
 | Customer segmentation | The classic; needs human interpretation of each cluster |
 | Vector quantization / compression | Replace each point by its centroid |
 | Feature engineering | Cluster id, or distance to each centroid, as model inputs |
-| Initializing a GMM | k-means is the hard-assignment special case |
+| Initializing a Gaussian mixture model (GMM) | k-means is the hard-assignment special case |
 | Image color reduction | k colors, each pixel to its nearest |
 
 ---
@@ -118,4 +122,4 @@ There is no label to validate against, so k is chosen by internal criteria plus 
 - **Cost is linear in n,** which is why it stays the default at scale, with MiniBatchKMeans for millions of rows.
 - **Inertia always falls as k grows,** so k is chosen by an elbow, silhouette, stability under resampling, or a business constraint - never by minimizing the objective.
 
-Next topic is **Hierarchical clustering and DBSCAN**.
+Next topic is **Hierarchical and density-based clustering**.

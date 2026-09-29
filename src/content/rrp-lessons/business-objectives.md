@@ -2,6 +2,12 @@
 
 **The thing you can optimize is never quite the thing the business wants,** and naming that gap precisely is most of the judgement being tested.
 
+A **proxy objective** is a measurable signal such as clicks or watch time used in place of the business outcome we truly care about. This chapter examines that gap, then covers fairness and policy, cross-stage failure diagnosis, and complete system design.
+
+### Chapter goal
+
+By the end of Chapter 7, you should be able to connect proxy objectives to business outcomes, keep hard policy outside weighted scores, diagnose failures by funnel stage, design an end-to-end recommendation, ranking, and personalization (RRP) system, and explain the tradeoffs clearly in an interview.
+
 ```text
 what you can train on today      clicks, watch time, purchases
 what the business actually wants retention, lifetime value, a healthy marketplace
@@ -27,7 +33,15 @@ Each of these is the optimizer doing its job correctly. The proxy diverged from 
 
 ---
 
-## 2. Marketplaces have several parties
+## 2. Turn a business goal into a metric contract
+
+Define population, denominator, measurement window, and exclusions. 'More purchases' could mean purchases per impression, per active user, or per week; each creates different incentives.
+
+Specify primary outcomes and guardrail thresholds before tuning. Distinguish leading signals available quickly from outcomes that need mature cohorts, such as returns or weekly retention.
+
+---
+
+## 3. Marketplaces have several parties
 
 ```text
 buyers      want relevance and good prices
@@ -39,11 +53,11 @@ A ranker optimizing only buyer engagement will concentrate traffic on a few prov
 
 ### Rule of thumb
 
-So marketplace ranking usually carries explicit supply-side terms: exposure floors for new sellers, caps on how much traffic one seller can take, and coverage as a tracked metric from Chapter 5.
+So marketplace ranking usually carries explicit supply-side protections: minimum exposure for new sellers, caps on how much traffic one seller can receive, and **catalogue coverage**, the fraction of inventory that is shown at all.
 
 ---
 
-## 3. Long-term value is the real objective and cannot be trained on
+## 4. Long-term value is valuable but slow to learn from
 
 ```text
 retention      measurable in weeks   → far too slow for a training loop
@@ -64,7 +78,7 @@ That last line is what serious teams do and what most candidates never mention: 
 
 ---
 
-## 4. Guardrails are how you hold the line
+## 5. Guardrails are how you hold the line
 
 ```text
 primary metric     the thing you are trying to move
@@ -75,11 +89,11 @@ guardrails         the things you refuse to lose, at any primary gain
 
 ### Rule of thumb
 
-The point of a guardrail is that it is **not** traded off. Once it becomes another weighted term, optimization will spend it. Declaring these before the experiment is what makes a mixed result decidable, as in Chapter 5.
+The point of a **guardrail metric** is that it is **not** traded off: if complaint rate or latency crosses its limit, the launch fails even when the main metric improves. Declaring guardrails before an experiment makes mixed results decidable.
 
 ---
 
-## 5. Answering the trade-off question
+## 6. Answering the trade-off question
 
 ```text
 "Engagement is up 5%, seller diversity down 20%."
@@ -99,7 +113,7 @@ The point of a guardrail is that it is **not** traded off. Once it becomes anoth
 
 - **You optimize a proxy, and enough optimization pressure will find where the proxy diverges** - that is what proxies do, not a modelling bug.
 - **Marketplaces have several parties whose interests conflict,** and buyer-only optimization starves the supply side.
-- **Long-term value cannot be trained on directly,** so combine short-term predictions and validate with a long-horizon holdback.
+- **Long-term outcomes are slow, sparse, and confounded,** so fast proxies often support the training loop while long-horizon experiments validate business value.
 - **Guardrails must not be traded off.** Once a guardrail becomes a weighted term, optimization spends it.
 - **Name the trade explicitly and let the business decide it** rather than letting a loss function decide by default.
 

@@ -77,7 +77,24 @@ Free-form inter-agent chatter is unparseable, unloggable, and unfixable. It also
 
 Note these are ordinary distributed-systems controls. Agents are concurrent writers with unusually poor judgment, so the standard tools apply, more strictly.
 
-**Don't let agents read everything.** The shared workspace reintroduces the context problem if every agent loads the whole thing. Give agents a **query** interface - read the section you need - rather than a dump, exactly as you would with retrieval.
+---
+
+## 5. Query shared state instead of dumping it
+
+The shared workspace reintroduces the context problem if every agent loads the whole thing. Give agents a **query** interface—read the section you need—rather than a dump.
+
+---
+
+## 6. Design for duplicate and missing messages
+
+Agent messages can be retried, delayed, or delivered after the receiver has moved on. Include a message id, task id, sender, expected response type, and deadline. Receivers should deduplicate by id and make repeated writes idempotent.
+
+```json
+{"message_id":"m-204", "task_id":"t-18", "type":"verify_request",
+ "reply_with":"verification_result", "deadline":"2026-09-29T15:00:00Z"}
+```
+
+If the deadline passes, the orchestrator—not another worker—decides whether to retry, reassign, or continue with a partial result.
 
 ---
 
@@ -88,5 +105,6 @@ Note these are ordinary distributed-systems controls. Agents are concurrent writ
 - **Type every message.** Free-text chatter between agents is unloggable, untestable, and drifts into negotiating about the task instead of doing it.
 - **A shared workspace needs ordinary distributed-systems controls** - single ownership, append-only where possible, optimistic versioning, timeout-bounded locks - applied more strictly, because agents are concurrent writers with poor judgment.
 - **Give agents a query interface into the workspace, not a dump,** or you undo the context isolation.
+- **Assume delivery is imperfect:** identify, deduplicate, deadline, and route retries through the task owner.
 
 Next topic is **Context isolation across agents**.

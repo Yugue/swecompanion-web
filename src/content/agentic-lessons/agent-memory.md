@@ -2,7 +2,7 @@
 
 "The model remembers" is always false. Within a run, memory is the transcript you resend. Across runs, memory is a **store you deliberately write to and read from**. Everything else is an illusion produced by those two mechanisms.
 
-Chapter 1 covered working context. This lesson is about persistence across runs: what deserves storage, how it is retrieved, and how stale or corrected facts stop influencing future work.
+This chapter focuses on persistence across runs: what deserves storage, how it is retrieved, and how stale or corrected facts stop influencing future work.
 
 ---
 
@@ -114,7 +114,11 @@ write ──► read ──► CORRECT ──► EXPIRE ──► DELETE
 - **Expiry**: facts have different lifetimes. A shipping address is durable; "is currently debugging the payments service" is not.
 - **Deletion**: users can ask for their data to be removed, and the store must support it - including anything derived from it.
 
-**Memory is a safety surface.** Two specific risks worth naming:
+---
+
+## 6. Treat memory as a safety and privacy boundary
+
+Two specific risks matter:
 
 1. **Poisoning.** A memory written from untrusted content becomes a persistent instruction the agent reads on every future run. Never write memories derived from content the agent merely *read*; write from what the user *said* or what a tool authoritatively returned.
 2. **Leakage.** Memories must be scoped by user and tenant at the storage layer. Cross-user retrieval is a data breach, not a bug.
@@ -129,5 +133,6 @@ write ──► read ──► CORRECT ──► EXPIRE ──► DELETE
 - **Read by retrieval, not by loading everything,** or you reintroduce the problem memory was meant to solve.
 - **Memory needs a lifecycle:** correction must supersede rather than sit beside the old value, facts need expiry, and deletion must reach derived records.
 - **Never write memories from content the agent merely read** - an injection that lands in memory is re-read on every future run.
+- **Scope every memory read and write by user and tenant at the storage layer.** Cross-user retrieval is a data breach, not a ranking mistake.
 
 Next topic is **Summarization and compaction**.

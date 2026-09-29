@@ -1,6 +1,6 @@
 ## Hyperparameter search
 
-Search is a budgeted experiment. The skill is not knowing that `GridSearchCV` exists - it is spending a fixed number of runs on the dimensions that matter and reporting the result honestly afterwards.
+Search is a budgeted experiment. The skill is not knowing that a search utility exists—it is spending a fixed number of runs on the dimensions that matter and reporting the result honestly afterwards. **Cross-validation (CV)** repeatedly trains on part of the data and validates on a held-out fold; it is the standard way to score each configuration.
 
 ---
 
@@ -46,7 +46,7 @@ A uniform draw from (0.001, 1000) puts 99.9% of its mass above 1, so you would n
 | Gradient boosting | learning rate (with early stopping), depth / num_leaves | number of trees (use early stopping), subsample |
 | Random forest | max_features, min_samples_leaf | n_estimators (more = just slower) |
 | Logistic regression | C, penalty | solver |
-| SVM (RBF) | C and gamma, together | kernel cache, tol |
+| Support-vector machine (SVM) with a radial-basis-function (RBF) kernel | C and gamma, together | kernel cache, tolerance |
 | k-NN | k, metric, and the scaling | index parameters |
 
 ### Rule of thumb
@@ -105,5 +105,11 @@ scores = cross_val_score(GridSearchCV(pipe, grid, cv=5), X, y, cv=5)
 - **If the winner is within one fold-to-fold standard deviation of the runner-up, you have not found a better model** - take the simpler or faster one.
 - **Reporting the best of 300 CV scores is reporting the maximum of 300 noisy numbers,** so quote a held-out test set or nested CV.
 - **Know when to stop:** if a full sweep moves validation 0.4% and one new feature moves it 3%, the budget belongs in feature work.
+
+---
+
+## Chapter 4 checkpoint
+
+Given diverging training and validation curves, diagnose optimization versus generalization, choose the next intervention, and describe a leakage-safe search protocol with an untouched final test set and a stopping rule.
 
 That completes **Chapter 4 — Training and generalization**. Next topic is **ROC-AUC, PR-AUC, and thresholds**.

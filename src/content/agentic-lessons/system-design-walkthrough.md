@@ -25,9 +25,9 @@ Sections 5-8 are what separate a candidate who has shipped an agent from one who
 
 ---
 
-## 2. Worked example: refund resolution
+## 2. Frame the task and its success criterion
 
-**Step 1 — Task and success criterion.** Resolve a customer refund request end to end.
+Worked example: resolve a customer refund request end to end.
 
 ```text
 success   the correct decision applied, citing the policy clause it rests on
@@ -39,7 +39,9 @@ Stating the harm side early is what makes the rest of the answer coherent - the 
 
 ---
 
-**Step 2 — Does this need an agent at all?** Look at the traffic before designing:
+## 3. Justify where autonomy is needed
+
+Look at the traffic before designing:
 
 ```text
 ~80%  order found, inside window, not final sale   → a deterministic path
@@ -51,7 +53,7 @@ So: a **workflow with an agentic exception path**, not an autonomous agent for e
 
 ---
 
-**Step 3 — The loop.**
+## 4. Define the loop, tools, and stopping conditions
 
 ```text
 tools     get_order(order_id)
@@ -69,7 +71,7 @@ Six tools, not twenty. Each one maps to something a human would say they did.
 
 ---
 
-**Step 4 — Context, per turn.**
+## 5. Specify the context assembled each turn
 
 ```text
 system prompt + rules          stable, cached
@@ -83,7 +85,9 @@ recent steps verbatim
 
 ---
 
-**Step 5 — Controls.** This is the section that separates a shipped design from a described one.
+## 6. Put controls around consequential actions
+
+This is the section that separates a shipped design from a described one.
 
 ```text
 issue_refund   authorize from the SESSION identity, never the model's argument
@@ -97,7 +101,7 @@ fail closed    policy service unavailable → escalate, never proceed
 
 ---
 
-**Step 6 — Evaluation.**
+## 7. Design evaluation before deployment
 
 ```text
 offline   200 cases built from real traces: happy paths, missing orders,
@@ -109,7 +113,7 @@ online    escalation rate, refund reversal rate, human override rate,
 
 ---
 
-**Step 7 — Cost and latency.**
+## 8. Do the cost and latency arithmetic
 
 ```text
 6 tool schemas ≈ 1.2k · base prefix ~3k, cached
@@ -120,7 +124,7 @@ p50 ~5s · p95 ~18s · streamed, so first token is immediate
 
 ---
 
-**Step 8 — Failure modes.**
+## 9. Name the leading failure mode and detector
 
 ```text
 most likely    refunding against the wrong order when the description is ambiguous
@@ -137,7 +141,7 @@ plus           the $500 gate, so the expensive version needs a human
 
 ---
 
-## 3. Where candidates lose points
+## 10. Where candidates lose points
 
 ```text
 ✗  jumping to multi-agent with no bottleneck to justify it

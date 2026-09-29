@@ -85,7 +85,7 @@ Note the asymmetry with boosting: adding trees to a forest **cannot** cause over
 | Robust to outliers and irrelevant features | Slower inference than one tree or a linear model |
 | No scaling required | Not interpretable as a whole |
 | Trees train in parallel | Usually a point or two behind tuned gradient boosting on tabular data |
-| Free OOB estimate | Cannot extrapolate beyond the training range |
+| Free out-of-bag (OOB) estimate | Cannot extrapolate beyond the training range |
 
 ---
 

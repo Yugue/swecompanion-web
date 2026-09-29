@@ -80,6 +80,28 @@ The retrieval cache is often the biggest non-model win, because agents re-issue 
 
 ---
 
+## 6. Invalidate by dependency, not by hope
+
+Every cache needs an owner, key, lifetime, and invalidation trigger:
+
+```text
+policy lookup   key=(tenant, policy_version, query)   invalidate on policy publish
+order lookup    key=(tenant, user, order_id)          short lifetime or event invalidation
+tool result     cache only if read-only and deterministic
+```
+
+Do not cache side effects, permission decisions, or time-sensitive state merely because the arguments match. A fast stale answer can be worse than a slow correct one.
+
+---
+
+## 7. Measure effective savings and correctness
+
+Track hit rate, cached-token share, latency saved, cost saved, and stale-result incidents. A high hit rate on a tiny prefix may save little, while a moderate hit rate on a large prefix may dominate cost.
+
+Always include tenant, user, permission scope, tool version, and relevant data version in the key where they affect the result.
+
+---
+
 ## What matters most
 
 - **The cache keys on an exact token prefix,** and matching stops at the first difference - so one volatile token early costs you the entire cache.
@@ -88,5 +110,6 @@ The retrieval cache is often the biggest non-model win, because agents re-issue 
 - **Agent loops are the ideal case,** since each turn re-sends a long, nearly identical prefix seconds apart.
 - **Cached prefixes expire when idle,** so do not model the savings as guaranteed for sporadic one-off requests.
 - **Cache above the model too** - identical retrieval queries and deterministic read-only tool calls - keyed per tenant, never across them.
+- **Define invalidation and measure actual savings,** because a high hit rate can still save little and a stale hit can violate correctness or isolation.
 
 Next topic is **Tracing and observability**.

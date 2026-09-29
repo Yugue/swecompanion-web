@@ -2,6 +2,10 @@
 
 **Retrieval has one job: make sure the good items are somewhere in the few hundred it hands to the ranker.** Not in the right order - just present.
 
+### Chapter goal
+
+By the end of Chapter 3, you should be able to design candidate generation around recall, train retrieval embeddings and two-tower models, choose negatives, serve approximate nearest-neighbor search, and blend multiple sources without losing provenance or coverage.
+
 ```text
 10,000,000 items  ──retrieval──►  ~500 candidates  ──ranking──►  ordered list
                    "don't lose                      "get the
@@ -49,7 +53,7 @@ a precomputed item-item similarity list → key lookup
 a cached list per user segment          → key lookup
 ```
 
-Everything expensive happened last night in a batch job.
+Most item-side computation can happen ahead of the request. User or query encoding may still run live, and fast-changing indexes can receive incremental updates.
 
 **Precision barely matters here.** A retrieval stage with 5% precision and 95% recall is doing its job well. The ranker discards the junk.
 
@@ -65,7 +69,7 @@ That inverts the usual instinct, and it has a practical consequence: **widen ret
 |---|---|
 | High recall at large k | the ceiling for the whole funnel |
 | Constant-ish latency | it sits in the critical path of every request |
-| Covers new items | or new inventory is invisible (Chapter 1) |
+| Covers new items | or items without interaction history are invisible |
 | Covers niche tastes | or only popular items are ever candidates |
 | Several sources | no single method covers every reason to show something |
 
@@ -82,12 +86,28 @@ was the item retrieved?          no  → retrieval problem (widen, add a source)
                                  yes ↓
 was it ranked into the top 6?    no  → ranking problem (features, model)
                                  yes ↓
-was it shown and ignored?             → the item was not actually good
+was it shown and ignored?             → inspect visibility, context, and outcome definition
 ```
 
 ### Core intuition
 
-Being able to attribute a failure to a stage is the difference between debugging and guessing.
+Use logs to locate a failure, but do not declare an item bad from one non-click. The user may never have examined it.
+
+---
+
+## 5. Retrieve from the eligible catalogue
+
+Eligibility means the item is allowed and available for this request: correct region, language or age policy, in stock, and not deleted. Apply filters early where the index supports them, then recheck before display.
+
+Retrieving 500 items and discarding 450 afterward leaves a much smaller pool for ranking. Measure recall and candidate counts after filtering, not only before it.
+
+---
+
+## 6. Choose the candidate budget empirically
+
+Compare budgets such as 200, 500, and 1,000 on the same requests. Measure held-out-positive recall, ranking quality, feature-fetch time, and tail latency at each size.
+
+The useful stopping point is where additional candidates bring little extra quality for their cost. A fixed number copied from another product is not a retrieval requirement.
 
 ---
 

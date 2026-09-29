@@ -62,7 +62,15 @@ A model that over-weights the session will spend a week recommending appliance r
 
 ---
 
-## 3. Summarizing the history
+## 3. Construct histories without reading the future
+
+For a target event at 14:00, include only events that happened before 14:00. Sort by event time, define session boundaries, and record gaps between events when elapsed time matters.
+
+**Padding** fills shorter histories to a common length; a **mask** tells the model which entries are real. Mask padding and future events so they cannot influence the prediction.
+
+---
+
+## 4. Summarizing the history
 
 The model needs the recent history as a fixed-size vector it can use:
 
@@ -78,13 +86,13 @@ Three common ways to build that summary:
 |---|---|---|
 | Pooling | average the item embeddings | cheap, loses order entirely |
 | Recurrent | read items in order, carry a state | respects order, sequential to compute |
-| Attention | weight past items by relevance to the candidate | strongest, and the most compute |
+| Candidate attention | weight past items by relevance to the candidate | expressive, but runs per candidate |
 
 ---
 
-## 4. Why attention fits this problem so well
+## 5. Why attention fits this problem so well
 
-Pooling and recurrence produce **one** summary of the history, used for every candidate. Attention produces a **different** summary per candidate:
+Pooling and recurrence produce **one** summary of the history, used for every candidate. Candidate-conditioned attention produces a **different** summary per candidate:
 
 ```text
 scoring a pasta video   → weight the user's past cooking videos heavily
@@ -100,7 +108,15 @@ That is exactly what you want: the relevant part of someone's history depends on
 
 ---
 
-## 5. Sessions, and anonymous users
+## 6. Distinguish self-attention from candidate attention
+
+**Self-attention** lets events in the history relate to each other; with a causal mask it can summarize the history once for retrieval. **Candidate attention** asks which past events matter for the particular item being scored and runs per candidate.
+
+Attention alone does not encode order: add positions or time information when order matters. Choose the form that fits the stage's compute budget.
+
+---
+
+## 7. Sessions, and anonymous users
 
 For logged-out or first-time users, the session is the only personalization you have:
 
@@ -112,14 +128,14 @@ no user id, no history, no profile
 
 ### Rule of thumb
 
-Session-based recommendation is not a niche case. On many sites most traffic is anonymous, so the model has to work from a handful of recent events and nothing else. This is also the fast fix for new users from Chapter 1.
+Session-based recommendation is not a niche case. On many sites most traffic is anonymous, so the model has to work from a handful of recent events and nothing else. It also helps new users who have little or no long-term history.
 
 ---
 
-## 6. Practical constraints
+## 8. Practical constraints
 
 ```text
-history length   longer is better and costs latency; 50-200 recent items is typical
+history length   more context costs latency and may add noise; tune the cutoff
 recency          truncating to recent events usually beats keeping everything
 latency          attention over history runs per candidate - expensive at ranking scale
 freshness        the last few events must be available within seconds, not hours
@@ -127,7 +143,7 @@ freshness        the last few events must be available within seconds, not hours
 
 ### Common issue
 
-That last row is the one that bites. A "recent behavior" feature updated by a nightly batch job is not a recent-behavior feature, and it is the most common way this idea fails in production - see Chapter 6.
+That last row is the one that bites. A "recent behavior" feature updated by a nightly batch job is not recent; session models need a low-latency feature pipeline that updates within seconds or minutes.
 
 ---
 

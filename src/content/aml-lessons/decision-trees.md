@@ -39,7 +39,7 @@ Both are 0 for a pure node and maximal for a uniform mix. The split score is the
 
 ### Rule of thumb
 
-Gini and entropy almost always choose the same splits; Gini is cheaper (no logarithm) and is the usual default. For regression, the criterion is variance (equivalently, MSE) reduction.
+Gini and entropy almost always choose the same splits; Gini is cheaper (no logarithm) and is the usual default. For regression, the criterion is variance reduction, equivalently a reduction in **mean squared error (MSE)**.
 
 ---
 

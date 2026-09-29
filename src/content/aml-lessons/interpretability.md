@@ -10,7 +10,7 @@ Interpretability answers "why this prediction". It is needed for three different
 intrinsic : the model IS the explanation
             linear coefficients, shallow trees, rule lists
 post-hoc  : a separate method approximates a black box
-            permutation importance, SHAP, LIME, partial dependence
+            permutation importance, SHapley Additive exPlanations (SHAP), Local Interpretable Model-agnostic Explanations (LIME), and partial dependence
 ```
 
 ### Core intuition
@@ -23,7 +23,7 @@ Post-hoc explanations are **approximations of the model**, not descriptions of r
 
 | Scope | Question | Methods |
 |---|---|---|
-| Global | Which features drive the model overall? | Permutation importance, mean absolute SHAP, PDP |
+| Global | Which features drive the model overall? | Permutation importance, mean absolute SHAP and a partial-dependence plot (PDP) |
 | Local | Why *this* prediction? | SHAP values, LIME, counterfactuals |
 
 ### Rule of thumb
@@ -84,8 +84,8 @@ The prediction decomposes exactly into a base value plus per-feature contributio
 Importance says *how much*; partial dependence says *in which direction*:
 
 - **PDP**: the average predicted outcome as one feature varies - reveals nonlinearity and thresholds,
-- **ICE**: one line per instance, which exposes heterogeneity a PDP average hides,
-- **Monotonic constraints**: rather than checking the shape afterwards, force it - "risk must not decrease as debt increases" is a constraint modern GBM libraries support directly, and it is often the cleanest way to satisfy a reviewer.
+- **Individual conditional expectation (ICE)**: one line per instance, which exposes heterogeneity a PDP average hides,
+- **Monotonic constraints**: rather than checking the shape afterwards, force it - "risk must not decrease as debt increases" is a constraint modern gradient-boosted-machine (GBM) libraries support directly, and it is often the cleanest way to satisfy a reviewer.
 
 **The caveat that must be said**
 

@@ -1,8 +1,6 @@
 ## Context engineering
 
-Context engineering is deciding **what occupies the window on each turn**. It has quietly replaced prompt wording as the main lever on agent quality, because in a long-running agent the prompt is a small and stable part of what the model actually reads.
-
-Chapter 1 explained what the window is. This lesson focuses on the engineering decision that follows: how the application assembles a different, relevant window for each step.
+Context engineering is deciding **what occupies the window on each turn**. It is often a larger lever on agent quality than prompt wording because, in a long-running agent, the prompt is only one small and stable part of what the model reads. The application must assemble a different, relevant working context for each step.
 
 ### Chapter goal
 
@@ -123,6 +121,33 @@ The agent can then run code against the file. The content is still fully availab
 
 ---
 
+## 7. Preserve trust and provenance
+
+Every context block should carry its source and trust level. A policy fetched from an approved store, a user message, and text scraped from the web should not be presented as equivalent anonymous prose.
+
+```json
+{"source":"policy-store", "trust":"authoritative", "text":"..."}
+{"source":"web-page", "trust":"untrusted", "text":"..."}
+```
+
+Trust metadata does not make the model perfectly obey boundaries, but it lets the runtime restrict what low-trust content may influence and keeps citations auditable.
+
+---
+
+## 8. Evaluate context assembly separately
+
+Measure whether the assembled window contained the evidence, constraints, and tools needed for the next decision:
+
+- evidence recall: was the required fact present?
+- distractor rate: how much included material was irrelevant?
+- constraint retention: did pinned user rules survive long runs?
+- tool recall: was the needed schema exposed?
+- tokens per step and remaining headroom.
+
+If required evidence never entered the window, changing the model or prompt cannot repair the decision.
+
+---
+
 ## What matters most
 
 - **The window is assembled every turn,** and deciding what goes in drives quality more than prompt wording does.
@@ -130,5 +155,6 @@ The agent can then run code against the file. The content is still fully availab
 - **Decide the eviction policy before the first long run:** what is never dropped (goal, constraints, user corrections), what gets compacted, what gets externalized.
 - **Order stable content first and volatile content last,** so prefix caching can hit and the most decision-relevant material sits nearest the generation point.
 - **Prefer pointers to payloads.** A path plus a short preview replaces thirty thousand tokens of CSV, and the content stays fully available.
+- **Preserve provenance and measure assembly quality** so missing evidence is not mistaken for a reasoning failure.
 
 Next topic is **Retrieval as a tool**.

@@ -112,11 +112,21 @@ step 15: search "refund eligibility"   reasonable
 
 Nothing in the pattern asks "is this working?" Fixes are structural: a step budget with a mandatory checkpoint ("summarize what you know and what's missing"), a repeated-call detector, and a tool that can return a definitive "not found."
 
-**Practical notes**
+---
+
+## 6. Keep each iteration compact
 
 - Keep thoughts to one or two sentences; they are re-sent on every later turn.
 - Allow parallel actions in a single turn when they are independent - ReAct does not require one call at a time.
 - Put the observation in a compact, typed form; raw payloads make the next thought worse, not better.
+
+---
+
+## 7. Know when ReAct is unnecessary
+
+Do not pay for a reasoning turn between actions when the sequence is already known. A deterministic workflow is better for fixed pipelines, and plan-then-execute is better when independent work can be approved and parallelized up front.
+
+Use ReAct when an observation can materially change the next action. If every successful run follows the same path, move that path into code.
 
 ---
 
@@ -127,5 +137,6 @@ Nothing in the pattern asks "is this working?" Fixes are structural: a step budg
 - **Its weakness is myopia:** every step is locally sensible and the run still wanders for fifteen steps without converging.
 - **Fix that structurally** - a mandatory mid-run checkpoint stating what is known and what is missing, a repeated-call detector, and tools that can return a definitive "not found".
 - **Keep thoughts to a sentence or two,** since they are re-sent on every later turn, and allow parallel actions when they are genuinely independent.
+- **Use ReAct only when observations change the path.** Repeated stable paths belong in a workflow.
 
 Next topic is **Planning strategies**.

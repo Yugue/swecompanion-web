@@ -1,4 +1,4 @@
-## Optimization: closed form, gradient descent, SGD
+## Optimization: closed form, gradient descent, and stochastic gradient descent (SGD)
 
 Fitting a model means minimizing its loss. A few classical models have an exact solution; everything else steps downhill.
 
@@ -15,7 +15,7 @@ w = (X^{\top}X)^{-1}X^{\top}y
 - **Pros**: exact, no learning rate, no iterations, deterministic.
 - **Cons**: \(O(nd^2 + d^3)\) - the cube in d is brutal past a few thousand features - and it fails when \(X^{\top}X\) is singular (perfectly correlated features, or d > n).
 
-Adding L2 regularization fixes the singularity, which is one of the quiet virtues of ridge regression:
+Adding **L2 regularization**, a penalty on the sum of squared weights, fixes the singularity. This is one of the quiet virtues of ridge regression:
 
 \[
 w = (X^{\top}X + \lambda I)^{-1}X^{\top}y
@@ -23,7 +23,7 @@ w = (X^{\top}X + \lambda I)^{-1}X^{\top}y
 
 ### Common issue
 
-Most problems - logistic regression, SVMs, trees, anything with a non-quadratic loss - have no closed form at all.
+Most problems—logistic regression, support-vector machines (SVMs), trees, and anything with a non-quadratic loss—have no closed form at all.
 
 ---
 
@@ -58,8 +58,8 @@ Diagnose it by plotting the loss. A loss that goes up is almost always a learnin
 
 | Variant | Gradient computed on | Per-step cost | Behavior |
 |---|---|---|---|
-| Batch GD | all n rows | expensive | smooth, slow, exact direction |
-| Stochastic GD | 1 row | trivial | very noisy, fast progress early |
+| Batch gradient descent | all n rows | expensive | smooth, slow, exact direction |
+| Stochastic gradient descent | 1 row | trivial | very noisy, fast progress early |
 | Mini-batch | 32-512 rows | moderate | the standard compromise |
 
 The noise in SGD is not only a cost: it lets the parameters escape narrow regions and acts as a mild regularizer. With a decaying learning rate it still converges.
@@ -87,7 +87,7 @@ non-convex: ╲_╱╲_╱    several bottoms, the start point matters
 |---|---|
 | Linear regression (MSE) | yes |
 | Logistic regression (log loss) | yes |
-| Linear SVM (hinge + L2) | yes |
+| Linear SVM (hinge loss + squared-weight L2 penalty) | yes |
 | k-means objective | no (hence multiple restarts) |
 | Neural networks | no |
 | Trees | not applicable - fitted greedily, not by descent |
@@ -123,8 +123,8 @@ This is the same argument as the one in **feature scaling**, seen from the optim
 
 - **Momentum** accumulates past steps to push through flat regions.
 - **Adam / RMSProp** adapt a per-parameter step size; ubiquitous in deep learning, occasionally used here.
-- **Newton / quasi-Newton (L-BFGS)** use curvature and converge in far fewer iterations - `lbfgs` is scikit-learn's default logistic regression solver for good reason.
-- **Coordinate descent** updates one weight at a time and is what `Lasso` uses, because the L1 penalty is not differentiable at zero.
+- **Newton / quasi-Newton methods**, including limited-memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS), use curvature and converge in far fewer iterations - `lbfgs` is scikit-learn's default logistic regression solver for good reason.
+- **Coordinate descent** updates one weight at a time and is what `Lasso` uses, because its L1 penalty on absolute weights is not differentiable at zero.
 
 ---
 

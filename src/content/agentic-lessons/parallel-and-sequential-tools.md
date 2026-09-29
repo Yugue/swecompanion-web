@@ -71,7 +71,29 @@ Fixes, in order of preference:
 
 Note that all three are structural. "Remember to call them in order" is not a fix.
 
-**The cost side.** Parallel calls cut latency, not tokens: three observations still enter the context. If each returns 3,000 tokens, you saved seconds and spent the window. Pair fan-out with compact returns, or with a subagent that reads all three and returns a summary.
+---
+
+## 5. Parallelism changes latency, not token volume
+
+Parallel calls cut latency, not tokens: three observations still enter the context. If each returns 3,000 tokens, you saved seconds and spent the window. Pair fan-out with compact returns, or with a subagent that reads all three and returns a summary.
+
+---
+
+## 6. Execute dependencies in waves
+
+Represent the calls as a small dependency graph instead of asking whether the whole task is "parallel":
+
+```text
+get_user(email) ──► get_orders(user_id) ─┐
+                                         ├─► summarize
+search_tickets(email) ────────────────────┘
+```
+
+`get_user` and `search_tickets` form the first wave. `get_orders` waits for the user id, and the summary waits for both branches. This preserves concurrency without inventing arguments or serializing everything.
+
+### Rule of thumb
+
+> Parallelize each ready wave, then recompute what became ready. Do not label an entire task parallel or sequential.
 
 ---
 
@@ -82,5 +104,6 @@ Note that all three are structural. "Remember to call them in order" is not a fi
 - **A call is parallelizable only if its arguments do not depend on another result** and no two calls touch the same state.
 - **If the model emits a batch with an internal dependency it has mis-planned,** and the symptom is an invented argument. Fix it structurally - merge the paired tools, state the dependency in the description, or reject the batch at runtime.
 - **Parallel calls cut latency, not tokens.** Three observations still enter the window, so pair fan-out with compact returns.
+- **Execute a dependency graph in waves:** run every ready call together, then unlock the next dependent calls.
 
 Next topic is **Code execution as a universal tool**.

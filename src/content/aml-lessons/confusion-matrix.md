@@ -1,19 +1,32 @@
 ## Confusion matrix, precision, and recall
 
-**Once a model makes a yes/no call, only four things can happen.**
+**Once a model makes a yes/no prediction, only four outcomes are possible.** A confusion matrix counts those outcomes.
+
+First choose the **positive class**: the event you are trying to detect. In fraud detection, “fraud” is positive and “legitimate transaction” is negative. Positive does not mean good; it means the condition is present.
 
 ```text
-                            the truth
-                        no             yes
-   model  no  │  correct "no"   │   MISSED IT    │
-    says yes  │  FALSE ALARM    │  correct "yes" │
+                              actual class
+                         negative       positive
+predicted negative  │       TN       │      FN       │
+predicted positive  │       FP       │      TP       │
 ```
 
-The two capitalized cells are the mistakes, and they are not interchangeable — missing a tumour is not the same kind of wrong as a false alarm on a spam filter.
+The first letter says whether the prediction was correct: **T** means true/correct and **F** means false/incorrect. The second letter says what the model predicted: **P** means positive and **N** means negative.
 
 ---
 
 ## 1. The four counts
+
+| Count | Full name | What happened | Fraud example |
+|---|---|---|---|
+| TP | True positive | Predicted positive, actually positive | Fraud correctly flagged |
+| FP | False positive | Predicted positive, actually negative | Legitimate purchase wrongly flagged |
+| TN | True negative | Predicted negative, actually negative | Legitimate purchase correctly allowed |
+| FN | False negative | Predicted negative, actually positive | Fraud missed by the model |
+
+The two mistakes are not interchangeable. A false negative in cancer screening misses a real tumour; a false positive sends a healthy patient for unnecessary follow-up.
+
+Precision and recall summarize different parts of these four counts:
 
 \[
 \text{precision} = \frac{TP}{TP+FP}, \qquad \text{recall} = \frac{TP}{TP+FN}
@@ -24,9 +37,8 @@ The two capitalized cells are the mistakes, and they are not interchangeable —
 Say them in words, and the formulas stop needing memorizing:
 
 ```text
-precision   of everything we FLAGGED, how much was right?   → cost of a false alarm
-recall      of everything REALLY positive, how much did
-            we catch?                                       → cost of a miss
+precision   of everything predicted positive, how much was actually positive?
+recall      of everything actually positive, how much did the model catch?
 ```
 
 ---
@@ -37,8 +49,8 @@ A fraud model reviews 10,000 transactions. 100 are genuinely fraudulent. It flag
 
 ```text
                         actually fraud    actually fine
-   model says fraud            80              100        ← flagged 180
-   model says fine             20            9,800
+   model says fraud         80 TP           100 FP        ← flagged 180
+   model says fine          20 FN         9,800 TN
                               ───            ─────
                               100            9,900
 ```
