@@ -1,132 +1,76 @@
 ## State and session management
 
-The context window is *derived*. The durable truth of a run is a record in your store: what the goal was, what has been done, what was produced, and where it stopped. Designing that record is what makes an agent resumable, inspectable, and correctable.
+Durable **task state** lets a run resume, be inspected, and accept corrections.
 
----
+## 1. Conversation versus task state
 
-## 1. Separate the two kinds of state
+| Conversation | Task |
+|---|---|
+| Messages and observations | Goal, plan, statuses |
+| What was said | What was completed |
+| Model-facing history | Operational record |
 
-```text
-conversation state          task state
-────────────────────        ──────────────────────────
-messages, tool calls,       goal, plan, step statuses,
-observations, summaries     artifacts, decisions, blockers
+Build context from current authoritative state.
 
-read by: the model          read by: humans, dashboards,
-                            other services, the next run
-```
-
-### Core intuition
-
-Systems that keep only conversation state can render a transcript and cannot answer "what has this agent actually done to my account?" Task state is the part the rest of your company needs.
-
----
-
-## 2. The run record
+## 2. Run record
 
 ```json
-{"run_id": "r_8812", "tenant": "acme", "user": "u_441",
- "goal": "reconcile March invoices",
- "status": "running",
- "plan": [{"id": 1, "task": "...", "status": "done"},
-          {"id": 2, "task": "...", "status": "running"}],
- "steps": [{"n": 17, "tool": "match_invoice", "args": {...},
-            "result_ref": "obs/17", "tokens": 1840, "cost_usd": 0.014,
-            "ts": "2026-09-19T14:03:11Z"}],
- "artifacts": [{"path": "/scratch/matched.csv", "sha": "..."}],
- "budget": {"steps_used": 17, "steps_max": 40, "usd_used": 0.31, "usd_max": 1.00},
- "versions": {"prompt": "v7", "tools": "v3", "model": "..."}}
+{
+  "run_id": "r8812",
+  "tenant": "acme",
+  "status": "running",
+  "completed": ["load_order"],
+  "open": ["check_policy"],
+  "steps_used": 1,
+  "artifacts": [],
+  "config_version": "v7"
+}
 ```
 
-Persist **after each step**, not at the end. A run that only writes on completion cannot be resumed, audited mid-flight, or debugged when it hangs.
+Persist important boundaries, including pending operations.
 
-### Rule of thumb
-
-> If the process died right now, could another worker pick this run up correctly? That is the test for your state design.
-
----
-
-## 3. Resumption is not just "keep going"
+## 3. Resume safely
 
 ```text
-crash at step 18
-   ↓
-was step 18's side effect applied?
-   ├── yes → mark done, continue at 19
-   ├── no  → retry 18 (idempotency key makes this safe)
-   └── unknown → query the external system; never guess
+interrupted write → check external status
+                     ├→ succeeded: record completion
+                     ├→ failed: retry if safe
+                     └→ unknown: reconcile/escalate
 ```
 
-### Rule of thumb
+A missing response is not evidence of failure.
 
-This is why idempotency keys and a status-lookup tool matter: resumption correctness depends on being able to establish what actually happened, not on assuming.
+## 4. Inspect and correct
 
----
+A human can invalidate a finding or update a constraint. The next context uses the new version.
 
-## 4. Make state inspectable and editable
+Record who changed state and recheck affected dependencies.
 
-The highest-value operational feature in an agent platform is a human being able to open a running task, see the plan and findings, correct a wrong fact, and let the run continue. That requires state to be structured and addressable - not buried in a message list.
+## 5. Scope and concurrency
+
+Enforce user/tenant access, retention, redaction, and deletion.
+
+Use one owner per run or version-checked updates. Two workers advancing the same state can duplicate operations.
+
+## 6. Explicit lifecycle
 
 ```text
-human edits plan[2].task  →  agent's next turn reads the updated plan
-human marks finding[4] wrong →  it is excluded from the context
+queued → running → waiting_for_tool/human → running → completed
+                 → paused / failed / cancelled
 ```
 
----
+Record triggers, timestamps, and wake conditions. Reject illegal transitions.
 
-## 5. Scope and hygiene from day one
+## 7. Artifact references
 
-- **Tenant and user scoping** on every record - retrofitting isolation is painful and risky.
-- **Retention** - runs contain user data, so set a TTL and honor deletion.
-- **Redaction at write time** - secrets and personal data should never enter the store, because traces are the most widely shared artifact in an agent system.
-- **Concurrency** - one writer per run, or optimistic versioning; two workers advancing the same run corrupt it quietly.
+Store large files and observations separately with controlled references and hashes.
 
----
-
-## 6. Make lifecycle transitions explicit
-
-Use a small state machine rather than free-text status values:
-
-```text
-queued → running → waiting_for_tool ─┐
-                 → waiting_for_human ├→ running → completed
-                 → paused            │
-                 → failed / cancelled┘
-```
-
-Each transition records who or what caused it, the expected wake-up condition, and a timestamp. This prevents a run from being both "waiting" and actively executing, and makes stuck work queryable.
-
----
-
-## 7. Store large artifacts by reference
-
-Keep run metadata small and transactional. Store documents, datasets, generated files, and large observations separately with a content hash and access-controlled reference.
-
-This avoids rewriting a large run record after every step and lets retention or deletion policies apply to artifacts independently while preserving an auditable pointer in the trace.
-
----
+Keep task metadata small enough for consistent transactional updates.
 
 ## Interview mental model
 
-The context window is *derived*. The durable truth of a run is a record you can hand to another worker:
-
-```text
-run = {goal, plan[status per step], steps[tool, args, result_ref],
-       artifacts, budget_used, versions{prompt, tools, model}, status}
-```
-
-The test for your design: **if the process died right now, could another worker pick this run up correctly?**
-
-- **Persist after every step,** not at the end - otherwise a run cannot be resumed, audited mid-flight, or debugged when it hangs.
-- **Resumption needs more than "keep going."** Whether step 18's side effect actually applied must be established, not assumed - which is why side-effecting tools need idempotency keys and a status lookup.
-- **Separate task state from conversation state.** The task state is what humans, dashboards, and other services need.
-- **Make it structured and editable** so a person can correct a fact mid-run, and scope every record by tenant and user from day one.
-- **Use explicit lifecycle transitions and referenced artifacts,** so stuck runs are visible and large outputs do not become mutable blobs inside task state.
-
----
+> Could another worker recover the run correctly if this process stopped now?
 
 ## Chapter 4 checkpoint
 
-Trace one important fact from source to retrieval, context, compaction, durable state, correction, and deletion. At every stage, identify its provenance, scope, validity, and whether its exact value must survive.
-
-That completes **Chapter 4 — Memory, context, and retrieval**. Next topic is **When multi-agent pays for itself**.
+Trace a fact through retrieval, context, compaction, correction, and deletion. Identify source, scope, version, and exact values at every stage.

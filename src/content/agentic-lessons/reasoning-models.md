@@ -1,116 +1,58 @@
 ## Reasoning models and thinking budgets
 
-**A reasoning model is one trained to think before it answers** - to spend a variable amount of extra computation working through the problem internally instead of replying straight away.
+Reasoning-capable models can devote additional computation to difficult decisions. Treat the effort setting as a measured resource choice.
 
-For an agent builder that changes the job: less prompt choreography, more **budget allocation** - deciding which steps deserve the expensive thinking and which do not.
-
----
-
-## 1. What is different
+## 1. Different compute allocation
 
 ```text
-standard model:    prompt → answer                      (fixed compute per token)
-reasoning model:   prompt → [ extended internal work ] → answer
-                              ↑ length varies with difficulty and budget
+input → additional reasoning computation → response
 ```
 
-The model learned when and how to think, rather than being instructed to. Two practical consequences:
+Controls, accounting, and reasoning visibility vary by interface. Clear goals and evidence remain essential.
 
-1. Elaborate "think step by step, consider alternatives, then..." scaffolding adds little - the behavior is already trained in. Clear task statements and good context matter more.
-2. Thinking tokens are **billed and generated serially**, so accuracy is being bought with latency and money at a tunable exchange rate.
+## 2. Where effort can help
 
----
+Planning, diagnosis, and complex decisions are useful candidates.
 
-## 2. Where it pays
+Routine extraction and formatting may need less effort. Test difficult cases rather than assuming a model category guarantees quality.
 
-| Task | Reasoning model | Why |
+## 3. Route within one run
+
+```text
+plan → higher effort
+gather routine facts → faster/lower-effort path
+diagnose → higher effort
+format verified output → simpler path
+```
+
+Evaluate routing errors and fallback behavior too.
+
+## 4. Tune the budget
+
+Illustrative experiment:
+
+| Effort | Success | p95 latency |
 |---|---|---|
-| Planning a multi-step task | Yes | Decomposition is the hard part |
-| Diagnosing a failure from a trace | Yes | Many hypotheses to weigh |
-| Ambiguous tool selection | Sometimes | Only when tools genuinely overlap |
-| Extracting fields from a document | No | Pattern matching; adds latency |
-| Routing to a handler | No | A cheap model is as good and 10x faster |
-| Summarizing an observation | No | No reasoning bottleneck |
+| Low | 80% | 2 s |
+| Medium | 90% | 5 s |
+| High | 91% | 10 s |
 
-### Rule of thumb
+For a six-second deadline, medium is the best feasible option in this example.
 
-> Spend thinking on decisions, not on transformations.
+Compare cost and uncertainty alongside quality.
 
----
+## 5. Account for the loop
 
-## 3. Routing inside one agent
+A slower decision repeats across steps. Include tool time, context processing, and any additional compute in the run budget.
 
-The strongest production pattern is mixed models within a single run:
+Preserve decisions and observations during compaction according to the interface's state requirements.
 
-```python
-model = REASONER if step.kind in {"plan", "diagnose", "final_decision"} else FAST
-```
+## 6. Detect overthinking
 
-```text
-plan            → reasoning model, high budget
-gather (×12)    → fast model, minimal thinking
-diagnose        → reasoning model, high budget
-format output   → fast model
-```
+Measure time to useful action, unnecessary calls, success versus usage, and tail cost/latency.
 
-### Core intuition
-
-Two expensive steps out of twenty cost far less than twenty, and usually measure no worse. That is a claim to verify on your eval set, not one to assume.
-
----
-
-## 4. Tuning the budget
-
-Treat the thinking budget as a hyperparameter with a measurable curve:
-
-```text
-accuracy
-   │        ────────────  plateau
-   │      ╱
-   │    ╱
-   │  ╱
-   └─────────────────────► thinking budget
-        ↑ pick here (knee), not at the plateau
-```
-
-Sweep it per task type on your eval set, plot accuracy against cost and p95 latency, and pick the knee. Reporting this curve is a strong interview answer because it shows the decision was measured rather than asserted.
-
----
-
-## 5. Account for the surrounding agent loop
-
-- Reasoning traces occupy context afterward; consider dropping them during compaction while keeping decisions and observations.
-- Latency is the binding constraint in interactive products - a 12-second thinking step is fine in a batch pipeline and unusable in a chat.
-- Per-step reliability compounds, so a reasoning model on the one step that gates everything else can raise end-to-end success more than upgrading every step.
-
----
-
-## 6. Watch for overthinking and budget variance
-
-More thinking can produce a longer but not better path. Monitor:
-
-- task success against thinking tokens,
-- time to first useful action,
-- unnecessary tool calls after the answer was already available,
-- p95 cost and latency, not only the average.
-
-Set a maximum budget and permit an early stop. A reasoning model should not be required to spend the full allowance when the decision is easy.
-
----
+Permit early completion; a maximum allowance is not a target to spend.
 
 ## What matters most
 
-- **The model learned when to think, so elaborate "think step by step" scaffolding adds little.** Clear task statements and good context matter more.
-- **Spend thinking on decisions, not transformations.** Planning, diagnosis, and final judgments earn it; extraction, routing, and formatting do not.
-- **Route by step kind within a single run.** Two expensive steps out of twenty costs far less than twenty, and usually measures no worse.
-- **Treat the thinking budget as a hyperparameter:** sweep it per task type, plot accuracy against cost and p95 latency, and pick the knee rather than the plateau.
-- **Latency is the binding constraint in interactive products,** and reasoning traces keep occupying context afterwards - consider dropping them during compaction.
-- **More thinking is not monotonically better.** Watch for delayed first actions, redundant calls, and tail-cost growth, and allow early stopping below the cap.
-
----
-
-## Chapter 3 checkpoint
-
-For one complex task, choose fixed workflow, plan-then-execute, interleaved ReAct, or hierarchical planning. Define each step's artifact, dependencies, completion evidence, replanning trigger, and reasoning budget.
-
-That completes **Chapter 3 — Reasoning and planning**. Next topic is **Context engineering**.
+> Spend computation where it changes the outcome, then verify the gain.

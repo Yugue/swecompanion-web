@@ -1,152 +1,63 @@
 ## How multi-agent systems fail
 
-**A single agent fails loudly - it loops, it errors, it hits the step cap. A multi-agent system fails quietly.**
+Coordination can fail even when each worker returns a plausible result.
 
-It hands you a fluent, confident report assembled from pieces that never actually fit together, and nothing in the output shows the seam.
+## 1. Five failures
 
----
+- Duplicate work.
+- Unowned requirements.
+- Wrong findings reused as premises.
+- Contradictions hidden by merging.
+- Resource or latency blowups.
 
-## 1. The five characteristic failures
+These can occur in single-agent systems too; multiple contexts add seams.
 
-```text
-1. duplication     overlapping briefs → three workers do the same search
-2. gaps            no brief owned subtask X → nobody did it, nobody noticed
-3. amplification   w1's wrong finding becomes w2's premise, then the report's fact
-4. contradiction   w1: "$49"  w3: "$59"  → merge picks one silently
-5. blowup          slowest worker sets latency; every worker pays full overhead
-```
-
-### Core intuition
-
-Failures 2, 3 and 4 are invisible in the output. That is what makes them the dangerous ones.
-
----
-
-## 2. Error amplification, drawn
+## 2. Error amplification
 
 ```text
-  w1: "ACME has 400 employees"   (misread a 2019 page, no source recorded)
-        │
-        ▼
-  w2: uses 400 to compute revenue per employee
-        │
-        ▼
-  orchestrator: writes "ACME's revenue per employee is $310k"
-        │
-        ▼
-  report: fluent, specific, wrong, and nobody can trace the 400
+outdated “400 employees” → revenue/employee calculation → confident report
 ```
 
-The fix is structural, not motivational: **provenance on every claim**, carried through the merge.
+Carry source, date, entity, and uncertainty with the input claim. Correct arithmetic cannot repair an outdated denominator.
 
-```json
-{"claim": "ACME has 400 employees",
- "source": "https://...", "as_of": "2019-06", "agent": "w1",
- "confidence": "low"}
-```
+## 3. Ownership and coverage
 
-With `as_of` and `source` present, the merge step can reject or flag it. Without them, no reviewer downstream can either.
+Map every required artifact to an accountable owner. Explicitly mark intentional duplicate verification.
 
-### Rule of thumb
+Check unassigned and overlapping tasks before dispatch.
 
-> A claim without a source should not survive a merge.
+## 4. Merge against the goal
 
----
+Flag unsupported claims, preserve contradictions, list gaps, and check the requested final outcome.
 
-## 3. Ownership prevents duplication and gaps
+Three good summaries do not automatically form a useful recommendation.
+
+## 5. Global budgets
+
+Six workers with ten-step caps can still spend 60 steps plus orchestration.
+
+Enforce global spend, token, time, and step budgets alongside local limits.
+
+## 6. Stale reads
 
 ```text
-subtask 1 → owner w1   (exclusive)
-subtask 2 → owner w2   (exclusive)
-subtask 3 → owner w3   (exclusive)
-             ↑ orchestrator asserts coverage: every plan step has exactly one owner
+read v3 → compute → conditional write expecting v3
+                    ├→ success
+                    └→ conflict: reread or reconcile
 ```
 
-### Rule of thumb
+Record dependency versions. Turn silent overwrites into visible conflicts.
 
-Make the orchestrator check the partition explicitly before dispatch: every plan step assigned once, no step unassigned. This is a cheap deterministic check that removes two of the five failure modes.
+## 7. Coordination evaluation
 
----
+Test disagreement, timeout, duplicate delivery, incomplete output, and reordered completion.
 
-## 4. The merge step is where quality is won or lost
-
-```text
-merge:
-  1. drop or flag unsourced claims
-  2. detect contradictions on the same key → surface both, with sources
-  3. list gaps explicitly in the output
-  4. verify the deliverable answers the original goal, not the subtasks
-```
-
-### Common issue
-
-Point 4 catches a specific and common failure: every subtask succeeded and the deliverable does not answer the question that was asked.
-
----
-
-## 5. Budgets must be global
-
-```text
-per-worker cap: 10 steps each × 6 workers = 60 steps, with no global stop
-```
-
-### Rule of thumb
-
-Caps that exist only per worker do not bound the system. Enforce a run-level step, token, dollar, and wall-clock budget in the orchestrator, and make exhaustion a defined outcome - report what is known plus the gaps - rather than an exception.
-
----
-
-## 6. Detect stale reads and conflicting writes
-
-Shared state adds another quiet failure: one worker reads version 3 while another has already written version 4. Record the version each artifact was derived from and reject writes based on stale inputs when correctness matters.
-
-```text
-read artifact@v3 → compute update → write only if current_version == v3
-                                  → otherwise re-read or surface conflict
-```
-
-Optimistic concurrency turns silent overwrites into visible, recoverable conflicts.
-
----
-
-## 7. Test coordination as a system property
-
-Add eval cases where workers disagree, time out, duplicate a result, return incomplete schemas, or finish in a different order. Assertions belong at the orchestrator level:
-
-- every planned subtask had one owner,
-- every final claim retained provenance,
-- contradictions remained visible,
-- the global budget held,
-- partial completion was labelled honestly.
-
-Testing workers independently cannot reveal a broken merge.
-
----
+Check provenance, ownership, conflicts, partial-result honesty, and global budgets at system level.
 
 ## Interview mental model
 
-Multi-agent failures are quiet, and three of the five are invisible in the output:
-
-```text
-duplication    overlapping briefs → the same work done three times
-gaps           no brief owned subtask X → nobody did it, nobody noticed
-amplification  a wrong finding becomes the next agent's premise
-contradiction  two workers disagree → the merge silently picks one
-blowup         slowest worker sets latency; everyone pays full overhead
-```
-
-The structural fixes, in order of value:
-
-- **Provenance on every claim** - claim, source, as-of date, agent, confidence - and a merge that drops or flags anything unsourced. A claim without a source should not survive a merge.
-- **Exclusive ownership per subtask,** asserted before dispatch, which removes duplication and gaps together.
-- **A merge that reconciles:** surface contradictions with both sources, state gaps explicitly, and check the deliverable answers the original goal rather than the subtasks.
-- **Global budgets, not per-worker ones,** with exhaustion as a defined partial-result outcome.
-- **Version shared state and test adversarial coordination cases,** because individually correct workers can still produce an incorrect system.
-
----
+> The seams are part of the system and need their own checks.
 
 ## Chapter 5 checkpoint
 
-Draw every agent and communication edge. Label ownership of the goal, writable artifacts, budget, stopping condition, and merge decision. Remove any edge—or agent—that provides no measurable parallelism or context-isolation benefit.
-
-That completes **Chapter 5 — Multi-agent systems**. Next topic is **Evaluating agents**.
+Explain the benefit of a split, its briefs and return contracts, the merge rules, and recovery when a worker fails.

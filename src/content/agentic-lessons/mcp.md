@@ -1,113 +1,53 @@
 ## Tool servers and the Model Context Protocol
 
-MCP standardizes how an agent discovers and calls external capabilities. The value is an integration-math argument, and the cost is a change to your threat model. Both belong in the answer.
+**MCP** standardizes communication between applications and servers exposing context and capabilities.
 
----
-
-## 1. The problem it solves
+## 1. Integration shape
 
 ```text
-without a standard:            with a standard:
-
- agent A ─┬─ Slack               agent A ─┐
-          ├─ GitHub              agent B ─┼─► protocol ─┬─ Slack server
-          ├─ Drive               agent C ─┘             ├─ GitHub server
- agent B ─┼─ Slack                                      └─ Drive server
-          ├─ GitHub
-          └─ Drive               N + M integrations
- N × M integrations
+clients → common protocol → servers → external systems
 ```
 
-### Core intuition
+For three clients and four systems, bespoke pairwise adapters could mean 12 integrations. A common interface can reduce adapter duplication, though testing and system-specific work remain.
 
-Every agent writing its own connector to every system is quadratic work that is re-done whenever an API changes. A protocol makes each integration write-once.
+## 2. Server primitives
 
----
-
-## 2. What a server exposes
-
-| Primitive | Meaning | Controlled by |
+| Primitive | Purpose | Typical control |
 |---|---|---|
-| Tools | Callable actions with schemas | The model chooses |
-| Resources | Readable context - files, records, pages | The application selects |
-| Prompts | Reusable templates for common tasks | The user invokes |
+| Tools | Callable operations | Model proposes use |
+| Resources | Readable context | Application selects |
+| Prompts | Reusable templates | User selects |
 
-### Rule of thumb
+The host controls what reaches the model and what executes.
 
-The tools/resources split matters: tools are *model-driven*, resources are *application-driven*. Exposing something as a resource means your code decides when it enters the context, which is a meaningful control.
-
----
-
-## 3. Discovery at runtime
+## 3. Discovery
 
 ```text
-client ──list_tools()──► server
-client ◄──schemas───────  server
-        │
-        └─► schemas injected into the model's context
+host/client → list available tools → server schemas
+                         ↓
+                  selected tools → model
 ```
 
-### Common issue
+A client maintains a connection to a server. The host coordinates clients, permissions, and model-facing context.
 
-The tool surface can change without redeploying your agent. That is the convenience. It is also the risk: a third party can change what your agent can do, and what text sits inside your prompt, between one run and the next.
+## 4. Trust boundary
 
----
+Server descriptions, results, and capabilities can change.
 
-## 4. The threat model shift
+Review dependencies and capability changes, scope credentials, restrict approved servers, and log server identity. Returned content is not authority to expand permissions.
 
-```text
-third-party server
-      │
-      ├─► tool DESCRIPTIONS land inside your prompt  → injection surface
-      ├─► tool RESULTS land inside your context      → injection surface
-      ├─► tool set can change silently               → supply-chain surface
-      └─► your credentials may be passed to it       → exfiltration surface
-```
+## 5. Avoid collisions
 
-Controls worth naming:
+Two servers can both offer **search**. Give model-facing tools distinct names and expose only relevant capabilities.
 
-1. **Pin and review.** Pin server versions; diff tool descriptions on change like any dependency.
-2. **Treat descriptions and results as untrusted text**, never as instructions.
-3. **Scope credentials per server**, least privilege, with revocation.
-4. **Allowlist which servers may be connected** in production - not whatever a user adds.
-5. **Log every call** with the server identity attached.
+Standard connectivity does not solve tool selection.
 
-### Rule of thumb
+## 6. When the protocol helps
 
-> Connecting a tool server is installing a dependency that can also write into your prompt.
+Reusable integrations across applications favor a shared server interface.
 
----
-
-## 5. Avoid namespace and catalogue collisions
-
-Two servers can both expose `search`. The model then picks between identically named tools by description alone. Namespace them (`github.search`, `drive.search`) and expose only the servers relevant to the current task.
-
-A protocol solves connectivity, not tool selection. Combining ten well-designed servers can still create a confusing catalogue of overlapping operations.
-
----
-
-## 6. Know when a protocol is worth it
-
-| Situation | Better choice |
-|---|---|
-| One agent and one stable internal API | A direct tool wrapper is simpler |
-| Several clients need the same integration | A shared tool server avoids repeated adapters |
-| Tools must be discovered or updated independently | Runtime protocol discovery is useful |
-| The integration holds broad credentials or changes often | Use a tightly reviewed wrapper or do not connect it |
-
-### Rule of thumb
-
-Use a protocol to standardize a reused boundary, not merely to add another layer around one private function.
-
----
+One stable private function may need only a direct wrapper. Compare operational and maintenance costs.
 
 ## What matters most
 
-- **The benefit is integration math:** a shared protocol turns N agents times M systems into N + M, written once per system instead of once per pair.
-- **Tools are model-driven; resources are application-driven.** Exposing something as a resource means your code decides when it enters the context, which is a real control.
-- **Runtime discovery is the convenience and the risk.** A third party can change what your agent can do between one run and the next.
-- **A tool server writes text into your prompt** through descriptions and results, so it is an injection channel as well as a dependency - treat both as untrusted data.
-- **Controls worth naming:** pin and diff server versions, scope credentials per server, allowlist which servers may connect in production, and namespace tools so two `search` tools cannot collide.
-- **The protocol standardizes connectivity, not judgment.** You still need catalogue filtering, authorization, compatibility checks, and a reason to reuse the boundary.
-
-Next topic is **Tool selection at scale**.
+> A standard socket connects systems; the host still decides which connections and operations are allowed.

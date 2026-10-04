@@ -1,149 +1,80 @@
 ## The context window as working memory
 
-The model has no hidden notebook that persists between calls. On each step, it can use only the information placed in its context window.
-
-```text
-instructions + tool descriptions + relevant history + evidence + current request
-                                  ↓
-                                model
-```
-
-That makes context the agent’s working memory—and a limited resource that must be assembled deliberately.
-
----
+The **context window** is the information available to one model call. The application assembles it.
 
 ## 1. What enters the window
 
-A typical agent turn contains:
-
-| Content | Purpose |
+| Block | Purpose |
 |---|---|
-| System instructions | Role, rules, and completion conditions |
-| Tool descriptions | Actions the model may request |
-| Task state | Goal, constraints, plan, and completed work |
-| Prior calls and observations | What happened earlier in this run |
-| Retrieved evidence | Documents or facts needed now |
-| Current user message | The latest request or correction |
+| Instructions | Goal and behavior |
+| Tools | Available actions |
+| Task state | Current facts and constraints |
+| Recent history | Calls and observations |
+| Evidence | Relevant documents |
+| Current request | Latest direction |
 
-The window is not automatically filled with everything the system knows. Your application chooses what to include.
+Stored information helps only when supplied through context or tools.
 
----
+## 2. More is not always better
 
-## 2. Why more context is not always better
+Irrelevant text consumes capacity, processing time, and attention.
 
-Extra context creates three costs:
+> A desk full of every document makes the current task harder to find.
 
-1. **Capacity:** old material may crowd out something important.
-2. **Attention:** relevant facts become harder to distinguish from noise.
-3. **Cost and latency:** the model reprocesses the supplied context on later calls.
+## 3. Allocate the budget
 
-A larger window prevents immediate truncation. It does not make irrelevant content harmless.
-
-### Core intuition
-
-The goal is not to fill the window. It is to give the model the smallest complete set of information needed for the next decision.
-
----
-
-## 3. Budget context by category
-
-Suppose a model supports a 32k-token context. Do not let every source grow until the limit is reached.
+Illustrative 32k-token total budget:
 
 ```text
-instructions and tool definitions      5k
-current goal and structured task state 2k
-retrieved evidence                    10k
-recent trajectory                      8k
-reserved space for output              4k
-safety margin                          3k
+instructions/tools  5k
+state               2k
+evidence           10k
+recent history      8k
+output reserve      4k
+margin              3k
 ```
 
-The exact numbers depend on the task. The important part is deciding which category may shrink when the run grows.
+Allocation depends on model limits and the task.
 
-### Rule of thumb
+## 4. State versus transcript
 
-Reserve output space and a safety margin before allocating input.
-
----
-
-## 4. Keep state separate from transcript
-
-The transcript records what was said and observed. Task state records what is currently true:
+Transcript: what was said. State: what is currently true.
 
 ```json
 {
-  "goal": "Explain why order 48812 has not shipped",
-  "known_facts": ["status=payment_review"],
-  "completed_steps": ["load_order"],
-  "open_questions": ["payment review age"],
+  "goal": "Explain order 48812 delay",
+  "facts": ["payment_review"],
+  "open_questions": ["review age"],
   "constraints": ["read-only"]
 }
 ```
 
-Structured state is easier to inspect and preserve than asking the model to reconstruct the task from twenty turns of conversation.
+Store authoritative state outside the prompt.
 
-A **durable run record** stores authoritative task state outside the model, while long-term memory stores selected information for future runs. The context should be **derived from that state**, not treated as its only copy.
+## 5. Evict deliberately
 
----
+Remove duplicates, externalize payloads, retrieve smaller extracts, then summarize older history.
 
-## 5. Use an explicit eviction order
+Keep IDs, amounts, constraints, approvals, and active errors exact.
 
-When the window becomes crowded:
+## 6. Check before calling
 
-```text
-1. remove duplicate or irrelevant tool results
-2. replace large artifacts with references
-3. retrieve only evidence needed for the current step
-4. summarize older low-risk conversation
-5. keep exact constraints, identifiers, decisions, and active errors
-```
+Is evidence findable and current? Are constraints explicit? Is anything duplicated?
 
-Do not summarize values that must remain exact, such as order IDs, file paths, amounts, user constraints, or approval status.
+Pointers help only when the agent can retrieve their content.
 
----
+## 7. Reserve headroom
 
-## 6. A practical context check
+Reserve response capacity and room for later observations. Compact before a subsequent call would overflow.
 
-Before each model call, ask:
+Emergency truncation can remove the original goal.
 
-- Does every block help the next decision?
-- Is any fact duplicated?
-- Is a large payload better represented by a pointer?
-- Are important constraints still explicit?
-- Is the current task state newer than the conversation summary?
-- Is enough room reserved for the response?
+## 8. Diagnose context failures
 
-This check is often more valuable than adding another prompt instruction.
+Was the needed fact **present, findable, current, and trustworthy**?
 
----
-
-## 7. Reserve headroom before calling the model
-
-The input fitting inside the limit is not enough. Reserve space for the model response and the next tool observation. If the estimated turn would exceed the budget, compact or externalize before making the call.
-
-```text
-window limit = input context + maximum response + expected next observation
-```
-
-Emergency truncation at the hard limit tends to remove the oldest material, which is often the original goal or an early user constraint.
-
----
-
-## 8. Diagnose context failures separately
-
-When a decision is wrong, ask whether the needed fact was present, findable, current, and distinguishable from conflicting text. A model cannot use evidence that never entered the window, and changing the prompt will not fix missing retrieval.
-
-Track constraint retention, relevant-evidence recall, duplicated tokens, and unused headroom across long runs.
-
----
+Measure evidence recall, constraint retention, and unnecessary tokens.
 
 ## What matters most
 
-- **The context window is the model’s working memory for one call.**
-- **Your application assembles it** from instructions, tools, state, history, and evidence.
-- **More context can reduce quality** by adding noise as well as cost.
-- **Keep structured task state separate from the transcript.**
-- **Evict deliberately:** remove noise first and preserve exact constraints and identifiers.
-- **Reserve response headroom and measure context quality,** so overflow and missing evidence are diagnosed before the model is blamed.
-
-Next topic is **System prompts and instruction hierarchy**.
+> Supply the smallest complete set of information needed for the next decision.

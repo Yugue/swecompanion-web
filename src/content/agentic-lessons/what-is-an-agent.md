@@ -1,116 +1,53 @@
 ## What an agent actually is
 
-A language model takes input and produces output. An agent adds a controlled way for the model to decide what should happen next.
+An **agent** is a system where a model chooses an action, observes the result, and decides what to do next.
+
+## 1. Model call versus agent
 
 ```text
-model call:  input ─────────────────────────► output
-workflow:    input → fixed step → fixed step → output
-agent:       input → model chooses next action ↺ → output
+model call: input → response
+workflow:   input → predefined steps → response
+agent:      input → choose → act → observe ↺ → response
 ```
 
-The important difference is not intelligence. It is **who controls the sequence of steps**.
+A model can draft an answer. An agent can look up an order and choose a follow-up lookup.
 
----
+## 2. Delegated control
 
-## 1. The boundary between a model and an agent
-
-A model call may classify, summarize, extract, or draft. It returns one response and stops.
-
-An agent can request an action, inspect the result, and choose another action. The engineer defines the available actions and the limits; the model chooses among them at runtime.
+For “Why hasn't order 48812 shipped?”:
 
 ```text
-agent = model + actions + loop + stopping conditions
+get_order → payment_review → inspect payment
+          → shipped        → inspect carrier
 ```
 
-- Without actions, it cannot inspect or change the outside world.
-- Without a loop, it gets only one decision.
-- Without stopping conditions, it may continue indefinitely.
-- Without runtime controls, model suggestions become unsafe authority.
+The observation changes the next action.
 
-### Core intuition
+> Code defines the roads; the model chooses the next turn.
 
-An agent is a **software system around a model**, not a special kind of model.
+## 3. What the engineer controls
 
----
-
-## 2. Delegated control is the defining property
-
-Consider: *“Find out why order 48812 has not shipped and tell the customer.”*
-
-A fixed workflow might always do this:
-
-```text
-get order → get shipment → format response
-```
-
-But the order may have no shipment because payment is under review. An agent can inspect the order and change direction:
-
-```text
-get order
-  → shipment_id is missing; status is payment_review
-  → inspect payment review
-  → read the relevant customer policy
-  → explain the delay
-```
-
-The model chose the second step from the first result. That runtime choice is what makes the system agentic.
-
----
-
-## 3. What the engineer still controls
-
-Delegating the next decision does not mean delegating the whole system.
-
-| Engineer controls | Model chooses |
+| Runtime owns | Model proposes |
 |---|---|
-| Available actions | Which allowed action to request |
-| Permissions | Arguments supported by current evidence |
-| Step, time, and cost limits | Whether more information is needed |
-| Validation and approval gates | When to propose completion |
-| What counts as success | A path through allowed actions |
+| Tools and permissions | Selection and arguments |
+| Validation | Answer or action |
+| Step, time, cost limits | More investigation |
+| Success checks | Completion |
 
-### Rule of thumb
+A generated refund request does not move money. Authorized execution does.
 
-The runtime owns authority. The model proposes decisions inside that boundary.
+## 4. Autonomy has several controls
 
----
+A three-tool, read-only agent with a five-step limit is still agentic.
 
-## 4. Autonomy is not all-or-nothing
+Tune tool breadth, run length, and write permissions separately. Expand a boundary when measured failures show a need.
 
-A useful agent may have:
+## 5. Agent does not mean reliable
 
-- three read-only actions,
-- a five-step limit,
-- no access to arbitrary network requests,
-- approval before every write,
-- one narrow goal.
+Evaluate accuracy, recovery, cost, and safety.
 
-That is still an agent. Increasing the number of actions, the run length, or the allowed side effects increases autonomy and risk independently.
-
-Start narrow. Expand a boundary only when real traces show that the smaller boundary cannot complete a valid task.
-
----
-
-## 5. What an agent does not guarantee
-
-Calling a system an agent says nothing about whether it is:
-
-- accurate,
-- safe,
-- cost-effective,
-- able to recover,
-- appropriate for the task.
-
-Those properties come from the model, tools, context, runtime, and evaluation around it. The remaining lessons build those pieces one at a time.
-
----
+A loop can repeat a mistake as easily as correct it. Useful autonomy needs evidence, understandable tools, and observable completion.
 
 ## What matters most
 
-- **A model produces an output; an agent can choose another action after seeing a result.**
-- **Delegated control is the defining property:** the model selects the path at runtime.
-- **The runtime still owns authority, limits, validation, and permissions.**
-- **Autonomy is adjustable.** Tool breadth, run length, and approval requirements are separate choices.
-- **“Agent” describes control flow, not quality.**
-
-Next topic is **What the underlying model gives you**.
+> Delegated control chooses the next step. The runtime keeps authority over execution.

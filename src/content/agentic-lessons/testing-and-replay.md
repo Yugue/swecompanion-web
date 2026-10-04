@@ -1,118 +1,55 @@
 ## Testing and replay
 
-Non-determinism is a reason to test differently, not a reason to skip testing. The three techniques that make agents testable are **mocked tools**, **trace replay**, and **property assertions over repeated runs**.
+Test deterministic runtime behavior, stochastic decisions, and real integrations at appropriate levels.
 
-The evaluation lessons define what quality means. This lesson focuses on when those checks run and how recorded trajectories become repeatable regression tests.
-
----
-
-## 1. The test pyramid for agents
+## 1. Test layers
 
 ```text
-        ╱ end-to-end, real tools ╲      slow, flaky, few - run before release
-      ╱  replay against traces    ╲     medium - run on every prompt/model change
-    ╱  unit tests with mocked tools ╲   fast, deterministic - run on every commit
+many runtime/unit checks
+    ↓
+mocked-tool decision and trajectory evaluations
+    ↓
+selected safe real-system checks
 ```
 
-### Common issue
+Mocks control the environment; model outputs can still vary.
 
-The bottom layer is where most of the value is, and it is the layer teams skip because "you can't unit-test an LLM." You can test everything around it.
+## 2. Mocked error paths
 
----
+Test empty lookups, timeouts, denied access, partial results, and duplicate requests.
 
-## 2. Unit tests with mocked tools
+For refunds, check verified identity, eligibility, amount, and exactly-once logical execution.
 
-```python
-def test_verifies_identity_before_refund():
-    tools = MockTools(get_order={"id": "48812", "total": 240.00},
-                      verify_identity={"status": "ok"})
-    trace = run_agent("refund order 48812", tools)
-    assert called_before(trace, "verify_identity", "issue_refund")
-    assert tools.calls["issue_refund"][0]["amount"] == 240.00
-```
+## 3. Replay limits
 
-### Rule of thumb
+Recorded observations can evaluate a new decision at a known state.
 
-These are fast and deterministic **in the parts that matter**: ordering, argument construction, error handling, and refusal behavior. Add a mock that returns an error, a timeout, and an empty result - the error paths are where agents actually break and where tests are cheapest.
+Once new calls diverge, old observations may no longer apply. Use argument-aware mocks, a simulator, or safe integration fixtures. Mark unsupported replay paths explicitly.
 
----
-
-## 3. Replay
+## 4. Assert behavior
 
 ```text
-recorded production traces
-        │
-        ├─► same tools, NEW prompt/model
-        │
-        └─► diff: tool choices, arguments, final outputs, cost, steps
+correct order/amount
+no forbidden operation
+no duplicated effect
+claims match verified results
+budget respected
 ```
 
-Replay answers the question you actually have before a change: *what would this have done differently?* It is the most practical model-upgrade tool there is, because it uses real inputs rather than a curated set.
+Exact wording is appropriate only when wording itself is the contract.
 
-### Common issue
+## 5. Repeated-run gates
 
-Caveat: once the new run diverges, the recorded observations no longer match the new calls. Either mock by `(tool, args)` lookup with a fallback to live calls, or accept that replay validates the early steps most reliably.
+Five runs provide a small, coarse estimate: rates are 0%, 20%, 40%, 60%, 80%, or 100%.
 
----
+Choose repetitions using variability, desired precision, and budget. Report uncertainty and important slices.
 
-## 4. Assert properties, not strings
+## 6. Real-system checks
 
-```text
-✗  assert output == "I've issued your refund of $240.00."
-✓  assert refund_called_once_with(amount=240.00)
-✓  assert "verify_identity" in called_tools
-✓  assert no_tool_called_in(FORBIDDEN_TOOLS)
-✓  assert run.cost_usd < 0.05 and run.steps <= 12
-✓  assert every_cited_source in retrieved_sources
-```
+Use safe accounts to detect credential, permission, API, and runtime differences that mocks omit.
 
-The negative assertions - nothing forbidden happened, nothing was sent, nothing was deleted - are the ones that catch the failures that actually hurt.
-
-### Rule of thumb
-
-> Assert what must be true and what must never happen. Never assert the exact wording.
-
----
-
-## 5. Gate on pass rate
-
-```python
-results = [run_case(c) for _ in range(5)]
-assert pass_rate(results) >= 0.95     # not "it passed once"
-```
-
-### Core intuition
-
-Running each case once turns a flaky change into a green build. Five runs and a threshold catches regressions that single runs hide - and it makes the cost of the suite explicit, which is a real constraint worth budgeting.
-
----
-
-## 6. Keep a small real-system layer
-
-Mocks and replay cannot reveal expired credentials, changed permissions, provider limits, or an external application whose behavior changed. Maintain a small end-to-end suite against safe test accounts and non-destructive tools.
-
-Before a risky rollout, use **shadow mode** where the new agent observes live inputs and proposes actions without executing them. Compare its proposed trajectory, cost, and latency with the production path.
-
-### Rule of thumb
-
-Use mocks for breadth, replay for realistic regressions, and real integrations for the narrow set of failures only reality can expose.
-
----
+Shadow mode can compare proposals without executing external effects.
 
 ## Interview mental model
 
-Non-determinism changes how you test, not whether you test:
-
-```text
-unit,  mocked tools       every commit   ordering, arguments, refusals, error paths
-replay recorded traces    every change   diff tool choices, arguments, cost, steps
-end-to-end, real tools    pre-release    slow, flaky, few
-```
-
-- **Assert properties, not strings.** The negative assertions - nothing forbidden ran, nothing was sent, nothing was deleted - catch the failures that actually hurt.
-- **Mock the error paths too** - timeouts, empty results, rejections - since that is where agents break and where tests are cheapest.
-- **Replay is the best model-upgrade tool** because it uses real inputs rather than a curated set.
-- **Gate on pass rate over repeated runs,** or one green run lets a flaky change ship.
-- **Keep a narrow end-to-end layer** for credentials, permissions, limits, and external behavior that mocks cannot reproduce.
-
-Next topic is **Deployment and versioning**.
+> Test the mechanics directly, the decisions repeatedly, and the integration against controlled reality.

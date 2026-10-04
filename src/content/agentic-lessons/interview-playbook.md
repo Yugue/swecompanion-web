@@ -1,111 +1,55 @@
 ## Answering agentic AI questions
 
-The domain interview is not a vocabulary test. The graded skill is narrowing a broad prompt to one concept and explaining that concept clearly - with mechanism, tradeoff, and a concrete example. This lesson is the script.
+Explain one concept through definition, mechanism, example, and tradeoff.
 
-This chapter focuses on delivery: how to make technical reasoning easy to follow under interview time pressure.
-
----
-
-## 1. The shape of an answer
+## 1. Answer shape
 
 ```text
-1. one-sentence definition           show you know the term
-2. ONE clarifying question           make the interviewer pick a direction
-3. ── they choose ──
-4. mechanism                         what literally happens, step by step
-5. concrete example with numbers     make it real
-6. tradeoff + when you'd choose differently
-7. stop                              silence is fine
+define → clarify scope if needed → mechanism → example → tradeoff → pause
 ```
 
-### Common issue
+A broad prompt may need clarification. A specific prompt usually deserves a direct answer.
 
-Steps 2 and 7 are where most candidates lose time. Surveying everything you know is read as an inability to prioritize.
+## 2. Name the mechanism
 
----
+“Memory” becomes: store a scoped fact, retrieve it later, and put it into context.
 
-## 2. Grounding in mechanism
+“Permission control” becomes: the runtime checks authenticated ownership before execution.
 
-Agentic answers are strongest when they describe what is physically in the system:
+Concrete operations are easier to assess than labels.
 
-```text
-weak:   "The agent remembers the conversation."
-strong: "The model is stateless, so each turn re-sends the transcript;
-         'memory' is that resend plus a store I write to deliberately."
+## 3. Useful tradeoffs
 
-weak:   "We add guardrails to keep it safe."
-strong: "The tool checks authorization against the session identity before
-         executing, so the rule holds even if the model is adversarial."
-```
-
-### Core intuition
-
-Every strong version names the context window, the tool boundary, or the loop. That vocabulary is the tell that you have built one.
-
----
-
-## 3. Tradeoffs to have ready
-
-| Question | Tradeoff to name |
+| Choice | Compare |
 |---|---|
-| Should this be an agent? | Flexibility vs. predictability, cost, and testability |
-| Multi-agent? | Parallelism and context isolation vs. coordination and debuggability |
-| More reasoning? | Accuracy vs. latency and tokens, on a tunable curve |
-| Bigger context? | Recall vs. cost, latency, and distraction |
-| More autonomy? | Capability vs. blast radius; gate on reversibility |
+| Agent/workflow | Flexibility, predictability, budgets |
+| Multiple agents | Parallelism/isolation, coordination |
+| More reasoning | Quality, latency, usage |
+| Larger context | Coverage, distraction, cost |
+| More permissions | Capability, consequence of mistakes |
 
-### Rule of thumb
+State when another design would fit better.
 
-> Reach for the simpler architecture first. Proposing an agent where a workflow suffices is the most common way to look inexperienced.
+## 4. Concrete opening lines
 
----
+“What must be true for this task to count as complete?”
 
-## 4. Phrases that land
+“The model proposes this call; the runtime checks and executes it.”
 
-```text
-"Let me check what 'done' means here before I design the loop."
-"I'd put that in the runtime rather than the prompt, so it holds regardless."
-"That's a tool-design problem before it's a prompting problem."
-"I'd want to see traces before I decide which layer to fix."
-"Before I add an agent, is the path actually data-dependent?"
-```
+“I would inspect the failed observations before selecting a repair.”
 
-Each one signals production experience in a sentence.
+Use these to express reasoning, not as memorized slogans.
 
----
+## 5. Unfamiliar framework
 
-## 5. Handle unfamiliar frameworks without bluffing
+State what you have not used, identify the underlying mechanism, and reason from its contracts.
 
-Say what you do know, name the boundary, and reason forward:
-
-> I haven't used that specific framework, but the problem it solves is coordinating subagents with isolated contexts, which I'd approach as an orchestrator with typed briefs and structured returns. What matters is the handoff contract, so I'd want to know how it handles that.
-
-That answers the underlying question and is far stronger than bluffing a feature list.
-
----
+For orchestration, ask how briefs, return schemas, state, permissions, and failures are handled.
 
 ## What matters most
 
-The graded skill is narrowing a broad prompt to one concept and explaining it concretely.
-
-```text
-1. define in one sentence
-2. ask ONE clarifying question   ← then let them choose the direction
-3. mechanism: what literally happens, step by step
-4. a concrete example with numbers
-5. the trade-off, and when you would choose differently
-6. stop
-```
-
-- **Ground answers in mechanism.** Say "the model is stateless, so each turn re-sends the transcript" rather than "the agent remembers" - naming the context window, the tool boundary, or the loop is the tell that you have built one.
-- **Put enforcement in the right layer out loud:** "I'd put that in the runtime rather than the prompt, so it holds regardless."
-- **Reach for the simpler architecture first.** Proposing an agent where a workflow suffices is the most common way to look inexperienced.
-- **When you do not know, name the boundary and reason forward** - that answers the underlying question far better than bluffing a feature list.
-
----
+> Explain where information moves, what code enforces, and how you would verify the result.
 
 ## Chapter 7 checkpoint
 
-Design backwards from a success-rate target, p95 latency, per-request budget, and maximum side-effect risk. State the trace schema, regression gate, deployment unit, rollback path, degraded behavior, and first metric that would reveal deterioration.
-
-You have reached the end of this guide. Go back to any chapter and re-read the "what matters most" sections - together they are a compact summary of the whole domain.
+Practice a 90-second concept explanation and an end-to-end design. Include a concrete example, measurable constraint, failure, and alternative.

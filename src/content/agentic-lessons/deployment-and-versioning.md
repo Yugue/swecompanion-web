@@ -1,94 +1,53 @@
 ## Deployment and versioning
 
-Prompts, tool schemas, and model choice are production dependencies. They change behavior as surely as code does, and they need the same discipline: version control, pinning, canaries, and a cheap rollback.
+Prompts, models, tools, policies, and runtime settings are versioned behavior dependencies.
 
----
-
-## 1. What is versioned
+## 1. Configuration bundle
 
 ```json
-{"agent": "refunds",
- "prompt": "v7",
- "tools": "v3",
- "model": "pinned-id",
- "params": {"temperature": 0.2, "thinking_budget": "low"},
- "limits": {"steps": 12, "usd": 0.20}}
+{
+  "prompt": "v7",
+  "tools": "v3",
+  "model": "pinned-version",
+  "policy": "v4",
+  "limits": {"steps": 12}
+}
 ```
 
-All five belong in source control and in every trace. The most common gap is a prompt edited through an admin UI with no version, which makes every subsequent regression unattributable.
+Record retrieval/index and runtime versions where they affect outcomes.
 
-### Rule of thumb
+## 2. Model changes
 
-> If it changes behavior and isn't in git, you cannot debug the next regression.
+A stronger public benchmark score does not guarantee better behavior for this task.
 
----
+Compare repeated outcomes, tool arguments, refusal/escalation, cost, and latency before switching.
 
-## 2. Model upgrades are breaking changes
-
-A newer model that scores higher on public benchmarks can still be worse **for your agent**. It may be more verbose, more cautious about a tool you rely on, format arguments differently, or need a different thinking budget.
+## 3. Gradual rollout
 
 ```text
-before switching:
-  1. replay recorded traces → diff tool choices, arguments, cost, steps
-  2. run the full eval suite, several runs per case, compare pass rates
-  3. canary a small traffic slice
-  4. compare quality AND cost AND latency AND step count
+offline evaluation → shadow proposals → small canary → measured expansion
 ```
 
-### Rule of thumb
+Define stop criteria in advance. Check critical slices and real integration effects.
 
-Pin model versions explicitly. Being auto-upgraded underneath a production agent is the scenario this discipline exists to prevent.
+## 4. Rollback
 
----
+Keep a compatible previous bundle and a tested switch-back path.
 
-## 3. Roll out behind a flag
+Configuration-based rollback can be fast, but schema/data compatibility still matters.
 
-```text
-1%  canary   → watch step count, cost, tool error rate, escalations
-10% ramp     → quality metrics accumulate enough signal
-50% / 100%   → keep the old config warm for one release cycle
-```
+## 5. In-flight runs
 
-### Core intuition
+Pin the run's configuration or explicitly migrate/restart it.
 
-Watch operational metrics during the canary, not just quality: step count and cost move faster and with less noise than success rate, so they surface a bad rollout first.
+Current permissions and policy revocations may still require immediate enforcement. Reproducibility must not preserve revoked authority.
 
----
+## 6. Tool compatibility
 
-## 4. Rollback must be cheap
+Optional additions can be compatible; changed meanings and required fields need migration/versioning.
 
-```text
-✗  prompt is a string literal in the service → rollback = full deploy = 25 min
-✓  config is data, versioned, hot-swappable  → rollback = flip a pointer
-```
-
-If reverting takes a deploy pipeline, you will hesitate at exactly the moment you should not.
-
----
-
-## 5. Pin in-flight runs to their starting configuration
-
-A run should record the prompt, tool, model, and policy versions it started with. Either let it finish on those versions or restart it explicitly under the new configuration. Silently switching halfway through creates a trajectory that cannot be reproduced.
-
-Long-running sessions need the same rule on resume: reconstruct the configuration recorded in the run, or perform a deliberate migration with compatibility checks.
-
----
-
-## 6. Evolve tool contracts compatibly
-
-Changing tools is riskier than changing prompts. Removing a tool or renaming an argument breaks running agents and invalidates prompt caches. Prefer additive changes, deprecate with an overlap period, and keep the old tool answering with a deprecation note so the agent is nudged rather than broken.
-
-Treat schema compatibility like an application programming interface migration: version breaking changes, support old callers temporarily, and measure remaining use before removal.
-
----
+Support old valid contracts for a defined period and measure remaining use.
 
 ## What matters most
 
-- **Prompts, tool schemas, model choice, and parameters are production dependencies.** If it changes behavior and is not in source control, you cannot debug the next regression.
-- **A model upgrade is a breaking change,** not a swap - a model that scores higher publicly can be more verbose, more cautious about a tool, or need a different thinking budget.
-- **Pin model versions explicitly,** so nothing is upgraded underneath a running agent.
-- **Canary on operational metrics first** - step count, cost, tool error rate - because they move faster and with less noise than success rate.
-- **Rollback must be a pointer flip, not a deploy,** or you will hesitate exactly when you should not. Decide what happens to in-flight runs.
-- **Changing tools is riskier than changing prompts:** it breaks running agents and invalidates caches, so prefer additive changes with a deprecation overlap.
-
-Next topic is **From traces to improvements**.
+> Deploy a compatible behavior bundle and know how running work survives a change.

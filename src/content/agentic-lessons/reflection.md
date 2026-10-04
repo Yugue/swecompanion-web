@@ -1,107 +1,61 @@
 ## Reflection and self-critique
 
-Reflection means the agent examines its own output and revises it. It is genuinely useful and routinely oversold. The distinguishing question: **does the critic know something the actor didn't?** If not, you are mostly paying for agreement.
+**Reflection** revises an artifact against evidence and criteria.
 
----
-
-## 1. The two kinds
+## 1. Ungrounded versus grounded
 
 ```text
-ungrounded:   "Review your answer. Are you confident?"
-              → same model, same context, no new information
-              → usually says yes; sometimes changes a correct answer to a wrong one
-
-grounded:     draft → run the tests → critique(draft, test output) → revise
-              → the critic has evidence that did not exist when the draft was written
-              → reliably improves
+“Are you sure?”                   → no independent check
+draft → tests → critique → revise → new evidence
 ```
 
-The difference is not prompt wording. It is whether new information entered the loop.
+Self-critique can help or hurt. Measure whether it improves final outcomes.
 
-### Rule of thumb
+## 2. Choose evidence
 
-> Reflection works exactly as well as the evidence you give the critic.
+| Check | Useful for |
+|---|---|
+| Schema/type checks | Structure |
+| Compiler/linter | Program issues |
+| Tests | Covered behavior |
+| Retrieved sources | Factual claims |
+| Model critique | Rubric-based review |
+| Human review | Domain judgment |
 
----
+No checker catches everything.
 
-## 2. Sources of grounding, cheapest first
+## 3. Actor and critic
 
-| Signal | Cost | Catches |
-|---|---|---|
-| Schema / type check | ~0 | Malformed or impossible output |
-| Compiler, linter | ~0 | Syntax, unused variables, obvious errors |
-| Unit tests | Low | Behavioral mistakes |
-| A second retrieval | Medium | Unsupported claims |
-| A different model as critic | Medium | Blind spots correlated with the first model |
-| Human review | High | Everything, at a price |
+Give the critic the artifact, requirements, and test/source evidence.
 
-### Common issue
+Avoid anchoring it to a long justification from the actor.
 
-Start at the top. Most teams add an LLM critic before they add a linter, which is backwards.
+> Think of a reviewer checking the work against a specification.
 
----
-
-## 3. The actor-critic split
-
-```text
-actor:   full context, wrote the draft
-critic:  the draft + the criteria + NEW evidence, not the actor's reasoning
-```
-
-### Core intuition
-
-Withholding the actor's reasoning from the critic matters - a critic that reads "I chose X because Y" tends to evaluate the argument rather than the artifact. Give it the artifact, the requirements, and the test output.
-
----
-
-## 4. Bound it
+## 4. Bound revision
 
 ```python
-for attempt in range(MAX_REFLECTIONS):      # 1 or 2, not 5
-    issues = critic(draft, evidence)
-    if not issues: break
+for _ in range(max_revisions):
+    issues = critic(draft, criteria, evidence)
+    if not issues:
+        break
     draft = revise(draft, issues)
 ```
 
-Two failure modes make the cap non-negotiable:
+Stop on acceptance, budget, or no improvement. Watch for oscillation and endless polishing.
 
-- **Oscillation** - the critic objects to A, the revision introduces B, the next critique restores A.
-- **Polishing** - an acceptable answer is rewritten repeatedly for diminishing returns while the budget drains.
+## 5. Match the repair
 
-Empirically the first reflection round captures most of the gain; the third is usually noise.
+Missing policy: retrieve it. Wrong arithmetic: calculate it. Missed requirement: revise against criteria.
 
----
+A critic cannot establish an unavailable authoritative fact by agreement alone.
 
-## 5. Know what reflection cannot fix
+## 6. Reflect while change is possible
 
-Reflection cannot supply missing knowledge. If the agent does not know the refund window is 30 days, no amount of self-critique will discover it—only retrieval will. Diagnose first: is this a **knowledge** gap (retrieve), a **computation** gap (use a code tool), or a **care** gap (reflect against known criteria)?
+Review code before merge, a report before delivery, or a proposal before execution.
 
----
-
-## 6. Use reflection only when revision is possible
-
-Reflection is useful before a reversible artifact is finalized: code before merge, a report before delivery, or a plan before execution. It is much less useful after an irreversible action has already happened.
-
-```text
-artifact can be revised + evidence exists   → reflect
-missing fact or missing tool                → retrieve or add capability
-action already happened                     → detect, contain, and recover
-```
-
-### Rule of thumb
-
-Do not insert a critic by default. Add one where it can see new evidence and still change the outcome.
-
----
+After an external action, focus on detection and defined recovery.
 
 ## What matters most
 
-- **Reflection works exactly as well as the evidence you give the critic.** If the critic knows nothing the actor did not, you are mostly paying for agreement.
-- **Ground it:** a test result, a compiler, a schema check, a second retrieval, or a different model as the critic.
-- **Start with the cheapest signals.** Most teams add an LLM critic before they add a linter, which is backwards.
-- **Withhold the actor's reasoning from the critic,** or it grades the argument instead of the artifact.
-- **Cap it at one or two rounds.** The first captures most of the gain; later rounds oscillate or polish an already-acceptable answer.
-- **It cannot supply missing knowledge.** Diagnose first: a knowledge gap needs retrieval, a computation gap needs a code tool, only a care gap needs reflection.
-- **Reflection must happen while revision is still useful.** After an irreversible action, recovery matters more than critique.
-
-Next topic is **Sampling and search over actions**.
+> A critique is useful when it identifies a checkable issue and can still change the result.

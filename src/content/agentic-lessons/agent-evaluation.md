@@ -1,153 +1,75 @@
 ## Evaluating agents
 
-Agents break the usual evaluation setup in two ways: the same input can take a different path each run, and a correct final answer can be reached by a path that will fail tomorrow. So you measure **outcome and process**, over **repeated runs**.
+Evaluate **outcomes and process** over repeated runs.
 
-### Chapter goal
-
-By the end of Chapter 6, you should be able to measure outcomes and trajectories over repeated runs, validate model-based judges, diagnose recurring failures, enforce permissions outside the prompt, test injection paths, and place human review where it meaningfully reduces risk.
-
----
-
-## 1. Two families of metric
+## 1. Two metric families
 
 | Outcome | Process |
 |---|---|
-| Task success rate | Steps taken |
-| Correctness of the final artifact | Tool-selection accuracy |
-| Required side effects actually happened | Argument accuracy |
-| Harmful side effects did **not** happen | Tokens and cost per run |
-| Citation validity | Recovery rate after a failed call |
+| Correct artifact/answer | Selection and arguments |
+| Required action confirmed | Steps and recovery |
+| No forbidden effects | Cost, tokens, latency |
+| Supported claims | Evidence use |
 
-### Common issue
+A correct final sentence does not prove the external task succeeded.
 
-The fourth outcome row is easy to forget and is the one that matters most for agents with write access: "did it refund the right amount" and "did it refund anything else" are different questions.
+## 2. Repeated-run metrics
 
----
+Per-run success estimates what one attempt achieves.
 
-## 2. Non-determinism is a measurement problem
+**At least one success in k attempts** measures multiple-chance capability. **All k succeed** measures consistency under that experiment.
 
-```text
-✗  run each case once → pass/fail      (a flaky 60% agent can look like 100%)
-✓  run each case n times → pass rate
-```
+State sampling, retries, and selection rules. Do not confuse at-least-once success with single-run reliability.
 
-Report:
+## 3. Worked example
 
-\[
-\text{pass}@k \quad\text{and}\quad \text{pass}^k \;=\; \text{fraction of cases that pass all } k \text{ runs}
-\]
+Four cases, five runs each:
 
-`pass@k` (at least one success in k) flatters an agent. For production reliability, `pass^k` - succeeds **every** time - is the honest number, and it is the one to quote for anything with side effects.
+| Case | Successful runs |
+|---|---|
+| A | 5/5 |
+| B | 3/5 |
+| C | 4/5 |
+| D | 4/5 |
 
-### Rule of thumb
+Per-run success is \(16/20=80\%\). Every case succeeds at least once, but only \(1/4=25\%\) succeeds on all five runs.
 
-> One run is an anecdote. Quote a distribution, including cost and steps, not a single number.
+Report uncertainty and case differences.
 
----
+## 4. Build a useful dataset
 
-## 3. Why one run per case is not a measurement
+Mix representative real tasks, known regressions, missing data, tool failures, adversarial cases, and valid refusals/escalations.
 
-The same 20 eval cases, each run five times:
+Protect held-out cases from repeated prompt tuning.
 
-```text
-case                  run1  run2  run3  run4  run5    pass@1   pass^5
-refund, happy path     ✓     ✓     ✓     ✓     ✓      100%      yes
-refund, no order       ✓     ✗     ✓     ✓     ✗      100%      NO
-partial refund         ✓     ✓     ✗     ✓     ✓      100%      NO
-duplicate request      ✗     ✓     ✓     ✓     ✓      100%      NO
-```
-
-Run each case once - which is what most eval harnesses do by default - and all four cases pass. The suite reports 100%.
-
-Run each five times and three of the four are flaky. In production, where each case is a real customer, roughly one in five of those interactions fails.
+## 5. Assertion levels
 
 ```text
-pass@1   "it succeeded at least once"        flatters, and is what you usually see reported
-pass^5   "it succeeded EVERY time"           the honest number for anything with side effects
+unit:       validator or isolated decision
+step:       action correct given available evidence
+end-to-end: verified task outcome and effects
 ```
 
-### Core intuition
+Model-based decisions remain stochastic even with mocked tools.
 
-For an agent that moves money, `pass^k` is the only figure worth quoting. The gap between the two columns is exactly the gap between a demo and a product.
+## 6. Offline blind spots
 
----
+Mocks can hide latency and outages. Real traffic can differ. Rare costly errors may be absent.
 
-## 4. Build the eval set from real traces
+Pair offline evaluation with reviewed online outcomes and operational metrics.
 
-```text
-production traces ──► cluster failures ──► pick representatives ──► label ──► eval case
-                                                                       │
-                                            every fixed bug ───────────┘
-```
+## 7. Slice before averaging
 
-Synthetic cases are clean, and agents fail on the messy ones: ambiguous requests, missing records, contradictory context, tools that time out. A permanent regression case per fixed bug is what stops the same failure returning three prompt revisions later.
+Inspect task, language, risk, tool, and run length. Check sample counts and independent units.
 
-### Rule of thumb
+A 92% average can hide a critical slice at 55%.
 
-Aim for a mixture: happy paths, known failure modes, adversarial inputs, and cases that should be **refused** or escalated.
+## 8. Predeclare release gates
 
----
+Define quality floors, forbidden-effect tests, critical slices, and tail resource limits before comparing releases.
 
-## 5. Where to put the assertions
-
-```text
-end-to-end:   did the run achieve the goal?            (what users care about)
-step-level:   was each decision right given what was known?  (localizes failure)
-unit:         given this context, is the tool choice right?  (fast, deterministic)
-```
-
-Run unit and step checks in CI on every change; run the expensive end-to-end suite before releases. Attributing a regression needs the step level - end-to-end alone tells you that something got worse, not what.
-
----
-
-## 6. Offline evals lie in specific ways
-
-- **Distribution drift** - real users ask things your set doesn't contain.
-- **Overfitting** - a prompt tuned against 40 cases gets good at those 40.
-- **Missing the tail** - rare high-cost failures are absent from a small sample.
-- **Mocked tools** - real APIs are slower, flakier, and return uglier data.
-
-### Common issue
-
-So pair offline evals with online signals: user corrections, escalations, retries, thumbs-down, and cost per successful task.
-
----
-
-## 7. Slice results before averaging them
-
-An overall 92% success rate can hide a dangerous 55% rate on high-value refunds or non-English requests. Report performance by meaningful slice:
-
-```text
-task type · tool used · risk level · input language · customer tier · trajectory length
-```
-
-Choose slices before looking at the result when possible, and require enough examples to avoid treating noise as a pattern.
-
----
-
-## 8. Define the release gate before running the eval
-
-A release rule combines quality, safety, and efficiency:
-
-```text
-ship only if:
-  success pass^5 does not regress
-  zero forbidden side effects in the safety suite
-  p95 cost and steps stay within budget
-  no critical slice falls below its floor
-```
-
-Defining this after seeing results invites moving the threshold until the preferred model passes.
-
----
+Zero observed violations is useful evidence, not proof of zero future risk.
 
 ## What matters most
 
-- **Measure outcome *and* process.** A right answer reached by a broken path will fail tomorrow, and "did it refund the right amount" and "did it refund anything else" are different questions.
-- **One run is an anecdote.** Run each case several times and quote a distribution - and for anything with side effects quote the fraction that passes *every* run, not the fraction that passes at least once.
-- **Build the eval set from real traces.** Synthetic cases are clean, and agents fail on ambiguity, missing records, and ugly tool output.
-- **Put assertions at three levels** - unit with mocked tools, step-level, end-to-end - because end-to-end alone tells you something broke, not what.
-- **Offline evals lie in known ways** - drift, overfitting to the set, a missing tail, mocked tools - so pair them with online signals like escalations, corrections, and cost per successful task.
-- **Report important slices and predefine the release gate,** so a strong average cannot hide a dangerous subgroup and thresholds cannot move after results arrive.
-
-Next topic is **Trajectory analysis**.
+> Score what one real attempt accomplishes, then measure variability and failure costs.

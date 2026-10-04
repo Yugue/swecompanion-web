@@ -1,161 +1,80 @@
 ## Errors, retries, and idempotency
 
-Tool failure is the normal case, not the exception. What separates an agent that recovers from one that spirals is almost entirely **how the error is worded** and **whether retrying is safe**.
+Errors should explain what happened and which recovery is safe.
 
----
+## 1. Actionable observations
 
-## 1. Errors are observations the model must act on
+“422” gives little guidance.
 
-```text
-✗  "Error: 422"
-✗  Traceback (most recent call last): File "api.py", line 214, in ...
-✗  "" (empty result, no explanation)
+“Invalid date; expected YYYY-MM-DD” identifies a repair. “Permission denied; do not retry” identifies a stop.
 
-✓  "Invalid date '3rd of May'. Expected YYYY-MM-DD. Resolve relative dates before calling."
-✓  "No orders found for alex@example.com in 2026-03. Try a wider date range or search by name."
-✓  "Permission denied: this order belongs to another customer. Do not retry."
-```
-
-A good error names what was wrong, what the valid form is, and what to do next - including "do not retry." The empty result is the worst of the three failures, because it is where invention begins.
-
-### Rule of thumb
-
-> Write tool errors for a competent colleague who cannot see your code and will act immediately on what you tell them.
-
----
-
-## 2. The same failure, worded two ways
-
-The agent passes a bad date. Here is what each version of the error does to the next three steps:
+## 2. Same failure, different next steps
 
 ```text
-BAD                                        GOOD
-────────────────────────────────────       ──────────────────────────────────────
-obs: {"error": "ValidationError"}          obs: {"error": "invalid_date",
-                                                 "message": "Expected YYYY-MM-DD,
-                                                  got '3rd of May'. Resolve relative
-                                                  dates before calling.",
-                                                 "retryable": true}
-
-step n+1: search(date="3rd of May")        step n+1: search(date="2026-05-03")
-          ← identical call, it has                   ← fixed, first try
-            no idea what was wrong
-step n+2: search(date="3rd of May")        step n+2: (done)
-step n+3: search(date="May 3rd")
-          ← now it is guessing
+ValidationError → repeat the bad date
+invalid_date, expected YYYY-MM-DD → correct format → retry
 ```
 
-Three wasted steps, each one re-sending the full context, versus zero. The model is not being stupid in the left column - it was told a class name, which contains no information about what to do differently.
+A good error separates cause, correction, and retry policy.
 
-### Rule of thumb
+## 3. Classify recovery
 
-A usable error answers three questions: **what was wrong**, **what the valid form is**, and **whether to try again**.
+| Error | Response |
+|---|---|
+| Transient timeout/overload | Bounded runtime retry if safe |
+| Invalid input | Correct arguments |
+| No match | Change query or ask |
+| Forbidden/policy failure | Stop or escalate |
 
----
-
-## 3. Classify before retrying
-
-| Class | Examples | Agent should |
-|---|---|---|
-| Transient | timeout, 429, 503, connection reset | Retry with backoff - runtime, not model |
-| Input | bad format, missing field, invalid enum | Fix the argument and retry once |
-| Semantic | not found, empty result | Change approach - different tool or query |
-| Terminal | 403, policy violation, quota exhausted | Stop and report; never retry |
-
-### Common issue
-
-Transient retries belong in the runtime, below the model - burning an agent step on a 503 wastes a full context re-send. Input errors belong to the model, because fixing them requires understanding.
-
----
+Error codes alone do not determine retry safety, especially for writes.
 
 ## 4. Idempotency
 
-Any tool with side effects needs a caller-supplied key:
+```text
+refund succeeds → response lost → retry → duplicate risk
+```
+
+Use one stable key for the same logical operation:
 
 ```python
-issue_refund(order_id="48812", amount=240.00,
-             idempotency_key=f"{run_id}:{step}")
+key = f"{run_id}:refund:{order_id}"
+issue_refund(order_id=order_id, amount=amount, idempotency_key=key)
 ```
 
-The classic failure:
+The service deduplicates repeated requests. Reusing a key with different intent must be rejected.
 
-```text
-charge() ──► request sent ──► charge succeeds ──► response times out
-                                                        │
-                            agent sees "timeout" ───────┘
-                                     ↓
-                              retries ──► charged twice
-```
+## 5. Bound retries
 
-### Core intuition
+Set per-call retries, a run deadline, and a global cost/step limit.
 
-The agent cannot distinguish "failed" from "succeeded but I didn't hear back." Only the tool can, and only if it has a key to deduplicate on. Say this out loud in an interview - it is a systems answer, not a prompting one.
+Exhaustion returns verified partial findings or a blocker, not invented success.
 
----
-
-## 5. Bound the retries
-
-```text
-per call:   max 2 model-level retries
-per tool:   max 5 failures per run
-per run:    global step + cost cap
-```
-
-### Common issue
-
-Without caps, a transient outage becomes a run that spends its entire budget retrying, at growing context size each time. Escalate to a human on exhaustion rather than returning a confident partial answer.
-
----
-
-## 6. Partial failure needs a shape
-
-When an operation half-succeeds, say so precisely:
+## 6. Describe partial outcomes
 
 ```json
-{"status": "partial",
- "succeeded": ["48812"],
- "failed": [{"id": "48813", "reason": "already refunded"}],
- "safe_to_retry": ["48814"]}
+{
+  "status": "partial",
+  "succeeded": ["48812"],
+  "failed": [{"id": "48813", "reason": "forbidden"}]
+}
 ```
 
-### Intuition
+Retry only eligible failures; preserve completed work.
 
-An agent given this can finish the job. An agent given `"Error"` will either redo the successful work or abandon the whole batch.
+## 7. Backoff and circuit breakers
 
----
+Runtime retries can use increasing delays with jitter. A circuit breaker stops calls to a persistently failing service.
 
-## 7. Use backoff and circuit breakers below the model
+Report one clear unavailable-service observation to the model.
 
-Transient retries should usually happen in the runtime with exponential backoff and jitter. If a service keeps failing, open a circuit breaker and return one clear observation instead of spending model turns rediscovering the outage.
+## 8. Compensate known workflows
 
 ```text
-timeout → runtime retry 200 ms → 500 ms → 1 s → circuit open
-agent receives: service unavailable; do not retry this run; use fallback or escalate
+reserve inventory ✓ → charge fails → release reservation
 ```
 
----
-
-## 8. Plan compensation for multi-step writes
-
-Some operations cannot be atomic across systems. If step two fails after step one succeeds, define whether to compensate, continue partially, or require human recovery.
-
-```text
-reserve inventory ✓ → charge card ✗
-policy: release reservation, record both outcomes, return recovery status
-```
-
-Compensation is a workflow owned by the runtime, not an improvised sequence the model invents during an incident.
-
----
+Define compensation or human recovery in advance. It may not fully undo every external effect.
 
 ## What matters most
 
-- **Tool failure is the normal case,** and the wording of the error decides whether the agent recovers or spirals. Name what was wrong, what the valid form is, and what to do next - including "do not retry".
-- **An empty result is the worst error,** because an unexplained blank is where invention starts.
-- **Classify before retrying:** transient failures belong to the runtime (retrying in the model costs a full context re-send), input errors belong to the model, and terminal errors must stop.
-- **Any tool with side effects needs a caller-supplied idempotency key.** The agent cannot tell "failed" from "succeeded but I didn't hear back" - only the tool can.
-- **Cap retries per tool and per run,** or a transient blip consumes the entire budget at growing context size.
-- **Give partial failure a shape** - what succeeded, what failed and why, what is safe to retry - so the agent can finish the job instead of redoing it.
-- **Keep backoff, circuit breaking, and compensation in the runtime,** where recovery remains bounded and repeatable.
-
-Next topic is **Parallel and sequential calls**.
+> Retry safety depends on the operation and observed state, not just the error wording.

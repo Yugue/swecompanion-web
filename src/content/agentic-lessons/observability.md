@@ -1,154 +1,65 @@
 ## Tracing and observability
 
-You cannot debug what you did not record, and agents produce failures that are invisible in ordinary application logs. Tracing an agent means capturing every step with enough structure to query it later - and enough versioning to attribute a regression.
+Tracing records enough observable behavior to explain outcomes and regressions.
 
----
-
-## 1. The trace model
+## 1. Trace and spans
 
 ```text
-trace (one run)
- ├── span: step 1  { model call, prompt tokens, output, latency, cost }
- │    └── span: tool call  { name, args, result, status, latency }
- ├── span: step 2
- └── span: step n
+run trace
+ ├→ model span
+ ├→ tool span
+ └→ next step
 ```
 
-Per span, record at minimum:
+Record configuration versions, call IDs, allowed arguments, result references, status, usage, timing, and state changes under the logging policy.
 
-```json
-{"run_id": "r_8812", "step": 7, "model": "...", "prompt_version": "v7",
- "tools_version": "v3", "tool": "search_orders", "args": {...},
- "observation_ref": "obs/7", "tokens_in": 4210, "tokens_out": 180,
- "latency_ms": 940, "cost_usd": 0.014, "cache_hit": true,
- "status": "ok", "ts": "..."}
-```
+## 2. A deployment clue
 
-### Core intuition
+After a release, cost rises from $0.21 to $0.58 and cache hits fall from 88% to 4%.
 
-The three version fields are what make attribution possible. Without them, "quality dropped after Tuesday's deploy" cannot be resolved into which of the three changes did it.
+Inspect prompt prefixes, tool ordering, routing, and cache configuration. A new early timestamp is one possible cause, not proof from correlation alone.
 
----
+## 3. Metrics
 
-## 2. Reading a deploy from the traces
+Track success, steps, cost per successful task, tool errors, retries, escalations, cache usage, and budget exhaustion.
 
-Three things shipped on Tuesday: a prompt edit, a new tool, and a model upgrade. Quality dropped. The traces, grouped by version:
+Operational signals can reveal problems before delayed quality labels arrive.
 
-```text
-                       steps/run   cost/run   cache hit   tool errors   success
-Mon  prompt v6           8.1       $0.21        88%          1.2%        91%
-Tue  prompt v7           8.3       $0.58         4%          1.2%        90%
-                                      ↑           ↑
-                                 3× the cost   cache collapsed
-```
-
-The success rate barely moved, so a quality dashboard would show almost nothing. But cost tripled and the cache hit rate fell off a cliff - which points at exactly one of the three changes. The prompt edit put something volatile near the top of the prefix.
-
-```text
-diff prompt v6 → v7:
-+  "Current date and time: 2026-03-17 14:32:08"      ← in the system block
-```
-
-Without the version fields on each span you cannot make that attribution at all; you are reduced to reverting changes one at a time in production.
-
-This is also why operational metrics carry the alerting. Steps per run, cost per successful task, and cache hit rate moved **the same day**. Success rate would have taken a week to show significance.
-
----
-
-## 3. Operational metrics that lead quality metrics
-
-| Metric | Why it matters |
-|---|---|
-| Steps per run (p50/p95) | Rises before success rate falls |
-| Cost per run and per **successful** task | The honest unit economics |
-| Tool error rate by tool | Localizes an upstream break instantly |
-| Cache hit rate | A drop means someone put something volatile in the prefix |
-| Escalation and retry rate | User-visible pain, measurable immediately |
-| Budget exhaustion rate | Tasks outgrowing their caps |
-
-### Rule of thumb
-
-> Steps per run and cost per successful task detect degradation days before your quality metric does.
-
----
-
-## 4. Make traces queryable, not just viewable
+## 4. Query patterns
 
 ```sql
--- where is the budget going?
-SELECT tool, count(*), sum(cost_usd)
-FROM spans WHERE run_ts > now() - interval '1 day'
-GROUP BY tool ORDER BY 3 DESC;
+SELECT tool, COUNT(*) AS calls, SUM(latency_ms) AS total_ms
+FROM tool_spans
+GROUP BY tool
+ORDER BY total_ms DESC;
 ```
 
-### Rule of thumb
+Aggregate queries locate patterns; trace views explain individual runs.
 
-A viewer is for reading one trace. A queryable store is for finding the pattern across ten thousand. Both are needed; teams usually build only the first.
+## 5. Sensitive data
 
----
+Redact or minimize sensitive content before logging. Use scoped access, retention, and deletion rules.
 
-## 5. Redact at capture time
-
-Traces contain prompts, user data, retrieved documents, and tool arguments - and they are the most widely shared artifact in an agent system, pasted into tickets and chat. So:
-
-```text
-redact secrets and PII at write time, not at read time
-scope trace access by tenant
-set a retention TTL and honor deletion requests
-```
-
-### Common issue
-
-Redacting at read time means the raw data is already stored, which is the wrong place to discover a compliance problem.
-
----
+Keep secure evidence references when debugging needs more detail.
 
 ## 6. Close the loop
 
 ```text
-trace ──► flagged by detector ──► human review ──► eval case ──► fix ──► regression suite
+flag → inspect → reproduce → fix → regression case
 ```
 
-Observability that only produces dashboards changes nothing. The pipeline should end in a permanent eval case, which is covered under continuous improvement.
+A dashboard needs a response process.
 
----
+## 7. Sampling
 
-## 7. Sample without losing rare failures
+Preserve important failures according to storage/privacy limits and sample successful traffic representatively.
 
-Full traces can be expensive and sensitive, but uniform sampling may discard the failures you need most. Keep:
+Keep aggregate metrics for all runs. Sampling only flagged failures misses silent errors.
 
-- every guardrail rejection and forbidden-action attempt,
-- every budget exhaustion, tool failure, and human override,
-- a representative sample of successful runs,
-- aggregated metrics for all traffic.
+## 8. Actionable alerts
 
-Sample successful traffic more aggressively than failures, and retain large observations by secure reference rather than copying them into every span.
-
----
-
-## 8. Turn metrics into actionable alerts
-
-Alerts need an owner and a response:
-
-```text
-tool error spike       → tool owner, disable or fall back
-p95 steps increase     → agent owner, inspect new loops
-cache hit collapse     → deployment owner, compare prompt prefixes
-forbidden action > 0   → security incident, halt the affected capability
-```
-
-Define normal ranges and service objectives before the incident. A dashboard that someone may notice later is not an operational control.
-
----
+Assign tool-error spikes, step increases, cache collapses, and forbidden-action attempts to owners with concrete response paths.
 
 ## What matters most
 
-- **One trace per run, one span per step,** carrying prompt, model, tool call, observation, tokens, latency, cost, and cache hit.
-- **Record the prompt, tool-schema, and model versions in every span,** or a regression after a multi-change deploy cannot be attributed to anything.
-- **Operational metrics lead quality metrics.** Steps per run and cost per *successful* task detect degradation days before a quality metric moves; a cache-rate collapse points straight at a prompt change.
-- **Make traces queryable, not just viewable.** A viewer reads one trace; finding the pattern across ten thousand needs a store you can group and aggregate.
-- **Redact at capture time,** because traces are the most widely shared artifact in an agent system and redacting at read time means the raw data is already stored.
-- **Close the loop:** observability that only produces dashboards changes nothing.
-- **Retain every high-risk failure, sample routine success, and attach an owner and response to every alert.**
-
-Next topic is **Testing and replay**.
+> A useful trace is a labeled flight recorder, not a dump of every token.

@@ -1,129 +1,59 @@
 ## System prompts and instruction hierarchy
 
-A chat prompt asks for an answer. An agent prompt defines behavior across a sequence of decisions. It acts as a persistent operating policy for the run.
+An agent prompt describes behavior across a run. Runtime controls enforce permissions and limits.
 
-A useful agent prompt should make the next correct action easier to identify. It should not attempt to replace permissions, validation, or other runtime controls.
-
----
-
-## 1. Give the prompt five clear parts
+## 1. Five useful parts
 
 ```text
-ROLE        what the agent is responsible for
-GOAL        what outcome it should produce
-RULES       behavior that must hold throughout the run
-TOOLS       when available actions should or should not be used
-DONE        what must be true before returning a final answer
+ROLE: Investigate order delays.
+GOAL: Draft a verified explanation.
+RULES: Do not invent identifiers.
+TOOLS: Read the order before choosing a subsystem.
+DONE: Explain the cause, or name the missing evidence.
 ```
 
-Example:
+Keep these responsibilities easy to find.
+
+## 2. Observable rules
+
+“Be accurate” is vague.
+
+“If lookup returns no match, ask for another identifier” is testable.
+
+Other examples: cite status evidence; require confirmation before claiming success; stop repeating an unchanged failure.
+
+## 3. Instruction authority
+
+Follow the model/platform's instruction hierarchy. Application policy and user requests have authority; retrieved payloads are evidence.
+
+A page saying “ignore the user” does not gain permission to change the goal.
+
+> Instructions are the assignment; retrieved content is material on the desk.
+
+## 4. Handle uncertainty
+
+Retrieve an authoritative value, ask a focused question, or return **unknown/blocked**.
+
+Requiring every field to contain an answer encourages guessing.
+
+## 5. Define done
+
+“Investigate” describes activity.
+
+“Return the verified cause and policy, or the exact missing evidence” defines an outcome.
+
+The runtime still applies budgets.
+
+## 6. Focus examples on ambiguity
 
 ```text
-Role: Investigate order delays using read-only customer-support tools.
-Goal: Explain the verified cause and the next available action.
-Rules: Never invent identifiers. Distinguish missing data from tool failure.
-Tools: Check the order before choosing a subsystem to inspect.
-Done: The cause is supported by tool evidence, or the missing evidence is named.
+empty result → ask for an identifier
+timeout      → bounded retry
+forbidden    → report unavailable access
 ```
 
-This is easier to follow and test than a long paragraph of mixed instructions.
-
----
-
-## 2. Write observable rules
-
-```text
-weak:   Be careful and helpful.
-strong: If the order lookup returns no match, ask for another identifier.
-```
-
-The strong rule describes behavior that can be seen in a trace. The weak rule describes a personality.
-
-Other useful patterns:
-
-- “Do not claim an external action succeeded without a successful tool result.”
-- “Ask for clarification when two customer records match.”
-- “Stop after two identical failures and explain the blocker.”
-- “Use only evidence present in the context or returned by a tool.”
-
-### Rule of thumb
-
-If you cannot write a test for an instruction, make it more concrete.
-
----
-
-## 3. Understand the instruction hierarchy
-
-Agent inputs do not all have equal authority:
-
-```text
-system and developer policy
-        ↓
-user request
-        ↓
-retrieved documents and tool results
-```
-
-Retrieved content is evidence, not policy. A document may contain text that looks like an instruction, but it should not redefine the agent’s goal or permissions.
-
-This distinction is introduced here because it affects prompt structure. The security consequences and architectural defenses are covered later in the safety chapter.
-
----
-
-## 4. Tell the agent how to handle uncertainty
-
-A prompt that demands an answer at all costs encourages guessing. Give the model honest alternatives:
-
-```text
-If evidence is missing:
-1. use an appropriate read tool if available,
-2. ask one focused clarification question,
-3. return an explicit unknown or blocked result.
-```
-
-Do not make every output field mandatory when the model may not know it. A structured schema should allow `unknown`, an omitted optional field, or a reason explaining why the value is unavailable.
-
----
-
-## 5. Define completion, not just activity
-
-“Investigate the order” describes work. It does not define when the work is finished.
-
-A better completion condition is:
-
-```text
-Finish when:
-- the verified cause is identified,
-- the relevant customer policy is retrieved,
-- the response contains no unsupported claim,
-OR the exact missing evidence and next required action are stated.
-```
-
-The runtime still enforces step and time limits. The prompt tells the model what successful completion means.
-
----
-
-## 6. Use examples only for recurring ambiguity
-
-A short example can teach a decision boundary more clearly than another paragraph:
-
-```text
-Tool returns empty → ask for another identifier
-Tool returns timeout → retry once
-Tool returns forbidden → do not retry; report lack of access
-```
-
-Examples cost context on every turn, so use them for decisions the model repeatedly gets wrong. Do not include a large catalogue of happy paths.
-
----
+Use examples for recurring mistakes. Large happy-path catalogues consume context.
 
 ## What matters most
 
-- **An agent prompt is a persistent operating policy, not a one-time request.**
-- **Separate role, goal, rules, tool guidance, and completion conditions.**
-- **Write observable behavior instead of personality traits.**
-- **Retrieved content is evidence, not a source of higher-priority instructions.**
-- **Give the model explicit ways to handle missing information without guessing.**
-- **Use examples sparingly to clarify difficult decision boundaries.**
-
-Next topic is **Structured output and schemas**.
+> Make the next correct action clear and testable.

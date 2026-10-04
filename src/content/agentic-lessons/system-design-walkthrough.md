@@ -1,175 +1,76 @@
 ## An agentic system design answer
 
-**"Design an agent that does X" is an open-ended prompt, like any system-design question.** There is no single right answer, and the interviewer is watching how you structure one.
+A design answer connects the product outcome to the loop, evidence, execution, and measurement.
 
-This is intentionally a synthesis lesson: it combines earlier decisions into one worked answer rather than introducing another architecture pattern.
-
-The skeleton below is what a complete answer covers, in an order that lets the interviewer redirect you early rather than after six minutes on the wrong layer.
-
----
-
-## 1. The skeleton
+## 1. Answer outline
 
 ```text
-1. task + success criterion        what does "done and correct" mean?
-2. does this need an agent?        justify autonomy, or don't use it
-3. the loop                        tools, stopping conditions, step budget
-4. context                         what's in the window each turn
-5. controls                        permissions, approvals, untrusted content
-6. evaluation                      offline set, online signals
-7. cost + latency                  the arithmetic
-8. failure modes                   the top one, and what catches it
+task → autonomy? → tools/loop → context → controls → evaluation → budget → failures
 ```
 
-Sections 5-8 are what separate a candidate who has shipped an agent from one who has read about them.
+Make assumptions explicit.
 
----
+## 2. Worked task: refunds
 
-## 2. Frame the task and its success criterion
+Success: correct eligibility decision and authorized amount applied, or a useful explained escalation.
 
-Worked example: resolve a customer refund request end to end.
+Also measure incorrect or duplicate refunds. A polite reply is not the product outcome.
+
+## 3. Where autonomy belongs
+
+If common cases have stable rules, use a workflow. Use bounded investigation for ambiguous records or policy exceptions requiring interpretation.
+
+Estimate traffic proportions from data rather than asserting a fixed 80/20 split.
+
+## 4. Loop and tools
 
 ```text
-success   the correct decision applied, citing the policy clause it rests on
-AND       no incorrect refunds issued
-          ↑ the second half is a metric, and it governs the whole design
+search/read order → read policy → check eligibility
+                              → propose refund or escalate
 ```
 
-Stating the harm side early is what makes the rest of the answer coherent - the gates, the validation, and the evaluation all exist to protect it.
+Separate investigation from authorized execution. Set stop conditions, deadline, and step/cost limits.
 
----
+## 5. Context
 
-## 3. Justify where autonomy is needed
+Include request, verified order fields, relevant policy clauses, current task state, and recent observations.
 
-Look at the traffic before designing:
+Pin order IDs, amounts, currency, constraints, and pending operations through compaction.
 
-```text
-~80%  order found, inside window, not final sale   → a deterministic path
-~20%  ambiguity, partial refunds, missing orders,
-      policy exceptions                             → genuinely data-dependent
-```
+## 6. Controls
 
-So: a **workflow with an agentic exception path**, not an autonomous agent for everything. Most requests never reach the agent, and that is the design working rather than a compromise.
+Authenticate ownership from trusted session state. Check remaining refundable amount, current policy, required approval, and stable operation idempotency.
 
----
+Revalidate after edits or stale approvals. Customer text cannot grant permissions.
 
-## 4. Define the loop, tools, and stopping conditions
+## 7. Evaluation
 
-```text
-tools     get_order(order_id)
-          search_orders(email, date_range)
-          get_policy(topic)
-          verify_identity(customer_id)
-          issue_refund(order_id, amount, reason, idempotency_key)   [gated]
-          escalate(reason, context)
+Cover eligible/ineligible requests, ambiguity, partial refunds, duplicates, outages, and injection attempts.
 
-stop      a decision naming order id, amount, and policy clause
-          | step cap 12 | budget $0.08 | guardrail halt
-```
+Run repeated cases. Check outcomes, forbidden effects, critical slices, resource limits, and escalation usefulness.
 
-Six tools, not twenty. Each one maps to something a human would say they did.
+## 8. Budget arithmetic
 
----
+At hypothetical $2/M input and $8/M output, 42,000 input plus 1,500 output costs:
 
-## 5. Specify the context assembled each turn
+\[
+C=42000(2/10^6)+1500(8/10^6)=\$0.096
+\]
 
-```text
-system prompt + rules          stable, cached
-6 tool schemas                 ~1.2k tokens
-the customer's request
-the order record
-top 3 reranked policy sections
-recent steps verbatim
-   ↓ past step 8: compact, PINNING the identifiers and the customer's own words
-```
+This exceeds an $0.08 token budget before other costs. Reduce calls/context or choose another route, then recheck quality.
 
----
+Measure latency separately.
 
-## 6. Put controls around consequential actions
+## 9. Leading failure
 
-This is the section that separates a shipped design from a described one.
+A refund can target the wrong order despite a valid ID.
 
-```text
-issue_refund   authorize from the SESSION identity, never the model's argument
-               amount ≤ order total, checked against the database
-               requires verify_identity ok in THIS run
-               idempotency key = run_id:step
-               ≤ $500 auto · above → human approval
-customer text  untrusted: it cannot change tool behavior
-fail closed    policy service unavailable → escalate, never proceed
-```
+Check customer ownership, match the request to the record, clarify ambiguity, and verify actual effects. Merely seeing the ID earlier is insufficient.
 
----
+## 10. Common omissions
 
-## 7. Design evaluation before deployment
-
-```text
-offline   200 cases built from real traces: happy paths, missing orders,
-          final-sale items, partial refunds, duplicate requests, adversarial text
-          5 runs each, gated on passing EVERY run - this moves money
-online    escalation rate, refund reversal rate, human override rate,
-          cost per resolved ticket
-```
-
----
-
-## 8. Do the cost and latency arithmetic
-
-```text
-6 tool schemas ≈ 1.2k · base prefix ~3k, cached
-6 steps averaging a 7k context ≈ 42k input tokens ≈ $0.07
-fast model everywhere except the one policy-reasoning step
-p50 ~5s · p95 ~18s · streamed, so first token is immediate
-```
-
----
-
-## 9. Name the leading failure mode and detector
-
-```text
-most likely    refunding against the wrong order when the description is ambiguous
-caught by      requiring an order id in the final decision, and asserting
-               that id appeared in an observation
-plus           the $500 gate, so the expensive version needs a human
-```
-
----
-
-### Rule of thumb
-
-> Any design answer that never mentions cost, evaluation, or a failure mode is incomplete, no matter how good the architecture is.
-
----
-
-## 10. Where candidates lose points
-
-```text
-✗  jumping to multi-agent with no bottleneck to justify it
-✗  no stopping condition, no step cap, no budget
-✗  "guardrails" that are sentences in a prompt
-✗  evaluation as an afterthought, or a single pass/fail number
-✗  no mention of what the agent should refuse or escalate
-```
-
----
+Architecture before requirements, no stopping check, prompt-only permissions, one-run evaluation, missing budget, and unsupported completion.
 
 ## Interview mental model
 
-Cover the eight in order, and let the interviewer redirect you early:
-
-```text
-1. task + success criterion     what does "done and correct" mean?
-2. does this need an agent?     justify autonomy, or do not use it
-3. the loop                     tools, stopping conditions, step budget
-4. context                      what is in the window each turn
-5. controls                     permissions, approvals, untrusted content
-6. evaluation                   offline set, online signals
-7. cost + latency               do the arithmetic out loud
-8. failure modes                the top one, and what catches it
-```
-
-**Sections 5 to 8 are what separate someone who has shipped an agent from someone who has read about them.** State the success criterion as a metric - including the harm side, like "and no incorrect refunds" - because it governs the rest of the design.
-
-Where candidates lose points: jumping to multi-agent with no bottleneck to justify it, no stopping condition or budget, "guardrails" that are only sentences in a prompt, evaluation as an afterthought, and no account of what the agent should refuse or escalate.
-
-Next topic is **Answering agentic AI questions**.
+> Follow one request through the whole system and show where each claim or action is checked.

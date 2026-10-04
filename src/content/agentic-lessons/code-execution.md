@@ -1,118 +1,61 @@
 ## Code execution as a universal tool
 
-Giving an agent a sandbox collapses an unbounded set of operations into one tool. It is the single largest capability jump available, and the single largest security surface. A good interview answer argues both sides.
+A code tool lets the model express calculations and transformations in an executable program.
 
----
+## 1. Coverage and exactness
 
-## 1. Why it is so effective
+A script can filter, join, aggregate, and format data without a separate tool for each operation.
 
-```text
-without code:  parse CSV tool, filter tool, join tool, aggregate tool,
-               date-math tool, format tool, chart tool ...  (never complete)
-
-with code:     run_python(src)                               (complete)
+```python
+total = sum(row["amount"] for row in rows if row["status"] == "paid")
 ```
 
-Two distinct gains:
+Execution makes arithmetic exact for the program's inputs; the program can still implement the wrong task.
 
-1. **Coverage.** You cannot enumerate every transformation a user might want. Code can express all of them, including the glue between other tools' outputs.
-2. **Exactness.** Arithmetic, date math, sorting, and aggregation move out of token prediction into an interpreter. This repairs the model's weakest area rather than prompting around it.
-
----
-
-## 2. It also compresses context
+## 2. Compute outside context
 
 ```text
-tool returns 50,000 rows ──► into the context ──► window gone
-
-code reads 50,000 rows ──► prints 3 numbers ──► into the context
+50,000 rows → interpreter → three summary numbers → model
 ```
 
-### Core intuition
+Avoid sending every row to the prompt. Keep artifacts available for verification.
 
-Letting the agent write code that processes data *outside* the window, and return only the result, is one of the most effective context-engineering techniques there is.
+## 3. Isolate execution
 
----
+Use scoped files, limited permissions, bounded CPU/memory/time, and capped output.
 
-## 3. The sandbox is the control
+Give only required network access and credentials. Choose an isolation mechanism appropriate to the threat; a container alone is not a complete security design.
 
-Generated code is untrusted input. The prompt cannot restrict it, so the environment must.
+## 4. Injection risk
 
-| Control | Default |
+```text
+untrusted document → generated code → available data/network → disclosure
+```
+
+Restrict secrets, sensitive inputs, and outbound destinations. No network reduces exfiltration paths, but output can also disclose data or contain wrong artifacts.
+
+## 5. Code or narrow tools
+
+| Code | Narrow tools |
 |---|---|
-| Network | Off. Allowlist per run if genuinely needed |
-| Filesystem | A scratch directory scoped to the run; no host mounts |
-| Credentials | None in the environment - no ambient API keys, no cloud metadata access |
-| CPU / memory / wall clock | Hard limits, enforced by the sandbox |
-| Process isolation | Container or microVM, destroyed after the run |
-| Output | Size-capped, so a print loop can't flood the context |
+| Flexible transformations | Explicit named operations |
+| Needs program/result review | Easier per-operation policies |
+| Small tool menu | More interfaces |
 
-### Rule of thumb
+Combine sandboxed computation with tightly authorized external actions.
 
-> Assume the code was written by a stranger who read the input data. Because, in the injection case, it was.
+## 6. Validate results
 
----
+A join can double rows and totals while exiting successfully.
 
-## 4. The specific risk that makes people nervous
+Check row counts, uniqueness, conservation of totals, output schema, and representative records.
 
-```text
-untrusted document ──► agent reads it ──► document contains instructions
-                                                  │
-                                    agent writes code that follows them
-                                                  │
-                          code has network + credentials ──► exfiltration
-```
+## 7. Reproduce execution
 
-### Rule of thumb
+Record source, input references/hashes, runtime version, output, errors, artifacts, and timing.
 
-The sandbox breaks the chain at the last link: no credentials in the environment and no outbound network means the worst case is a wasted run. This is why "no network, no secrets" is the default and not a hardening step.
-
----
-
-## 5. Code vs. many narrow tools
-
-| | Code tool | Narrow tools |
-|---|---|---|
-| Coverage | Open-ended | Only what you built |
-| Auditability | Must review generated code | Every call is a named, logged operation |
-| Permissioning | Coarse - sandbox-level | Fine - per tool, per argument |
-| Failure mode | Silent wrong computation | Explicit tool error |
-| Context cost | One schema | Grows with catalogue size |
-
-The common production shape uses both: narrow, permissioned tools for anything with side effects, and a sandboxed code tool for computation over the data those tools return.
-
----
-
-## 6. Validate the result, not only the sandbox
-
-A secure program can still compute the wrong answer. Treat execution success and task correctness as separate checks:
-
-```text
-execution checks   exit code, timeout, memory, output size
-result checks      row counts, totals, schema, invariants, spot checks
-```
-
-For example, a script that joins orders to customers can exit cleanly while duplicating every order. Compare input and output counts, assert that money totals remain plausible, and require the program to report assumptions such as dropped null rows.
-
-### Common issue
-
-Sandboxing limits damage; it does not make generated code correct.
-
----
-
-## 7. Make executions reproducible
-
-Log the source, inputs or input hashes, runtime version, stdout, stderr, exit code, produced artifacts, and wall time for every execution. Generated code is the part of a trace you will most often need to read, and an agent that "computed the total" without a visible program is not auditable.
-
----
+Redact sensitive values under the logging policy.
 
 ## What matters most
 
-- **It is the only tool with open-ended coverage,** and it moves exact computation out of token prediction into an interpreter - repairing the model's weakest area rather than prompting around it.
-- **It is also a context-engineering win:** code can process fifty thousand rows outside the window and return three numbers.
-- **Generated code is untrusted input,** especially once the agent has read anything from the outside world - so the sandbox is the control, not the prompt.
-- **The defaults that matter:** no ambient credentials, no outbound network, a scratch filesystem scoped to the run, hard CPU and wall-clock limits, and capped output.
-- **Production usually runs both shapes:** narrow permissioned tools for anything with side effects, where you want per-argument authorization and a named audit entry, and the code tool for computation over what they return.
-- **Sandboxing controls impact, not correctness.** Validate result-level invariants and retain enough execution metadata to reproduce the answer.
-
-Next topic is **Tool servers and the Model Context Protocol**.
+> The sandbox limits effects; independent result checks establish correctness.

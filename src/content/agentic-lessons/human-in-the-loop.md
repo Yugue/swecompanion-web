@@ -1,116 +1,56 @@
 ## Human-in-the-loop design
 
-Human review is the strongest guardrail and the most expensive one. Designing it well means putting it where the cost of being wrong is high and the cost of checking is low - and making the review something a person can actually perform.
+Human review helps when a person can assess a consequential decision before it takes effect.
 
----
+## 1. Place the gate
 
-## 1. Where the gate goes
-
-```text
-                 blast radius
-                 low          high
-             ┌────────────┬────────────┐
-  reversible │  auto      │  auto +    │
-             │            │  notify +  │
-             │            │  undo      │
-             ├────────────┼────────────┤
-irreversible │  validate  │  HUMAN     │
-             │  then auto │  APPROVAL  │
-             └────────────┴────────────┘
-```
-
-The axes are properties of the **action**, not of the model. Gating on model confidence is tempting and wrong: confidence is generated text, it is poorly calibrated, and it can be influenced by the same content that caused the problem.
-
-### Rule of thumb
-
-> Gate on what the action does, never on how sure the model says it is.
-
----
-
-## 2. Make the review possible in seconds
+Use impact, reversibility, sensitivity, and policy—not a self-reported confidence number alone.
 
 ```text
-✗  "The agent wants to run issue_refund. Approve?"
-
-✓  Refund $240.00 to order 48812 (alex@example.com)
-   Why: delivered 2 Mar, requested 18 Mar — inside the 30-day window
-   Policy: §4.2, not a final-sale item  [view source]
-   Effects: charge reversed, ticket closed, confirmation email sent
-   [Approve]  [Approve with edits]  [Reject + reason]
+prepare proposal → review exact effects → authorized execution
 ```
 
-### Rule of thumb
+Human review also needs reliable supporting evidence.
 
-The reviewer needs the action, the justification, the evidence, and the **full set of effects**. Hidden side effects are how approvals become meaningless.
-
----
-
-## 3. Approval fatigue is a real failure mode
+## 2. Make review concrete
 
 ```text
-20 approvals/hour ──► reviewer approves everything in 2 seconds
-                 ──► false assurance: a gate that records consent
-                      without providing review
+Refund: $240 to order 48812
+Evidence: delivery/request dates; policy clause; remaining refundable total
+Effects: refund only; no message or ticket closure
+Choices: approve / edit / reject
 ```
 
-### Common issue
+Show all actual effects, recipients, and amounts. Bind approval to the reviewed version.
 
-This is worse than no gate, because the organization now believes the actions were checked. Mitigations:
+## 3. Fatigue
 
-- Gate only genuinely consequential actions.
-- **Batch** similar items into one reviewable list.
-- Raise thresholds as measured accuracy improves - with evidence, not optimism.
-- Track approval **latency** and rejection rate; a rejection rate near zero with sub-second latency means nobody is reading.
+Too many low-value approvals can encourage rubber-stamping.
 
----
+Batch reviewable items, prioritize consequential cases, and measure whether reviewers actually catch errors. Near-zero rejections alone does not prove fatigue.
 
-## 4. Patterns beyond approve/reject
+## 4. Other interaction patterns
 
-```text
-dry run:     show exactly what would change, then commit
-staged:      agent prepares a draft/PR; a human merges
-escalation:  agent hands off with full context when it detects uncertainty
-interrupt:   human can intervene mid-run; state must be editable
-undo:        cheaper than approval where the action supports it
-```
+Dry runs show proposed changes. Drafts allow editing. Escalation hands off blocked tasks. Interruptions permit correction. Undo can help reversible actions.
 
-"Agent prepares, human commits" is often better than approve/reject: the human gets the artifact rather than a yes/no question, and can edit it.
+Choose a pattern the product can support reliably.
 
----
+## 5. Review as evidence
 
-## 5. Treat review decisions as labelled evidence
+Record decisions, edits, reasons, and outcomes within the retention/access policy.
 
-Log the action, justification, decision, editor's changes, and rejection reason. That log is a high-quality evaluation set because it contains real cases labelled by people with authority over the outcome. Feed recurring rejection patterns back into the eval suite and deterministic rules.
+Recurring corrections can become regression cases or deterministic checks.
 
----
+## 6. Evaluate the queue
 
-## 6. Measure the review system itself
+Measure waiting time, resolution time, edit/rejection rates, caught harmful proposals, disagreement, and backlog.
 
-Human review creates an operational queue. Track:
-
-- time waiting for review and total resolution time,
-- approval, rejection, and edit rates,
-- harmful actions caught before execution,
-- reviewer disagreement and repeated overrides,
-- queue size by risk level.
-
-A safe gate that takes two days may make the product unusable. A fast gate with no rejections may be rubber-stamping. Both are system failures, not merely reviewer behavior.
-
----
+A useful gate needs both adequate review and acceptable turnaround.
 
 ## What matters most
 
-- **Gate on what the action does - reversibility and blast radius - not on how sure the model says it is.**
-- **Make the review possible in seconds:** the action, its justification, the evidence, and the *complete* set of effects. Hidden side effects make approvals meaningless.
-- **Approval fatigue is worse than no gate,** because it manufactures false assurance. Watch rejection rate and approval latency; near-zero and sub-second means nobody is reading.
-- **"Agent prepares, human commits" often beats approve/reject** - the reviewer gets an editable artifact instead of a yes/no question.
-- **Log every approval, edit, and rejection reason.** That log is the highest-quality eval set you will ever have.
-- **Measure the queue:** safety, review latency, edit rate, and reviewer disagreement must all remain acceptable.
-
----
+> The person should approve a specific, evidenced result they can inspect.
 
 ## Chapter 6 checkpoint
 
-Choose one high-impact action and specify its success metric, forbidden trajectories, permission check, adversarial cases, approval view, and safe fallback. Test both legitimate completion and attempted misuse over repeated runs.
-
-That completes **Chapter 6 — Evaluation, reliability, and safety**. Next topic is **Latency and token economics**.
+Explain outcome/process evaluation, judge validation, observable failures, permission enforcement, injection paths, and review effectiveness.

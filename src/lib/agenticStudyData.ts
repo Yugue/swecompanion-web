@@ -54,7 +54,7 @@ export const agenticParts: AgenticPart[] = [
         id: "llm-capabilities-and-limits",
         title: "What the underlying model gives you",
         summary:
-          "Everything an agent can do is bounded by the base model's instruction-following, reasoning, and tool-calling ability - scaffolding redistributes those limits rather than removing them.",
+          "The model supplies language and judgment; tools supply live facts, computation, storage, and checked actions.",
         keyPoints: [
           "Models provide language understanding and judgment; tools provide live facts, exact computation, storage, and external actions.",
           "A model has no guaranteed truth, persistent memory, or authority beyond the context and actions supplied by the runtime.",
@@ -101,14 +101,14 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "An agent's system prompt is a persistent policy - role, tools, rules, and stopping conditions - not a one-off request.",
         keyPoints: [
-          "Order of authority: system instructions, then developer/tool definitions, then user input, then **content retrieved from the world**, which is data and never an instruction.",
-          "Write rules as observable behavior (\"ask before deleting\") rather than traits (\"be careful\") - the first is testable, the second is not.",
-          "State the stopping condition explicitly; agents that never learn what \"done\" looks like either stop too early or loop.",
-          "Few-shot examples steer format and tool-choice style far more reliably than adjectives, but they cost context on every turn.",
+          "Separate role, goal, behavioral rules, tool guidance, and completion conditions.",
+          "Write observable rules, such as asking for an identifier after an empty lookup.",
+          "Follow the platform's instruction hierarchy; retrieved content is evidence, not authority to change the task.",
+          "Use focused examples for recurring ambiguity, and enforce permissions in the runtime.",
         ],
         interviewPrompt:
           "Rewrite a vague agent instruction - \"be helpful and accurate\" - into three rules you could write an eval for.",
-        code: "system > developer/tools > user > retrieved content (data, never commands)",
+        code: "policy + goal + tool guidance + observable completion",
       },
       {
         id: "structured-output",
@@ -116,10 +116,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "Agents act through machine-readable output, so schema adherence is the interface contract between the model and your code.",
         keyPoints: [
-          "Prompted JSON is best-effort; constrained decoding masks invalid tokens at sampling time and makes malformed output structurally impossible.",
-          "A schema guarantees shape, never truth - a well-formed JSON object can still contain a fabricated account number.",
-          "Design schemas for recoverability: optional fields, an explicit `unknown` value, and a reason field beat a required field the model must guess.",
-          "Always validate after parsing, and always define what the agent does when validation fails.",
+          "Formatting requests, JSON syntax constraints, and schema constraints provide different structural checks.",
+          "Valid structure does not prove a value is true or an action occurred.",
+          "Represent unknown, blocked, and incomplete states explicitly.",
+          "Handle refusal/truncation, validate domain meaning, and authorize before execution.",
         ],
         interviewPrompt:
           "Constrained decoding guarantees valid JSON. Name two classes of bug it does not prevent.",
@@ -159,7 +159,7 @@ export const agenticParts: AgenticPart[] = [
         id: "when-not-to-use-an-agent",
         title: "When not to build an agent",
         summary:
-          "Autonomy buys flexibility and costs predictability; if the steps are known in advance, hard-coding them is strictly better.",
+          "Use a single call or workflow when it meets the task; add adaptive action selection only where it earns its cost.",
         keyPoints: [
           "Prefer a workflow when the task decomposes the same way every time - it is cheaper, faster, debuggable, and testable with ordinary methods.",
           "Prefer a single model call when the task is one transformation: classify, extract, rewrite, summarize.",
@@ -187,10 +187,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "The model does not execute anything: it emits a structured request naming a tool and its arguments, and your runtime decides what actually happens.",
         keyPoints: [
-          "Tool schemas are injected into the context as part of the prompt, so tools consume tokens on every single turn.",
-          "The model's job is selection and argument synthesis; execution, authorization, and error handling belong to the runtime.",
-          "The result is appended as an observation attributed to that tool call, which is how the model learns whether it worked.",
-          "The security boundary is the runtime, not the prompt - never grant a tool permission you would not grant an unattended script.",
+          "Tool definitions supply the model with available operations and argument contracts.",
+          "The model selects and requests; the runtime validates, authorizes, and executes.",
+          "Bind each observation to its call ID, including out-of-order results.",
+          "Use authenticated session state for permissions, independently of model output.",
         ],
         interviewPrompt:
           "Where in a function-calling system do you enforce that a user can only read their own records - and why can't that live in the prompt?",
@@ -200,7 +200,7 @@ export const agenticParts: AgenticPart[] = [
         id: "tool-design",
         title: "Designing tools a model can use",
         summary:
-          "A tool description is a prompt, and tool granularity is the single biggest lever on agent reliability.",
+          "Clear operations, arguments, effects, and observations make tools easier to select and use correctly.",
         keyPoints: [
           "Name and describe tools for the model's decision, not for your codebase: say when to use it and when not to.",
           "Too granular and the agent burns steps orchestrating primitives; too coarse and it cannot express what the user wants.",
@@ -217,14 +217,14 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "Tool failure is the normal case, and how the error is worded determines whether the agent recovers or spirals.",
         keyPoints: [
-          "Return errors as actionable observations (\"date must be YYYY-MM-DD, got '3rd of May'\"), not stack traces or bare status codes.",
-          "Distinguish retryable failures (timeout, rate limit) from terminal ones (not found, forbidden); only the first should be retried.",
-          "Any tool with side effects needs an idempotency key, because a retried booking is a duplicated booking.",
-          "Cap retries per tool and per run - an agent that retries forever converts a transient failure into an outage.",
+          "Return concise errors naming the cause, correction, and retry policy.",
+          "Distinguish transient failures, invalid input, missing records, and denied operations.",
+          "Use stable operation IDs/idempotency and external status checks for uncertain writes.",
+          "Bound retries and report partial, failed, and unknown outcomes separately.",
         ],
         interviewPrompt:
           "A payment tool times out but the payment succeeded. Describe what your agent should do and what the tool must provide for that to be safe.",
-        code: "charge(amount, idempotency_key=run_id + step)  # retry-safe by construction",
+        code: "same logical operation → same key → reconcile before retry",
       },
       {
         id: "parallel-and-sequential-tools",
@@ -232,10 +232,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "Independent tool calls should run concurrently; dependent ones must not, and telling them apart is a planning decision.",
         keyPoints: [
-          "Parallel calls collapse many round-trips into one, which is usually the single biggest latency win available.",
-          "A call is parallelizable only if its arguments do not depend on another call's result.",
-          "Writes that touch shared state should be serialized even when they look independent, or you get lost updates.",
-          "Observations return out of order, so the runtime must bind each result back to its call id before appending.",
+          "Run ready independent calls together to reduce waiting.",
+          "Wait when arguments depend on a previous observation.",
+          "Conflicting shared writes need ordering or a concurrency protocol.",
+          "Bind results by call ID, retain per-call failures, and cap concurrency.",
         ],
         interviewPrompt:
           "The model emits three tool calls in one turn, and the third needs the second's output. What went wrong and where do you fix it?",
@@ -247,10 +247,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "Giving an agent a sandbox turns an open-ended set of operations into one tool, trading a huge capability gain for a real security surface.",
         keyPoints: [
-          "Code handles what tools cannot enumerate: arithmetic, data wrangling, format conversion, glue between other results.",
-          "It also fixes the model's weakest area - exact computation - by moving it out of token prediction entirely.",
-          "The sandbox is the control: no network by default, a filesystem scoped to the run, CPU and wall-clock limits, no ambient credentials.",
-          "Generated code is untrusted input; review or restrict it exactly as you would code from a stranger.",
+          "Code expresses calculations and transformations without a separate tool for each operation.",
+          "Computation can stay outside context, returning compact results and artifact references.",
+          "Enforce scoped files, permissions, network access, resources, and output limits.",
+          "Check result correctness independently; successful execution is not proof of a correct task.",
         ],
         interviewPrompt:
           "Argue both sides: why a code tool is safer than twenty narrow tools, and why it is far more dangerous.",
@@ -260,12 +260,12 @@ export const agenticParts: AgenticPart[] = [
         id: "mcp",
         title: "Tool servers and the Model Context Protocol",
         summary:
-          "MCP standardizes how agents discover and call external tools, so integrations are written once per system rather than once per agent.",
+          "MCP gives applications and capability servers a common interface for tools, resources, and prompts.",
         keyPoints: [
-          "A server exposes tools, resources, and prompts over a uniform protocol; any compatible client can consume them.",
-          "This converts an N-agents x M-systems integration problem into N + M.",
-          "Tool definitions arrive at runtime, so the tool surface can change without redeploying the agent - useful, and a supply-chain risk.",
-          "A third-party server's tool descriptions land inside your prompt; treat them as untrusted text and pin what you depend on.",
+          "Hosts coordinate clients connecting to servers; servers expose supported capabilities.",
+          "A shared interface reduces adapter duplication, while testing and system-specific work remain.",
+          "Review discovered tools and capability changes as dependencies.",
+          "Scope access and credentials; the protocol does not replace authorization.",
         ],
         interviewPrompt:
           "What changes about your threat model when tool definitions are fetched at runtime from a server you don't control?",
@@ -275,7 +275,7 @@ export const agenticParts: AgenticPart[] = [
         id: "tool-selection-at-scale",
         title: "Tool selection at scale",
         summary:
-          "Accuracy degrades as the tool catalogue grows, so past a few dozen tools selection becomes a retrieval problem.",
+          "Large tool menus can consume context and confuse selection; evaluate consolidation, routing, and candidate retrieval.",
         keyPoints: [
           "Symptoms of too many tools: near-duplicate tools chosen at random, and steadily rising selection latency and cost.",
           "Retrieve a small candidate set per turn by embedding the task against tool descriptions, then expose only those schemas.",
@@ -301,12 +301,12 @@ export const agenticParts: AgenticPart[] = [
         id: "chain-of-thought",
         title: "Chain of thought and its limits",
         summary:
-          "Letting the model produce intermediate tokens before answering gives it more computation per decision, which helps on multi-step problems and does nothing for recall.",
+          "Intermediate reasoning can help dependent steps, but evidence and verification remain separate requirements.",
         keyPoints: [
-          "Reasoning tokens are extra forward passes; they buy serial computation, not new knowledge.",
-          "Gains concentrate in arithmetic, logic, and multi-constraint planning; lookup-style questions get slower, not better.",
-          "The written reasoning is a plausible narrative, not a faithful trace of the computation - never treat it as an audit log.",
-          "It costs latency and tokens on every call, so make it conditional on task difficulty rather than always-on.",
+          "Additional computation can carry intermediate results into a later decision.",
+          "Measure gains by task/model; extra reasoning is not universally helpful.",
+          "Generated explanations are not faithful audit logs; retain observable evidence and operations.",
+          "Account for additional usage and latency under the actual interface.",
         ],
         interviewPrompt:
           "Your agent's stated reasoning contradicts the tool call it then makes. What does that tell you, and what does it not?",
@@ -316,12 +316,12 @@ export const agenticParts: AgenticPart[] = [
         id: "react",
         title: "ReAct: interleaving reasoning and acting",
         summary:
-          "ReAct alternates a short thought with a single action and its observation, so each decision is grounded in fresh evidence.",
+          "ReAct interleaves decisions, actions, and observations so current evidence can inform the next step.",
         keyPoints: [
-          "The cycle is Thought → Action → Observation, repeated; the observation is real data, which is what keeps planning honest.",
-          "Compared with planning everything up front, it adapts when the world disagrees with the plan.",
-          "Compared with acting without thinking, it recovers far better from a failed or surprising observation.",
-          "Its weakness is myopia: each step is locally sensible, which is how agents wander without ever finishing.",
+          "Read an observation, identify the next evidence need, and choose an allowed action.",
+          "Fresh evidence can confirm or change a plan; verify its source and meaning.",
+          "Independent actions can be batched without abandoning interleaving.",
+          "Track progress and budgets to prevent locally sensible wandering.",
         ],
         interviewPrompt:
           "Contrast ReAct with plan-then-execute on a task where step 3 reveals step 1 was wrong.",
@@ -361,12 +361,12 @@ export const agenticParts: AgenticPart[] = [
         id: "reflection",
         title: "Reflection and self-critique",
         summary:
-          "A separate critique pass over the agent's own output catches a real class of errors, but only when the critic has something the actor lacked.",
+          "Review an artifact against criteria and evidence, then revise within a measured budget.",
         keyPoints: [
-          "Reflection works when grounded in new information: a test result, a linter, a schema check, a second retrieval.",
-          "Ungrounded self-critique is weak - the same model that made the error often rates it as correct.",
-          "A separate critic prompt or model beats asking the actor \"are you sure?\", which mostly produces agreement.",
-          "Bound it: one or two rounds, with a hard stop, or the agent burns its budget rewriting an already-acceptable answer.",
+          "Tests, sources, and explicit criteria make critiques checkable.",
+          "Ungrounded self-critique can help or hurt; measure final outcomes.",
+          "Evaluate the artifact rather than relying on the actor's justification.",
+          "Bound revision, and use retrieval or computation when those address the actual gap.",
         ],
         interviewPrompt:
           "Design a reflection step that would have caught a real bug, and explain what makes the critic better informed than the actor.",
@@ -393,10 +393,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "Reasoning models are trained to spend variable test-time compute before answering, which shifts effort from prompt engineering to budget allocation.",
         keyPoints: [
-          "They trade latency and tokens for accuracy on hard multi-step problems, and waste both on simple ones.",
-          "A thinking budget is a real hyperparameter: tune it per task type, not per product.",
-          "Route by difficulty - cheap model for extraction and routing, reasoning model for planning and diagnosis.",
-          "Elaborate chain-of-thought prompting adds little on top of a model already trained to reason; clear task statements matter more.",
+          "Additional effort can improve difficult decisions; compare gains, latency, and usage.",
+          "Treat effort settings as tunable choices for each task type.",
+          "Evaluate faster routes for routine steps and stronger routes for difficult decisions.",
+          "Controls and accounting vary by interface; clear evidence and goals remain essential.",
         ],
         interviewPrompt:
           "Your agent is accurate but too slow. Show how you would decide which steps deserve a reasoning model.",
@@ -417,7 +417,7 @@ export const agenticParts: AgenticPart[] = [
         id: "context-engineering",
         title: "Context engineering",
         summary:
-          "Deciding what occupies the window each turn is a systems problem, and it drives agent quality more than prompt wording does.",
+          "Assemble the evidence, state, and tools needed for each decision within a deliberate input budget.",
         keyPoints: [
           "Every turn is assembled: instructions, tool schemas, retrieved evidence, history, current state - each with a token budget.",
           "Relevance beats volume. Irrelevant context measurably lowers accuracy, so adding \"just in case\" material has a real cost.",
@@ -432,7 +432,7 @@ export const agenticParts: AgenticPart[] = [
         id: "rag-for-agents",
         title: "Retrieval as a tool",
         summary:
-          "Classic RAG retrieves once before generating; an agent decides when and what to retrieve, and can retrieve again after seeing the results.",
+          "Retrieval brings evidence into context; an agent can adapt the next lookup after reading results.",
         keyPoints: [
           "Agentic retrieval issues its own queries, reads the results, and reformulates - which fixes the single-shot query's blind spots.",
           "It costs more calls, so a cheap pre-retrieval step is still right for simple lookup questions.",
@@ -440,14 +440,14 @@ export const agenticParts: AgenticPart[] = [
           "If retrieval finds nothing, say so explicitly - an empty observation is where hallucination starts.",
         ],
         interviewPrompt:
-          "When is single-shot RAG strictly better than letting the agent search? Be specific about the cost.",
+          "When does fixed retrieval meet the task better than an adaptive search loop? Compare evidence coverage and cost.",
         code: "search(q) → read → refine q → search again  (vs. one shot before generation)",
       },
       {
         id: "chunking-and-indexing",
         title: "Chunking and indexing",
         summary:
-          "Chunk boundaries decide what can ever be retrieved together, and most retrieval failures are really chunking failures.",
+          "Chunk boundaries decide which facts and exceptions arrive together when evidence is retrieved.",
         keyPoints: [
           "Split on document structure - sections, functions, table rows - before falling back to fixed sizes.",
           "Too small loses the context that makes a passage interpretable; too large dilutes the embedding and wastes the window.",
@@ -462,12 +462,12 @@ export const agenticParts: AgenticPart[] = [
         id: "embeddings-and-search",
         title: "Embeddings, hybrid search, and reranking",
         summary:
-          "Dense retrieval finds paraphrases, keyword search finds exact strings, and production systems need both plus a reranker.",
+          "Dense and lexical retrieval provide different signals; compare hybrid search and reranking on actual queries.",
         keyPoints: [
-          "Embeddings map text to vectors where cosine similarity approximates semantic relatedness.",
-          "Dense search fails on rare literals - error codes, SKUs, names - which is exactly where BM25 shines.",
-          "Hybrid search fuses both ranked lists; a cross-encoder reranker then scores query and passage jointly over the top ~50.",
-          "Retrieve broadly, rerank hard, and pass only a handful of passages into the window.",
+          "Embeddings map text to vectors for learned similarity.",
+          "Lexical or structured lookup can help with rare identifiers that dense search misses.",
+          "Fusion combines candidates; pairwise reranking orders a selected shortlist.",
+          "Measure candidate recall, top-rank quality, and grounded answer outcomes separately.",
         ],
         interviewPrompt:
           "Why does a cross-encoder rerank the top 50 instead of the whole corpus?",
@@ -535,10 +535,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "Multiple agents buy parallelism and context isolation; they cost coordination, latency variance, and a much harder debugging story.",
         keyPoints: [
-          "The two honest reasons to split: independent subtasks that can run concurrently, and context that will not fit in one window.",
-          "\"Different personas\" is not a reason - role-playing specialists rarely beat one well-prompted agent with the same tools.",
-          "Cost multiplies: each agent re-reads its own system prompt and tools, so a five-agent system is far more than 5x one call.",
-          "Start with one agent, find the specific bottleneck, and split only along that seam.",
+          "Parallel work, context isolation, capabilities, or permission scopes can justify separation.",
+          "Role labels alone do not prove an advantage over a focused single-agent design.",
+          "Budget worker setup, briefs, coordination, and merging against any avoided context processing.",
+          "Start from a simpler baseline and split along a measured bottleneck.",
         ],
         interviewPrompt:
           "Make the case against the three-agent design someone just proposed, then say what would change your mind.",
@@ -550,10 +550,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "One agent owns the goal and delegates bounded subtasks to workers that return compact results.",
         keyPoints: [
-          "The orchestrator holds the plan and the only complete picture; workers see only their brief.",
-          "Briefs must be self-contained - a worker cannot ask a clarifying question of a context it never saw.",
-          "Workers return structured findings, not transcripts, or the orchestrator's window fills with the context you just isolated.",
-          "This maps cleanly onto research and analysis, and badly onto tasks where subtasks must negotiate with each other.",
+          "The orchestrator keeps the goal and dependencies; workers receive relevant task context.",
+          "Briefs define outputs, constraints, budgets, and how to report blockers or request clarification.",
+          "Return compact findings, sources, artifacts, and gaps rather than full transcripts.",
+          "Validate and reconcile results against the original goal.",
         ],
         interviewPrompt:
           "Write the brief you'd hand a worker for one subtask of a market-research agent, and say what you deliberately left out.",
@@ -565,10 +565,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "Agents coordinate either by passing messages or by sharing a workspace, and the choice decides your failure modes.",
         keyPoints: [
-          "Message passing is explicit and traceable, but lossy - whatever isn't in the message is gone.",
-          "A shared scratchpad or filesystem keeps everything available and introduces write conflicts and stale reads.",
-          "A handoff should transfer goal, constraints, relevant findings, and what was already tried - that last one prevents repeated work.",
-          "Make every message typed and logged; free-text chatter between agents is unfixable once it goes wrong.",
+          "Messages make handoffs explicit but can omit required context.",
+          "Shared state needs ownership, access controls, and version-checked updates.",
+          "Transfer goal, constraints, sources, unresolved questions, and prior attempts.",
+          "Typed fields, task IDs, deadlines, and deduplication make coordination testable.",
         ],
         interviewPrompt:
           "Two agents edit the same file in a shared workspace. Design the minimum coordination that makes this safe.",
@@ -580,14 +580,14 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "The main engineering benefit of subagents is that each gets a clean window, which only works if the boundary is enforced.",
         keyPoints: [
-          "A worker exploring 50 documents and returning one paragraph is a 50:1 context compression for the parent.",
-          "Isolation is also a safety boundary: a worker reading untrusted content should not hold the credentials or the plan.",
-          "Compress at the boundary deliberately - decide the return schema before you dispatch.",
-          "Over-isolation causes duplicated discovery; share a small, explicit set of common facts.",
+          "Compact worker returns reduce material repeatedly carried in the parent's active context.",
+          "Compare avoided parent input with worker and coordination costs.",
+          "Separate contexts need enforced runtime permissions to become a privilege boundary.",
+          "Share essential constraints and validate findings at the handoff.",
         ],
         interviewPrompt:
-          "Explain how subagents reduce total cost even though they increase total tokens.",
-        code: "worker reads 200k tokens → returns 800   # parent never pays for the 200k",
+          "Estimate when isolated worker context reduces total cost, and when coordination outweighs the savings.",
+        code: "net savings = avoided parent processing - worker/coordination overhead",
       },
       {
         id: "coordination-failures",
@@ -619,7 +619,7 @@ export const agenticParts: AgenticPart[] = [
         id: "agent-evaluation",
         title: "Evaluating agents",
         summary:
-          "Agents need outcome evaluation and process evaluation, because a correct answer reached by a broken path will fail tomorrow.",
+          "Measure verified task outcomes and observable process across repeated runs and representative cases.",
         keyPoints: [
           "Outcome metrics: task success, correctness of the final artifact, and whether required side effects actually happened.",
           "Process metrics: steps taken, tool-choice accuracy, tokens and cost per run, recovery after a failed call.",
@@ -628,13 +628,13 @@ export const agenticParts: AgenticPart[] = [
         ],
         interviewPrompt:
           "An agent passes 92% of your eval set and users complain constantly. Give three reasons your eval is lying.",
-        code: "report pass@k over n runs, plus cost/steps distribution - never one run",
+        code: "report per-run success, repeated-run consistency, critical slices, and cost/latency",
       },
       {
         id: "trajectory-analysis",
         title: "Trajectory analysis",
         summary:
-          "The trajectory - every thought, call, and observation - is the primary debugging artifact, and reading them is the highest-yield habit in agent work.",
+          "Observable calls, results, and state transitions show where a run first departed from supported behavior.",
         keyPoints: [
           "Score the path, not just the endpoint: was every step necessary, grounded, and in a sensible order?",
           "Compare against a reference trajectory when one exists, but allow legitimately different correct paths.",
@@ -651,10 +651,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "A model can grade open-ended output at scale, but only once its judgments have been shown to agree with human ones.",
         keyPoints: [
-          "Judges need a concrete rubric and a reference or criteria; \"rate 1-10\" produces noise that looks like data.",
-          "Known biases: position, length, self-preference for its own generations, and clustering toward the middle.",
-          "Pairwise comparison is more reliable than absolute scoring; randomize order to cancel position bias.",
-          "Validate on a human-labelled subset, report agreement, and re-validate whenever the judge model changes.",
+          "Define concrete rubric criteria and require evidence for verdicts.",
+          "Check position, length, style, and correlated model biases.",
+          "Compare pairwise and categorical scoring; randomize order and allow ties.",
+          "Validate with independent human labels, then recheck after judge or rubric changes.",
         ],
         interviewPrompt:
           "How would you establish that your judge is trustworthy - and what number do you report?",
@@ -679,27 +679,27 @@ export const agenticParts: AgenticPart[] = [
         id: "guardrails",
         title: "Guardrails and permissioning",
         summary:
-          "Guardrails are deterministic checks around a non-deterministic core, and they must live in code rather than in instructions.",
+          "Check inputs, operations, and outputs; enforce critical permissions independently of model suggestions.",
         keyPoints: [
-          "Input guardrails validate what enters; output guardrails validate what leaves, including every tool argument.",
-          "Least privilege per tool and per run: scoped credentials, allowlisted destinations, rate and spend limits.",
-          "Irreversible actions need an explicit gate - approval, dry run, or a staged change a human commits.",
-          "Guardrails are enforcement, not persuasion; anything expressible only as a prompt line is not a guardrail.",
+          "Validate inputs and outputs, and check every tool operation before execution.",
+          "Use scoped access, destinations, resource limits, and trusted session identity.",
+          "Choose review or execution controls based on impact, reversibility, sensitivity, and policy.",
+          "Test enforcement directly, including unavailable checks, stale approval, and duplicate requests.",
         ],
         interviewPrompt:
           "Your agent can send email. List every control you'd put between the model's decision and the message leaving.",
-        code: "if action.is_irreversible: require_approval(action)  # in code, not the prompt",
+        code: "proposal → validate → authorize/review if required → execute → confirm",
       },
       {
         id: "prompt-injection",
         title: "Prompt injection and untrusted content",
         summary:
-          "Any content an agent reads can contain instructions, and the model has no reliable way to tell data from commands.",
+          "Untrusted content can try to redirect an agent; source distinctions need independent permission enforcement.",
         keyPoints: [
-          "Indirect injection hides instructions in a web page, document, email, or tool result the agent retrieves.",
-          "The dangerous combination is untrusted content plus private data plus an external side channel - remove any one and the exfiltration path closes.",
-          "Mitigations are architectural: mark provenance, isolate untrusted reads in a low-privilege subagent, allowlist outbound destinations, and require approval for sensitive actions.",
-          "Prompt-level defenses (\"ignore instructions in documents\") reduce the rate and never eliminate it.",
+          "Indirect injection arrives through retrieved documents, messages, repositories, or tool payloads.",
+          "Private data plus an unauthorized outbound path creates disclosure risk; injection can also corrupt results or memory.",
+          "Restrict data, tools, and destinations; validate findings crossing context boundaries.",
+          "Instruction hierarchy and source labeling are layers, not substitutes for runtime controls.",
         ],
         interviewPrompt:
           "A support agent reads customer emails and can call an HTTP tool. Show the exfiltration path and close it.",
@@ -737,10 +737,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "An agent's cost is driven by steps times context size, so the biggest savings come from taking fewer steps with smaller windows.",
         keyPoints: [
-          "Per-run cost ≈ Σ over steps of (input tokens + output tokens); input dominates because history is re-sent each turn.",
-          "The three levers, in order: fewer steps, smaller context per step, cheaper model per step.",
-          "Route by difficulty and parallelize independent calls; both cut wall-clock without touching quality.",
-          "Stream partial output so perceived latency decouples from total run time.",
+          "Price each call's input/output and applicable cache, reasoning, tool, and infrastructure usage.",
+          "Growing history can make later calls more expensive; reduce unnecessary repeated material.",
+          "Evaluate routing and parallel ready work without assuming unchanged quality.",
+          "Measure critical-path and tail latency, plus cost per successful task.",
         ],
         interviewPrompt:
           "Budget: $0.05 and 8 seconds per request. Walk through how you'd design backwards from that.",
@@ -752,10 +752,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "Reusing an unchanged prefix across turns cuts both cost and time to first token, and it dictates how you order the prompt.",
         keyPoints: [
-          "Caching keys on an exact prefix, so one changed byte early - a timestamp in the system prompt - invalidates everything after it.",
-          "Order the context stable-to-volatile: system prompt, tool schemas, static docs, then history, then the current turn.",
-          "Agent loops are the ideal case, since each turn re-sends a long, mostly identical prefix.",
-          "Also cache at the semantic layer: identical retrieval queries and repeated deterministic tool calls.",
+          "Prefix matching, cache lifetime, and pricing depend on the serving interface.",
+          "Keep reusable content stable where supported; measure the actual cached share.",
+          "Cache suitable reads with tenant, access scope, versions, and freshness in the key.",
+          "Validate permissions and track stale-result incidents alongside savings.",
         ],
         interviewPrompt:
           "Your cache hit rate is near zero despite a long fixed system prompt. Name the likely causes.",
@@ -812,10 +812,10 @@ export const agenticParts: AgenticPart[] = [
         summary:
           "A production agent improves through a loop: traces reveal failures, failures become eval cases, and fixes are validated against them.",
         keyPoints: [
-          "Mine failures for clusters, and fix the cluster - one-off prompt patches accumulate into an unmaintainable system prompt.",
-          "Escalate deliberately: better tool descriptions and context first, then prompt changes, then a stronger model, then fine-tuning.",
-          "Every fixed bug should leave behind a permanent eval case.",
-          "Fine-tuning is justified for consistent formatting, a narrow domain, or cost reduction on a stable task - rarely for reasoning.",
+          "Cluster failures by mechanism, impact, frequency, and repair effort.",
+          "Choose the cheapest layer that addresses the cause: tools, context, prompts, models, or training.",
+          "Preserve representative regression cases and independent evaluation.",
+          "Fine-tuning can improve stable task behavior and capabilities; compare its gains and maintenance cost with alternatives.",
         ],
         interviewPrompt:
           "You have 10,000 production traces and one engineer. Describe how you decide what to fix first.",

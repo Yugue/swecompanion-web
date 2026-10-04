@@ -1,151 +1,71 @@
 ## Designing tools a model can use
 
-Most agent reliability problems that look like prompting problems are tool-design problems. Granularity and wording are the two biggest levers you have, and they are cheaper to change than the model.
-
----
+Good tools make the next decision clear and reduce unnecessary steps.
 
 ## 1. Granularity
 
-```text
-too fine:   http_request(url, method, headers, body)
-            → agent spends 6 steps assembling what one tool could do
-            → it must know your API surface, which it doesn't
+A raw HTTP tool requires endpoint knowledge. An opaque “handle everything” tool hides useful decisions.
 
-too coarse: handle_customer_request(text)
-            → the agent can't express anything specific
-            → you've moved the whole problem inside one opaque tool
+Aim for a meaningful operation such as **get order** or **issue refund**.
 
-right:      get_order(order_id)
-            search_orders(customer_email, date_range)
-            issue_refund(order_id, amount, reason)
-```
-
-### Rule of thumb
-
-The test: **one tool call should correspond to one thing a human would say they did.** "Looked up the order." "Issued the refund." Not "sent a POST."
-
----
-
-## 2. The same capability, three granularities
-
-Give the agent the ability to refund an order:
+## 2. One capability at three sizes
 
 ```text
-TOO FINE
-  http_request(url, method, headers, body)
-  → the agent must know your API surface, which it does not
-  → 6 steps to do one thing, and 6 chances to malform a request
-
-TOO COARSE
-  handle_customer_request(text)
-  → the agent can express nothing specific
-  → you have moved the entire problem inside one opaque tool
-
-RIGHT
-  get_order(order_id)
-  search_orders(email, date_range)
-  issue_refund(order_id, amount, reason, idempotency_key)
+too fine:   construct headers → URL → body → request
+too broad:  handle_customer_request(text)
+focused:    issue_refund(order_id, amount, reason)
 ```
 
-The test: **one tool call should be one thing a human would say they did.** "Looked up the order." "Issued the refund." Not "sent a POST to /v2/orders."
+Focused operations make permissions and outcomes easier to check. A general HTTP wrapper can also be restricted, but needs explicit destination and operation controls.
 
-### Intuition
+## 3. Describe the decision
 
-Granularity is also a permissions decision. `http_request` cannot be authorized meaningfully - you would be allowing any call to any endpoint. `issue_refund` can be checked against the order total, the session identity, and a spending cap.
+“Search database” is vague.
 
----
+“Search orders by email/date when the order ID is unknown; return up to 20 matches” explains when to use it and what to expect.
 
-## 3. The description is a prompt
+Distinguish overlapping tools and disclose side effects.
 
-| Weak | Strong |
+## 4. Reduce argument ambiguity
+
+| Ambiguous | Clearer |
 |---|---|
-| "Searches the database." | "Search orders by customer email and date range. Use when the user does not know the order ID. Returns at most 20 orders, newest first." |
-| "Refunds an order." | "Issue a refund for a verified order. Requires verify_identity to have succeeded in this session. Irreversible." |
+| timeout | timeout_seconds |
+| status string | Allowed status enum |
+| “next Tuesday” | Absolute date with defined timezone |
+| Required guessed limit | Optional documented default |
 
-### Rule of thumb
+Validate constraints even when the schema expresses them.
 
-Include, in order: what it does, **when to use it**, when *not* to, what it returns, and whether it is irreversible. The "when not to" line is the one that stops near-duplicate tools being picked at random.
-
----
-
-## 4. Make wrong arguments impossible
-
-```text
-✗  status: string                  → "shipped", "Shipped", "in transit", "SHIPPED?"
-✓  status: enum[pending|shipped|delivered|cancelled]
-
-✗  timeout: number                 → 30? 30000?
-✓  timeout_seconds: number
-
-✗  date: string                    → "last Tuesday"
-✓  date: string, format YYYY-MM-DD, description "absolute date; resolve relative dates first"
-
-✗  limit: number (required)        → the model invents a number
-✓  limit: number, default 20, optional
-```
-
-Every required field the model cannot derive from context is a guess waiting to happen.
-
-### Rule of thumb
-
-> If an argument can be expressed as an enum, it must be.
-
----
-
-## 5. Return observations, not payloads
-
-The return value goes straight into the context window, on every subsequent turn.
-
-```text
-✗  full API response: 4,200 tokens of nested metadata, links, and audit fields
-✓  {"order_id": "48812", "status": "delivered", "total": 240.00,
-     "delivered_on": "2026-03-02", "refundable": true}
-```
-
-### Common issue
-
-Return what the agent's next decision needs. Include a `truncated: true` flag and a way to fetch more rather than pre-emptively dumping everything. A single fat tool is often the entire reason a run costs what it does.
-
----
-
-## 6. Tools are an interface for a model, not for you
-
-Three habits that follow from that:
-
-1. Name them by intent (`find_available_slots`), not by implementation (`slots_v2_query`).
-2. Collapse sequences the agent always performs together into one tool.
-3. Read your own traces: if the agent consistently misuses a tool, the tool is wrong, not the agent.
-
----
-
-## 7. Make side effects visible in the contract
-
-State whether a tool is read-only, reversible, idempotent, approval-gated, and safe to retry. The runtime enforces these properties, but the model also needs them to plan sensibly.
+## 5. Compact observations
 
 ```json
-{"name":"issue_refund", "side_effect":"financial_write",
- "reversible":false, "idempotency_key":"required", "approval_over_usd":500}
+{
+  "order_id": "48812",
+  "status": "delivered",
+  "total_usd": 240,
+  "truncated": false
+}
 ```
 
-Do not rely on a vague name such as `process_order` to communicate risk.
+Return what the next decision needs. For larger results, include truncation and a fetch-more path.
 
----
+## 6. Name by intent
 
-## 8. Evolve tools without breaking active runs
+Use **find_available_slots**, not an internal implementation name.
 
-Prefer adding fields or a new version over changing an argument's meaning in place. Keep an overlap period for renamed tools, return a deprecation warning, and record the tool-schema version in each run.
+Merge sequences always performed together. Diagnose recurring misuse from traces; it may involve wording, context, or model capability.
 
-An agent resuming yesterday's task should not discover that today's tool now expects different arguments.
+## 7. Disclose side effects
 
----
+Specify read/write behavior, reversibility, preconditions, retry safety, and idempotency.
+
+The runtime enforces them; descriptions help the model plan.
+
+## 8. Evolve compatibly
+
+Version changed meanings or arguments. Record the schema version and preserve contracts used by active runs.
 
 ## What matters most
 
-- **Granularity is the biggest reliability lever.** One tool call should map to one thing a human would say they did - "issued the refund", not "sent a POST".
-- **The description is a prompt.** Say what it does, when to use it, **when not to**, what it returns, and whether it is irreversible; the "when not to" line is what stops near-duplicate tools being picked at random.
-- **Make wrong arguments impossible:** enums over free text, units in the name, defaults instead of required fields the model cannot know.
-- **The return value lands in the context on every later turn,** so return the few fields the next decision needs, not the full API payload.
-- **If the agent consistently misuses a tool, the tool is wrong, not the agent.** Read your own traces before rewriting the prompt.
-- **Expose side-effect and retry semantics, and version breaking changes,** so planning and resumed runs do not rely on hidden behavior.
-
-Next topic is **Errors, retries, and idempotency**.
+> A tool is a labeled control with a clear input, effect, and observation.

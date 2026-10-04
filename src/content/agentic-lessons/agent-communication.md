@@ -1,110 +1,54 @@
 ## Handoffs and shared state
 
-**Two agents can only work together in one of two ways: send each other messages, or write into the same shared place.**
+Agents coordinate through messages, shared state, or a combination.
 
-```text
-message passing   → explicit and traceable, but whatever is not in the message is lost
-shared workspace  → nothing is lost, but they can overwrite each other
-```
+## 1. Communication models
 
-Each has a characteristic failure mode, and naming both is what makes a design answer credible.
+| Messages | Shared workspace |
+|---|---|
+| Explicit bounded handoffs | Referenced artifacts and records |
+| May omit needed context | May contain stale/conflicting data |
+| Delivery needs handling | Updates need concurrency controls |
 
----
+Neither automatically preserves truth or all information.
 
-## 1. The two models
-
-```text
-message passing:            shared state:
-
- A ──{findings}──► B         A ──┐
-                              ├──► /workspace/notes.md ◄── B
- explicit, traceable          C ──┘
- lossy at the boundary        everything available, concurrent writes
-```
-
-| | Message passing | Shared workspace |
-|---|---|---|
-| Traceability | Every transfer is logged | Must diff the store |
-| Loss | High - what isn't in the message is gone | Low |
-| Conflicts | None | Lost updates, stale reads |
-| Context cost | Bounded by the message | Unbounded if agents read everything |
-| Best for | Fan-out/fan-in, handoffs | Collaborative artifacts, long-running state |
-
----
-
-## 2. What a handoff must carry
+## 2. Handoff contents
 
 ```json
-{"goal": "...",
- "constraints": ["..."],
- "findings": [{"claim": "...", "source": "...", "confidence": "high"}],
- "already_tried": ["..."],
- "deliverable": {"schema": "..."},
- "budget": {"steps": 10, "usd": 0.20}}
+{
+  "task_id": "pricing",
+  "goal": "Verify current per-seat pricing",
+  "constraints": ["public sources"],
+  "finding_refs": ["claims/7"],
+  "already_tried": ["login-only pricing page"],
+  "budget_steps": 5
+}
 ```
 
-`already_tried` and `constraints` are the two fields that get dropped and the two whose absence causes the most waste - repeated dead-end work, and a downstream agent violating a rule it was never told.
+Include required output and unresolved questions.
 
-### Rule of thumb
+## 3. Typed messages
 
-> Everything not in the handoff does not exist for the receiving agent. Write it as a spec, not a note.
+A **verify_request** with claim ID, evidence, deadline, and expected response is easier to validate than “check the pricing thing.”
 
----
+Free text can still be logged; typed fields make automated coordination more reliable.
 
-## 3. Typed messages, always
+## 4. Safe shared updates
 
-```text
-✗  free text: "hey can you double check the pricing thing"
-✓  {"type": "verify_request", "claim_id": 7, "claim": "...",
-     "source": "...", "requested_by": "w1", "deadline_steps": 5}
-```
+Assign ownership, use append-only records where appropriate, check versions, and use bounded locks for exclusive operations.
 
-### Common issue
+Log changes so readers can detect stale state.
 
-Free-form inter-agent chatter is unparseable, unloggable, and unfixable. It also drifts: agents start negotiating about the task instead of doing it. A closed set of message types keeps the protocol testable.
+## 5. Read selected state
 
----
+Query the relevant artifact or section. Loading the entire workspace into every agent recreates the context problem.
 
-## 4. Making a shared workspace safe
+## 6. Delivery failures
 
-```text
-1. ownership     one writer per file or per record
-2. append-only   where possible - conflicts become merges, not overwrites
-3. versioning    optimistic concurrency: write fails if the version moved
-4. locks         short-lived, with timeouts, for genuinely exclusive edits
-5. announce      writes are logged so other agents can notice staleness
-```
+Include message/task IDs and deduplicate retries. Handle delayed replies, deadlines, and missing responses.
 
-Note these are ordinary distributed-systems controls. Agents are concurrent writers with unusually poor judgment, so the standard tools apply, more strictly.
-
----
-
-## 5. Query shared state instead of dumping it
-
-The shared workspace reintroduces the context problem if every agent loads the whole thing. Give agents a **query** interface—read the section you need—rather than a dump.
-
----
-
-## 6. Design for duplicate and missing messages
-
-Agent messages can be retried, delayed, or delivered after the receiver has moved on. Include a message id, task id, sender, expected response type, and deadline. Receivers should deduplicate by id and make repeated writes idempotent.
-
-```json
-{"message_id":"m-204", "task_id":"t-18", "type":"verify_request",
- "reply_with":"verification_result", "deadline":"2026-09-29T15:00:00Z"}
-```
-
-If the deadline passes, the orchestrator—not another worker—decides whether to retry, reassign, or continue with a partial result.
-
----
+The coordinator decides whether to retry, reassign, or continue partially.
 
 ## What matters most
 
-- **Message passing is traceable but lossy; a shared workspace loses nothing and invites write conflicts.** Pick knowing which failure you prefer.
-- **A handoff must carry goal, constraints, findings, what was already tried, the deliverable shape, and a budget.** The two that get dropped - constraints and already-tried - cause the most waste.
-- **Type every message.** Free-text chatter between agents is unloggable, untestable, and drifts into negotiating about the task instead of doing it.
-- **A shared workspace needs ordinary distributed-systems controls** - single ownership, append-only where possible, optimistic versioning, timeout-bounded locks - applied more strictly, because agents are concurrent writers with poor judgment.
-- **Give agents a query interface into the workspace, not a dump,** or you undo the context isolation.
-- **Assume delivery is imperfect:** identify, deduplicate, deadline, and route retries through the task owner.
-
-Next topic is **Context isolation across agents**.
+> A handoff needs a labeled envelope; shared work needs ownership and version checks.

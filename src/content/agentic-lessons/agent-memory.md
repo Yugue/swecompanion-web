@@ -1,138 +1,62 @@
 ## Short-term and long-term memory
 
-"The model remembers" is always false. Within a run, memory is the transcript you resend. Across runs, memory is a **store you deliberately write to and read from**. Everything else is an illusion produced by those two mechanisms.
+Memory across runs requires deliberate storage, retrieval, correction, and deletion.
 
-This chapter focuses on persistence across runs: what deserves storage, how it is retrieved, and how stale or corrected facts stop influencing future work.
+## 1. Memory types
 
----
+| Type | Example |
+|---|---|
+| Working context | Latest tool result |
+| Episodic record | Previous investigation and outcome |
+| Semantic record | User's stated timezone |
 
-## 1. Three kinds, with different lifetimes
+Version operating procedures separately; do not let arbitrary memories become application policy.
 
-| Kind | Lives in | Lifetime | Example |
-|---|---|---|---|
-| Working | The context window | This turn | The observation just returned |
-| Episodic | A store, keyed by session | Across runs | "Last week we tried plan A and it failed" |
-| Semantic | A store, keyed by entity | Indefinite | "This user's timezone is CET" |
-
-### Rule of thumb
-
-Procedural knowledge - how this agent does things - lives in the system prompt and tools, not in memory. Keeping that separate avoids the common design where a memory store slowly becomes an un-versioned second prompt.
-
----
-
-## 2. What "remembering" actually is
-
-A user says something in one session and expects it to hold in the next. Here is what has to happen, because none of it is automatic:
+## 2. Remembering is a data path
 
 ```text
-SESSION 1, Tuesday
-  user:   "I'm vegetarian, don't suggest meat dishes."
-          ↓
-  YOU write a record:
-          {type:"preference", subject:"user:8812", key:"diet",
-           value:"vegetarian", source:"run:441:turn:3",
-           confidence:"stated", updated:"2026-03-02"}
-
-  --- the session ends. the model retains NOTHING. ---
-
-SESSION 2, Friday
-  user:   "What should I cook tonight?"
-          ↓
-  YOU retrieve records relevant to this task → the diet preference
-          ↓
-  YOU put it in the context window
-          ↓
-  model:  now behaves as though it "remembered"
+user states preference → scoped record → future retrieval → context
 ```
 
-Every step marked YOU is code you wrote. Skip the write and the preference is gone forever. Skip the retrieval and it sits in a database being ignored.
+Tuesday: “I'm vegetarian.” Friday: a meal-planning request retrieves that preference.
 
-Now the same user in session 3: *"Actually I eat fish now."* The naive implementation appends a second record, and the next retrieval returns both:
+If the user later corrects it to pescatarian, supersede the active value and preserve appropriate provenance.
 
-```text
-{diet: "vegetarian", updated: "2026-03-02"}
-{diet: "pescatarian", updated: "2026-03-09"}
-        ↑ two contradictory facts in the context, and the model picks one
-```
+## 3. Select writes
 
-### Common issue
-
-Which is worse than having no memory at all, because it is confidently inconsistent. A correction has to **supersede** the old value, not sit beside it - and that is a design decision in the store, not something the model can resolve.
-
----
-
-## 3. Writing is the hard part
-
-Nothing persists unless you write it, and writing everything is as bad as writing nothing.
-
-```text
-write when:
-  ✓ the user states a durable preference or constraint
-  ✓ the user corrects the agent
-  ✓ a run concludes with a decision or artifact worth resuming from
-  ✗ every message (the store becomes noise, retrieval degrades)
-```
-
-Write **typed** records, not prose:
+Store durable relevant preferences, corrections, and resumable decisions under the product's consent/retention policy.
 
 ```json
-{"type": "preference", "subject": "user:8812", "key": "timezone",
- "value": "Europe/Berlin", "source": "run:441:step:6",
- "confidence": "stated", "updated": "2026-09-14"}
+{
+  "subject": "user:8812",
+  "key": "timezone",
+  "value": "Europe/Berlin",
+  "source": "user_statement"
+}
 ```
 
-The `source` field is what lets you audit a wrong memory back to where it came from.
+Avoid storing every message or unsupported inference as a fact.
 
-### Rule of thumb
+## 4. Select reads
 
-> If you cannot say which future run will read a memory, do not write it.
+Retrieve memories relevant to the current task, scoped to the user/tenant and bounded in count.
 
----
+Use recency and validity alongside relevance. A stale shipping address can be highly similar and still wrong.
 
-## 4. Reading is retrieval, not loading
+## 5. Lifecycle
 
 ```text
-✗  load everything about this user into the context every run
-✓  retrieve memories relevant to this task, capped, most recent first
+write → retrieve → correct/supersede → expire → delete
 ```
 
-### Core intuition
+Different facts need different lifetimes. Deletion includes derived indexes/caches according to policy.
 
-Loading everything reintroduces the exact problem memory was meant to solve - a full window of mostly irrelevant tokens. Retrieve by relevance to the current goal, cap the count, and prefer recent over old on ties.
+## 6. Poisoning and leakage
 
----
+Treat proposed memories from untrusted content as untrusted. Validate provenance and permitted write rules.
 
-## 5. Memory needs a lifecycle
-
-```text
-write ──► read ──► CORRECT ──► EXPIRE ──► DELETE
-                     ↑            ↑          ↑
-            user says otherwise   TTL    user request / policy
-```
-
-- **Correction**: a new value must supersede the old, not sit beside it. Two contradictory memories retrieved together is worse than having neither.
-- **Expiry**: facts have different lifetimes. A shipping address is durable; "is currently debugging the payments service" is not.
-- **Deletion**: users can ask for their data to be removed, and the store must support it - including anything derived from it.
-
----
-
-## 6. Treat memory as a safety and privacy boundary
-
-Two specific risks matter:
-
-1. **Poisoning.** A memory written from untrusted content becomes a persistent instruction the agent reads on every future run. Never write memories derived from content the agent merely *read*; write from what the user *said* or what a tool authoritatively returned.
-2. **Leakage.** Memories must be scoped by user and tenant at the storage layer. Cross-user retrieval is a data breach, not a bug.
-
----
+Enforce tenant/user isolation in storage and retrieval. Labeling a record “memory” does not make it an instruction or verified truth.
 
 ## What matters most
 
-- **"The model remembers" is always false.** Within a run memory is the transcript you re-send; across runs it is a store you deliberately write to and read from.
-- **Working, episodic, and semantic memory have different lifetimes** - and procedural knowledge belongs in the system prompt, not the store, or memory slowly becomes an un-versioned second prompt.
-- **Writing is the hard part.** Write typed records with a source, on real triggers - a stated preference, a correction, a concluded run - not on every message.
-- **Read by retrieval, not by loading everything,** or you reintroduce the problem memory was meant to solve.
-- **Memory needs a lifecycle:** correction must supersede rather than sit beside the old value, facts need expiry, and deletion must reach derived records.
-- **Never write memories from content the agent merely read** - an injection that lands in memory is re-read on every future run.
-- **Scope every memory read and write by user and tenant at the storage layer.** Cross-user retrieval is a data breach, not a ranking mistake.
-
-Next topic is **Summarization and compaction**.
+> Memory is a maintained notebook with sources and corrections, not an automatic permanent belief.

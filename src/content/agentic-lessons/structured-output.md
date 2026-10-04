@@ -1,157 +1,70 @@
 ## Structured output and schemas
 
-An agent communicates with software, not only with people. Tool requests, plans, decisions, and final results therefore need machine-readable structure.
+A **schema** is the communication contract between model output and application code.
 
-A schema defines the shape of that communication. It reduces parsing failures, but it does not make the content true.
+## 1. Levels of structure
 
----
+| Approach | Checks |
+|---|---|
+| Prompt asks for JSON | Best-effort format |
+| JSON-constrained mode | JSON syntax |
+| Schema-constrained generation | Supported fields/types |
 
-## 1. Three levels of structure
+Handle refusal, truncation, and unsupported schemas according to the interface.
 
-| Method | What it provides | Main weakness |
-|---|---|---|
-| “Return JSON” in the prompt | A formatting request | May produce invalid or extra text |
-| JSON mode | Syntactically valid JSON | Shape may still be wrong |
-| Schema-constrained output | Required fields and allowed types | Values may still be false |
+## 2. Shape is not truth
 
-Use schema-constrained output for interfaces that code must consume. Prompt-only formatting is appropriate only when occasional repair is acceptable.
+```json
+{"order_id": "ORD-99999", "status": "refunded"}
+```
 
----
+Valid structure does not prove the order exists or a refund happened.
 
-## 2. Shape and truth are different guarantees
+> A correctly filled form can contain wrong information.
 
-This object is valid and still unsafe:
+## 3. Allow honest unknowns
 
 ```json
 {
-  "order_id": "ORD-99999",
-  "status": "refunded",
-  "confidence": 0.99
+  "status": "needs_information",
+  "cause": null,
+  "evidence_ids": [],
+  "missing_information": ["order identifier"]
 }
 ```
 
-A schema can verify that the fields exist and have the right types. It cannot verify that the order exists or that a refund occurred.
+Use enums, optional/nullable fields, and evidence references.
 
-### Core intuition
+## 4. Two validation layers
 
-Use schemas for shape. Use tools and validation for truth.
+**Structural:** fields, types, allowed values.
 
----
+**Domain:** ID exists, amount is valid, evidence belongs to the run, transition is legal.
 
-## 3. Design schemas the model can satisfy honestly
+## 5. Handle failures
 
-A bad schema forces invention:
+Repair formatting within a limit. Retrieve facts or ask the user. Return blocked when access is unavailable.
 
-```json
-{
-  "cause": "string",
-  "resolution": "string"
-}
-```
+Do not invent defaults to pass validation.
 
-What if the cause is unknown? A better schema represents that state:
+## 6. Keep contracts small
 
-```json
-{
-  "status": "resolved | needs_information | blocked",
-  "cause": "string | null",
-  "evidence_ids": ["string"],
-  "missing_information": ["string"],
-  "next_action": "string | null"
-}
-```
+Separate investigation results, action proposals, and customer responses. They have different consumers and permissions.
 
-Useful schema choices include:
+## 7. Version schemas
 
-- enums for small known sets,
-- optional or nullable fields for genuinely unknown values,
-- explicit status fields,
-- evidence references for important claims,
-- defaults only when a real default exists.
+Optional additions may be compatible. Changed meanings or new required fields can break consumers.
 
-### Rule of thumb
+Record versions and reject unsupported contracts.
 
-Never require a value the model may not have enough evidence to provide.
-
----
-
-## 4. Validate in two layers
+## 8. Generation is not authorization
 
 ```text
-structural validation
-  - valid JSON
-  - required fields present
-  - correct types and enum values
-
-domain validation
-  - order ID exists
-  - amount is within policy
-  - cited evidence belongs to this run
-  - requested transition is allowed
+generate → parse → validate meaning → authorize → execute
 ```
 
-Structural validation can often happen during generation. Domain validation belongs in application code after parsing.
-
----
-
-## 5. Decide what failure means
-
-When validation fails, choose an explicit response:
-
-```text
-repair once        for a small formatting mismatch
-ask the user       when required input is missing
-call a tool        when an authoritative value can be retrieved
-return blocked     when permission or evidence is unavailable
-stop safely        when retrying could repeat a side effect
-```
-
-Do not silently insert invented defaults to make the object pass.
-
----
-
-## 6. Keep interfaces small
-
-Large nested schemas create more places for inconsistent or unnecessary data. Separate different decisions when they have different lifecycles:
-
-```text
-investigation result → evidence and cause
-action proposal      → requested side effect and justification
-final response       → customer-facing message
-```
-
-This also makes permissions clearer: producing an investigation result is not the same as authorizing an action.
-
----
-
-## 7. Version schemas as public contracts
-
-Store the schema version with every output and trace. Add optional fields compatibly; version renamed fields, changed meanings, or new required values.
-
-Consumers should reject unsupported versions explicitly rather than silently interpreting a new object with old assumptions.
-
----
-
-## 8. Keep generation and authorization separate
-
-A structured action proposal can be perfectly valid and still unauthorized. Parse and validate the object first, then run authorization and policy checks using trusted session state.
-
-```text
-model output → schema validation → semantic validation → authorization → execution
-```
-
-Constrained decoding protects the first arrow only.
-
----
+Use trusted session state for permissions. Valid structure cannot grant access.
 
 ## What matters most
 
-- **Structured output is an interface contract between the model and code.**
-- **Schema-constrained output guarantees shape, not truth.**
-- **Represent unknown, blocked, and incomplete states explicitly.**
-- **Validate both structure and domain meaning.**
-- **Define repair, clarification, retrieval, and safe-stop behavior before failure occurs.**
-- **Prefer several small contracts over one oversized schema.**
-- **Version schemas and authorize after parsing,** because valid structure never grants permission to act.
-
-Next topic is **Defining the agent task contract**.
+> Schemas protect structure; evidence and application checks protect meaning.
