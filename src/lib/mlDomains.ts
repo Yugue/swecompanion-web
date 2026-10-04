@@ -14,6 +14,7 @@ export const DEEP_LEARNING_PATH = `${ML_DOMAIN_PATH}/deeplearning`;
 export const APPLIED_ML_PATH = `${ML_DOMAIN_PATH}/appliedml`;
 export const AGENTIC_AI_PATH = `${ML_DOMAIN_PATH}/agentic`;
 export const RRP_PATH = `${ML_DOMAIN_PATH}/rrp`;
+export const CV_PATH = `${ML_DOMAIN_PATH}/cv`;
 
 /** The ML System Design track (top-bar tab), separate from the per-domain guides. */
 export const ML_SYSTEM_DESIGN_PATH = "/mlsystemdesign";
@@ -27,7 +28,7 @@ export const ML_DOMAINS: { name: string; href?: string }[] = [
   { name: "Agentic AI Development", href: AGENTIC_AI_PATH },
   { name: "Applied Machine Learning → Basics of ML", href: APPLIED_ML_PATH },
   { name: "Recommendations / Ranking / Predictions (RRP)", href: RRP_PATH },
-  { name: "Computer Vision (CV) / Image Processing" },
+  { name: "Computer Vision (CV) / Image Processing", href: CV_PATH },
   { name: "Natural Language Processing / Understanding (NLP / NLU)" },
   { name: "Speech / Audio" },
   { name: "Deep Learning / Neural Networks", href: DEEP_LEARNING_PATH },

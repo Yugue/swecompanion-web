@@ -15,6 +15,7 @@ export function MlSidebar({
   domain = "Deep Learning / Neural Networks",
   totalTopics = mlTopicCount,
   accent = "#4285F4",
+  sectionLabel = "Chapter",
 }: {
   parts: MlPart[];
   completed: Set<string>;
@@ -23,6 +24,7 @@ export function MlSidebar({
   domain?: string;
   totalTopics?: number;
   accent?: string;
+  sectionLabel?: "Chapter" | "Part";
 }) {
   const doneCount = parts.reduce((n, p) => n + p.topics.filter((t) => completed.has(t.id)).length, 0);
 
@@ -53,7 +55,7 @@ export function MlSidebar({
             >
               <Icon size={18} className="shrink-0 text-text-muted" />
               <span className="flex-1 truncate text-[13px] text-text-muted">
-                Ch. {part.number} · {part.title}
+                {sectionLabel === "Part" ? "Part" : "Ch."} {part.number} · {part.title}
               </span>
               <ProgressRing done={done} total={part.topics.length} color={part.color} size={32} />
             </button>

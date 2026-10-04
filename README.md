@@ -11,6 +11,16 @@ and Firebase (Auth + Firestore).
 
 ## Run locally
 
+The Computer Vision / Image Processing guide is available at `/mldomain/cv`: eight Parts and
+48 standalone chapters, with sequential navigation, interview prompts and
+worked answers, and independent local/account progress. Its lesson sources live in
+`src/content/cv-lessons` and its curriculum is defined in `src/lib/cvStudyData.ts`.
+
+Run `npm run check:cv` to validate curriculum coverage, lesson structure, prerequisites,
+tables, and equations through the site's lesson parser.
+After building, `npm run check:cv -- --export` also checks the 48 exported lesson pages,
+internal links, canonical URLs, and sitemap entries.
+
 ```bash
 npm install
 npm run dev

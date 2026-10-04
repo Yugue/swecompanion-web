@@ -4,13 +4,14 @@ import { parseLesson, type LessonBlock } from "./lessonParser";
 
 /** Each study track keeps its lessons in its own directory, so topic ids only have to be
  * unique within a track (both tracks legitimately have a `class-imbalance` lesson). */
-export type LessonTrack = "ml" | "aml" | "agentic" | "rrp";
+export type LessonTrack = "ml" | "aml" | "agentic" | "rrp" | "cv";
 
 const LESSONS_DIR: Record<LessonTrack, string> = {
   ml: path.join(process.cwd(), "src/content/ml-lessons"),
   aml: path.join(process.cwd(), "src/content/aml-lessons"),
   agentic: path.join(process.cwd(), "src/content/agentic-lessons"),
   rrp: path.join(process.cwd(), "src/content/rrp-lessons"),
+  cv: path.join(process.cwd(), "src/content/cv-lessons"),
 };
 
 export function getLessonBlocks(topicId: string, track: LessonTrack = "ml"): LessonBlock[] {

@@ -19,6 +19,7 @@ export function MlPartDetails({
   onToggleTopic,
   basePath = DEEP_LEARNING_PATH,
   partsById = mlPartsById,
+  sectionLabel = "Chapter",
 }: {
   part: MlPart;
   completed: Set<string>;
@@ -27,6 +28,7 @@ export function MlPartDetails({
   onToggleTopic: (id: string) => void;
   basePath?: string;
   partsById?: Record<string, MlPart>;
+  sectionLabel?: "Chapter" | "Part";
 }) {
   const Icon = getIcon(part.icon);
   const done = part.topics.filter((t) => completed.has(t.id)).length;
@@ -53,7 +55,7 @@ export function MlPartDetails({
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-lg font-bold tracking-tight text-text">
-            Chapter {part.number} — {part.title}
+            {sectionLabel} {part.number} — {part.title}
           </h3>
           <p className="text-sm leading-relaxed text-text-muted">{part.description}</p>
         </div>
