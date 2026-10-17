@@ -342,19 +342,10 @@ where:
 
 is the attention weight.
 
-Mental picture:
+A complete scalar-valued example:
 
-```text
-Value("animal") × 0.65 ──┐
-Value("street") × 0.07 ──┤
-Value("tired")  × 0.15 ──┤
-Value("The")    × 0.02 ──┤
-                         ▼
-                         Σ
-                         │
-                         ▼
-                  new representation
-                       of "it"
+```dl-visual
+attention
 ```
 
 So the output representation isn't just:

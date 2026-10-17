@@ -1,99 +1,45 @@
 ## Baselines worth beating
 
-**The dumbest recommender - show everyone the most popular thing - is much harder to beat than people expect.** Quoting your model against it is the first honest thing you can do.
+A **baseline** is a reference method evaluated under the same conditions as a candidate. In recommendation, simple popularity, history, and co-occurrence rules can be strong references.
 
----
+## 1. Build a useful comparison ladder
 
-## 1. Why popularity is so strong
+| Reference | Mechanism | Limitation to test |
+|---|---|---|
+| Popularity | Most engaged-with eligible items | Counts reflect exposure and age |
+| Contextual popularity | Popular within a region, query, or category | Small segments can be noisy |
+| Recency | Recently published eligible items | New does not imply useful |
+| Personal history | Continue watching or buy again | Wrong for some discovery tasks |
+| Item co-occurrence | Items consumed alongside recent history | Sparse overlaps and popularity effects |
 
-Attention is extremely concentrated. In most catalogues a tiny fraction of items collects most of the engagement:
+The current production system is another important baseline, even if it is complex. It is the process a new candidate must improve or replace.
 
-```text
-     engagement
-        │▇
-        │▇▇
-        │▇▇▇▇
-        │▇▇▇▇▇▇▇▇▇▇▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-        └──────────────────────────────────────────── items
-          the few                the long tail
-```
+## 2. Read the gain with its costs
 
-### Core intuition
-
-Guessing "the popular thing" is right surprisingly often, because frequently consumed items capture substantial demand—although their counts also reflect past exposure.
-
----
-
-## 2. The ladder of baselines
+Suppose the same evaluation gives:
 
 ```text
-1. most popular overall              ← the floor
-2. most popular in this context      ← by country, by device, by time of day
-3. most popular in this category     ← given the page the user is on
-4. the user's own history            ← recently viewed, bought before, more of the same
-5. a simple learned model            ← item-item co-occurrence
+popularity-in-context       recall@100 = 0.24
+history plus co-occurrence              = 0.29
+learned retrieval                      = 0.31
 ```
 
-Each rung is cheap and each is a real system that someone could ship. Your model has to beat the highest rung you could have built in a week, not the lowest.
+The learned candidate gains 0.02, or two percentage points, over the stronger simple reference. Whether that matters depends on uncertainty, traffic, useful discoveries, latency, and maintenance.
 
-### Rule of thumb
+A small gain does not automatically mean weak personalization or a broken model. The baseline may already be good, the labels incomplete, or the improvement valuable only in specific slices.
 
-> "Recall@100 of 0.31" means nothing. "0.31 against 0.24 for popularity-in-context" is a result.
+## 3. Keep the comparison fair
 
----
+Use the same eligible inventory, request set, list length, duplicate rules, and outcome window. Build popularity from events available before the evaluation decision, not tomorrow's clicks.
 
-## 3. Personal history is the underrated one
+If a baseline uses only known items while a candidate can introduce new ones, report that coverage difference explicitly. Missing labels for discoveries make a logged metric incomplete evidence about their value.
 
-For many products, "show them more of what they just looked at" is startlingly competitive:
+For uncertain comparisons, inspect paired per-user or per-request differences with a method that respects dependence. A score improvement alone does not establish the causal benefit of personalization; the systems may differ in several ways.
 
-```text
-user viewed  → running shoes
-recommend    → running shoes, running socks, the same shoes in another colour
-```
+## 4. Keep a reference available in operation
 
-### Rule of thumb
+A cached popularity or curated list can provide a fallback when a learned system is unavailable. It still needs current eligibility checks and an expiration policy.
 
-It requires no model at all. If a personalized system cannot clearly beat this, the personalization is not yet earning its infrastructure.
+Monitor the reference and candidate under comparable traffic. A sudden relative regression can suggest broken data or serving behavior, but is a diagnostic cue rather than proof of one cause.
 
----
-
-## 4. Reading the gap
-
-```text
-popularity              recall@100 = 0.24
-history + co-occurrence            = 0.29
-matrix factorization               = 0.31
-a learned retrieval model          = 0.34
-```
-
-The important result is not the method names but how much improvement each additional level of complexity contributes.
-
-The shape of that ladder is the finding. If most of the value arrives on the second rung, the sophisticated model is buying a little accuracy for a lot of operational cost - a trade worth making explicitly rather than by default.
-
-And if a large model barely beats popularity, suspect one of three things:
-
-- the personalization signal is genuinely weak (very new users, very sparse logs),
-- the features do not carry the signal,
-- the metric is not measuring what the model improved.
-
-**Baselines are also a safety net.** Keep the popularity list running in production. It is your fallback when the model service times out, your control in a randomized **A/B test** (current system A versus candidate B), and your canary when something upstream breaks—if the model cannot beat popularity this morning, something is wrong today.
-
----
-
-## 5. Make the comparison fair
-
-Use the same eligible catalogue, held-out requests, list length, and policy filters for every baseline. Compute popularity using only events before each evaluation period; tomorrow's clicks are not a legitimate baseline feature.
-
-Report quality alongside serving cost. A complex model that barely improves the score but doubles latency has not automatically earned a launch.
-
----
-
-## What matters most
-
-- **Popularity is a strong baseline** because attention is concentrated, and it is the floor every model must clear.
-- **Quote every result against it.** An absolute number alone is not evidence.
-- **The user's own recent history is the underrated baseline** and needs no model at all.
-- **The shape of the ladder is the finding** - if most value arrives early, the complex model is buying little for a lot.
-- **Keep the baseline running in production** as a fallback, an A/B control, and a canary.
-
-Next topic is **Cold start**.
+> **Mental image:** each rung shows what added complexity buys over a credible alternative. Measure the next rung, not just the height above the floor.

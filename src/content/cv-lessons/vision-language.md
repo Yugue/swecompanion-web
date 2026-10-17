@@ -2,9 +2,9 @@
 
 ## 1. Recognize through descriptions
 
-A fixed classifier predicts predefined IDs. An image/text embedding model compares images with descriptions chosen after training.
+**Vision–language learning** trains models to relate visual content and text. **Open-vocabulary recognition** allows category descriptions beyond a fixed trained output-ID list.
 
-**CLIP-style learning** aligns image and text encoders using paired images and captions.
+**CLIP (Contrastive Language–Image Pretraining)** trains an image encoder and a text encoder so paired images/captions have higher similarity than mismatched pairs. Their vectors occupy a compatible comparison space.
 
 > Mental image: images and descriptions become points in a shared space.
 
@@ -24,7 +24,9 @@ Matched pairs are positives; other batch pairs are typically negatives. Duplicat
 
 ## 3. Zero-shot scores
 
-For normalized image vector \(v\), description vector \(t_c\), and temperature \(\tau\):
+**Zero-shot classification** selects a target category without training on labeled examples for that specified downstream adaptation step, for example by comparing an image with text descriptions.
+
+For normalized image vector \(v\), description vector \(t_c\), and **temperature** \(\tau\), a positive score-scaling divisor controlling distribution sharpness:
 
 \[
 s_c=\frac{v^Tt_c}{\tau},\qquad
@@ -41,23 +43,23 @@ Zero-shot means no labeled examples for the specified downstream adaptation. It 
 
 Open-vocabulary detection adds localization machinery. Image-level similarity cannot supply a trustworthy box by itself.
 
-Compare zero-shot prediction with linear probes, few-shot adaptation, or supervised training on target data.
+**Few-shot adaptation** uses a small number of labeled target examples. Compare it and fixed-feature linear probes with zero-shot prediction or fuller supervised training.
 
 ## 5. Generate text from images
 
-A generative model conditions each next token on the image and previous text:
+A **generative vision–language model** produces a text sequence conditioned on image features and a text prompt. A text **token** is a unit such as a word fragment. It predicts each next token from the image and previous tokens:
 
 \[
 P(y_{1:T}\mid I)=\prod_{t=1}^{T}P(y_t\mid y_{<t},I)
 \]
 
-Image features enter through cross-attention or another connector. Causal masking hides future output tokens during training.
+Here I is the image, \(y_t\) the next text token, and \(y_{<t}\) all earlier output tokens. Image features enter through cross-attention or another connector. Causal masking hides future output tokens during training.
 
 Fluent captions and answers can still contain unsupported visual claims.
 
 ## 6. Evaluate grounding
 
-Test counting, spatial relations, small text, rare objects, and unsupported statements.
+**Grounding** means connecting a claim or output to actual image evidence, optionally a specific region. Test counting, spatial relations, small text, rare objects, and unsupported statements.
 
 Match metrics to the task: OCR edits, exact extracted fields, answer correctness, or localization.
 

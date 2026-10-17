@@ -2,7 +2,7 @@
 
 ## 1. Create another valid observation
 
-**Augmentation** teaches variation the task should tolerate.
+**Data augmentation** generates training variants by transforming images and their targets. It teaches variation the task should tolerate.
 
 Example: a flipped cat is still a cat. Flipped text may no longer be readable.
 
@@ -13,17 +13,16 @@ Example: a flipped cat is still a cat. Flipped text may no longer be readable.
 | Family | Examples | Target handling |
 |---|---|---|
 | Geometric | Crop, flip, rotate | Transform coordinates/masks |
-| Photometric | Brightness, contrast | Keep geometry; check meaning |
+| Photometric: change pixel appearance without moving positions | Brightness, contrast | Keep geometry; check meaning |
 | Occlusion | Erasing | Define visibility policy |
 | Composition | Mixup, CutMix | Recompute contributions |
 
-Color jitter can invalidate color-defined labels. Flips can swap anatomy or orientation classes.
+**Color jitter** randomly changes brightness, contrast, saturation, or hue. It can invalidate color-defined labels. Flips can swap anatomy or orientation classes.
 
 ## 3. Synchronize labels
 
-```text
-image ── same geometric transform ─→ image
-target ────────────────────────────→ target
+```cv-visual
+paired-augmentation
 ```
 
 After cropping:
@@ -36,6 +35,8 @@ A person flip requires left/right joint-index swapping as well as coordinate cha
 
 ## 4. Mixup and CutMix
 
+**Mixup** is a training augmentation that blends two images pixelwise and blends their target distributions with the same weight \(\lambda\):
+
 \[
 \tilde x=\lambda x_a+(1-\lambda)x_b,\qquad
 \tilde y=\lambda y_a+(1-\lambda)y_b
@@ -43,7 +44,7 @@ A person flip requires left/right joint-index swapping as well as coordinate cha
 
 Example: lambda 0.7 gives a cat/dog target **[0.7,0.3]**.
 
-CutMix pastes a region; target weights commonly follow actual pasted area after clipping.
+**CutMix** is a training augmentation that replaces a region with a crop from another image. Target weights commonly follow the actual pasted area after clipping.
 
 Boxes/masks need task-specific targets, not just mixed image-level labels.
 
@@ -55,7 +56,7 @@ Boxes/masks need task-specific targets, not just mixed image-level labels.
 
 Example: training for a two-pixel scratch with heavy blur teaches examples lacking visible scratches.
 
-Inspect samples and run controlled ablations.
+A **controlled ablation** changes/removes one component while holding the comparison conditions fixed. Inspect samples and use ablations to test whether an augmentation helps.
 
 ## 6. Minimal example
 
@@ -75,7 +76,7 @@ Use joint image/target transforms for structured labels.
 
 - Training: stochastic valid variation.
 - Validation: controlled preprocessing.
-- Test-time augmentation: combine several transformed predictions.
+- **Test-time augmentation (TTA):** predict on several transformed views of one input and combine their restored outputs.
 
 Map boxes/masks back before merging. Extra views cost extra inference and may hide disagreement; compare under the same latency budget.
 

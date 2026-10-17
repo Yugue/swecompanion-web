@@ -2,7 +2,7 @@
 
 ## 1. Start with a measurement of light
 
-A camera records **light measurements**, which become pixel values.
+A camera records light as **pixels**: samples on a two-dimensional grid. Each pixel stores one or more numeric measurements.
 
 ```text
 scene + lighting → lens → sensor → processing → image
@@ -14,9 +14,9 @@ The same object can look different under another light, exposure, or camera.
 
 ## 2. Exposure, blur, and clipping
 
-- **Longer exposure:** more light, but more motion blur.
-- **Larger aperture:** more light; changes depth of field.
-- **Gain:** amplifies the signal and existing noise.
+- **Exposure time:** how long the sensor collects light. Longer exposure increases motion blur when the scene moves.
+- **Aperture:** the lens opening. A larger opening admits more light and changes **depth of field**, the distance range that appears sharp.
+- **Gain:** amplification of the sensor signal; it also amplifies existing noise.
 
 Example: a conveyor moves at 800 pixels/second during a 10 ms exposure.
 
@@ -26,9 +26,11 @@ Example: a conveyor moves at 800 pixels/second during a 10 ms exposure.
 
 A two-pixel scratch may disappear.
 
-**Clipping:** two different bright surfaces both become 255. Contrast adjustment cannot recover their difference.
+**Clipping** limits stored measurements to the available numeric range: two different bright surfaces can both become 255. Contrast adjustment cannot recover their difference.
 
 ## 3. Digital images are arrays
+
+A **channel** is one measurement per pixel. **RGB** stores red, green, and blue channels; **grayscale** stores one brightness-like value. A **batch** groups images for processing together.
 
 | Representation | Shape |
 |---|---|
@@ -41,20 +43,28 @@ H/W are height/width, C channels, B batch size.
 
 Example: 32 RGB images at 224 × 224 become **[32, 3, 224, 224]**.
 
+```cv-visual
+rgb-channels
+```
+
 Eight-bit values use 0–255; model floats may use 0–1 or standardized values.
 
 ## 4. Encoding and orientation
 
+**Encoding** stores image data in a file format. **Lossy compression** discards information; **lossless compression** reproduces the stored pixels exactly.
+
 - **JPEG:** lossy; can remove detail or introduce blocks.
 - **PNG:** preserves stored pixels, including any existing blur.
-- **EXIF:** may specify a rotation.
+- **EXIF (Exchangeable Image File Format) metadata:** information stored with the image, such as orientation; a decoder may need to rotate the pixels.
 - **Alpha:** transparency, not automatically a model feature.
 
-Decoded RGB may already include white balance and tone mapping.
+Decoded RGB may already include **white balance**, channel adjustments for the lighting color, and **tone mapping**, remapping brightness into the stored/displayed range.
 
 ## 5. Convert an image into a tensor
 
-For an RGB uint8 array, with PyTorch imported:
+A **tensor** is a numeric array with named dimensions. Here, **uint8** means unsigned 8-bit integers, from 0 to 255.
+
+**PyTorch** is a tensor-computation and neural-network library, imported here as torch. For an RGB uint8 array:
 
 ```python
 x = torch.from_numpy(image).permute(2, 0, 1).float() / 255

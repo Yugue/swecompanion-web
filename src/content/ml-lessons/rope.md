@@ -44,43 +44,11 @@ Take two dimensions of a Query vector:
 [q_1,q_2]
 \]
 
-Think of those two numbers as coordinates of a vector:
+The two coordinates form a vector in a plane. Rotate each Query and Key pair by its position-dependent angle:
 
-```text
-y
-│
-│       ↗ q
-│
-│
-└──────────── x
+```dl-visual
+rope
 ```
-
-RoPE rotates that vector by an angle determined by the token's position.
-
-Position 0:
-
-```text
-       ↗
-```
-
-Position 1:
-
-```text
-        ↑
-       /
-```
-
-Position 2:
-
-```text
-      ↖
-```
-
-etc.
-
-The same happens to Keys.
-
-genui{"learning_viz":{"type_id":"UNIT_CIRCLE"}}
 
 Think of moving around the circle as the token position increases.
 

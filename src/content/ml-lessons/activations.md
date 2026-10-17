@@ -243,6 +243,10 @@ Transformers such as BERT and many GPT-style architectures commonly use GELU-lik
 - **MLP/CNN:** ReLU is a good default.
 - **Transformer:** GELU is a common default.
 
+```dl-visual
+activations
+```
+
 ---
 
 # 6. Why sigmoid causes vanishing gradients

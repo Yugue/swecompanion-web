@@ -2,7 +2,7 @@
 
 ## 1. Learn a correction
 
-A residual block computes:
+A **residual block** is a network module that adds a learned correction F(x) to an input x through a **shortcut**, a path bypassing that learned branch:
 
 \[
 y=x+F(x)
@@ -18,9 +18,8 @@ This can make added depth easier to optimize.
 
 ## 2. The shortcut carries gradients
 
-```text
-x ────────── identity ──────────┐
- └→ learned branch → F(x) ─────┴→ add → y
+```cv-visual
+residual
 ```
 
 For a scalar:
@@ -31,7 +30,7 @@ For a scalar:
 
 The “1” comes from the shortcut. It supports flow without guaranteeing stability.
 
-Addition requires compatible shapes; concatenation is a different operation.
+An **identity shortcut** passes x unchanged. Addition requires compatible shapes; **concatenation** instead joins arrays along an axis and changes that dimension.
 
 ## 3. When shapes differ
 
@@ -39,9 +38,9 @@ Example:
 - Input: [B,64,H,W].
 - Branch: [B,128,H/2,W/2].
 
-A 1 × 1 stride-two projection can align the shortcut. It is then no longer pure identity.
+A **projection shortcut** uses a learned transform to match dimensions. A 1 × 1 stride-two convolution can align the shortcut. It is then no longer pure identity.
 
-A bottleneck commonly uses:
+A **bottleneck block** temporarily reduces channels to make the spatial convolution cheaper. It commonly uses:
 
 **1 × 1 reduce channels → 3 × 3 spatial work → 1 × 1 restore channels.**
 
@@ -61,13 +60,15 @@ Classification can aggregate late features; localization often needs several sta
 
 ## 5. Feature pyramids
 
+A **Feature Pyramid Network (FPN)** combines backbone maps at several resolutions so fine maps also receive broad semantic context.
+
 ```text
 fine features ───────────┐
                          + → context-rich fine features
 coarse features → resize┘
 ```
 
-Lateral projections align channels; top-down upsampling brings coarse context to fine maps.
+**Lateral projections** transform each stage's channels to a compatible width. **Upsampling** increases a map's spatial resolution; the top-down path uses it to bring coarse context to fine maps.
 
 **Image pyramid:** resized raw images.
 
@@ -85,7 +86,7 @@ Compare quality and serving cost under matched conditions.
 
 ## 7. Residuals and normalization
 
-Residuals change **information paths**. Normalization changes **feature statistics**.
+Residuals change **information paths**. **Feature normalization** recenters/rescales internal activations using selected statistics.
 
 They complement the same convolutions and receptive-field rules; neither replaces correct shapes or useful input evidence.
 

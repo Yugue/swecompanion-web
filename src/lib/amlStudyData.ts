@@ -39,12 +39,11 @@ export const amlParts: AmlPart[] = [
         id: "what-is-ml",
         title: "What machine learning is",
         summary:
-          "Machine learning works out its own rules from examples instead of a person writing them down; it is worth using only when the rules are unknown, too numerous to maintain, or keep changing.",
+          "Machine learning fits a model from data to predict outcomes or find patterns in new examples.",
         keyPoints: [
-          "Traditional software encodes rules a human already knows; ML infers the rules from labelled examples of the behavior you want.",
-          "What comes out is a score, not a decision - a threshold and an action are what turn that score into something the product does.",
-          "ML is the right tool when rules are hard to write, tolerate being occasionally wrong, and when enough representative data exists.",
-          "Every ML system inherits the biases, gaps, and staleness of the data it learned from - a rule engine does not.",
+          "Training fits the model; generalization means useful behavior on new examples.",
+          "Model outputs can be numbers, categories, probabilities, or groups.",
+          "Compare against explicit rules and include data, serving, and monitoring costs.",
         ],
         interviewPrompt:
           "A team wants ML for 'flag transactions over $10,000 from new accounts'. Explain why a rule beats a model here, and what would change your answer.",
@@ -54,12 +53,11 @@ export const amlParts: AmlPart[] = [
         id: "learning-paradigms",
         title: "Supervised, unsupervised, and self-supervised learning",
         summary:
-          "Which of the three you use is decided by whether your examples already have the right answer attached, not by which algorithm you prefer.",
+          "A learning paradigm describes the signal used to learn: supplied targets, structure, or targets constructed from the data.",
         keyPoints: [
-          "Supervised learning has examples with the answer attached, and trains its predictions against those known answers.",
-          "Unsupervised learning has only the inputs and looks for structure: groups that belong together, what counts as normal, which directions in the data actually matter.",
-          "Self-supervised learning invents the answer from the input itself - hide a word and predict it - which is how most large models are first trained.",
-          "Semi-supervised and weak supervision sit in between: a small labelled set plus a large unlabelled one, or noisy programmatic labels.",
+          "Supervised learning predicts supplied labels; unsupervised learning finds structure without per-example targets.",
+          "Self-supervised learning constructs prediction tasks from the data itself.",
+          "Semi-supervised learning, weak supervision, and active learning address different label constraints.",
         ],
         interviewPrompt:
           "You have 10 million user sessions and 2,000 human-reviewed labels. Which paradigms are actually available to you, and in what order would you use them?",
@@ -69,12 +67,11 @@ export const amlParts: AmlPart[] = [
         id: "features-and-labels",
         title: "Features, labels, and a training example",
         summary:
-          "One row of training data is a snapshot of what the model will know at prediction time, paired with what actually happened afterwards.",
+          "A training example pairs available inputs with a target; define its unit and prediction time explicitly.",
         keyPoints: [
-          "The features (written x) are what you knew before the outcome; the label (written y) is the outcome you want to predict.",
-          "The design matrix X is [n_samples, n_features] - state the shape and the unit of a row (per user, per session, per item pair).",
-          "A label needs an operational definition: 'churned' must specify a window, an event, and how it is observed.",
-          "If a value could only be known after the outcome, it is not a feature - using it anyway is called leakage, and it is the most expensive bug in this domain.",
+          "Features describe the input; a supervised label states the target to predict.",
+          "A tabular design matrix has one row per example and one column per feature.",
+          "Use values available at prediction time, and wait for the full label window before assigning outcomes.",
         ],
         interviewPrompt:
           "Define one training row for a food-delivery ETA model: what is the unit, what is in x, what is y, and when does y become observable?",
@@ -84,12 +81,11 @@ export const amlParts: AmlPart[] = [
         id: "task-types",
         title: "Regression, classification, ranking, and clustering",
         summary:
-          "The task type is the shape of the answer you want back - a number, a category, an ordering, or a grouping - and it decides the metric and the decision the system makes.",
+          "Choose the output shape from the decision: a number, category, ordering, or group.",
         keyPoints: [
-          "Regression predicts a continuous value; classification predicts one of C classes; ranking predicts an ordering over candidates.",
-          "Binary, multiclass, and multilabel are three different problems: the first two pick exactly one answer, while multilabel lets several be true at once, so each gets its own yes/no decision.",
-          "Ranking only needs the order to be right, so its scores never have to be believable as probabilities.",
-          "Clustering has no right answer at all, so it is judged by whether the groups are stable and whether anyone can use them.",
+          "Regression predicts numbers; classification predicts categories or class probabilities.",
+          "Multiclass outcomes are mutually exclusive; multilabel outcomes can occur together.",
+          "Ranking, probability calibration, and clustering usefulness require different evaluation.",
         ],
         interviewPrompt:
           "'Predict how likely a user is to churn' - argue for framing it as binary classification, as regression on time-to-churn, and as ranking, then pick one.",
@@ -99,12 +95,11 @@ export const amlParts: AmlPart[] = [
         id: "parameters-vs-hyperparameters",
         title: "Parameters, hyperparameters, and capacity",
         summary:
-          "Parameters are fitted from the training data; hyperparameters are chosen by you and judged on validation data.",
+          "Parameters are fitted values; hyperparameters configure the model or learning procedure.",
         keyPoints: [
-          "Weights and split thresholds are parameters; tree depth, the k in k-nearest-neighbours, and the strength of any simplicity penalty are hyperparameters.",
-          "Capacity is how complicated a pattern the model can express - more capacity fits more of the real signal, and more of the noise too.",
-          "Hyperparameters are what you use to trade capacity against generalization, which is why they are tuned on validation data.",
-          "Anything tuned by looking at a dataset has 'used up' that dataset - which is exactly why the test set stays untouched.",
+          "Coefficients and split thresholds are fitted; depth and penalty strength are chosen.",
+          "Capacity describes which patterns a model can express; not every setting changes capacity.",
+          "Choose configurations on validation data and reserve independent final evaluation.",
         ],
         interviewPrompt:
           "Is the number of clusters k in k-means a parameter or a hyperparameter, and how does that change how you would pick it?",
@@ -114,12 +109,11 @@ export const amlParts: AmlPart[] = [
         id: "train-val-test",
         title: "Train, validation, and test splits",
         summary:
-          "Three splits exist to answer three different questions: how to fit, which model to choose, and how well the chosen model will do.",
+          "Training fits, validation chooses, and test evaluates the procedure after choices are fixed.",
         keyPoints: [
-          "Train fits parameters, validation compares candidates and tunes hyperparameters, test estimates generalization once.",
-          "Every peek at the test set leaks a little information; repeated peeking turns it into a second validation set.",
-          "Split by the unit that must not be shared: by user, by account, by patient - grouped rows in two splits inflate your score.",
-          "If the data has time in it, split chronologically; a random split lets the model train on the future.",
+          "Make the split match new rows, unseen entities, future periods, or the combination deployment requires.",
+          "Respect historical feature and label availability, including delayed outcomes.",
+          "Refit preprocessing inside each training fold; repeated test-driven changes consume independence.",
         ],
         interviewPrompt:
           "Your validation score keeps improving across 200 experiments but the test score does not. What happened, and what would you do differently?",
@@ -129,12 +123,11 @@ export const amlParts: AmlPart[] = [
         id: "confusion-matrix",
         title: "Confusion matrix, precision, and recall",
         summary:
-          "Every classification metric is a different summary of the same four counts, chosen to match which mistake is expensive.",
+          "A confusion matrix counts decisions against actual classes; precision and recall use different denominators.",
         keyPoints: [
-          "TP and TN are correct positive and negative predictions; FP is a false alarm; FN is a missed positive case.",
-          "Precision = TP/(TP+FP) answers 'when we flagged it, were we right'; recall = TP/(TP+FN) answers 'of the real positives, how many did we catch'.",
-          "F1 is the harmonic mean, which punishes a lopsided pair more than an arithmetic mean would.",
-          "Accuracy is only informative when the classes are roughly balanced and both errors cost the same; macro and micro averaging handle multiclass imbalance differently.",
+          "TP and TN are correct decisions; FP is a false alarm and FN a missed positive.",
+          "Precision asks how many flags are correct; recall asks how many actual positives were found.",
+          "Accuracy, F-scores, and class averaging summarize decisions; ranking and probability scores need more information.",
         ],
         interviewPrompt:
           "Cancer screening versus spam filtering: which metric leads in each case, and what is the cost of getting that choice backwards?",
@@ -144,12 +137,11 @@ export const amlParts: AmlPart[] = [
         id: "regression-metrics",
         title: "Regression metrics",
         summary:
-          "Regression metrics differ mainly in how they punish large errors and whether they are expressed in the target's units.",
+          "Regression metrics compare error size, sensitivity to large misses, and the meaning of the target units.",
         keyPoints: [
-          "MAE is in target units and robust; MSE punishes large errors quadratically; RMSE restores the units of MSE.",
-          "R² is the fraction of variance explained relative to predicting the mean - it can be negative for a bad model.",
-          "MAPE is scale-free and intuitive but explodes near zero and is asymmetric about over- and under-prediction.",
-          "For skewed targets, evaluating in log space (RMSLE) matches how the error is actually felt.",
+          "MAE averages absolute error; MSE squares it; RMSE restores the original units.",
+          "Held-out R² compares squared error with the evaluation-set mean and can be negative.",
+          "Percentage, log-space, and quantile metrics suit different costs; inspect residual patterns too.",
         ],
         interviewPrompt:
           "A delivery-ETA model has RMSE 6 minutes and MAE 3 minutes. What does that gap tell you about the error distribution?",
@@ -159,30 +151,28 @@ export const amlParts: AmlPart[] = [
         id: "baselines",
         title: "Baselines and when not to use ML",
         summary:
-          "A baseline turns 'the model gets 87%' into a statement that means something, and often shows the model is not needed at all.",
+          "A baseline supplies a fair reference for deciding whether a candidate model adds useful value.",
         keyPoints: [
-          "Always quote a trivial baseline: majority class, global mean, last-value-carried-forward, or the existing business rule.",
-          "A simple model (logistic regression, gradient-boosted trees) is the second baseline, and often the final model.",
-          "The gap between baseline and model is the value of the ML; the absolute number alone is meaningless.",
-          "If the rule-based baseline is within noise of the model, ship the rule - it is cheaper to run, explain, and debug.",
+          "Compare trivial predictors, the current system, and a simple fitted model.",
+          "Use the same evaluation examples and decision constraints for each candidate.",
+          "Assess uncertainty and operating cost; failing to beat a baseline does not by itself prove a bug.",
         ],
         interviewPrompt:
           "Your fraud model has 99.2% accuracy. What baseline do you compute first, and what does it likely tell you?",
-        code: "DummyClassifier(strategy=\"most_frequent\").fit(X, y).score(X_test, y_test)",
+        code: "DummyClassifier(strategy=\"most_frequent\").fit(X_train, y_train).score(X_test, y_test)",
       },
       {
         id: "bias-variance",
         title: "Bias-variance tradeoff",
         summary:
-          "Expected error decomposes into bias from wrong assumptions, variance from sensitivity to the sample, and irreducible noise.",
+          "Bias is systematic prediction error; variance is sensitivity to which training sample was observed.",
         keyPoints: [
-          "High bias means systematic error - the model cannot represent the pattern; it underfits.",
-          "High variance means the fitted function changes a lot with a different training sample; it overfits.",
-          "Capacity, regularization, and data volume are the three levers that move you along the tradeoff.",
-          "Irreducible noise sets a ceiling: no model can beat the ambiguity in the labels themselves.",
+          "The exact bias² + variance + noise decomposition applies to expected squared error under stated assumptions.",
+          "Train/validation gaps are clues, not direct measurements of bias and variance.",
+          "Use learning curves and pipeline checks to choose between better data, useful capacity, and regularization.",
         ],
         interviewPrompt:
-          "You are at 62% train and 61% validation accuracy. Is more data the right next move? Justify from the decomposition.",
+          "You are at 62% train and 61% validation accuracy. What would you check before choosing more data or more capacity?",
         code: "error = bias² + variance + irreducible_noise",
       },
     ],
@@ -200,12 +190,11 @@ export const amlParts: AmlPart[] = [
         id: "data-cleaning",
         title: "Missing values, outliers, and duplicates",
         summary:
-          "Cleaning is not a chore before the modelling; how you handle a missing value is itself a modelling decision.",
+          "Cleaning repairs recording problems and represents missing or unusual observations without erasing useful signal.",
         keyPoints: [
-          "Ask why a value is missing: missing at random, or missing because of the outcome (which is signal, and sometimes leakage).",
-          "Imputation choices - mean/median, a sentinel, a model-based fill - must be fitted on train only and applied to validation and test.",
-          "Add an 'is_missing' indicator when missingness itself is predictive; tree models can often handle NaNs natively.",
-          "An outlier can be a data error, a heavy tail, or the exact event you are trying to predict - never delete it reflexively.",
+          "Fit imputation values and data-derived clipping thresholds on training folds only.",
+          "Missingness indicators can retain information that a filled value loses.",
+          "Distinguish erroneous records, real extremes, and genuine repeated events before deleting rows.",
         ],
         interviewPrompt:
           "Income is missing for 30% of users. Walk through how you decide between dropping the column, imputing, and treating missingness as a feature.",
@@ -215,12 +204,11 @@ export const amlParts: AmlPart[] = [
         id: "feature-scaling",
         title: "Feature scaling and normalization",
         summary:
-          "Scaling matters for models that compare distances or penalize coefficient size, and is irrelevant for models that split on thresholds.",
+          "Scaling changes how units contribute to distances, coefficient penalties, and optimization.",
         keyPoints: [
-          "Standardization gives zero mean and unit variance; min-max squashes into a fixed range; robust scaling uses the median and IQR.",
-          "Distance-based models (k-NN, k-means, SVM with RBF), gradient descent, and regularized linear models need scaling.",
-          "Trees and tree ensembles are invariant to monotone rescaling of a feature - it does not change the split ordering.",
-          "Fit the scaler on the training split and reuse its statistics everywhere else, or you leak test information into training.",
+          "Standardization, min-max scaling, and robust scaling use different fitted statistics.",
+          "Distance methods and regularized linear models often benefit; ordinary threshold trees usually need no scaling.",
+          "Fit statistics on training data and reuse them in evaluation and serving.",
         ],
         interviewPrompt:
           "Why does standardizing features change an L2-regularized logistic regression's coefficients but not a decision tree's splits?",
@@ -230,12 +218,11 @@ export const amlParts: AmlPart[] = [
         id: "categorical-encoding",
         title: "Encoding categorical features",
         summary:
-          "A categorical column has to become numbers, and the encoding you pick decides what the model is allowed to learn about it.",
+          "Encoding represents named feature values numerically while controlling the assumptions introduced.",
         keyPoints: [
-          "One-hot is the safe default for low cardinality; it assumes no ordering and costs one column per level.",
-          "Ordinal/label encoding is correct only when the levels genuinely have an order (small < medium < large).",
-          "Target (mean) encoding is compact and powerful for high cardinality, but leaks unless computed out-of-fold.",
-          "Hashing bounds the dimensionality at the cost of collisions; learned embeddings are the dense-vector version used at scale.",
+          "One-hot creates category switches; ordinal codes also introduce numeric spacing.",
+          "Smoothed target encoding needs out-of-fold values with appropriate group or time restrictions.",
+          "Plan unseen and rare category handling; compare hashing, embeddings, or native category support where appropriate.",
         ],
         interviewPrompt:
           "You have a zip-code feature with 40,000 levels. Compare one-hot, target encoding, and hashing for a gradient-boosted model.",
@@ -245,12 +232,11 @@ export const amlParts: AmlPart[] = [
         id: "feature-engineering",
         title: "Feature engineering",
         summary:
-          "Feature engineering is how domain knowledge enters the model: the right transform can do more than a larger model.",
+          "Feature engineering creates useful inputs that make relationships easier for a model to express.",
         keyPoints: [
-          "Ratios, rates, differences, and time-window aggregates usually generalize better than raw counts.",
-          "Log or Box-Cox transforms tame skewed, long-tailed numerics; binning buys robustness and loses resolution.",
-          "Explicit interaction and cross features give linear models the nonlinearity that trees discover by themselves.",
-          "Time features (hour-of-day, day-of-week) are cyclic - encode them with sine/cosine rather than as a raw integer.",
+          "Aggregates, rates, recency, and interactions answer different questions about the same events.",
+          "Match window units and preserve denominator counts when constructing rates.",
+          "Cyclic coordinates and log transforms can expose structure; keep features that improve honest validation.",
         ],
         interviewPrompt:
           "Give three engineered features for a ride-hailing ETA model and say which model family would benefit most from each.",
@@ -260,30 +246,28 @@ export const amlParts: AmlPart[] = [
         id: "leakage",
         title: "Data leakage",
         summary:
-          "Leakage is information in training that will not exist at prediction time; it produces excellent offline numbers and a useless model.",
+          "Leakage uses information unavailable in the prediction or evaluation setting being claimed.",
         keyPoints: [
-          "Target leakage: a feature is a consequence of the label (a 'fraud_investigation_opened' flag when predicting fraud).",
-          "Preprocessing leakage: scaling, imputing, or selecting features using statistics computed over the full dataset before splitting.",
-          "Temporal leakage: any feature aggregated over a window that extends past the prediction timestamp.",
-          "Group leakage: the same user, device, or image appearing in both train and test through a naive random split.",
+          "Reconstruct exact feature values as known at the historical prediction time.",
+          "Fit preprocessing and label-based selection inside training folds.",
+          "Group and time restrictions follow the intended deployment claim; pipelines cannot fix already-leaky inputs.",
         ],
         interviewPrompt:
           "A model jumps from 0.82 to 0.99 AUC after a new feature is added. What is your first hypothesis, and how do you test it?",
-        code: "for feature in X: assert available_at(prediction_time, feature)",
+        code: "for feature in X: assert available_at(prediction_time, feature)  # pseudocode",
       },
       {
         id: "dimensionality-reduction",
         title: "Dimensionality reduction and PCA",
         summary:
-          "In high dimensions, distances flatten and data becomes sparse; reduction trades a little information for stability and speed.",
+          "Dimensionality reduction keeps selected features or constructs fewer coordinates, trading information for compactness.",
         keyPoints: [
-          "The curse of dimensionality: the number of examples needed to cover a space grows exponentially with the number of features.",
-          "PCA projects onto the orthogonal directions of maximum variance; components are ordered by explained variance ratio.",
-          "PCA needs scaled inputs, is linear, and produces components that are usually not interpretable as business quantities.",
-          "t-SNE and UMAP are for visualization, not for producing features - their distances are not globally meaningful.",
+          "PCA projects centered data onto perpendicular high-variance directions.",
+          "Scale when units should contribute comparably; fit the entire transform within training folds.",
+          "Input variance is not predictive value, and fewer components may still require all original measurements.",
         ],
         interviewPrompt:
-          "When would you prefer feature selection over PCA, even though PCA keeps more of the variance?",
+          "Compare feature selection with PCA when interpretability and raw measurement costs matter.",
         code: "PCA(n_components=0.95).fit(X_scaled)  # keep 95% of variance",
       },
     ],
@@ -293,7 +277,7 @@ export const amlParts: AmlPart[] = [
     id: "supervised-algorithms",
     number: "3",
     title: "Core supervised algorithms",
-    description: "The eight models you are expected to explain, compare, and justify from first principles.",
+    description: "How core models make predictions, learn from data, and fail.",
     color: "#FBBC04",
     icon: "LineChart",
     topics: [
@@ -301,42 +285,39 @@ export const amlParts: AmlPart[] = [
         id: "linear-regression",
         title: "Linear regression",
         summary:
-          "Linear regression fits a weighted sum of features to a continuous target by minimizing squared error.",
+          "Linear regression fits a weighted sum of features to a numeric target, usually by minimizing squared error.",
         keyPoints: [
-          "The model is ŷ = wᵀx + b; each coefficient is the expected change in y per unit change in that feature, holding others fixed.",
-          "Least squares has a closed-form solution, but gradient descent is used when n or d is large or XᵀX is ill-conditioned.",
-          "Assumptions worth naming: linearity, independent errors, constant variance, and no perfect multicollinearity.",
-          "Correlated features make individual coefficients unstable even when predictions stay accurate.",
+          "Coefficients describe conditional associations and depend on feature units.",
+          "Use stable least-squares solvers rather than explicitly inverting a normal-equation matrix.",
+          "Correlated inputs can destabilize coefficients; engineered features can express curves while remaining linear in weights.",
         ],
         interviewPrompt:
           "Your coefficients flip sign when you add a highly correlated feature. Explain why, and what you would do about it.",
-        code: "w = np.linalg.pinv(X.T @ X) @ X.T @ y  # normal equation",
+        code: "w = np.linalg.lstsq(X, y, rcond=None)[0]  # stable least squares",
       },
       {
         id: "logistic-regression",
         title: "Logistic regression",
         summary:
-          "Logistic regression is a linear model of the log-odds, squashed through a sigmoid to produce a calibrated probability.",
+          "Logistic regression converts a linear log-odds score through a sigmoid to predict a binary probability.",
         keyPoints: [
-          "p = σ(wᵀx + b); the decision boundary is linear in feature space even though p is not.",
-          "It is trained with log loss (cross-entropy), which is convex - so there is a single global optimum.",
-          "A coefficient is a change in log-odds; exponentiating it gives an odds ratio, which is why it is the default in regulated settings.",
-          "It outputs well-calibrated probabilities out of the box, which many stronger models do not.",
+          "Log loss penalizes confident mistakes and gives a convex objective in the weights.",
+          "A coefficient changes log-odds; its exponential multiplies odds, not probability.",
+          "Regularization and scaling matter; probability calibration must be checked rather than assumed.",
         ],
         interviewPrompt:
-          "Why does logistic regression use log loss instead of squared error, and what goes wrong if you use squared error anyway?",
+          "Compare log loss with squared probability error for a sigmoid model. What changes in their meaning and optimization?",
         code: "LogisticRegression(C=1.0).fit(X_train, y_train).predict_proba(X_test)",
       },
       {
         id: "knn",
         title: "k-Nearest Neighbors",
         summary:
-          "k-NN makes no model at all: it stores the training set and predicts by majority vote or average among the k closest examples.",
+          "k-nearest neighbors predicts from nearby stored examples using a vote or average.",
         keyPoints: [
-          "Training is free; inference costs a search over the training set, which is the opposite trade-off from most models.",
-          "Small k means low bias and high variance (noisy boundaries); large k smooths the boundary toward the majority class.",
-          "It is entirely dependent on the distance metric, so scaling and irrelevant features hurt it badly.",
-          "It degrades in high dimensions, where all points become roughly equidistant.",
+          "Neighbor count controls smoothing, while features and distance determine the neighborhood.",
+          "Scale and choose similarity deliberately; irrelevant dimensions can distort proximity.",
+          "Storage and search have real costs; exact or approximate indexes change the serving tradeoff.",
         ],
         interviewPrompt:
           "k-NN works well in your notebook but is impossible to serve at 10k QPS. What exactly is expensive, and what are your options?",
@@ -346,12 +327,11 @@ export const amlParts: AmlPart[] = [
         id: "naive-bayes",
         title: "Naive Bayes",
         summary:
-          "Naive Bayes applies Bayes' rule with the deliberately wrong assumption that features are conditionally independent given the class.",
+          "Naive Bayes combines class priors and per-feature evidence under conditional independence.",
         keyPoints: [
-          "P(y|x) ∝ P(y)·∏ᵢ P(xᵢ|y) - the product is what makes it 'naive' and also what makes it fast.",
-          "Multinomial NB suits word counts, Bernoulli NB binary presence, Gaussian NB continuous features.",
-          "Laplace (add-one) smoothing prevents a single unseen feature value from zeroing out the entire posterior.",
-          "The independence assumption makes its probabilities badly calibrated, but the argmax is often still a decent classifier.",
+          "Choose multinomial, Bernoulli, or Gaussian likelihoods for the feature representation.",
+          "Additive smoothing avoids zero word probabilities; log-space computation avoids underflow.",
+          "Correlated evidence can distort confidence even when class predictions remain useful.",
         ],
         interviewPrompt:
           "Naive Bayes outputs 0.9999 for most spam emails. Is it that confident? Explain what the probability actually means here.",
@@ -361,12 +341,11 @@ export const amlParts: AmlPart[] = [
         id: "svm",
         title: "Support Vector Machines",
         summary:
-          "An SVM finds the boundary with the largest margin to the nearest examples, and the kernel trick lets it do that in a richer space.",
+          "An SVM fits a separating boundary by trading a wide margin against costly training violations.",
         keyPoints: [
-          "Only the support vectors - the points on or inside the margin - determine the boundary.",
-          "The soft-margin parameter C trades margin width against training violations: small C means a wider, more regularized margin.",
-          "A kernel computes inner products in a higher-dimensional space without ever building it; RBF is the usual nonlinear default.",
-          "SVMs scale poorly past a few hundred thousand rows and produce scores, not probabilities, without extra calibration.",
+          "Support vectors influence the fitted boundary and can lie on or inside the margin.",
+          "Smaller C means stronger relative regularization; hinge loss stops penalizing sufficiently separated examples.",
+          "Kernels express nonlinear separation; tune their geometry and calibrate scores if probabilities are needed.",
         ],
         interviewPrompt:
           "Explain the margin and the role of C to someone who knows logistic regression but has never seen an SVM.",
@@ -376,12 +355,11 @@ export const amlParts: AmlPart[] = [
         id: "decision-trees",
         title: "Decision trees",
         summary:
-          "A tree recursively splits the feature space by asking the single question that most reduces impurity in the resulting groups.",
+          "A decision tree routes examples through learned feature tests to stored leaf predictions.",
         keyPoints: [
-          "Split quality is measured by Gini impurity or entropy for classification, and by variance reduction for regression.",
-          "Trees capture nonlinearity and interactions for free, need no scaling, and handle mixed feature types.",
-          "An unconstrained tree will drive training error to zero and generalize poorly - depth, min samples per leaf, and pruning control this.",
-          "Small changes in the data can change the top split and therefore the whole tree, which is high variance.",
+          "Greedy splits reduce weighted impurity or regression error rather than optimize the full tree globally.",
+          "Depth, minimum leaf size, and pruning limit unreliable small regions.",
+          "Trees express interactions with little need for scaling, but can be unstable and extrapolate poorly.",
         ],
         interviewPrompt:
           "Why does a single deep tree overfit so reliably, and which hyperparameter would you reach for first?",
@@ -391,12 +369,11 @@ export const amlParts: AmlPart[] = [
         id: "random-forests",
         title: "Bagging and random forests",
         summary:
-          "Bagging averages many high-variance models trained on bootstrap samples; a random forest adds feature subsampling to decorrelate them.",
+          "A random forest combines bootstrapped trees while sampling candidate features at each split.",
         keyPoints: [
-          "Averaging reduces variance only to the extent the models make *different* errors - decorrelation is the whole point.",
-          "Each tree sees a bootstrap sample of rows and a random subset of features at each split.",
-          "Out-of-bag examples give a free validation estimate without a separate holdout.",
-          "Forests are robust, parallel, and hard to break, but larger and slower to serve than one tree, and less accurate than good boosting on tabular data.",
+          "Bootstrap samples draw with replacement; prediction averaging can reduce sample sensitivity.",
+          "Feature sampling encourages different errors, reducing the correlation that limits averaging.",
+          "Out-of-bag scores are useful internal estimates but do not enforce time or group evaluation.",
         ],
         interviewPrompt:
           "If bagging reduces variance, why does a random forest also subsample features at each split?",
@@ -406,12 +383,11 @@ export const amlParts: AmlPart[] = [
         id: "gradient-boosting",
         title: "Boosting and gradient-boosted trees",
         summary:
-          "Boosting builds shallow trees sequentially, each one fitting the errors the current ensemble still makes.",
+          "Gradient boosting adds trees sequentially to improve the current ensemble loss.",
         keyPoints: [
-          "Each new tree fits the negative gradient of the loss (the residual for squared error), scaled by a learning rate.",
-          "Learning rate and number of trees trade off directly: lower rate plus more trees usually generalizes better.",
-          "Boosting reduces bias by adding capacity, where bagging reduces variance by averaging - opposite mechanisms.",
-          "It is the strongest default for tabular data (XGBoost, LightGBM, CatBoost) but is sequential, tuning-sensitive, and can overfit noisy labels.",
+          "Squared-error corrections fit residuals; other losses supply negative-gradient targets.",
+          "Learning rate, tree complexity, tree count, and early stopping work together.",
+          "Compare tabular performance and serving cost with baselines; extra corrections can fit noise.",
         ],
         interviewPrompt:
           "Compare a random forest and gradient boosting for a 200k-row tabular fraud problem - accuracy, tuning effort, and training time.",
@@ -432,27 +408,25 @@ export const amlParts: AmlPart[] = [
         id: "loss-functions",
         title: "Loss functions for classical models",
         summary:
-          "The loss is the objective the optimizer minimizes, and every loss encodes an assumption about how errors should be punished.",
+          "A loss defines prediction cost during fitting; evaluation metrics judge the resulting behavior.",
         keyPoints: [
-          "Squared error assumes Gaussian noise and punishes large errors quadratically; absolute error is robust but less smooth.",
-          "Log loss (cross-entropy) is the maximum-likelihood objective for probabilistic classification.",
-          "Hinge loss cares only about the margin and ignores examples that are already confidently correct.",
-          "Loss is what you optimize; the metric is what you are judged on - they are allowed to differ, and usually do.",
+          "Squared, absolute, Huber, and quantile losses target different error tradeoffs.",
+          "Log loss trains probability estimates; hinge loss trains margin separation.",
+          "Training weights, decision thresholds, and capacity constraints solve different parts of the task.",
         ],
         interviewPrompt:
           "Why can't you just train directly on F1 score, and what do you do instead when F1 is the business metric?",
-        code: "log_loss = -(y*np.log(p) + (1-y)*np.log(1-p)).mean()",
+        code: "log_loss(y_true, predicted_probabilities)",
       },
       {
         id: "optimization",
         title: "Optimization: closed form, gradient descent, SGD",
         summary:
-          "Some classical models have an exact solution; the rest are fitted by iteratively stepping downhill on the loss surface.",
+          "Optimization searches for fitted values that reduce a chosen training objective.",
         keyPoints: [
-          "The normal equation solves least squares exactly but costs O(d³) and needs XᵀX to be invertible.",
-          "Batch gradient descent uses all data per step, SGD one example, mini-batch a compromise - the usual choice.",
-          "The learning rate is the single most important knob: too high diverges, too low crawls into a plateau.",
-          "Convex problems (linear, logistic, linear SVM) have one global optimum, so initialization does not matter.",
+          "Least squares has stable direct solvers, including solutions for rank-deficient data.",
+          "Gradient descent follows negative derivatives; batch size and learning rate control work and noise.",
+          "Convexity excludes nonglobal local minima but does not alone ensure uniqueness or convergence.",
         ],
         interviewPrompt:
           "When would you choose SGD over the closed-form solution for linear regression, even though the closed form is exact?",
@@ -462,12 +436,11 @@ export const amlParts: AmlPart[] = [
         id: "regularization",
         title: "Regularization: L1, L2, and elastic net",
         summary:
-          "Regularization adds a penalty on model complexity, deliberately raising bias to buy a larger reduction in variance.",
+          "Regularization discourages unstable or unnecessarily complex fits, often through a coefficient penalty.",
         keyPoints: [
-          "L2 (ridge) shrinks coefficients smoothly toward zero and handles correlated features by sharing weight between them.",
-          "L1 (lasso) drives some coefficients exactly to zero, so it performs feature selection as a side effect.",
-          "Elastic net mixes both; the strength (alpha, or C = 1/alpha in scikit-learn) is a hyperparameter tuned on validation data.",
-          "For trees, regularization looks different: depth limits, minimum leaf size, subsampling, and shrinkage.",
+          "L2 typically shrinks; L1 can select exact zeros; elastic net combines both effects.",
+          "Scale numeric features appropriately and tune strength inside validation.",
+          "Tree limits and early stopping impose other restrictions; too much restriction underfits.",
         ],
         interviewPrompt:
           "You have 5,000 features and 800 rows. Which penalty do you reach for and why?",
@@ -477,12 +450,11 @@ export const amlParts: AmlPart[] = [
         id: "overfitting-diagnosis",
         title: "Diagnosing overfitting and underfitting",
         summary:
-          "The gap between training and validation performance - and its shape over time - tells you which failure mode you are in.",
+          "Diagnose poor generalization with comparable errors, useful baselines, curves, and pipeline checks.",
         keyPoints: [
-          "Train bad and validation bad means underfitting or a broken pipeline; train great and validation bad means poor generalization.",
-          "A learning curve over training-set size shows whether more data would help at all.",
-          "A large gap is not automatically overfitting - check leakage, distribution shift, a tiny validation set, and label noise first.",
-          "Sanity check: a model that cannot overfit 100 examples has a bug, not a capacity problem.",
+          "Learning curves vary data size; validation curves vary settings; iteration curves vary training steps.",
+          "A train/validation gap can reflect overfitting, shift, mismatch, or measurement noise.",
+          "Small-subset fitting is a useful check only when model capacity and label consistency make memorization possible.",
         ],
         interviewPrompt:
           "Validation loss improves for 20 iterations and then steadily worsens while train loss keeps falling. Name the effect and two fixes.",
@@ -492,12 +464,11 @@ export const amlParts: AmlPart[] = [
         id: "cross-validation",
         title: "Cross-validation",
         summary:
-          "Cross-validation reuses limited data by rotating which fold is held out, trading compute for a lower-variance estimate.",
+          "Cross-validation rotates held-out subsets while rebuilding the complete learning procedure.",
         keyPoints: [
-          "k-fold splits into k parts, trains k times, and averages; k = 5 or 10 is the usual compromise.",
-          "Stratified folds preserve class balance and are the default for classification, especially when imbalanced.",
-          "Grouped folds keep all rows of a user/patient/device in one fold; time-series folds only ever train on the past.",
-          "Everything fitted - scalers, imputers, encoders, feature selection - must live inside the fold, which is what a Pipeline guarantees.",
+          "Choose random, stratified, grouped, or forward-time folds to match the intended claim.",
+          "Refit preprocessing inside every fold; a pipeline cannot repair future-derived input values.",
+          "After tuning, use independent testing or nested CV; fold spread is not automatically a confidence interval.",
         ],
         interviewPrompt:
           "Explain why selecting features on the full dataset before cross-validation inflates your CV score.",
@@ -507,12 +478,11 @@ export const amlParts: AmlPart[] = [
         id: "hyperparameter-search",
         title: "Hyperparameter search",
         summary:
-          "Search is a budgeted experiment: explore the few hyperparameters that matter, score them on validation data, and keep the test set out of it.",
+          "Search compares configurations under a defined budget and validation protocol.",
         keyPoints: [
-          "Random search beats grid search at equal budget because only a few hyperparameters actually matter.",
-          "Sample scale-free parameters (learning rate, regularization strength) log-uniformly, not uniformly.",
-          "Bayesian optimization and successive halving pay off when each evaluation is expensive.",
-          "Nested CV (inner loop tunes, outer loop evaluates) is the honest way to report performance after heavy tuning.",
+          "Random search explores ranges; small grids suit meaningful short menus.",
+          "Sample positive scale parameters across appropriate orders of magnitude.",
+          "Track fit cost and selection effects; evaluate the chosen procedure with a clean holdout or outer CV.",
         ],
         interviewPrompt:
           "You have budget for 30 training runs across 6 hyperparameters. Design the search, and say how you report the final number.",
@@ -533,12 +503,11 @@ export const amlParts: AmlPart[] = [
         id: "roc-pr-curves",
         title: "ROC-AUC, PR-AUC, and thresholds",
         summary:
-          "A model outputs a score; the threshold turns it into a decision, and the curves show every threshold at once.",
+          "ROC and precision-recall curves summarize decisions across score thresholds; an operating point still needs a policy.",
         keyPoints: [
-          "ROC plots TPR against FPR; AUC is the probability a random positive scores above a random negative.",
-          "Under heavy imbalance ROC-AUC looks flattering because FPR has a huge denominator - PR-AUC is the honest curve.",
-          "Threshold choice is a business decision: pick the operating point that matches the true cost of each error.",
-          "Re-validate the threshold after every retrain; the optimal operating point drifts with the data distribution.",
+          "ROC compares recall with false-positive rate; PR compares precision with recall.",
+          "ROC-AUC measures pair ordering with half-credit for ties; average precision differs from trapezoidal PR area.",
+          "For rare positives, report absolute counts and useful operating regions alongside summary scores.",
         ],
         interviewPrompt:
           "Your model has 0.95 ROC-AUC on a 0.3%-positive dataset, and product says it is useless in practice. Explain both facts.",
@@ -548,27 +517,25 @@ export const amlParts: AmlPart[] = [
         id: "calibration",
         title: "Probability calibration",
         summary:
-          "A calibrated model's 0.7 means the event happens 70% of the time - required whenever the probability itself is consumed downstream.",
+          "Calibration means predicted probabilities match observed frequencies on the relevant population.",
         keyPoints: [
-          "Ranking quality and calibration are independent: a model can rank perfectly and still be systematically over-confident.",
-          "Diagnose with a reliability diagram (predicted probability vs observed frequency) and summarize with Brier score or ECE.",
-          "Platt scaling fits a sigmoid on a held-out set; isotonic regression is nonparametric and needs more data.",
-          "Resampling and class weighting distort probabilities, so recalibrate on the original, untouched distribution.",
+          "Ranking and probability meaning are different; a good ordering can have poor calibration.",
+          "Reliability diagrams need bin counts; Brier score and binned calibration error have different limitations.",
+          "Fit sigmoid or isotonic mappings using held-out predictions, then evaluate independently.",
         ],
         interviewPrompt:
           "Your model's output is multiplied by transaction value to estimate expected loss. Why does calibration now matter more than AUC?",
-        code: "CalibratedClassifierCV(model, method=\"isotonic\", cv=\"prefit\")",
+        code: "CalibratedClassifierCV(model, method=\"sigmoid\", cv=5)",
       },
       {
         id: "class-imbalance",
         title: "Class imbalance",
         summary:
-          "When positives are rare, accuracy stops being informative and the training procedure itself needs adjusting.",
+          "Class imbalance makes some outcomes rare, changing data coverage and the interpretation of aggregate scores.",
         keyPoints: [
-          "Always report a trivial-majority baseline alongside the model, and prefer PR-AUC or recall-at-fixed-precision.",
-          "Class weights penalize minority mistakes without changing the data; resampling changes what the model sees.",
-          "Oversampling (including SMOTE) risks overfitting duplicated points; undersampling throws away information.",
-          "Whatever you do to training, evaluate on the original distribution - and recalibrate if the probabilities are consumed directly.",
+          "Report prevalence, counts, precision, and recall; unweighted learning does not always fail.",
+          "Try an appropriate threshold before assuming training must change.",
+          "Weights and resampling alter fitting; keep evaluation representative and recheck probability calibration.",
         ],
         interviewPrompt:
           "You oversample positives 50x in training. What happens to the predicted probabilities, and how do you fix them at serving time?",
@@ -578,12 +545,11 @@ export const amlParts: AmlPart[] = [
         id: "model-comparison",
         title: "Comparing models honestly",
         summary:
-          "A single validation number is a noisy sample; declaring a winner requires knowing how much that number moves by chance.",
+          "Compare complete procedures on shared evaluation units, with uncertainty and operating value in view.",
         keyPoints: [
-          "Report the mean and spread across CV folds or seeds, not one score - a 0.3% difference is usually noise.",
-          "Compare on identical folds and identical preprocessing, or you are measuring the split, not the model.",
-          "Testing many variants inflates the best observed score; that is the multiple-comparisons problem, and nested CV or a clean holdout is the answer.",
-          "Offline wins still have to be confirmed online: an A/B test measures the decision, not just the prediction.",
+          "Paired outcomes separate candidate differences from shared example difficulty.",
+          "Resampling must respect independent units or temporal dependence; fold standard deviation is no universal significance test.",
+          "Repeated search selects favorable noise; reserve independent final evaluation and test policy effects where appropriate.",
         ],
         interviewPrompt:
           "Model B beats model A by 0.4% AUC on your validation set. Would you ship it? What evidence would change your mind?",
@@ -593,12 +559,11 @@ export const amlParts: AmlPart[] = [
         id: "error-analysis",
         title: "Error analysis and slice-based evaluation",
         summary:
-          "Aggregate metrics hide the failures that matter; error analysis groups mistakes into causes you can actually act on.",
+          "Error analysis turns mistakes and weak slices into testable hypotheses for improvement.",
         keyPoints: [
-          "Read a sample of false positives and false negatives by hand before touching the model.",
-          "Slice by segment, geography, time, input length, and confidence - an 88% average can be 60% on your biggest customer.",
-          "Separate label errors, missing coverage, preprocessing bugs, genuine ambiguity, and real model limitations.",
-          "Prioritize by frequency × fixability × impact, not by which fix is most interesting.",
+          "Inspect labels, pipeline behavior, missing coverage, absent information, and model restrictions.",
+          "Report counts and uncertainty for each slice; small groups produce noisy estimates.",
+          "Prioritize impact and fixability, then confirm that a targeted change helps without important regressions.",
         ],
         interviewPrompt:
           "Accuracy is 91% and flat across three model iterations. What do you do before trying a bigger model?",
@@ -619,12 +584,11 @@ export const amlParts: AmlPart[] = [
         id: "kmeans",
         title: "k-Means clustering",
         summary:
-          "k-means alternates assigning points to the nearest centroid and recomputing centroids, minimizing within-cluster variance.",
+          "k-means alternates nearest-center assignment and mean updates to reduce within-cluster squared distance.",
         keyPoints: [
-          "It converges to a local optimum, so results depend on initialization - k-means++ and multiple restarts are standard.",
-          "It assumes roughly spherical, similarly sized clusters and uses Euclidean distance, so scaling is mandatory.",
-          "Cost is O(n·k·d) per iteration, which makes it the practical default at large n.",
-          "Outliers pull centroids; k-medoids or a robust alternative is safer when extreme points are common.",
+          "Initialization and restarts matter because fitting does not guarantee the global optimum.",
+          "Euclidean geometry favors compact center-based groups; scaling and outliers change that geometry.",
+          "Choose k using several forms of evidence, not simply the lowest training inertia.",
         ],
         interviewPrompt:
           "Your k-means clusters split one dense blob in half and merge two others. What assumption is being violated?",
@@ -634,12 +598,11 @@ export const amlParts: AmlPart[] = [
         id: "hierarchical-dbscan",
         title: "Hierarchical clustering and DBSCAN",
         summary:
-          "Two alternatives to k-means: one builds a tree of nested clusters, the other grows clusters from regions of high density.",
+          "Hierarchical clustering builds nested groups; DBSCAN connects dense neighborhoods and identifies noise.",
         keyPoints: [
-          "Agglomerative clustering merges the closest pair repeatedly; the linkage rule (single, complete, average, Ward) sets the cluster shape.",
-          "A dendrogram lets you choose the number of clusters after the fact, but the algorithm is O(n²) or worse.",
-          "DBSCAN needs eps and min_samples instead of k, finds arbitrarily shaped clusters, and labels sparse points as noise.",
-          "DBSCAN struggles when cluster densities differ a lot; HDBSCAN relaxes the single global eps.",
+          "A dendrogram records merges; linkage defines which groups are closest.",
+          "DBSCAN uses eps and min_samples to define core points, border points, and noise.",
+          "Choose distances and scales deliberately; varying density and high dimensionality can undermine neighborhoods.",
         ],
         interviewPrompt:
           "You have GPS pickup points and need clusters of unknown count plus an explicit notion of 'not in any cluster'. Which algorithm, and why?",
@@ -649,12 +612,11 @@ export const amlParts: AmlPart[] = [
         id: "gaussian-mixtures",
         title: "Gaussian mixture models",
         summary:
-          "A GMM models the data as a weighted sum of Gaussians and assigns soft, probabilistic cluster memberships.",
+          "A Gaussian mixture models a distribution using weighted Gaussian components and soft memberships.",
         keyPoints: [
-          "Fitted with expectation-maximization: E-step computes responsibilities, M-step re-estimates means, covariances, and weights.",
-          "The covariance type controls cluster shape - spherical, diagonal, or full - and full covariance costs many more parameters.",
-          "k-means is the hard-assignment, equal-spherical-covariance special case of a GMM.",
-          "Because it is a density model, BIC/AIC give a principled way to choose the number of components.",
+          "Responsibilities give each fitted component’s share of density at a point.",
+          "Expectation-maximization alternates responsibilities and parameter updates; initialization and covariance regularization matter.",
+          "Covariance shape, component count, held-out fit, and usefulness determine the appropriate complexity.",
         ],
         interviewPrompt:
           "When is a soft assignment more useful than a hard one, and what does a responsibility of 0.5 actually tell you?",
@@ -664,27 +626,25 @@ export const amlParts: AmlPart[] = [
         id: "clustering-evaluation",
         title: "Choosing k and evaluating clusters",
         summary:
-          "Without labels there is no accuracy, so cluster quality is judged by internal geometry, stability, and usefulness downstream.",
+          "Assess clusters through geometry, reproducibility, independent reference groups, and intended use.",
         keyPoints: [
-          "The elbow method plots inertia against k; it is a heuristic, and the elbow is often ambiguous.",
-          "Silhouette compares within-cluster tightness to nearest-cluster separation, per point, in [-1, 1].",
-          "If ground-truth groups exist, adjusted Rand index and normalized mutual information compare partitions properly.",
-          "The strongest evidence is stability under resampling plus a human reading of the resulting segments.",
+          "Inertia rewards additional centers; an elbow is a heuristic, not a true-count guarantee.",
+          "Silhouette measures separation under the selected distance and favors certain shapes.",
+          "ARI compares partitions without depending on cluster names; stable groups can still be unhelpful.",
         ],
         interviewPrompt:
           "Marketing asks for 'the right number of customer segments'. How do you answer without a label to validate against?",
-        code: "silhouette_score(X, labels)  # higher is better, 0 means overlapping",
+        code: "silhouette_score(X, labels)  # separation under the chosen metric",
       },
       {
         id: "anomaly-detection",
         title: "Anomaly detection",
         summary:
-          "Anomaly detection asks whether a point looks like the data the model has seen, rather than which class it belongs to.",
+          "Anomaly detection scores unusual observations relative to a reference; unusual is not automatically harmful.",
         keyPoints: [
-          "Use it when positives are too rare, too varied, or too unlabelled for supervised learning to work.",
-          "Isolation Forest isolates points with random splits; one-class SVM learns a boundary; autoencoder reconstruction error flags unusual inputs.",
-          "The contamination/threshold choice is what turns a score into an alert, and it sets your false-alarm rate.",
-          "Novelty (unseen at training) and outlier (present but rare) detection are different setups with different validation strategies.",
+          "Outlier and novelty detection differ in what training data represents.",
+          "Isolation, neighborhood, density, boundary, and reconstruction methods define unusual in different ways.",
+          "A contamination setting chooses a cutoff; it does not guarantee a false-alarm rate or useful alerts.",
         ],
         interviewPrompt:
           "You have 400 confirmed fraud cases out of 50 million transactions. Argue for and against a supervised classifier here.",
@@ -697,7 +657,7 @@ export const amlParts: AmlPart[] = [
     id: "applied-practice",
     number: "7",
     title: "Applied practice",
-    description: "The loop from business question to a deployed model that stays correct.",
+    description: "From a concrete decision to a deployed model, measured outcomes, and useful updates.",
     color: "#F97316",
     icon: "Wrench",
     topics: [
@@ -705,12 +665,11 @@ export const amlParts: AmlPart[] = [
         id: "ml-workflow",
         title: "The applied ML workflow",
         summary:
-          "An applied ML project is a loop - frame, collect, split, baseline, model, evaluate, deploy, monitor - and every stage can send you backwards.",
+          "Connect framing, data, evaluation, serving, and outcomes through an iterative evidence-based workflow.",
         keyPoints: [
-          "Start from the decision the system will make; the metric and the label definition follow from it.",
-          "Build the leakage-free split and the trivial baseline before the first model, not after.",
-          "Iterate with error analysis rather than architecture shopping - the next fix is usually in the data.",
-          "The project is not done at the offline metric; deployment, monitoring, and retraining are part of the same loop.",
+          "Define the unit, prediction time, label window, action, and constraints before selecting a model.",
+          "Build deployment-matched splits and baselines, then use error analysis to choose experiments.",
+          "Ranking risk does not establish intervention benefit; monitor outcomes and validate policy effects separately.",
         ],
         interviewPrompt:
           "Walk end-to-end through a customer-churn project, naming what you would do first and what you would deliberately postpone.",
@@ -720,12 +679,11 @@ export const amlParts: AmlPart[] = [
         id: "model-choice",
         title: "Choosing a model under real constraints",
         summary:
-          "The best model is the one that meets the accuracy, latency, data, and explainability constraints at once - rarely the most powerful one.",
+          "Choose a complete pipeline using measured quality, data suitability, and real operating constraints.",
         keyPoints: [
-          "Tabular data with under a few million rows: gradient-boosted trees are the default; deep learning rarely wins.",
-          "Text, images, audio, and sequences: pretrained deep models, because the inductive bias and the transfer both matter.",
-          "Small data, strict explainability, or regulated decisions push you toward linear/logistic models and shallow trees.",
-          "Latency, memory, retraining cost, and who has to debug it at 3am are legitimate model-selection criteria.",
+          "Data type suggests candidates, but fixed row-count rules do not determine the best family.",
+          "Measure the full feature-to-response latency path, including tail latency and failures.",
+          "State the required explanation and reliability properties, then compare benefits against maintenance cost.",
         ],
         interviewPrompt:
           "50k rows, 40 tabular features, a 20ms latency budget, and a regulator who can demand an explanation. What do you build?",
@@ -735,12 +693,11 @@ export const amlParts: AmlPart[] = [
         id: "interpretability",
         title: "Interpretability and feature importance",
         summary:
-          "Interpretability answers 'why this prediction' - needed for debugging, for trust, and sometimes by law.",
+          "Interpretability explains how a model uses inputs, globally or for one prediction.",
         keyPoints: [
-          "Intrinsically interpretable models (linear coefficients, shallow trees) are different from post-hoc explanations of a black box.",
-          "Impurity-based importance in trees is biased toward high-cardinality features; permutation importance is the safer global measure.",
-          "SHAP gives additive per-prediction attributions with consistency guarantees; partial dependence and ICE show effect shape.",
-          "All of these are correlational: an important feature is not a cause, and saying so is part of a good answer.",
+          "Permutation importance measures held-out score reliance and needs care with correlated inputs.",
+          "SHAP expresses reference-relative attributions on a specified output scale; assumptions affect the result.",
+          "Effect plots and attributions describe model behavior, not causal effects of interventions.",
         ],
         interviewPrompt:
           "A loan applicant asks why they were declined. What do you actually show them, and what are the limits of that explanation?",
@@ -750,46 +707,43 @@ export const amlParts: AmlPart[] = [
         id: "deployment-basics",
         title: "Serving a model: batch, online, and train/serve skew",
         summary:
-          "How predictions reach the product - precomputed or on demand - decides the latency budget and where features come from.",
+          "Serving delivers fitted predictions through batch, online, or streaming systems with defined freshness requirements.",
         keyPoints: [
-          "Batch scoring is cheap and simple but stale; online inference is fresh but adds a hard per-request latency budget.",
-          "A common hybrid precomputes the expensive part offline and does something cheap at request time.",
-          "Train/serve skew is the classic production bug: the same feature computed two different ways offline and online.",
-          "Version the model, the features, and the preprocessing together, and keep a rollback path that does not require a retrain.",
+          "Train/serve skew occurs when historical and live feature computation differ.",
+          "Version model, transforms, feature definitions, schema, and decision policy together.",
+          "Use replay, shadow evaluation, staged rollout, and tested fallbacks to validate real operating behavior.",
         ],
         interviewPrompt:
           "Offline AUC is 0.89 but online performance looks far worse, with no code changes between them. What do you check first?",
-        code: "assert train_feature(x) == serve_feature(x)  # the skew contract",
+        code: "np.testing.assert_allclose(train_features, served_features)",
       },
       {
         id: "monitoring-and-retraining",
         title: "Monitoring, drift, and retraining",
         summary:
-          "A deployed model silently decays as the world moves; monitoring exists to notice before the business does.",
+          "Monitoring checks service health, data, predictions, and delayed outcomes; drift calls for diagnosis before updates.",
         keyPoints: [
-          "Monitor three layers: input distributions, prediction distributions, and - once labels arrive - actual quality.",
-          "Covariate shift changes P(x), label shift changes P(y), concept drift changes P(y|x) - the third is the one retraining cannot always fix.",
-          "Label delay decides how fast you can retrain and how long a regression can hide.",
-          "Roll out with shadow traffic, then a small percentage, and re-tune the decision threshold after every retrain.",
+          "Input and prediction checks provide immediate clues; outcome quality depends on label maturity.",
+          "Covariate, label, and concept shift have different assumptions and may require different responses.",
+          "Validate retrains and thresholds, and account for decisions that change which outcomes become observable.",
         ],
         interviewPrompt:
           "Precision drops 8% over three months with no deploys. Walk through detection, diagnosis, and the decision to retrain.",
-        code: "psi = population_stability_index(train_dist, live_dist)",
+        code: "monitor(inputs, predictions, matured_outcomes)  # pseudocode",
       },
       {
         id: "interview-playbook",
         title: "Answering a Basics-of-ML interview question",
         summary:
-          "The graded skill is narrowing a vague prompt to one concept and explaining that concept clearly - not surveying everything you know.",
+          "Explain one concept through a definition, mechanism, numerical example, and practical limit.",
         keyPoints: [
-          "Give a one-sentence definition, then ask a clarifying question that forces the interviewer to pick a direction.",
-          "Once the key concept is identified, stop surveying alternatives and spend the remaining time explaining it well.",
-          "Use a concrete example with real numbers, then name the tradeoff and when you would choose differently.",
-          "Say what you would check in the data before you say what model you would build.",
+          "Answer direct questions directly and clarify when the task or constraint is ambiguous.",
+          "For design prompts, establish the action, row, prediction time, labels, baseline, and evaluation.",
+          "State assumptions and uncertainty precisely; avoid changing subjects or filling space with related definitions.",
         ],
         interviewPrompt:
-          "'Tell me about overfitting.' Produce the first 30 seconds of your answer, including the question you ask back.",
-        code: "define -> clarify -> commit to one concept -> example -> tradeoff",
+          "'Tell me about overfitting.' Produce the first 30 seconds of your answer with a definition, example, and practical limit.",
+        code: "define -> mechanism -> numerical example -> tradeoff",
       },
     ],
     quizQuestionCount: 10,

@@ -24,31 +24,8 @@ Suppose the input sentence is:
 
 An RNN processes it sequentially:
 
-```text
-          hidden state       hidden state       hidden state
-              h₁                  h₂                  h₃
-              │                   │                   │
-              ▼                   ▼                   ▼
-
-"I"  ───► [ RNN ] ───► "love" ─► [ RNN ] ───► "deep" ─► [ RNN ] ───► "learning"
-            │                     │                     │
-            ▼                     ▼                     ▼
-           h₁                    h₂                    h₃
-```
-
-A better way to picture it is:
-
-```text
-x₁          x₂          x₃          x₄
-"I"       "love"       "deep"    "learning"
- │           │           │           │
- ▼           ▼           ▼           ▼
-┌───┐  h₁  ┌───┐  h₂  ┌───┐  h₃  ┌───┐
-│RNN│ ───► │RNN│ ───► │RNN│ ───► │RNN│
-└───┘      └───┘      └───┘      └───┘
- │           │           │           │
- ▼           ▼           ▼           ▼
-h₁          h₂          h₃          h₄
+```dl-visual
+rnn-unrolled
 ```
 
 The key idea is:

@@ -2,7 +2,7 @@
 
 ## 1. Reuse learned features
 
-**Transfer learning** adapts a pretrained representation to a new task.
+**Transfer learning** reuses knowledge learned on a source task or dataset for a new target task. **Fine-tuning** updates some or all of those pretrained weights using target data.
 
 ```text
 pretrained backbone → features → new head
@@ -16,13 +16,13 @@ Useful features can transfer; unwanted source shortcuts can transfer too.
 
 | Strategy | Train | Starting use |
 |---|---|---|
-| Linear probe | New head only | Test fixed features / little data |
+| Linear probe: fit a linear predictor on frozen features | New linear head only | Test fixed features / little data |
 | Partial tuning | Head and later layers | Moderate adaptation |
 | Full tuning | All parameters | Larger mismatch / enough evidence |
 
 A weak probe does not establish the ceiling after fine-tuning.
 
-Compare scratch training when data or mismatch justifies it.
+**Training from scratch** starts without pretrained weights. Compare it when data or mismatch justifies it.
 
 ## 3. Head and preprocessing
 
@@ -38,6 +38,8 @@ Match expected:
 Incorrect preprocessing can make useful features look poor.
 
 ## 4. Freeze gradients and behavior separately
+
+**Freezing** excludes parameters from training updates. **Unfreezing** allows those parameters to train again; module training/evaluation mode is a separate control.
 
 ```python
 for parameter in backbone.parameters():
@@ -63,7 +65,7 @@ Similarity includes texture, capture, scale, and target meaning.
 
 Natural-photo features may transfer differently to microscopy or industrial surfaces.
 
-Relevant unlabeled-domain pretraining can help; verify independently.
+**Domain-specific pretraining** learns representations on data resembling the intended inputs, possibly without task labels. It can help; verify independently.
 
 ## 7. A small-data experiment
 
@@ -73,7 +75,7 @@ For 500 labeled images:
 - Train a frozen-feature baseline.
 - Compare partial/full tuning under matched budgets.
 - Use valid augmentation.
-- Inspect important failure slices.
+- Inspect important **slices**, subsets defined by conditions such as camera, lighting, or defect size.
 
 Check pretraining/test overlap.
 

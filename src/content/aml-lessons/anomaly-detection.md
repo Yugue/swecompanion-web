@@ -1,137 +1,46 @@
 ## Anomaly detection
 
-**Anomaly detection asks "does this look like the data I have seen?" rather than "which class is this?"**
+**Anomaly detection** scores observations by how unusual they are relative to a reference dataset or model. Unusual does not necessarily mean fraudulent, dangerous, or incorrect.
 
-It is the right framing when the positives are too rare, too varied, or too unlabelled for a classifier to learn from.
+A legitimate car purchase can be unusual. A common fraud pattern can look ordinary. Those distinctions matter when acting on alerts.
 
----
+## 1. Outlier versus novelty detection
 
-## 1. When to use it instead of a classifier
+| Setup | Training data | Goal |
+|---|---|---|
+| Outlier detection | May already contain unusual observations | Find observations that differ from the bulk |
+| Novelty detection | Intended to represent normal behavior | Identify unusual future observations |
 
-| Use anomaly detection | Use supervised classification |
-|---|---|
-| Almost no labelled positives | Thousands of labelled positives |
-| Anomalies are varied and unlike each other | Positives share a recognizable pattern |
-| New kinds of anomaly keep appearing | The positive class is stable |
-| You can describe "normal" but not "bad" | Both classes are well represented |
+The appropriate model and method calls depend on the estimator. This distinction is not a universal `fit_predict` versus `predict` rule.
 
-### Core intuition
+Supervised classification uses known outcomes. It can outperform anomaly detection even with rare positives if those positives provide useful patterns; compare rather than choosing solely by class frequency.
 
-The decisive question is whether the positives have a *pattern to learn*. Ten thousand frauds that look alike is a classification problem; four hundred frauds that are each creative in their own way is an anomaly problem.
+## 2. Different models define “unusual” differently
 
----
-
-## 2. Novelty vs outlier detection
-
-```text
-outlier detection : the training data already contains some anomalies,
-                    and you want to find them in it
-novelty detection : the training data is clean "normal" data,
-                    and you want to flag unseen deviations later
-```
-
-### Common issue
-
-They need different validation setups, and scikit-learn splits its application programming interface (API) accordingly (`fit_predict` vs `predict`).
-
----
-
-## 3. The main methods
-
-**Statistical / distance**
-
-- z-score or interquartile-range (IQR) rules per feature - trivial, univariate, misses combinations,
-- Mahalanobis distance - accounts for feature correlation,
-- k-NN distance - distance to the k-th nearest neighbor as the score.
-
-**Isolation Forest** - the practical default for tabular data:
-
-```text
-split the data on random features at random thresholds.
-anomalies get isolated in FEW splits, because they sit apart.
-score = average path length to isolate the point
-```
-
-Linear time, handles high dimensions, no distribution assumption.
-
-**One-class support-vector machine (SVM)** - learns a boundary enclosing the normal data. Powerful, but \(O(n^2)\)-ish and sensitive to its kernel parameters.
-
-**Density-based** - a Gaussian mixture model (GMM), or a kernel density estimate: anomalies are points with low likelihood. Gives a probabilistic score.
-
-**Reconstruction-based** - fit an autoencoder (or principal component analysis, PCA) on normal data; unusual inputs reconstruct badly, and the reconstruction error is the score.
+- **Isolation Forest:** repeated random feature splits tend to isolate separated points in fewer steps. The score summarizes isolation depth across trees.
+- **Local-neighbor methods:** compare neighborhood distances or density; isolated local points receive higher anomaly scores.
+- **One-class SVM:** fits a boundary around a reference distribution in a kernel-defined space.
+- **Density models:** flag low estimated density, under the model's assumptions.
+- **Reconstruction models:** compress and reconstruct inputs, flagging large reconstruction error. Some unusual inputs reconstruct well, so test this assumption.
 
 ```python
 IsolationForest(contamination=0.001, random_state=0).fit(X_train)
 ```
 
-**Density-Based Spatial Clustering of Applications with Noise (DBSCAN)** also qualifies: its noise label (-1) is an anomaly flag as a by-product of clustering.
+A model score is not automatically a probability of being anomalous. High dimensionality and irrelevant features can make each method's notion of unusual unreliable.
 
----
+## 3. A flag fraction is not a false-alarm rate
 
-## 4. Everything hinges on the threshold
+**Contamination** commonly helps choose a cutoff from an assumed anomaly proportion. It does not guarantee the false-positive rate, precision, or future alert rate.
 
-Each method outputs a score; `contamination` (or a percentile cut) turns it into a decision. That choice *is* your false-alarm rate.
+At 10 million events per day, flagging 0.1% creates 10,000 alerts. A team handling 500 needs a different policy, possibly a top-500 queue or a second-stage filter.
 
-\[
-\text{alerts per day} = \text{traffic} \times \text{flag rate}
-\]
+Choose the operating policy from validation evidence, response cost, and capacity. Confirm the estimator's score direction before taking its largest values.
 
-With 10 million transactions a day, a 0.1% flag rate is 10,000 alerts - far beyond any review team. Setting the threshold from **review capacity** is usually more honest than setting it from a statistical rule.
+## 4. Evaluate with incomplete labels
 
-### Rule of thumb
+Measure recall among known positives and precision from reviewed alerts, while acknowledging selection bias. Review samples outside the flagged set where feasible to investigate missed cases. Synthetic anomalies test specific mechanisms, not complete real-world quality.
 
-> An anomaly detector without a staffed response process is an expensive way to generate ignored alerts.
+A useful hybrid routes unusual cases to review, creates labels, and trains a supervised model on recurring patterns. Monitor label coverage: the cases you review are not a random sample of all events.
 
----
-
-## 5. Evaluating it
-
-You almost never have full labels, so use what you can:
-
-- **the few known positives**: measure recall@k - of the confirmed frauds, how many land in the top k flagged?
-- **injected anomalies**: synthesize plausible abnormal cases and check they are caught,
-- **precision by sampling**: have an analyst review a sample of flagged cases,
-- **stability**: does the flag rate hold steady on normal days?
-
-Plain accuracy is meaningless here for the usual reason: predicting "all normal" scores 99.9%.
-
-**Two failure modes worth naming**
-
-1. **Anomalous does not mean bad.** A legitimate customer buying a car is an outlier. Without labels the system finds *unusual*, and someone must decide which unusual is *actionable*.
-2. **The training data is not clean.** If undetected fraud is present and unlabelled, the model learns it as normal - the same self-reinforcing problem as exposure bias in implicit labels.
-
----
-
-## 6. The common hybrid
-
-Real systems combine both, and saying so is a strong answer:
-
-```text
-anomaly detector → surfaces unusual cases → human review → labels
-                                                 ↓
-                                        supervised model on the
-                                        patterns that repeat
-```
-
-### Rule of thumb
-
-Anomaly detection covers the unknown-unknowns and generates the labels; the supervised model handles the patterns that have become common. Rules cover the cases you already understand.
-
----
-
-## What matters most
-
-- **The deciding question is whether the positives share a pattern.** Ten thousand similar frauds is a classification problem; four hundred creative ones is an anomaly problem.
-- **Know which setup you are in:** outlier detection finds anomalies already sitting in the training data; novelty detection learns clean "normal" and flags deviations later.
-- **Isolation Forest is the practical default** for tabular data - linear time, no distribution assumption. One-class SVM, density models, and reconstruction error are the alternatives.
-- **The threshold is the product decision.** Flag rate times traffic is alerts per day, so set it from review capacity rather than from a statistical rule.
-- **Anomalous does not mean bad.** Someone buying a car is an outlier; a human still has to decide which unusual is actionable.
-- **The common production shape is a hybrid:** the detector surfaces unknown-unknowns and generates labels, and a supervised model takes over the patterns that repeat.
-
----
-
-## Chapter 6 checkpoint
-
-For an unlabeled dataset, state what structure you expect, which distance or density assumptions are reasonable, how preprocessing changes them, how you will test stability, and what human or downstream decision gives the output meaning.
-
-That completes **Chapter 6 — Unsupervised learning**. Next topic is **The applied ML workflow**.
+> **Mental image:** an anomaly detector is a spotlight on difference. A separate judgement decides which differences require action.

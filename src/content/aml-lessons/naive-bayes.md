@@ -1,135 +1,56 @@
 ## Naive Bayes
 
-A classifier built directly from Bayes' rule plus one assumption that is obviously false and works anyway. Interviewers like it because explaining *why it works despite being wrong* requires real understanding.
+**Naive Bayes** is a classifier that combines a class's prior probability with per-feature evidence, assuming features are conditionally independent given the class.
 
----
+**Conditionally independent** means that, once the class is known, observing one feature is assumed not to change the probability of another.
 
-## 1. Bayes' rule applied to classification
+## 1. Prior × evidence
 
-\[
-P(y \mid x) = \frac{P(x \mid y)\,P(y)}{P(x)}
-\]
-
-We only need the argmax over y, so the denominator - identical for every class - drops out:
+Bayes' rule gives:
 
 \[
-\hat y = \arg\max_y \; P(y)\,P(x \mid y)
+P(y\mid x)\propto P(y)\prod_jP(x_j\mid y)
 \]
 
-### Common issue
+The **prior** \(P(y)\) is the class probability before seeing the features. The product is the evidence under the independence assumption. Normalize the resulting class scores to obtain probabilities.
 
-The problem: \(P(x \mid y)\) is a joint distribution over all d features. With 1,000 binary features that is 2^1000 combinations, and no dataset can estimate it.
-
----
-
-## 2. The "naive" assumption
-
-Assume the features are **conditionally independent given the class**:
-
-\[
-P(x \mid y) = \prod_{j=1}^{d} P(x_j \mid y)
-\]
-
-Now each term is a one-dimensional estimate - a count or a mean and variance - which is trivial to compute.
+For two binary word indicators:
 
 ```text
-P(spam | "free", "money") ∝ P(spam) · P("free"|spam) · P("money"|spam)
+P(spam) = 0.2      P(free|spam) = 0.5      P(money|spam) = 0.4
+P(legit) = 0.8     P(free|legit) = 0.05    P(money|legit) = 0.02
+
+spam score  = 0.2 × 0.5 × 0.4   = 0.04
+legit score = 0.8 × 0.05 × 0.02 = 0.0008
+normalized spam probability = 0.04 / 0.0408 ≈ 0.980
 ```
 
-The assumption is false: "free" and "money" plainly co-occur. But the model only has to rank the classes correctly, and the errors from the false assumption often push both class scores in the same direction, leaving the argmax intact.
+This is a tiny model with only these two indicators. A full binary-word model includes evidence from absent indicators too.
 
-### Rule of thumb
+## 2. Choose a feature distribution
 
-> Naive Bayes is usually a poor probability estimator and a surprisingly decent classifier. Trust its argmax, not its confidence.
-
----
-
-## 3. Work in log space
-
-Multiplying hundreds of small probabilities underflows to zero, so implementations sum logs:
-
-\[
-\log P(y) + \sum_j \log P(x_j \mid y)
-\]
-
-### Core intuition
-
-Notice the shape: a sum of per-feature weights plus a class prior - a **linear model** in the log-probability space. That is why Naive Bayes behaves like a fast linear classifier.
-
----
-
-## 4. The three variants
-
-| Variant | Feature type | Typical use |
+| Variant | Representation | What it estimates |
 |---|---|---|
-| Multinomial Naive Bayes (NB) | Counts | Word counts or term frequency-inverse document frequency (TF-IDF) for text |
-| Bernoulli NB | Binary presence | Short text, binary indicators |
-| Gaussian NB | Continuous | Numeric features, assumes a Gaussian per feature per class |
+| Multinomial | Nonnegative word counts | Word probabilities within each class |
+| Bernoulli | Binary presence/absence | Probability each indicator is present |
+| Gaussian | Continuous values | A mean and variance per feature and class |
 
-```python
-MultinomialNB(alpha=1.0).fit(X_counts, y)
-```
+The independence assumption can be inaccurate, yet class ordering may still be useful. Validate the predictions rather than assuming the approximation works.
 
-### Common issue
+## 3. Smoothing avoids zero evidence
 
-Gaussian NB carries an extra assumption - each feature is normally distributed within each class - which is often badly violated on real numeric data.
-
----
-
-## 5. Smoothing is not optional
-
-If a word never appeared in the spam class during training:
+An unseen word would receive probability zero in an unsmoothed count model, wiping out the product. **Additive smoothing** adds a small pseudo-count:
 
 \[
-P(\text{word} \mid \text{spam}) = 0 \;\Rightarrow\; \text{the whole product} = 0
+P(\text{word }j\mid y)=\frac{N_{jy}+\alpha}{N_y+\alpha V}
 \]
 
-One unseen feature annihilates the entire posterior. Laplace (add-one) smoothing fixes it:
+Here \(N_{jy}\) counts that word in class \(y\), \(N_y\) counts all word occurrences in that class, and \(V\) is vocabulary size. \(\alpha=1\) is add-one smoothing.
 
-\[
-P(x_j \mid y) = \frac{\text{count}(x_j, y) + \alpha}{\text{count}(y) + \alpha \cdot V}
-\]
+Implementations sum log-probabilities to avoid underflow from multiplying many tiny numbers.
 
-### Rule of thumb
+## 4. Fast baseline, cautious confidence
 
-`alpha=1.0` is the standard default; larger alpha means more shrinkage toward uniform.
+Naive Bayes is inexpensive and often useful for sparse text. Correlated features can count the same evidence repeatedly and produce overconfident probabilities. This is a common failure, not a mathematical inevitability of every dataset.
 
----
-
-## 6. Why its probabilities are wrong
-
-Correlated features are counted as independent evidence. If ten features are near-duplicates, the model multiplies essentially the same evidence ten times, and the posterior saturates:
-
-```text
-true P(spam | x) ≈ 0.85
-NB output        ≈ 0.99999
-```
-
-### Rule of thumb
-
-So Naive Bayes is **overconfident by construction**. If you need genuine probabilities - to compute expected cost, or to threshold against a dollar value - calibrate it (Platt or isotonic) on a held-out set.
-
----
-
-## 7. Where it still earns its place
-
-- extremely fast to train, one pass over the data, trivially incremental,
-- works with tiny datasets and very high dimensionality (text),
-- no hyperparameter tuning beyond alpha,
-- a strong baseline for text classification and a good "can this problem be learned at all?" probe.
-
-### Common issue
-
-Its weaknesses are the mirror image: badly correlated features, continuous features that are not Gaussian, and any situation where the probability value itself matters.
-
----
-
-## What matters most
-
-- **The independence assumption turns an impossible joint distribution into per-feature counts.** Drop the shared denominator and sum log-probabilities, and it behaves like a fast linear classifier.
-- **It is wrong and still works because only the ranking of classes has to be right.** Trust its argmax, not its confidence.
-- **It is overconfident by construction:** correlated features are counted as independent evidence, so calibrate it whenever the probability itself will be used.
-- **Smoothing is not optional.** One unseen feature has probability zero and wipes out the whole posterior.
-- **It earns its place as a one-pass, tiny-data text baseline,** with variants chosen by feature type (counts, binary, Gaussian).
-
-Next topic is **Support Vector Machines**.
+If probabilities drive expected cost, check calibration on held-out data. Gaussian Naive Bayes can have curved boundaries when class variances differ; not all variants are linear classifiers.

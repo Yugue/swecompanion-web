@@ -2,7 +2,7 @@
 
 ## 1. An edge is an intensity change
 
-A gradient measures **how quickly intensity changes**.
+An **edge** is a sharp local change in image intensity. An **image gradient** measures the size and direction of that change.
 
 Example: [20,20,180,180] contains a strong transition. A shadow can produce the same kind of response as an object boundary.
 
@@ -37,24 +37,30 @@ Noise also changes rapidly, so differentiation emphasizes it.
 
 Example: two thin parallel lines may become one blurred band.
 
-## 4. Canny is a pipeline
+## 4. Canny edge detection
+
+**Canny** is an edge-detection algorithm: it takes an intensity image and produces a **binary edge map**, marking selected boundary pixels as edges and the rest as non-edges. It aims to keep boundaries thin while rejecting noise.
 
 ```text
 smooth → gradients → thin responses → hysteresis → binary edges
 ```
 
-**Thinning** keeps maxima along the gradient direction.
+**Non-maximum suppression (thinning)** keeps a response only if its gradient magnitude is locally largest along the gradient direction. This narrows a broad response to a thin edge.
 
-**Hysteresis** uses two thresholds: keep strong edges and weak edges connected to them.
+**Hysteresis thresholding** uses two cutoffs: accept strong responses, reject very weak ones, and retain intermediate responses only when linked to a strong edge through connected candidate pixels.
 
-Example: with thresholds 50/150, response 100 survives near a strong edge but is rejected when isolated.
+Example: with thresholds 50/150, response 100 survives when connected to a strong edge but is rejected when isolated.
+
+```cv-visual
+canny
+```
 
 ## 5. Compare the tools
 
 | Method | Output | Main limitation |
 |---|---|---|
-| Sobel | First derivatives | Broad responses |
-| Laplacian | Second derivative | Noise sensitivity |
+| Sobel: small weighted filters estimating horizontal/vertical intensity changes | First derivatives | Broad responses |
+| Laplacian: sum of second spatial derivatives, measuring changes in the gradient | Second derivative | Noise sensitivity |
 | Canny | Thin binary edges | Scale/threshold sensitivity |
 
 A binary edge map discards magnitude and direction. Keep those measurements when later geometry needs them.
@@ -64,10 +70,10 @@ A binary edge map discards magnitude and direction. Keep those measurements when
 ```python
 gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
 gray = cv2.GaussianBlur(gray, (5, 5), sigmaX=1.0)
-edges = cv2.Canny(gray, threshold1=50, threshold2=150)
+edges = cv2.Canny(gray, threshold1=50, threshold2=150, L2gradient=True)
 ```
 
-Thresholds are illustrative. Test with the actual input range, lighting, and resolution.
+L2gradient=True uses the Euclidean gradient magnitude defined above. Thresholds are illustrative. Test with the actual input range, lighting, and resolution.
 
 ## 7. Common failures
 

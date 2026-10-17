@@ -2,7 +2,9 @@
 
 ## 1. Define similarity first
 
-An **embedding** maps an image to a vector. “Similar” might mean the same SKU, category, style, or person.
+A **visual embedding** is a numeric feature vector produced by an encoder, trained so vector similarity reflects useful image relationships. **Retrieval** returns gallery items ranked by similarity to a query.
+
+“Similar” might mean the same **SKU (Stock Keeping Unit)**, a catalog variant identifier, or the same category, style, or person.
 
 A red and blue version of one product may be similar by category but different by SKU.
 
@@ -25,7 +27,9 @@ Without normalization, vector magnitude can change ranking. More dimensions alon
 
 ## 3. Learn the relationships
 
-Classification features are a useful baseline. Pairwise losses train similarity directly; triplet loss uses an anchor, positive, and negative:
+**Metric learning** trains representations to satisfy desired distance relationships. Classification features are a baseline; **pairwise losses** train matching/nonmatching pairs.
+
+**Triplet loss** compares an **anchor** a with a desired similar example p (positive) and dissimilar example n (negative). It penalizes failure to place the positive closer by margin m, using distance d:
 
 \[
 L=\max(0,d(a,p)-d(a,n)+m)
@@ -42,7 +46,7 @@ Moving the negative to \(0.7\) makes the loss zero. Margin units depend on the c
 ## 4. Negatives teach distinctions
 
 - Random negatives can be too easy.
-- Hard negatives expose common confusions.
+- **Hard negatives:** nonmatching examples currently scored as similar; they expose common confusions.
 - Mislabeled positives become harmful false negatives.
 
 Nearly identical packaging variants are negatives for exact SKU retrieval, but may be positives for category retrieval.
@@ -51,15 +55,17 @@ Define relevance before mining pairs.
 
 ## 5. Search and reranking
 
-**Exact search** compares every gallery vector. **ANN** trades search accuracy for speed and memory.
+A **gallery** is the stored set of searchable examples. A **search index** organizes their vectors for efficient lookup.
+
+**Exact nearest-neighbor search** compares every gallery vector. **Approximate Nearest Neighbor (ANN) search** uses an index to avoid exhaustive comparison, trading some result accuracy for speed/memory.
 
 Compare ANN against exact results to separate index misses from embedding errors. Compression and filters can also remove good candidates.
 
-Reranking applies more expensive pairwise reasoning to a short candidate list.
+**Reranking** scores a retrieved shortlist again, using a potentially more expensive query–candidate comparison to improve ordering.
 
 ## 6. Evaluate and version the system
 
-**Recall@K** can mean any relevant hit or the fraction of relevant items found. State which convention you use. Retrieval AP also rewards ranking order.
+**Recall@K** can mean any relevant hit or the fraction of relevant items found. State which convention you use. **Retrieval Average Precision (AP)** summarizes precision at relevant result positions under a stated relevance/aggregation convention, rewarding useful ordering.
 
 Check identity/category slices, catalog coverage, duplicates, and query/gallery leakage.
 
@@ -67,7 +73,7 @@ Version the encoder, preprocessing, normalization, and gallery vectors together.
 
 ## 7. Anomalies and unmatched inputs
 
-Large distance from a normal gallery can indicate a defect—or new lighting, a new camera, or missing normal examples.
+**Anomaly detection** flags observations that differ from expected normal data. Large distance from a normal gallery can indicate a defect—or new lighting, a new camera, or missing normal examples.
 
 Choose thresholds using realistic normal prevalence and defect types. Retrieval also needs an “unmatched” policy; the nearest item may still be wrong.
 

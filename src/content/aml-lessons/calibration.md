@@ -1,149 +1,49 @@
 ## Probability calibration
 
-A model is **calibrated** when its 0.7 means the event happens 70% of the time. Ranking quality and calibration are independent properties, and confusing them is a common interview stumble.
+A classifier is **calibrated** when its predicted probabilities match observed frequencies. Among many predictions near 0.7, about 70% should be positive.
 
----
+Calibration describes a model on a particular population. It is different from ranking examples correctly.
 
-## 1. The definition
+## 1. Order and probability can disagree
 
-\[
-P\big(y = 1 \mid \hat p = q\big) = q \quad \text{for every } q
-\]
+Suppose scores [0.2, 0.6, 0.9] are changed to [0.1, 0.3, 0.45]. The ordering stays the same, so ranking metrics stay the same. Their interpretation as event probabilities has changed.
 
-Take every case the model scored 0.30. If about 30% of them are positive, the model is calibrated at that score.
+Even a calibrated model does not identify which individual cases will be positive. A calibrated 70% group still contains about 30% negatives.
 
-### Core intuition
+## 2. Read a reliability diagram
 
-A model can rank **perfectly** and be badly calibrated: multiply every score by 0.5 and the ordering - and therefore the receiver-operating-characteristic area under the curve (ROC-AUC) - is unchanged, while every probability is now wrong.
+A **reliability diagram** groups predictions into bins. For each bin, plot its mean predicted probability against its observed positive fraction.
 
----
-
-## 2. When it matters, and when it does not
-
-| Output is used for | Calibration needed? |
-|---|---|
-| Sorting candidates for a review queue | No - only order matters |
-| A recommendation ranking | No |
-| A fixed threshold, tuned on the same distribution | Not strictly - the threshold absorbs the distortion |
-| Expected value: \(p \times \text{amount}\) | **Yes** |
-| Combining several models' probabilities | **Yes** |
-| Showing a number to a user or an analyst | **Yes** |
-| Comparing risk across segments or over time | **Yes** |
-
-### Rule of thumb
-
-> The moment a probability is multiplied by anything - a dollar value, another probability, a cost - it has to be calibrated.
-
----
-
-## 3. What miscalibration looks like in a table
-
-Bucket the predictions and compare what the model claimed against what happened:
-
-```text
-predicted   count   actually positive   observed rate     verdict
- 0.0-0.1    4,200          84               2.0%        about right
- 0.1-0.3    1,900         361              19.0%        about right
- 0.3-0.5      800         184              23.0%        over-confident
- 0.5-0.7      400          96              24.0%        badly over-confident
- 0.7-0.9      150          38              25.3%        badly over-confident
- 0.9-1.0       50          14              28.0%        badly over-confident
+```aml-visual
+calibration
 ```
 
-Read the last two columns together. When this model says 0.8, the event happens 25% of the time. When it says 0.95, it happens 28% of the time. Above about 0.3 the number has stopped meaning anything.
+On the diagonal, predictions and observed rates agree. Below it, the model overpredicts positive risk; above it, it underpredicts that risk. Always inspect bin counts: two positives among three cases is weak evidence about a claimed 70% probability.
 
-Now notice what is still true: **the ordering is perfect.** Every bucket has a higher observed rate than the one below it, so ROC-AUC, normalized discounted cumulative gain (NDCG), and precision@k are all excellent. A ranking metric cannot see any of this.
-
-But feed it into an expected-value calculation:
-
-```text
-model says 0.80 × $500 loss  =  $400 expected     → block the transaction
-reality      0.25 × $500     =  $125 expected     → probably should not have
-```
-
-### Intuition
-
-Every decision built on the number is wrong by a factor of three, while every ranking-based dashboard says the model is healthy.
-
----
-
-## 4. Diagnosing: the reliability diagram
-
-Bin the predictions, and plot the mean predicted probability against the observed frequency in each bin:
-
-```text
-observed │        ╱ perfect calibration
-frequency│      ╱
-         │    ╱  ●──●         ← below the line: over-confident
-         │  ╱ ●
-         │╱●
-         └──────────────── predicted probability
-```
-
-Summaries:
+**Brier score** is mean squared probability error:
 
 \[
-\text{Brier} = \frac{1}{n}\sum_i (\hat p_i - y_i)^2
+\text{Brier}=\frac1n\sum_i(p_i-y_i)^2
 \]
 
-### Rule of thumb
+It reflects discrimination as well as calibration. **Expected calibration error (ECE)** averages estimated bin gaps, usually weighted by bin size. Its result depends on binning and sample size; it is not an exact or complete measure of calibration.
 
-Brier score combines calibration and discrimination in one number (lower is better). **Expected calibration error (ECE)** is the average gap between the two axes across bins and isolates calibration alone. Log loss also rewards calibration, since it punishes confident mistakes.
+## 3. Why downstream use matters
 
----
+For a correctly specified loss estimate, expected fraud loss might be \(p\times\$500\). Predicting 0.8 when the actual risk is 0.25 changes the estimate from $125 to $400.
 
-## 5. Who is miscalibrated, and in which direction
+If only the ordering drives a fixed-size queue, calibration may be less important than ranking. If probabilities drive expected value, risk reporting, or comparison across groups, check calibration in those relevant settings.
 
-| Model | Typical behavior |
-|---|---|
-| Logistic regression | Well calibrated by construction (it maximizes Bernoulli likelihood) |
-| Naive Bayes | Badly over-confident - the independence assumption multiplies correlated evidence |
-| Support-vector machine (SVM) | Outputs a distance, not a probability at all |
-| Random forest | Under-confident at the extremes - averaging votes pulls scores toward the middle |
-| Boosted trees | Often over-confident, especially with many trees |
-| Any model after resampling or class weighting | Shifted away from the true base rate |
+Logistic regression can calibrate well under suitable assumptions; no model name guarantees it. Even globally calibrated probabilities may be miscalibrated within a subgroup.
 
----
+## 4. Fit a calibration mapping honestly
 
-## 6. Fixing it
-
-Both methods fit a small mapping from raw score to probability, on **held-out** data:
-
-**Platt scaling** - fit a one-dimensional logistic regression on the scores:
-
-\[
-p = \sigma(a\,s + b)
-\]
-
-Two parameters, works with little data, assumes a sigmoidal distortion.
-
-**Isotonic regression** - fit any monotone step function. More flexible, corrects arbitrary distortions, needs more data (roughly a thousand held-out examples) or it overfits.
+**Sigmoid calibration**, also called Platt scaling, fits a small sigmoid mapping from score to probability. **Isotonic regression** fits a flexible monotonic mapping and generally needs more data.
 
 ```python
-CalibratedClassifierCV(base_model, method="isotonic", cv=5)
+CalibratedClassifierCV(model, method="sigmoid", cv=5)
 ```
 
-The calibrator must never be fitted on the training data the model already saw - it would learn the model's training-set over-confidence, not its real-world behavior.
+Use held-out or out-of-fold predictions, with group or time restrictions where required. Evaluate on a separate representative set after fitting the mapping.
 
-**Calibration after resampling.** This is the connection interviewers probe most often. If you oversampled the positive class 50×, the model has learned a training distribution with a 50× inflated base rate. Its 0.5 corresponds to a much smaller real-world probability.
-
-Either correct analytically for the known sampling ratio, or - simpler and more robust - fit a calibrator on a **held-out set with the original, untouched class distribution**.
-
-**Calibration drifts.** Calibration is a property of the model *and* the data distribution. When the base rate moves - a seasonal fraud spike, a new market - a previously calibrated model becomes systematically wrong even though its ranking is intact.
-
-### Common issue
-
-So: monitor the mean predicted probability against the realized positive rate, and recalibrate on recent data. Recalibration is cheap - it is a two-parameter fit - and it is often the right response to drift when a full retrain is not yet justified.
-
----
-
-## What matters most
-
-- **Calibration and ranking are independent.** Halve every score and the AUC is unchanged while every probability is now wrong.
-- **The trigger is simple:** the moment a probability gets multiplied by anything - a dollar value, another probability, a cost - it must be calibrated.
-- **Diagnose with a reliability diagram,** and summarize with Brier (calibration plus discrimination) or ECE (calibration alone).
-- **Know the typical directions:** logistic regression is calibrated by construction, naive Bayes is over-confident, forests are under-confident at the extremes, and SVMs emit a distance rather than a probability.
-- **Fit Platt or isotonic on held-out data** - never on data the model trained on - and after resampling, calibrate on a set with the original class distribution.
-- **Calibration drifts with the base rate** even when ranking holds, so monitor predicted versus realized rates; recalibrating is a cheap alternative to a full retrain.
-
-Next topic is **Class imbalance**.
+Class resampling or weighting can alter probabilities. Calibrate against the intended deployment distribution and recheck when that population changes. Recalibration cannot repair a ranking that has lost its useful signal.

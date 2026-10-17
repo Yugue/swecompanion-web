@@ -1,156 +1,48 @@
 ## Regression metrics
 
-**When the answer is a number, being wrong has a size.** Saying 32 minutes when it took 34 is a small miss. Saying 32 when it took 90 ruined someone's evening.
+A **regression metric** measures the error of numeric predictions. Define prediction error as \(e_i=\hat y_i-y_i\), in the target's units.
 
-These metrics differ mainly in **how harshly they punish the big misses**, and whether the result comes out in units a stakeholder can read.
-
----
-
-## 1. The core four
-
-- **Mean absolute error (MAE)** averages the absolute size of each error.
-- **Mean squared error (MSE)** averages squared errors, so large misses count much more.
-- **Root mean squared error (RMSE)** takes the square root of MSE to return to the target's units.
-- **R-squared (R²)** compares the model with the baseline of always predicting the target mean.
+## 1. Average size versus large misses
 
 \[
-\text{MAE} = \frac{1}{n}\sum_i \lvert \hat y_i - y_i\rvert
-\qquad
-\text{MSE} = \frac{1}{n}\sum_i (\hat y_i - y_i)^2
+\text{MAE}=\frac1n\sum_i|e_i|,\qquad
+\text{MSE}=\frac1n\sum_i e_i^2,\qquad
+\text{RMSE}=\sqrt{\text{MSE}}
 \]
+
+**Mean absolute error (MAE)** counts each extra unit equally. **Mean squared error (MSE)** amplifies large misses. **Root mean squared error (RMSE)** returns squared error to the original units.
+
+For delivery errors of 1, 1, and 7 minutes:
+
+```text
+MAE  = (1 + 1 + 7) / 3 = 3 minutes
+RMSE = sqrt((1 + 1 + 49) / 3) ≈ 4.12 minutes
+```
+
+RMSE is at least MAE. A large gap indicates unequal error magnitudes; inspect the tail rather than assuming exactly how many bad cases caused it. MAE is less sensitive to extremes than MSE, but extreme errors still affect it.
+
+## 2. R² compares against a mean
 
 \[
-\text{RMSE} = \sqrt{\text{MSE}}
-\qquad
-R^2 = 1 - \frac{\sum_i (y_i-\hat y_i)^2}{\sum_i (y_i-\bar y)^2}
+R^2=1-\frac{\sum_i(y_i-\hat y_i)^2}{\sum_i(y_i-\bar y)^2}
 \]
 
-| Metric | Units | Outliers | Reads as |
-|---|---|---|---|
-| MAE | target units | robust | "typically off by 3 minutes" |
-| MSE | units² | very sensitive | hard to interpret directly |
-| RMSE | target units | sensitive | "off by ~6 minutes, big misses weighted" |
-| R² | unitless | inherits MSE's sensitivity | "explains 74% of the spread vs predicting the mean" |
+Here \(\bar y\) is the mean of the targets in the set being evaluated. R² = 0 matches that constant reference; R² < 0 is worse. A constant target makes the denominator zero and needs a reporting convention.
 
----
+Held-out R² can decrease when features are added. The familiar “R² never falls” statement applies to training R² for nested, unregularized least-squares models fitted optimally with an intercept.
 
-## 2. RMSE vs MAE — the gap is information
+R² does not tell you whether a five-minute error is acceptable. Report an error in target units too.
 
-RMSE ≥ MAE always. The **size of the gap** tells you about the error distribution:
+## 3. Percentage and logarithmic errors
 
-```text
-MAE 3.0, RMSE 3.2  → errors are uniform in size; no dramatic misses
-MAE 3.0, RMSE 6.0  → most predictions are good, a few are very wrong
-```
+**Mean absolute percentage error (MAPE)** averages \(100|e_i/y_i|\). It is undefined at zero and heavily weights small actual values. For positive actual values and nonnegative predictions, overprediction is unbounded while underprediction cannot exceed 100%. Percentage errors also need care with negative targets.
 
-### Intuition
+**Weighted absolute percentage error (WAPE)** divides total absolute error by total actual magnitude. It avoids per-row zero divisions, but fails when the total is zero and emphasizes large-volume cases.
 
-A large gap means the aggregate is hiding a tail, and the right next step is to look at the worst errors rather than tune the model.
+**Root mean squared logarithmic error (RMSLE)** compares \(\log(1+\hat y)\) with \(\log(1+y)\). For nonnegative targets, it emphasizes relative differences at larger values. It is not automatically appropriate for every skewed target.
 
-### Rule of thumb
+## 4. Match the decision and inspect residuals
 
-> Report both. RMSE alone hides whether you are consistently mediocre or usually great with occasional disasters.
+A **residual** is actual minus predicted, \(y-\hat y\). Plot residuals against predictions and time: curves can indicate a missing relationship; widening spread can indicate changing error variance.
 
----
-
-## 3. R² and its traps
-
-R² compares your model against "always predict the mean", which is why it feels informative.
-
-### Common issue
-
-```text
-it can be NEGATIVE                     worse than the mean
-it always rises with more features     hence adjusted R²
-it is scale-free                       says nothing about acceptable error
-it depends on the test set's variance  not comparable across datasets
-```
-
-R² = 0.9 on a low-variance slice can be worse in absolute terms than R² = 0.6 on a hard one.
-
----
-
-## 4. Percentage errors
-
-**Mean absolute percentage error (MAPE)** averages the absolute percentage error:
-
-\[
-\text{MAPE} = \frac{100}{n}\sum_i \left\lvert\frac{y_i-\hat y_i}{y_i}\right\rvert
-\]
-
-Attractive because it is scale-free and everyone understands "8% off".
-
-### Common issue
-
-Three real problems:
-
-```text
-undefined at y = 0, and explosive when y is small
-ASYMMETRIC — over-prediction can exceed 100% error, under-prediction is capped
-meaningless for targets that can be negative
-```
-
-That asymmetry biases predictions **low**. **Weighted absolute percentage error (WAPE)**—total absolute error divided by total actuals—is the usual fix in forecasting.
-
----
-
-## 5. Skewed targets
-
-When y spans orders of magnitude—prices, view counts, revenue—absolute error is dominated by the largest values. **Root mean squared logarithmic error (RMSLE)** measures error after applying `log(1 + value)`, so it focuses on ratios rather than raw distance.
-
-\[
-\text{RMSLE} = \sqrt{\frac{1}{n}\sum_i \big(\log(1+\hat y_i) - \log(1+y_i)\big)^2}
-\]
-
-### Intuition
-
-Being off by 2× costs roughly the same whether the truth is 10 or 10,000—which is often how the error is actually experienced.
-
----
-
-## 6. Asymmetric costs
-
-Most business regression is asymmetric:
-
-```text
-an estimated time of arrival (ETA) 10 minutes late is far worse than 10 minutes early
-under-stocking loses a sale; over-stocking ties up capital
-under-predicting server load causes an outage
-```
-
-```python
-GradientBoostingRegressor(loss="quantile", alpha=0.8)
-```
-
-### Rule of thumb
-
-Predicting the 80th percentile rather than the mean is a modelling decision, and the metric has to reflect it — or evaluation keeps preferring the wrong model.
-
----
-
-## 7. Also look at the residuals
-
-```text
-residual
-  │   .  . . .  .      ← healthy: a flat band around zero
-0 ├─────────────────
-  │  . .  .  . .
-  │        ╱           ← fanning out: error grows with y
-```
-
-### Intuition
-
-A single number cannot show structure. Curvature means a missing nonlinearity; a widening fan means non-constant variance; drift over time means the relationship is changing.
-
----
-
-## What matters most
-
-- **Report MAE and RMSE together.** The size of the gap says whether you are consistently mediocre or usually great with occasional disasters - and a large gap means go look at the worst errors, not tune the model.
-- **R² compares against predicting the mean,** can be negative, always rises with more features, and depends on the test set's variance, so it isn't comparable across datasets.
-- **MAPE is asymmetric and explodes near zero,** which biases predictions low; WAPE is the usual fix in forecasting.
-- **For targets spanning orders of magnitude, evaluate in log space** - RMSLE measures ratio error, which is how the error is actually experienced.
-- **Most business regression is asymmetric,** so train and evaluate with quantile loss and say which quantile you serve.
-- **Plot residuals.** Curvature means a missing nonlinearity, a widening fan means non-constant variance, drift means the relationship is changing.
-
-Next topic is **Baselines and when not to use ML**.
+If underestimating demand costs more than overestimating it, evaluate an asymmetric cost or **quantile loss**, which targets a chosen percentile. Mean error alone cannot represent that decision.

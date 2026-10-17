@@ -1,111 +1,46 @@
 ## Feature scaling and normalization
 
-Scaling is a small transformation with a sharp rule attached: it is **essential for some model families and irrelevant for others**, and knowing which is which is a standard interview check.
+**Feature scaling** changes numeric units so a model can compare or penalize features on a deliberate basis. It usually changes a column's scale rather than adding information.
 
----
+## 1. Units change distance
 
-## 1. The three transforms
-
-**Standardization** (z-score) - the default:
-
-\[
-x' = \frac{x - \mu}{\sigma}
-\]
-
-Zero mean, unit variance. Unbounded, preserves the shape of the distribution.
-
-**Min-max normalization** - to a fixed range:
-
-\[
-x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}}
-\]
-
-Bounded to [0, 1], but a single extreme value squashes everything else.
-
-**Robust scaling** - when outliers are present, subtract the median and divide by the **interquartile range (IQR)**, the distance between the 25th and 75th percentiles:
-
-\[
-x' = \frac{x - \text{median}}{\text{IQR}}
-\]
-
-```python
-StandardScaler()  |  MinMaxScaler()  |  RobustScaler()
+```aml-visual
+feature-scaling
 ```
 
-### Rule of thumb
+A $10,000 income difference contributes \(10{,}000^2\) to squared Euclidean distance. A ten-year tenure difference contributes only \(10^2\). Without rescaling, the neighborhood is driven almost entirely by dollars.
 
-Standardize by default. Reach for robust scaling when outliers are present, and remember min-max is squashed by a single extreme value.
+**Euclidean distance** is straight-line distance: \(\sqrt{\sum_j(x_j-x'_j)^2}\). Scaling chooses how much each coordinate contributes.
 
----
+## 2. Three column transforms
 
-## 2. Who needs it and who does not
-
-| Model | Needs scaling? | Why |
+| Transform | Formula | Effect |
 |---|---|---|
-| k-nearest neighbors (k-NN), k-means, support-vector machines (SVMs) with a radial-basis-function (RBF) kernel | **Yes** | They compute distances; a feature in dollars dominates one in years |
-| Logistic / linear regression with L1 (absolute-value) or L2 (squared-value) regularization | **Yes** | The penalty is applied to raw coefficient size |
-| Any model fitted with gradient descent | **Yes** | Wildly different scales make the loss surface elongated and slow to descend |
-| Principal component analysis (PCA) | **Yes** | It maximizes variance, and variance is scale-dependent |
-| Neural networks | **Yes** | Same gradient argument, plus saturation |
-| Decision trees | No | A split is a threshold; monotone rescaling does not change the ordering |
-| Random forest, gradient boosting | No | Built from trees |
-| Naive Bayes (categorical/multinomial) | No | Works on counts and probabilities |
+| Standardization | \((x-\mu)/\sigma\) | Training mean 0 and variance 1 for a nonconstant column |
+| Min-max | \((x-x_{\min})/(x_{\max}-x_{\min})\) | Training range maps to [0, 1] |
+| Robust scaling | \((x-\text{median})/\text{IQR}\) | Uses median and interquartile range |
 
-> **Gradient descent** is a training method that repeatedly nudges model parameters in the direction that reduces error.
+The **interquartile range (IQR)** is the 75th percentile minus the 25th. Robust scaling reduces the influence of extremes on the scaling statistics; it does not remove outliers.
 
-### Rule of thumb
+Standardization does not make a skewed distribution Gaussian. New observations can fall outside a fitted min-max range. Constant columns need a zero-denominator convention, which standard library scalers handle.
 
-> Distance, dot products, penalties, and gradients care about scale. Threshold splits do not.
+## 3. Which models care?
 
----
+Distance methods, kernel methods, coefficient penalties, and gradient-based fitting are often sensitive to scale. Scaling can improve optimization and make penalties more comparable across numeric features.
 
-## 3. Why unscaled features break distance models
+For a linear prediction \(wx\), multiplying \(x\) by 1,000 allows the same contribution with a coefficient 1,000 times smaller. An L2 penalty on coefficient size therefore changes unless scale is accounted for.
 
-Consider two features: annual income (30,000-200,000) and years at the company (0-40).
+Ordinary axis-aligned trees generally need no scaling: a strictly monotonic transformation preserves split ordering. Numerical approximations and interpolation at thresholds can still introduce small differences.
 
-\[
-d = \sqrt{(\text{income}_1-\text{income}_2)^2 + (\text{years}_1-\text{years}_2)^2}
-\]
+Choose feature scales from their meaning as well as convenience. Unit variance does not guarantee that every feature deserves equal influence.
 
-### Intuition
-
-A $10,000 income difference contributes 10,000² to the distance; a 10-year tenure difference contributes 100. Tenure is effectively invisible — k-NN is clustering by income alone, and never tells you.
-
-**Why it changes regularized linear models.** L2 penalizes \(\sum w_j^2\). A feature measured in dollars needs a tiny coefficient to have a normal-sized effect, and a tiny coefficient is barely penalized. A feature measured in units of 0-1 needs a large coefficient, which is heavily penalized.
-
-> Without scaling, the regularizer punishes features according to their unit of measurement rather than their usefulness.
-
-### Common issue
-
-This is why `LogisticRegression` in scikit-learn — which regularizes by default — should essentially always sit behind a scaler.
-
----
-
-## 4. Fit on train, apply everywhere
+## 4. Fit once on training data
 
 ```python
-scaler = StandardScaler().fit(X_train)   # μ and σ come from TRAIN only
-X_train_s = scaler.transform(X_train)
-X_val_s   = scaler.transform(X_val)      # same μ and σ
+scaler = StandardScaler().fit(X_train)
+X_val_scaled = scaler.transform(X_val)
 ```
 
-Fitting the scaler on all the data before splitting leaks the test distribution's mean and variance into training. The effect is small but it is real, and in an interview it is a red flag. A `Pipeline` inside cross-validation makes it impossible to get wrong.
+Put the scaler inside the model pipeline so each cross-validation fold learns its own statistics. Serving uses the stored statistics too.
 
-The same statistics must also be shipped to production: the serving path applies the *stored* μ and σ, never recomputes them from live traffic.
-
-**Related transforms that are not scaling**
-
-- **Log / Box-Cox / Yeo-Johnson**: change the *shape* of a skewed distribution, not just its scale.
-- **Quantile transform**: forces a feature to a uniform or normal distribution; powerful and lossy.
-- **L2 row normalization**: scales each *row* to unit length - used for text represented by term frequency-inverse document frequency (TF-IDF) and compared with cosine similarity, a different operation from column scaling.
-
----
-
-## What matters most
-
-- **Ask whether the model measures distance, dot products, penalties, or gradients.** If so, scale (k-NN, k-means, RBF-SVM, regularized linear models, PCA, neural nets). Threshold splits don't care, so trees and boosting skip it.
-- **Regularization punishes by unit of measurement** when features are unscaled, not by usefulness - that is the real reason to put a scaler in front of logistic regression.
-- **Pick the transform for the data:** standardize by default, robust scaling when outliers are present, and remember min-max is squashed by a single extreme value.
-- **Fit the scaler on train only,** and ship the stored mean and standard deviation to production rather than recomputing them from live traffic.
-
-Next topic is **Encoding categorical features**.
+**Row normalization** is different: it scales each example vector, often to length one for direction-based similarity. A log transform is different again: it changes a feature's distribution shape.

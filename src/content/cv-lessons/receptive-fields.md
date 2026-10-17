@@ -11,6 +11,8 @@ A small output map does not automatically imply full-image context.
 
 ## 2. Output size
 
+**Stride** S is the step between kernel positions; **padding** P adds border cells. **Dilation** D spaces kernel samples apart, with D=1 using adjacent inputs.
+
 For one dimension:
 
 \[
@@ -38,10 +40,8 @@ A 3 × 3 stride-two layer gives r=3,j=2. Later neighbors are now two input pixel
 
 ## 4. Worked example
 
-```text
-32 × 32 input       field 1, jump 1
- → 3×3, stride 2    field 3, jump 2; output 16 × 16
- → 3×3, stride 1    field 7, jump 2; output 16 × 16
+```cv-visual
+receptive-field
 ```
 
 The second layer adds \(2\times2=4\), giving **seven**, not five.
@@ -50,9 +50,11 @@ The theoretical field describes possible influence. Learned influence can concen
 
 ## 5. Pooling and aggregation
 
+**Pooling** replaces a neighborhood with a summary value, often reducing spatial resolution.
+
 - **Max pooling:** retain the strongest nearby value.
 - **Average pooling:** summarize nearby values.
-- **Global average:** one value per channel.
+- **Global average pooling:** average all spatial positions to get one value per channel.
 
 Example: [1,3,2,4] → max 4, average 2.5.
 
@@ -66,7 +68,7 @@ It increases context without matching downsampling. Sparse coverage can create g
 
 ## 7. Small objects
 
-At output stride 16, a six-pixel object can occupy less than one feature cell.
+**Output stride** is the spacing of output cells measured in input pixels. At output stride 16, a six-pixel object can occupy less than one feature cell.
 
 Consider:
 - Higher input resolution.

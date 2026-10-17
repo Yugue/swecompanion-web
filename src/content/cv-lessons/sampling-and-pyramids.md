@@ -15,13 +15,19 @@ The samples now suggest a false pattern: **aliasing**.
 - Broad shading: low frequency.
 - Tight stripes: high frequency.
 
-At sampling frequency \(f_s\), a band-limited signal needs frequencies below \(f_s/2\).
+A **band-limited** signal has no frequencies above a cutoff. The **Nyquist sampling condition** requires that cutoff below half the sampling rate \(f_s\): below \(f_s/2\). Here \(f_s\) counts samples per unit distance along the considered spatial direction.
+
+A **low-pass filter** suppresses fine, rapid variations before reducing the grid.
 
 ```text
 fine pattern → low-pass filter → smaller grid
 ```
 
 **Antialiasing** removes detail too fine for the new grid. Averaging black/white stripes into gray loses detail without inventing a new stripe pattern.
+
+```cv-visual
+aliasing
+```
 
 ## 3. Interpolation
 
@@ -38,9 +44,9 @@ Upsampling adds pixels, not uniquely recoverable detail. Interpolation alone doe
 
 ## 4. Resize labels correctly
 
-- **Class masks:** nearest neighbor.
-- **Boxes/keypoints:** transform coordinates.
-- **Depth/probability maps:** continuous interpolation when appropriate; handle invalid values.
+- **Class mask:** a grid assigning a category ID to each pixel; resize with nearest neighbor.
+- **Box/keypoint:** object rectangle or landmark coordinate; transform coordinates with the image.
+- **Depth/probability map:** a per-pixel distance or probability; continuous interpolation may be appropriate, with invalid values handled separately.
 
 Example: class IDs 0 and 2 are categories. Averaging them into 1 invents another label.
 
@@ -48,7 +54,7 @@ Preserve aspect ratio when shape matters.
 
 ## 5. Image pyramids
 
-A **Gaussian pyramid** repeatedly smooths and shrinks:
+An **image pyramid** stores the same image at several resolutions. A **Gaussian pyramid** repeatedly applies Gaussian smoothing, a center-weighted neighborhood average, then shrinks:
 
 ```text
 512 × 512 → 256 × 256 → 128 × 128
@@ -57,7 +63,7 @@ A **Gaussian pyramid** repeatedly smooths and shrinks:
 
 A 32-pixel movement becomes eight pixels after 4× reduction, making coarse motion easier to search.
 
-A **Laplacian pyramid** stores differences between scales and supports reconstruction.
+A **Laplacian pyramid** stores each level's difference from an expanded coarser level, plus the coarsest image. These residuals support reconstruction.
 
 ## 6. Resizing in PyTorch
 
@@ -77,7 +83,7 @@ Keep interpolation and coordinate conventions consistent between training and in
 - Double height and width → **4× pixels**.
 - Shrink 1024 → 256 → an eight-pixel object becomes two pixels.
 
-Tiling keeps local detail but adds boundary handling and duplicate merging. Choose resolution using object size and serving cost.
+**Tiling** splits a large image into smaller crops processed separately. It keeps local detail but needs coordinate restoration and merging of duplicate predictions in overlaps. Choose resolution using object size and serving cost.
 
 ## 8. Interview reasoning
 

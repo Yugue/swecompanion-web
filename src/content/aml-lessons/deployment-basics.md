@@ -1,140 +1,44 @@
 ## Serving a model: batch, online, and train/serve skew
 
-**"Serving" is everything that happens after training: getting a real prediction to a real user.**
+**Model serving** applies a fitted model to product inputs and delivers predictions. The right serving mode depends on when inputs arrive, when decisions happen, and how fresh predictions must be.
 
-```text
-batch   → compute every prediction overnight, look the answer up instantly
-online  → compute the prediction on demand, while the user waits
-```
+## 1. Three serving modes
 
-Which one you pick decides your latency budget, where features come from, and how fresh the answer can be. It is also where the most expensive production bug lives.
-
----
-
-## 1. The three serving modes
-
-```text
-BATCH     nightly job scores every user  → write to a table → product reads it
-ONLINE    request arrives → fetch features → model → response (ms)
-STREAMING event arrives → score continuously → push downstream
-```
-
-| | Batch | Online |
+| Mode | Flow | Example |
 |---|---|---|
-| Latency at request time | none (a table lookup) | the model is in the critical path |
-| Freshness | as stale as the last run | current |
-| Cost | cheap, amortized, easy to retry | a service to run, scale, and page on |
-| Inputs | anything in the warehouse | only what is fetchable in budget |
-| Failure mode | stale predictions | an outage the user sees |
+| Batch | Scheduled job → stored predictions → lookup | Weekly retention queue |
+| Online | Request → features → model → response | Checkout fraud decision |
+| Streaming | Event → updated features or prediction → downstream consumer | Continuous equipment monitoring |
 
-### Rule of thumb
+Batch simplifies repeated computation, but stored predictions become stale. It still has lookup latency. Online includes features and inference in the request budget; its inputs can also be stale if upstream data is delayed.
 
-> Use batch unless the prediction depends on something that happened in the last few minutes. Most "we need real-time" requirements do not.
+A hybrid can precompute expensive history features and combine them with request-time information. Choose from the actual freshness requirement rather than assuming every product needs immediate recomputation.
 
-A weekly churn score does not need an online model. A fraud decision at checkout does.
+## 2. Train/serve skew means different inputs
 
----
-
-## 2. The hybrid that most large systems use
+**Train/serve skew** is a mismatch between how inputs or transformations are produced during training and serving.
 
 ```text
-offline (batch)                 online (per request)
-──────────────────              ─────────────────────
-user/item embeddings    ──────→ dot product + light re-rank
-expensive aggregates    ──────→ combined with 2-3 live features
+training:  30-day spend, UTC boundary, missing value → 0
+serving:   30-day spend, local boundary, missing value → median
 ```
 
-### Intuition
+Both paths run successfully while supplying different values. Other causes include backfilled history, changed category mappings, units, rounding, and feature arrival delays.
 
-Precompute the expensive part, do something cheap at request time. This is how recommendation systems answer in tens of milliseconds over millions of items.
+Share definitions and stored transformations. Compare replayed requests or logged live feature vectors with historical reconstruction, using explicit tolerances for floating-point values. A feature store can help coordinate definitions, but it does not automatically guarantee correctness.
 
----
+## 3. Deploy a complete version
 
-## 3. Train/serve skew
+A prediction artifact includes the model, imputer, scaler, encoder, feature definitions, and expected schema. Record the decision threshold or policy too. Test their compatibility and keep a previous usable version.
 
-The classic production bug: the same feature, computed two different ways.
+A **shadow deployment** scores live requests without letting the new score drive the decision. It can reveal compatibility and latency problems; it does not directly measure the causal effect of using the new policy and still consumes resources.
 
-```text
-training  : "avg order value, 30d"  computed with Structured Query Language (SQL),
-                                      Coordinated Universal Time (UTC) days, nulls → 0
-serving   : "avg order value, 30d"  computed in Java, local time, nulls → skipped
-```
+A **canary rollout** exposes a limited portion of eligible traffic before expanding. Define health checks, quality checks when labels arrive, and rollback conditions.
 
-Nothing errors. The model simply receives inputs that are systematically different from those it learned on, and performance quietly degrades.
+## 4. Plan missing and slow inputs
 
-Common sources:
+For each dependency, define an acceptable cached age, a supported missing-value path, or a simpler fallback. Test these paths with real timeout and failure scenarios.
 
-- two implementations of one definition (the big one),
-- different null and default handling,
-- timezone or rounding differences,
-- a scaler or encoder refitted on live data instead of loading the stored parameters,
-- training on backfilled, corrected data that was not available live,
-- different library versions changing a transform's behavior.
+Fallback behavior is a product choice: allowing, blocking, deferring, or requesting review have different consequences. A fallback model must be trained and evaluated for the inputs it will actually receive.
 
-Defenses:
-
-1. **one implementation** - share the transformation code between training and serving, or use a feature store that owns the definition,
-2. **log the features as served**, and train on those logs rather than on a warehouse reconstruction,
-3. **shadow-compare**: score the same requests offline and online and diff the feature vectors,
-4. **contract tests**: assert offline and online produce identical values on a fixed sample.
-
-\[
-\text{train\_feature}(x) \stackrel{!}{=} \text{serve\_feature}(x)
-\]
-
----
-
-## 4. Version everything together
-
-A deployment is not just model weights. It is the model, the preprocessing, the feature definitions, and the schema. If they can drift apart, they eventually will.
-
-```text
-model_v7 ── preprocessing_v7 ── feature_defs_v7 ── schema_v7
-```
-
-### Rule of thumb
-
-Keep the previous version loadable, so rollback is a config change rather than a retrain.
-
----
-
-## 5. Rolling out safely
-
-```text
-shadow      → model scores live traffic, output is logged, not used
-canary      → 1-5% of traffic, watch quality and latency
-progressive → 25% → 50% → 100%
-rollback    → one flag, no retraining
-```
-
-### Core intuition
-
-Shadow mode is the step that catches skew before any user is affected: you can diff online features and predictions against the offline pipeline on real traffic, at zero risk.
-
----
-
-## 6. Degrade gracefully
-
-Every online feature is a dependency that can be slow or missing. Decide, in advance, per feature:
-
-- serve without it (the model must tolerate missing values),
-- use a stale cached value, with a maximum age,
-- fall back to a simpler model or the previous rule,
-- fail closed (block) or fail open (allow) - a business decision, not an engineering one.
-
-### Rule of thumb
-
-A model that returns a 500 when the feature store times out is worse than a rule that always answers.
-
----
-
-## What matters most
-
-- **Default to batch.** Use online only when the prediction depends on something that happened in the last few minutes; most "we need real-time" requirements do not.
-- **Train/serve skew is the expensive bug:** the same feature computed two different ways. Nothing errors - the model just quietly receives inputs unlike the ones it learned on.
-- **The fix is one implementation,** shared between training and serving or owned by a feature store, plus logging features as served and training on those logs.
-- **A deployment is model *plus* preprocessing, feature definitions, and schema.** Version them together, and keep the previous version loadable so rollback is a config change.
-- **Shadow mode catches skew at zero risk** by scoring real traffic without acting on it.
-- **Decide the fallback per feature in advance,** because every online feature is a dependency that can be slow or missing.
-
-Next topic is **Monitoring, drift, and retraining**.
+> **Mental image:** shipping a model means shipping the entire measuring and decision instrument, including its calibration settings and backup path.

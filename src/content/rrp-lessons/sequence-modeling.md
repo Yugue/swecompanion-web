@@ -1,158 +1,47 @@
 ## Modelling the user's recent behavior
 
-**What someone did in the last ten minutes usually predicts their next click better than anything about who they are.**
+**Sequence modelling** uses ordered past events to represent a user's evolving behavior. Recent actions can reveal current intent, while longer histories provide more stable evidence.
+
+Neither should automatically replace the other.
+
+## 1. Order and time can change interpretation
 
 ```text
-long-term profile:  "likes cooking videos"
-last 10 minutes:    watched three car reviews
-                    ↓
-                    right now, they want car reviews
+laptop → case → charger       an accessory-shopping sequence
+charger → case → laptop       similar items, different progression
 ```
 
-A model that only knows the profile will keep serving pasta.
+A bag or simple average of the same item vectors loses that order. Include positions, timestamps, or time gaps when they are relevant to the prediction.
 
----
+A burst of dishwasher-repair viewing can be useful evidence for today's session. It does not establish a permanent change from cooking interests to appliance repair.
 
-## 1. Why order matters
+## 2. Stop history at the decision
 
-The simplest way to use history is a bag: average the embeddings of everything the user ever touched. That throws away the sequence, and the sequence is where intent lives.
-
-```text
-bag:       {laptop, laptop case, laptop charger}  → "likes laptops"
-sequence:  laptop → laptop case → laptop charger  → "mid-purchase, accessories next"
+```rrp-visual
+sequence-history
 ```
 
-### Core intuition
+For a target recommendation at 14:00, use events available before that decision. Do not include the target action or a later event in its own history.
 
-Same items, completely different prediction.
+**Padding** fills variable-length sequences to a common shape. A **padding mask** excludes those filler entries. A **causal mask** excludes future entries when learning multiple next-event predictions in one sequence.
 
----
+For one decision using only its already-observed history, a bidirectional encoder over that past history can be valid. A causal mask is not mandatory solely because the application involves time.
 
-## 2. The same user, two sessions apart
+## 3. Different summaries trade information and reuse
 
-A user with two years of history, mostly cooking videos. Then today happens:
-
-```text
-long-term profile        cooking 71%, travel 14%, home repair 9%, other 6%
-last 12 minutes          "diagnosing a dishwasher leak"
-                         "replacing a dishwasher inlet valve"
-                         "dishwasher error code E24"
-```
-
-What should the next recommendation be?
-
-```text
-profile-only model     another cooking video          ← technically consistent, useless
-session-aware model    dishwasher part suppliers,
-                       or the next repair step        ← obviously right
-```
-
-The long-term profile is not wrong - this person really does mostly watch cooking. It is just irrelevant for the next ten minutes. Intent is short-lived and it overrides taste.
-
-Now the same principle in reverse, which is the part people miss:
-
-```text
-last 12 minutes    three dishwasher repair videos
-tomorrow           still mostly a cooking channel viewer
-```
-
-### Common issue
-
-A model that over-weights the session will spend a week recommending appliance repair to someone who had one bad evening. So real systems carry both, and the ranker learns how much to trust each - which is why the session vector is a *feature* alongside the profile, not a replacement for it.
-
----
-
-## 3. Construct histories without reading the future
-
-For a target event at 14:00, include only events that happened before 14:00. Sort by event time, define session boundaries, and record gaps between events when elapsed time matters.
-
-**Padding** fills shorter histories to a common length; a **mask** tells the model which entries are real. Mask padding and future events so they cannot influence the prediction.
-
----
-
-## 4. Summarizing the history
-
-The model needs the recent history as a fixed-size vector it can use:
-
-```text
-recent items ──► [ sequence model ] ──► one vector summarizing "what is going on now"
-                                         │
-                       candidate item ───┴──► score
-```
-
-Three common ways to build that summary:
-
-| Method | Idea | Trade |
+| Method | Mechanism | Tradeoff |
 |---|---|---|
-| Pooling | average the item embeddings | cheap, loses order entirely |
-| Recurrent | read items in order, carry a state | respects order, sequential to compute |
-| Candidate attention | weight past items by relevance to the candidate | expressive, but runs per candidate |
+| Pooling | Average or weighted sum | Cheap; ordinary pooling loses order |
+| Recurrent model | Updates a state event by event | Order-aware, sequential updates |
+| History self-attention | Lets history entries interact | Needs order/time information when order matters |
+| Candidate attention | Weights history for a specific candidate | More joint context, more per-candidate work |
 
----
+Attention weights alone do not establish why a user acted or which past event caused the next action.
 
-## 5. Why attention fits this problem so well
+## 4. Validate freshness and coverage
 
-Pooling and recurrence produce **one** summary of the history, used for every candidate. Candidate-conditioned attention produces a **different** summary per candidate:
+A session representation updated nightly cannot use today's latest actions. Measure event arrival delay, history truncation, session boundaries, and missing-history behavior.
 
-```text
-scoring a pasta video   → weight the user's past cooking videos heavily
-scoring a car review    → weight the user's past car videos heavily
-                          (same history, different summary)
-```
+Compare long-term-only, session-only, and combined procedures on later requests, including anonymous and new users. More history may supply useful context or stale noise; tune its scope with realistic latency and data availability.
 
-That is exactly what you want: the relevant part of someone's history depends on what you are about to show them.
-
-### Rule of thumb
-
-> The question is not "what does this user like" but "what in this user's history bears on *this* item".
-
----
-
-## 6. Distinguish self-attention from candidate attention
-
-**Self-attention** lets events in the history relate to each other; with a causal mask it can summarize the history once for retrieval. **Candidate attention** asks which past events matter for the particular item being scored and runs per candidate.
-
-Attention alone does not encode order: add positions or time information when order matters. Choose the form that fits the stage's compute budget.
-
----
-
-## 7. Sessions, and anonymous users
-
-For logged-out or first-time users, the session is the only personalization you have:
-
-```text
-no user id, no history, no profile
-  →  but: three clicks in the last two minutes
-  →  that is enough to be useful
-```
-
-### Rule of thumb
-
-Session-based recommendation is not a niche case. On many sites most traffic is anonymous, so the model has to work from a handful of recent events and nothing else. It also helps new users who have little or no long-term history.
-
----
-
-## 8. Practical constraints
-
-```text
-history length   more context costs latency and may add noise; tune the cutoff
-recency          truncating to recent events usually beats keeping everything
-latency          attention over history runs per candidate - expensive at ranking scale
-freshness        the last few events must be available within seconds, not hours
-```
-
-### Common issue
-
-That last row is the one that bites. A "recent behavior" feature updated by a nightly batch job is not recent; session models need a low-latency feature pipeline that updates within seconds or minutes.
-
----
-
-## What matters most
-
-- **Recent behavior usually predicts the next click better than the long-term profile,** so models use both.
-- **Order carries intent.** A bag of past items loses exactly the signal that distinguishes browsing from mid-purchase.
-- **Attention gives a different summary of the history per candidate,** which matches the question being asked.
-- **For anonymous users the session is all the personalization there is,** and that is a large share of real traffic.
-- **The feature only works if it is genuinely fresh** - recent-behavior features updated nightly are the standard way this fails.
-
-Next topic is **Multiple objectives**.
+> **Mental image:** a long-term profile is the bookshelf; recent actions are the books currently open. The current task determines which evidence deserves attention.

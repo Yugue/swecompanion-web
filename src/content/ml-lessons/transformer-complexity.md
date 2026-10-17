@@ -13,7 +13,9 @@ If sequence length is \(N\), the attention-score matrix is:
 
 That is the source of the \(O(N^2)\) scaling.
 
-genui{"learning_viz":{"type_id":"BIG_O_TIME_COMPLEXITY"}}
+```dl-visual
+attention-area
+```
 
 ### 1. Where the quadratic cost comes from
 

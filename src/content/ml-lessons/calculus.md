@@ -58,6 +58,10 @@ dy_dx = 2 * x
 
 Intuition: the derivative is the **slope**.
 
+```dl-visual
+tangent
+```
+
 ---
 
 ## 3. Partial derivative

@@ -1,147 +1,57 @@
 ## Features, labels, and a training example
 
-Training data is a table.
+A **training example** is one input the model learns from. **Features** describe that input; a **label** is the target to predict in supervised learning.
 
-> **Each row is one thing you are predicting about, the columns are what you knew at the time, and one extra column is what actually happened.**
+For a delivery estimate made at checkout, one example is one order:
 
-```text
-        features - what we knew at the time        label - what happened
- ┌──────────────────────────────────────────┐    ┌──────────────┐
- │ distance   prep_time   hour   couriers   │    │ delivery_min │
- │   2.4 km     11 min     19        6      │ →  │      34      │   ← one row
- │   5.1 km     26 min     12        2      │ →  │      58      │   ← another
- └──────────────────────────────────────────┘    └──────────────┘
-```
+| Distance | Historical prep time | Open orders | Label: delivery time |
+|---|---|---|---|
+| 2.4 km | 11 min | 6 | 34 min |
+| 5.1 km | 26 min | 2 | 58 min |
 
-Features are written **x**, the label **y**.
+The first three columns are available at checkout. The final column becomes known after delivery.
 
----
+## 1. State what one row means
 
-## 1. The shapes
+For tabular data, the **design matrix** \(X\) has one row per example and one column per feature:
 
 \[
-X \in \mathbb{R}^{n \times d}, \quad y \in \mathbb{R}^{n}
+X\in\mathbb{R}^{n\times d},\qquad y\in\mathbb{R}^{n}
 \]
 
-- a **row** is one example — one user, one session, one transaction, one user-item pair,
-- a **column** is one feature,
-- \(y_i\) is the outcome for row \(i\).
+Here \(n\) is the number of examples and \(d\) the number of numeric feature columns. This shape describes a single numeric target; images, sequences, and multiple targets need other shapes.
 
-### Rule of thumb
+“One row per user” and “one row per user per Monday” create different datasets. Name the unit before designing features or splits.
 
-> Always state the unit of a row out loud. "Per user" and "per session" lead to completely different systems.
-
----
-
-## 2. The timeline is the whole game
-
-Every row has an implicit prediction time \(t\):
+## 2. Attach a prediction time
 
 ```text
-        ← features computed from here        label observed here →
-────────┬───────────────────────────┬────────────────────────────→ time
-     history                   prediction t                 outcome
+past order history → checkout / prediction time t → delivery → label known
+                     ↑
+            every feature must be available here
 ```
 
-### Core intuition
+An arriving request can supply features at \(t\); they need not exist strictly before it. A courier assigned after checkout is unavailable for this prediction, even if that courier is recorded in today's warehouse.
 
-> A feature may only use information available strictly **before** \(t\). A label is only observable strictly **after** it.
+Using information unavailable at prediction time is **data leakage**. Reconstruct historical features as they were known then, including data arrival delays.
 
-### Common issue
+## 3. Define the label precisely
 
-Breaking that rule is called **data leakage** — the model is shown information it could not possibly know at prediction time, so it looks brilliant during evaluation but fails in production.
-
----
-
-## 3. Defining a label two people would build the same way
-
-"Churned" is not a label. This is:
-
-> y = 1 if the account had zero sessions in the 30 days following the prediction date, and was not cancelled for a billing failure.
-
-A usable definition names four things:
+For churn, replace “customer churned” with a reproducible definition:
 
 ```text
-event        zero sessions
-window       30 days after t
-exclusions   billing failures are a different problem
-observable   30 days later → your freshest training data is always 30 days stale
+unit:       active subscriber scored on Monday
+label:      no sessions in the next 30 days
+exclusion:  billing cancellations handled separately
+available:  after the full 30-day window and reporting delay
 ```
 
-### Rule of thumb
+A subscriber observed for only ten days has an incomplete outcome, not an automatic negative label.
 
-> If two engineers can build the label table and get different rows, the label is not defined yet.
+## 4. Check availability in the product
 
----
+A valid feature must be available within the serving budget, using the same definition used during training. A nightly score can use different data sources from an instant checkout decision.
 
-## 4. Where labels come from
+Labels can be incomplete or noisy. A click means “clicked after being shown,” not “would prefer this over every unseen alternative.”
 
-| Source | Cost | Noise | Delay |
-|---|---|---|---|
-| Human annotation | high | moderate, measurable | days |
-| Implicit signal (click, purchase) | free | biased by what was shown | minutes |
-| Downstream outcome (chargeback, return) | free | low | weeks to months |
-| Programmatic rule | free | high, systematic | instant |
-
-### Common issue
-
-Implicit labels carry **exposure bias** — you only observe outcomes for items the current system chose to show. A recommender trained on its own clicks slowly learns to agree with itself.
-
----
-
-## 5. A worked example: delivery estimated time of arrival (ETA)
-
-```text
-unit        one order, at the moment it is placed
-x           restaurant's median prep time last 7 days, open orders right now,
-            distance, hour, weather, courier supply in the area
-y           minutes between order placement and handover
-observable  ~40 minutes later
-```
-
-Now test each candidate against the timeline:
-
-```text
-"courier who accepted the order"      ← chosen AFTER t.  Leakage.
-"restaurant prep time last 7 days"    ← available at t.  Fine.
-"actual prep time for this order"     ← part of the label. Leakage.
-```
-
-### Intuition
-
-Two of the three most predictive-looking features are illegal. That is typical, not unlucky.
-
----
-
-## 6. Features are contracts with the serving system
-
-A feature that exists in your warehouse but cannot be computed in 20ms at request time is not a feature — it is a research artifact.
-
-For each one ask:
-
-```text
-can it be computed AT ALL at prediction time?
-can it be computed FAST ENOUGH?
-will it be computed IDENTICALLY offline and online?
-```
-
-### Common issue
-
-The third question is the expensive one. Two implementations of "the same" feature produce a model receiving inputs unlike the ones it learned on — and nothing errors.
-
----
-
-## Interview mental model
-
-Open any prediction problem by saying four things out loud, in this order:
-
-```text
-1. unit      what is one row?                     (per user? per session? per order?)
-2. time t    when is the prediction made?
-3. features  only what is known strictly before t   ← anything later is leakage
-4. label     event + window + exclusions, and when it becomes observable
-```
-
-Then test every candidate feature against the timeline, and ask whether it can be computed fast enough, and identically, at serving time. The features that look most predictive are often the ones that break rule 3.
-
-Next topic is **Regression, classification, ranking, and clustering**.
+> **Mental image:** each row is a time capsule. Seal the input at prediction time; attach the outcome when it becomes observable.

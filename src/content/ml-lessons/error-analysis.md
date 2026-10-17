@@ -340,7 +340,9 @@ model says legitimate
 
 Their product costs may be very different.
 
-genui{"learning_viz":{"type_id":"CLASSIFICATION_THRESHOLD"}}
+```dl-visual
+classification-threshold
+```
 
 Sometimes the solution isn't retraining the model at all.
 

@@ -30,7 +30,7 @@ export const agenticParts: AgenticPart[] = [
   {
     id: "foundations",
     number: "1",
-    title: "From model call to bounded agent",
+    title: "Foundations",
     description: "What makes a system agentic, how its execution loop works, and when autonomy is worth its cost.",
     color: "#4285F4",
     icon: "Blocks",

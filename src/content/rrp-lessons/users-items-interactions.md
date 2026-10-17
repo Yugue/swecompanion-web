@@ -1,114 +1,45 @@
 ## Users, items, and the interaction table
 
-**The raw material of every recommender is a log of who did what to which item.** Every model in the rest of this guide is derived from that one table.
+An **interaction log** records who did what to which item, when, and in what context. An **impression** records a display opportunity; an **engagement event** records an action such as a click, watch, or purchase.
 
----
+Keep those events separate so missing engagement can be interpreted correctly.
 
-## 1. One row is one interaction
+## 1. One display is one event
 
-```text
-user_id   item_id   action     timestamp            context
-─────────────────────────────────────────────────────────────────────
-u_8812    v_44031   click      2026-03-02 19:04     mobile, home feed
-u_8812    v_44031   watch_80%  2026-03-02 19:06     mobile, home feed
-u_2290    v_11762   skip       2026-03-02 19:04     web, search "pasta"
+| Impression ID | User | Item | Display time | Click within 30 minutes |
+|---|---|---|---|---|
+| r1 | Ann | A | 09:00 | 0 |
+| r2 | Ann | A | 18:00 | 1 |
+| r3 | Ben | B | 18:05 | 0 |
+
+Ann's two displays create two examples. They are not contradictory labels for one permanent user–item preference.
+
+A **viewability event** can additionally record whether a tile entered the visible screen. Displayed, viewable, and examined by a person are related but different observations.
+
+## 2. A matrix is a summary of the log
+
+An **interaction matrix** places users in rows and items in columns. A cell summarizes events for a user–item pair under a chosen period and definition.
+
+```rrp-visual
+interaction-matrix
 ```
 
-### Rule of thumb
+Large catalogues often make this matrix sparse: most user–item combinations have no events. The exact sparsity depends on the product and time window.
 
-There are several *actions*, not one. The **label** is the outcome the model learns to predict, so choosing clicks, purchases, watch time, or a combination changes the problem.
+A blank could mean never displayed, unavailable, missing instrumentation, or no recorded action. Even an observed non-click does not prove dislike. Retain exposure evidence rather than collapsing every unknown into a negative label.
 
----
+## 3. Join outcomes deliberately
 
-## 2. Log exposure separately from engagement
+Attach outcomes using stable impression or event keys. Define the label's **observation window**, such as click within 30 minutes. Wait for that window and the accepted arrival delay before assigning a completed negative.
 
-An **impression** records that an item was displayed; an interaction records what happened next. Keep an impression ID so repeated displays of the same item remain separate events.
+**Event time** is when an action happened; **arrival time** is when the pipeline received it. A delayed click can otherwise be silently labelled a non-click.
 
-For example, a video shown at 09:00 with no click and shown again at 18:00 with a click creates two training examples, not one contradictory user–video label. A viewability event, when available, additionally records whether the tile entered the visible screen.
+If several displays precede one purchase, define **attribution**: which exposure, if any, receives the recorded outcome. Attribution is a labelling convention, not proof that the exposure caused the purchase.
 
----
+## 4. Keep context and side information
 
-## 3. The same data as a grid
+User, item, and context tables provide attributes such as language, item category, query, device, and session history. Use only values available at the decision time.
 
-Lay users down the side and items across the top:
+These attributes also help with **cold start**: making recommendations for users or items with little interaction evidence.
 
-```text
-            v_1   v_2   v_3   v_4   ...   v_10M
-   u_1       ·     1     ·     ·           ·
-   u_2       ·     ·     ·     1           ·
-   u_3       1     ·     ·     ·           ·
-   ...
-```
-
-This is the **interaction matrix**, and the striking thing is how empty it is. A user who has watched a thousand videos out of ten million has filled in 0.01% of their row. Typical matrices are over 99.9% empty.
-
-### Core intuition
-
-That emptiness is not a data-quality problem to be fixed. It is the permanent condition of the field, so recommender methods must learn from the small observed subset without treating every blank cell as dislike.
-
----
-
-## 4. Empty does not mean bad
-
-The single most consequential misreading in this domain:
-
-```text
-cell is empty  →  the user did not engage
-               →  BUT: did they see it and reject it?
-                       or did they never see it at all?
-```
-
-Almost always the second. With ten million items, a user has seen a few thousand at most. Treating every blank as a dislike trains the model on a claim the data never made.
-
-### Rule of thumb
-
-> A missing interaction means "unknown", not "not wanted". Without an impression log, you cannot tell whether it was unseen or shown without engagement.
-
----
-
-## 5. Context belongs on the row
-
-The same user wants different things at different moments:
-
-```text
-u_8812 on a phone at 08:00    → short clips
-u_8812 on a TV at 21:00       → a feature film
-```
-
-### Intuition
-
-So the row carries context: device, hour, day, location, the search query, the page, even what is already on screen. A model without context can only learn who someone *is*, never what they want *now*.
-
----
-
-## 6. Turn events into a training example
-
-Join outcomes back to their impression, then apply a stated observation window. For a click-within-30-minutes target, wait until that window closes before assigning 0.
-
-Keep event time (when the action occurred) and arrival time (when it reached the log). A late click should not silently become a negative because the pipeline ran too early.
-
----
-
-## 7. Three tables, not one
-
-In practice you keep the interactions plus two side tables:
-
-| Table | Holds | Used for |
-|---|---|---|
-| Interactions | who did what, when, in what context | labels and behavioral features |
-| Items | title, category, creator, price, age | new items with no history |
-| Users | signup date, country, declared preferences | new users with no history |
-
-The two side tables make **cold start**—recommending for a new user or item with little interaction history—solvable at all.
-
----
-
-## What matters most
-
-- **One row is a user, an item, an action, a timestamp, and the context.** Several actions exist; picking the label is a separate decision.
-- **As a grid it is over 99.9% empty,** and that sparsity is the permanent condition the whole field is built around.
-- **An empty cell means "unknown", not "disliked".** Separate exposure from engagement before interpreting it.
-- **Context belongs on the row,** or the model can only learn who someone is, never what they want right now.
-- **Keep item and user side tables,** because they provide useful information when there is no history.
-
-Next topic is **Implicit feedback and its biases**.
+> **Mental image:** the event log is the film; the user–item matrix is one compressed snapshot. Do not expect the snapshot to retain every exposure and timing detail.

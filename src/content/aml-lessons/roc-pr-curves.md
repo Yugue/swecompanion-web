@@ -1,159 +1,58 @@
-## Receiver-operating-characteristic AUC, precision-recall AUC, and thresholds
+## ROC-AUC, PR-AUC, and thresholds
 
-**A classifier does not really output "yes" or "no". It outputs a score, and you choose a cut-off.** Move the cut-off and precision and recall both move with it.
+A **threshold curve** shows how a binary classifier's decisions change as its score cutoff moves. It separates ranking quality from the choice of a production operating point.
 
-Precision and recall therefore describe **one** cut-off. The curves in this lesson describe every cut-off at once, which makes them the right tool for comparing two models and the wrong tool for deciding where to actually set the dial.
+## 1. Two views of the same score ordering
 
-A binary classifier assigns a score, while a threshold converts that score into positive or negative. Precision measures how many predicted positives are correct; recall measures how many actual positives were found. This chapter builds from those definitions into threshold selection, probability quality, imbalance, fair comparison, and slice-based diagnosis.
-
-### Chapter goal
-
-By the end of Chapter 5, you should be able to choose a threshold from real costs and capacity, determine whether probabilities are calibrated, evaluate imbalance honestly, compare models with uncertainty, and turn errors into prioritized data or feature work.
-
----
-
-## 1. The ROC curve
-
-The **receiver operating characteristic (ROC)** curve uses four confusion-matrix counts: true positives (TP) are positives correctly found, false positives (FP) are negatives wrongly flagged, true negatives (TN) are negatives correctly rejected, and false negatives (FN) are positives the model missed.
-
-Sweep the threshold from 1 to 0 and plot:
+**Receiver operating characteristic (ROC)** plots true-positive rate against false-positive rate:
 
 \[
-\underbrace{\text{TPR}}_{\text{true-positive rate}} = \frac{TP}{TP+FN} \quad\text{(recall)} \qquad \underbrace{\text{FPR}}_{\text{false-positive rate}} = \frac{FP}{FP+TN}
+\text{TPR}=\frac{TP}{TP+FN},\qquad\text{FPR}=\frac{FP}{FP+TN}
 \]
 
-```text
-TPR │      ╭──────── good model
-    │   ╭──╯
-    │ ╭─╯         ╱ random (AUC 0.5)
-    │╱        ╱
-    └────────────── FPR
+TPR is recall. FPR is the fraction of actual negatives incorrectly flagged.
+
+A **precision-recall (PR) curve** plots precision against recall. Precision is the fraction of flags that are actual positives.
+
+```aml-visual
+threshold-curves
 ```
 
-**Area under the curve (AUC)** has a clean probabilistic meaning:
+Every point comes from a threshold on the same model. Lowering the cutoff can increase both TP and FP; it need not change precision monotonically.
 
-> ROC-AUC is the probability that a randomly chosen positive is scored above a randomly chosen negative.
+## 2. What the summary areas mean
 
-### Core intuition
+**ROC-AUC** is the area under the ROC curve. It equals the probability that a randomly chosen positive outranks a randomly chosen negative, counting ties as half. A noninformative ordering has expected AUC 0.5.
 
-0.5 is random, 1.0 is perfect, below 0.5 means the scores are inverted. It is threshold-free and invariant to the class balance, which is both its strength and its trap.
-
----
-
-## 2. Watching one model as the threshold moves
-
-The model does not change. Only the cut-off does:
-
-```text
-threshold   flagged   TP    FP    precision   recall
-   0.9         40      35     5      0.88       0.35
-   0.7        120      75    45      0.63       0.75
-   0.5        260      90   170      0.35       0.90
-   0.3        800      98   702      0.12       0.98
-```
-
-(100 true positives in total.)
-
-Every row is the *same model*. Drop the threshold and you catch more of the real positives - recall climbs from 0.35 to 0.98 - while the proportion of your flags that are correct collapses from 0.88 to 0.12.
-
-### Intuition
-
-That is why a single precision/recall pair describes an operating point rather than a model, and why comparing two models needs a curve that covers all the rows at once.
-
----
-
-## 3. Why ROC-AUC flatters imbalanced problems
-
-FPR has TN in the denominator, and under heavy imbalance TN is enormous.
-
-```text
-1,000,000 negatives, 3,000 positives
-10,000 false positives → FPR = 0.01  ← looks tiny on the ROC plot
-but if we flagged 12,000 in total → precision = 0.17  ← the team sees 5 junk cases per real one
-```
-
-### Common issue
-
-The ROC curve hugs the top-left and reports 0.95 while the product experience is poor. Nothing is wrong with the number; it is answering a question nobody asked.
-
----
-
-## 4. The precision-recall curve
-
-Plot precision against recall over the same threshold sweep. The baseline is not 0.5 - it is the **positive rate**:
-
-```text
-positive rate 0.003 → a random model has PR-AUC ≈ 0.003
-your model PR-AUC 0.21 → that is a 70× improvement, and it is the honest framing
-```
-
-### Rule of thumb
-
-> Balanced classes, both errors matter: ROC-AUC. Rare positives, and you care about what the flagged set looks like: PR-AUC.
-
-Also note: **PR-AUC changes with the class balance**, so it cannot be compared across datasets with different positive rates. ROC-AUC can.
-
----
-
-## 5. Average precision vs interpolated PR-AUC
-
-`average_precision_score` is the recommended summary of the PR curve - it is a proper weighted mean of precisions and avoids the optimistic interpolation that trapezoidal PR-AUC can produce.
+**Average precision (AP)** summarizes a PR curve by weighting precision at each increase in recall. Trapezoidal PR area uses different interpolation and can give a different number. Name the calculation rather than using “PR-AUC” ambiguously.
 
 ```python
-roc_auc_score(y_true, y_score)
-average_precision_score(y_true, y_score)
+roc_auc_score(y_true, scores)
+average_precision_score(y_true, scores)
 ```
 
----
+A random ranking's population PR baseline is the positive rate; finite-sample AP need not equal it exactly. PR measures change with prevalence. ROC-AUC is unchanged by prevalence alone if class-conditional score distributions stay fixed; changing population difficulty can change it.
 
-## 6. Choosing the operating point
+## 3. Rare positives make counts matter
 
-AUC compares models. It does not run in production - a threshold does.
+With 1,000,000 negatives and 3,000 positives, a threshold giving 2,000 TP and 10,000 FP has:
 
-Three principled ways to pick one:
+```text
+recall    = 2,000 / 3,000 ≈ 66.7%
+FPR       = 10,000 / 1,000,000 = 1%
+precision = 2,000 / 12,000 ≈ 16.7%
+```
 
-1. **Constraint-driven**: "the review team can handle 500 cases a day" → set the threshold so ~500 clear it, and report the recall you achieve.
-2. **Metric-driven**: maximize the **F1 score**, the harmonic mean of precision and recall, or its weighted form \(F_\beta\) on the validation set.
-3. **Cost-driven**, which is the strongest answer:
+A small FPR can still overwhelm a review team. Report PR behavior, absolute counts, and performance in the relevant ROC region rather than dismissing ROC as incorrect.
+
+## 4. Choose the operating point on validation data
+
+Use expected error cost, a required precision or recall, or a fixed queue capacity. For constant false-positive and false-negative costs, one empirical objective is:
 
 \[
-\text{expected cost} = C_{FP}\cdot FP + C_{FN}\cdot FN
+C_{FP}FP+C_{FN}FN
 \]
 
-Sweep the threshold, compute the expected cost at each, and take the minimum. If a false negative costs $200 in chargebacks and a false positive costs $8 in a blocked legitimate purchase, the ratio 25:1 determines the threshold - not a default of 0.5.
+If probabilities are calibrated and correct actions have zero cost, predict positive when \(p>C_{FP}/(C_{FP}+C_{FN})\). Different review costs, benefits, or capacity constraints require a different decision rule.
 
-```python
-p, r, thr = precision_recall_curve(y_val, scores)
-```
-
-**Thresholds drift.** The optimal operating point depends on the score distribution, and that distribution moves as the data moves.
-
-> Re-validate the threshold after every retrain, and monitor the flag rate in production.
-
-### Rule of thumb
-
-A sudden change in the proportion of flagged traffic is often the earliest visible sign of drift - usually before any labelled ground truth arrives.
-
----
-
-## 7. Which curve for which job
-
-| Goal | Use |
-|---|---|
-| Compare two models, balanced data | ROC-AUC |
-| Compare two models, rare positives | PR-AUC / average precision |
-| Pick the production threshold | Cost curve or PR curve, never AUC |
-| Report to a product owner | Precision and recall **at the chosen threshold** |
-| Ranking with a fixed review capacity | Recall@k, precision@k |
-
----
-
-## What matters most
-
-- **ROC-AUC is the probability a random positive outranks a random negative** - threshold-free and invariant to class balance.
-- **That invariance is the trap.** Under heavy imbalance the huge TN count keeps FPR tiny, so ROC-AUC reads 0.95 while the flagged set is mostly junk. Use PR-AUC when positives are rare and the flagged set is what matters.
-- **PR-AUC's baseline is the positive rate,** so it can't be compared across datasets with different balances; ROC-AUC can.
-- **AUC compares models; a threshold runs in production.** Pick the operating point from review capacity, from F-beta, or best of all by minimizing expected cost.
-- **Thresholds drift with the score distribution,** so re-validate after every retrain and watch the flag rate - it moves before labels arrive.
-
-Next topic is **Probability calibration**.
+Check the chosen threshold after retraining and on new populations. A good overall AUC does not guarantee a useful operating point.

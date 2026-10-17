@@ -2,7 +2,7 @@
 
 ## 1. A neuron mixes inputs
 
-A neuron computes a weighted sum, adds bias, then applies an activation:
+A **neural network** is a chain or graph of trainable functions that maps inputs to outputs. A **neuron** combines inputs using learned weights and a bias offset. An **activation function** then transforms that sum, usually nonlinearly:
 
 \[
 z=Wx+b,\qquad h=\phi(z)
@@ -14,13 +14,15 @@ Example: x=[2,−1], weights [0.5,1], bias 0.2 → **z=0.2**.
 
 ## 2. Why use an activation?
 
-Without nonlinearity, stacked linear layers become one linear map.
+Without nonlinear activations, stacked affine layers collapse into one affine transformation, a matrix multiplication plus offset.
+
+A **gradient** collects local rates of change. During training, it measures how small parameter changes affect training error; activations affect how this sensitivity passes through layers.
 
 | Activation | Mental image | Limitation |
 |---|---|---|
-| ReLU | Negative → zero; positive → unchanged | Inactive units |
-| GELU | Smooth gate | More complex operation |
-| Sigmoid | Map to (0,1) | Tiny gradients at extremes |
+| ReLU (Rectified Linear Unit) | max(0, x): negative → zero, positive unchanged | Inactive units |
+| GELU (Gaussian Error Linear Unit) | Smoothly attenuate inputs, especially small negative values | More complex operation |
+| Sigmoid | S-shaped logistic mapping into (0,1) | Tiny gradients at extremes |
 
 Example: ReLU(−2)=0, ReLU(3)=3.
 
@@ -30,17 +32,21 @@ Example: ReLU(−2)=0, ReLU(3)=3.
 input → learned transformations → hidden features → task head
 ```
 
-The head determines the output:
+A **feature** is a numeric representation of some input information. A **hidden layer** produces intermediate features; a **task head** maps those features to the required output:
 - Class scores.
 - Boxes.
 - Pixel labels.
 - Coordinates or continuous values.
 
-Hidden units need not represent named human concepts.
+Hidden units need not represent named human concepts. A **multilayer perceptron (MLP)** connects dense layers in a forward chain; the same example is used for backpropagation in Chapter 3.4.
+
+```cv-visual
+mlp-forward
+```
 
 ## 4. Count shapes and parameters
 
-A D → H dense layer has **DH+H** parameters.
+A **dense (fully connected) layer** connects every input feature to every output unit. A D → H dense layer has **DH+H** parameters.
 
 Example: 128 → 64 gives:
 
@@ -54,14 +60,14 @@ Flattening a large image is expensive and loses explicit spatial structure; conv
 
 ## 5. The forward pass
 
-Forward applies current weights to the input:
+The **forward pass** computes outputs from inputs using the current parameters. Here, **logits** means raw class scores before conversion to probabilities:
 
 ```python
 net = nn.Sequential(nn.Linear(128, 64), nn.ReLU(), nn.Linear(64, 10))
 logits = net(features)  # [B, 128] → [B, 10]
 ```
 
-When gradients are enabled, it records operations needed for backward. It does not update weights.
+When gradient recording is enabled, the forward pass records operations needed for backward computation. It does not update weights.
 
 ## 6. Evaluation versus gradient recording
 
@@ -71,7 +77,7 @@ with torch.inference_mode():
     prediction = model(x)
 ```
 
-- **eval():** changes dropout/BatchNorm behavior.
+- **eval():** changes training-dependent layers: **dropout**, which randomly removes training activations, and **BatchNorm**, which normalizes features using batch statistics in training and usually stored statistics in evaluation.
 - **inference_mode():** disables gradient tracking.
 
 Neither control substitutes for the other.

@@ -1,117 +1,38 @@
 ## Diversity, novelty, and coverage
 
-**A list can be individually accurate and collectively terrible.** Relevance metrics cannot see that, so these systems need a second family of measures.
+Recommendation quality includes properties beyond independent item relevance. Define the property and its scope before choosing a metric.
 
----
+## 1. Four distinct questions
 
-## 1. Four different things people mean
+| Property | Question | Example measure |
+|---|---|---|
+| Diversity | How different are items within a list? | Pairwise dissimilarity, distinct creators |
+| Novelty | How unfamiliar are items to this user or population? | Previously unseen share, popularity-based surprise |
+| Coverage | How much eligible inventory receives exposure? | Distinct exposed items / eligible items |
+| Serendipity | Is an item useful and unexpectedly relevant? | Relevance plus a defined unexpectedness reference |
 
-```text
-diversity    are the items in THIS list different from each other?
-novelty      has this user seen anything like this before?
-serendipity  was it surprising AND good?        ← the hard one
-coverage     what fraction of the CATALOGUE ever gets shown to anyone?
-```
+Six unrelated items can be diverse and useless. A familiar repeat purchase can be valuable despite low novelty. These metrics complement the task's intended benefit rather than replace it.
 
-### Common issue
+## 2. State windows and denominators
 
-They get conflated constantly. Diversity is about one list, novelty is about one user's history, coverage is about the whole system.
+If 40,000 of ten million eligible listings receive an impression during a week, item coverage is 0.4%.
 
----
+That does not reveal provider coverage: one seller may own many listings. Track distinct providers separately and exclude unavailable inventory according to a stated eligibility definition.
 
-## 2. Measuring them
+An “unseen item” metric depends on available history. An anonymous session with no earlier log does not establish that every displayed item is new to the person.
 
-```text
-diversity    average pairwise dissimilarity within one shown list
-             or: number of distinct categories / creators in the top k
+## 3. Make the product tradeoff explicit
 
-novelty      average unpopularity of what was shown,
-             or: fraction of items the user has never encountered
+A redundancy penalty can reduce the original relevance-score sum while improving user value. Diversity is not guaranteed to reduce engagement, increase retention, or benefit every surface.
 
-coverage     distinct items shown at least once / total catalogue,
-             measured over a week
+Use experiments and appropriate time windows to measure effects. A discovery feed, exact-match search, and continue-watching list can require different variety.
 
-serendipity  relevant AND unexpected - needs a definition of "expected",
-             usually "what a popularity baseline would have shown"
-```
+A metric can be a weighted objective, a target, or a guardrail depending on the product contract. Document which it is rather than assuming every diversity measure must be a hard constraint.
 
-### Rule of thumb
+## 4. Inspect who receives the benefit
 
-Serendipity is the one everyone wants and nobody measures cleanly, because "usefully surprising" resists definition. It is fine to say that.
+Measure variety per user and exposure across item and provider groups, with counts and uncertainty. A higher catalogue-wide coverage number can still leave particular users with repetitive lists or particular providers without useful exposure.
 
----
+Useful discovery may require changes in retrieval, scoring, list selection, or exploration. For example, a re-ranker cannot select a new item that no source retrieves.
 
-## 3. Choose a meaningful denominator
-
-Catalogue coverage should use eligible inventory during a defined period, not deleted or unavailable items. Provider coverage counts distinct sellers or creators, which is different from counting items.
-
-A platform showing 40,000 of ten million listings has 0.4% item coverage. That alone does not tell you the fraction of sellers reached: one seller may own many listings.
-
----
-
-## 4. Why they trade against engagement
-
-```text
-show the most likely click        → highest short-term engagement
-                                  → narrowest, most repetitive list
-show something varied             → slightly lower click rate today
-                                  → the user discovers more, comes back
-```
-
-The cost is immediate and measurable; the benefit is delayed and hard to attribute. That asymmetry is exactly why these metrics need **explicit targets**, not good intentions - anything optimized purely on today's engagement will grind diversity away.
-
-### Rule of thumb
-
-> Put diversity in as a constraint or a guardrail, never as a tiebreaker. Optimization will always spend it.
-
----
-
-## 5. Coverage is a business metric in a marketplace
-
-```text
-10,000,000 listings
-only 40,000 ever shown in a week
-        ↓
-99.6% of listings receive no exposure; seller coverage needs a separate count
-        ↓
-they stop listing
-        ↓
-the catalogue stops growing
-```
-
-### Core intuition
-
-For a two-sided platform this is not an aesthetic concern. Supply leaves. That makes coverage a metric the business should track even when engagement looks fine - and a legitimate reason to escalate.
-
----
-
-## 6. Where each is enforced
-
-```text
-diversity     often re-ranking, where interactions within the list can be checked
-novelty       ranking feature: "has this user seen this / things like it"
-coverage      exploration + per-item exposure caps
-serendipity   mostly a by-product of the other three
-```
-
-None of them can be fixed by the ranking score alone, which is the practical reason the funnel has a re-ranking stage and the system has an exploration budget.
-
----
-
-## 7. Check useful discovery, not variety alone
-
-Six unrelated items can maximize category variety while being a terrible recommendation. Pair diversity or novelty with relevance, satisfied engagement, and user feedback.
-
-Compare the effect by surface. Variety helps discovery feeds; a narrow exact-match search or repeat-purchase task may benefit from concentrated results instead.
-
----
-
-## What matters most
-
-- **Diversity is about one list, novelty about one user's history, coverage about the whole catalogue.** They are routinely conflated.
-- **Serendipity is the one everyone wants and nobody measures cleanly.** Saying so is better than pretending.
-- **They trade against short-term engagement,** with an immediate cost and a delayed benefit - so they need explicit targets.
-- **Make diversity a constraint or guardrail, not a tiebreaker,** or optimization spends it.
-- **In a marketplace, coverage is a supply-side business metric:** unseen sellers leave, and the catalogue stops growing.
-
-Next topic is **Feedback loops**.
+> **Mental image:** diversity describes one basket, novelty its contents relative to the shopper, and coverage how much of the shop reaches any basket.

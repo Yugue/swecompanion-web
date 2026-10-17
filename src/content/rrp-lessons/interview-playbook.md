@@ -1,118 +1,36 @@
-## Answering recommendation, ranking, and personalization (RRP) questions
+## Answering RRP questions
 
-**The graded skill is narrowing a broad prompt to one part of the funnel and explaining that part concretely** - not surveying everything you know about recommenders.
+A clear explanation defines the concept, names its stage, demonstrates the mechanism with numbers, and states its limits. Clarify an ambiguous surface or constraint; answer direct definition questions directly.
 
----
-
-## 1. The shape of an answer
+## 1. Use a compact answer structure
 
 ```text
-1. one-sentence definition
-2. ONE clarifying question           ← let them choose the direction
-3. name the stage you are in         retrieval? ranking? re-ranking?
-4. the row and the label
-5. mechanism, with numbers
-6. the trade-off, and when you'd choose differently
-7. stop
+define → locate the stage → work an example → state the tradeoff
 ```
 
-### Core intuition
+For a design question, first establish the action, row, target, timing, and constraints. A label window influences data maturity, but does not by itself determine the entire retraining schedule or metric.
 
-Step 3 is specific to this domain and it is the highest-value habit here. Retrieval, ranking, and re-ranking have different constraints, different metrics, and different models. An answer that does not say which one it is about will sound muddled however good the content is.
+## 2. A complete example: two-tower retrieval
 
----
+> “A two-tower model computes a request vector and an item vector separately, then scores their compatibility with a cheap operation such as a dot product. Because the item encoder is independent of the current request, we can precompute item vectors and search an index. With request vector [1, 2] and item vector [2, 1], the score is 4. That is compatibility, not automatically a click probability. The restriction makes arbitrary candidate-specific lookups difficult, so I would use a later joint ranker if those features add enough value.”
 
-## 2. Pin down the row and the label early
+This answers the architecture's purpose, calculation, and practical tradeoff without listing unrelated models.
 
-Most vague answers are vague because nobody said what one example is.
+## 3. Explain measured improvements precisely
 
-```text
-weak:    "we'd train a model on user behavior"
-strong:  "one row is one impression - this user, this video, this context,
-          with the features as they were at serve time. The label is whether
-          they watched past 30 seconds, known within minutes, so we can
-          retrain daily."
-```
+| Loose claim | More informative statement |
+|---|---|
+| “Recall is 0.31.” | “Recall@100 is 0.31 versus 0.29 on the same eligible requests, with this reference-positive definition.” |
+| “It is calibrated.” | “Predicted rates agree with observed frequencies on the evaluated bands and slices, within uncertainty.” |
+| “New items need retraining.” | “Check whether this feature-based encoder can represent them and whether the index includes them.” |
+| “A/B testing always randomizes users.” | “Choose an experimental unit that matches carryover and interference.” |
 
-That sentence settles the loss, the metric, the pipeline, and the retraining cadence all at once.
+A score gain alone is not proof that personalization caused product value. State what changed between systems and what evaluation supports.
 
-### Rule of thumb
+## 4. Answer follow-ups with evidence
 
-> If you have not said what one training row is, you have not started answering.
+For ten times the traffic, recompute scores and feature work, then identify a measured bottleneck and one intervention with its quality cost.
 
----
+For offline gains without live gains, separate biased labels, candidate differences, uncertainty, metric mismatch, and serving behavior. Choose checks that distinguish them rather than proposing every architecture again.
 
-## 3. Always quote a baseline
-
-```text
-weak:    "recall@100 was 0.31"
-strong:  "recall@100 was 0.31, against 0.24 for popularity-in-context -
-          so the personalization is worth about 7 points"
-```
-
-### Rule of thumb
-
-A popularity baseline ranks items by how often they are used or clicked. Comparing against it is the fastest way to show that a more complex system creates measurable value.
-
----
-
-## 4. Raise the biases before they do
-
-Interviewers in this area are listening for whether you know the data is not a clean sample:
-
-```text
-position bias    clicks reward placement as well as relevance
-exposure bias    you only see outcomes for what the old system showed
-feedback loops   the system trains on data it generated
-popularity bias  unnormalized similarity surfaces bestsellers everywhere
-```
-
-### Common issue
-
-Naming one of these unprompted, in the right place, is one of the strongest signals available. Naming all four unprompted sounds like a recitation - pick the one that bears on the question.
-
----
-
-## 5. Phrases that land
-
-```text
-"Which stage are we talking about - retrieval or ranking? The constraints
- are completely different."
-"Let me say what one training row is before I pick a model."
-"What's the popularity baseline here?"
-"That score needs to be calibrated, because it's being multiplied by a bid."
-"I'd check whether the right item was even retrieved before touching the ranker."
-"Offline that's a hypothesis; I'd want a randomized A/B test—control A versus candidate B—with guardrails."
-```
-
-**When you do not know.** Say what you do know, name the boundary, reason forward:
-
-> "I have not used that particular architecture. The problem it solves is learning feature interactions over very sparse ids, which I would otherwise approach with a factorization machine or explicit cross layers - so what I would want to know is how it handles the embedding table size, because that is usually the binding constraint."
-
-That answers the underlying question and is far stronger than bluffing.
-
----
-
-## 6. Handle a follow-up with a decision, not another survey
-
-For 'what changes at ten times the traffic?', recompute scores per second, identify the bottleneck, and name one intervention plus its quality cost. For 'new items fail', separate absent vectors, stale index entries, and lack of exposure.
-
-A useful follow-up answer states the evidence needed to distinguish causes and the result that would change your choice. This shows reasoning rather than memorized architecture names.
-
----
-
-## What matters most
-
-- **Say which stage you are in.** Retrieval, ranking, and re-ranking have different constraints, metrics, and models.
-- **Define the training row and the label before choosing a model** - it settles the loss, the metric, and the cadence at once.
-- **Quote every result against the popularity baseline,** and state the metric and the k.
-- **Raise one relevant bias unprompted** - position, exposure, feedback, or popularity - rather than reciting all four.
-- **Treat offline results as hypotheses** and say what would settle them online.
-
----
-
-## Chapter 7 checkpoint
-
-Give a complete design for one recommendation surface: objective and guardrails, request and catalogue, funnel, candidate sources, ranking labels and features, re-ranking, offline and online evaluation, serving budget, retraining, exploration, cold start, and the most likely feedback loop.
-
-You have reached the end of this guide. Go back to any chapter and re-read the "what matters most" sections - together they are a compact summary of the whole domain.
+When uncertain, name the known mechanism, the assumption, and the evidence that would resolve the gap. Stop when the concept is covered and use the follow-up to choose the next level of detail.

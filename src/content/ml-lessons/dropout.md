@@ -150,6 +150,10 @@ So the expected activation magnitude stays approximately the same between traini
 
 PyTorch does this automatically.
 
+```dl-visual
+dropout
+```
+
 ---
 
 ## 6. Where dropout usually goes

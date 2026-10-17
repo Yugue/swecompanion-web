@@ -1,126 +1,45 @@
 ## Baselines and when not to use ML
 
-**A baseline is the dumbest thing that could possibly work, scored on exactly the same data as your model.**
+A **baseline** is a reference method evaluated under the same conditions as a candidate model. It tells you whether the model adds useful value.
 
-Without one, "the model gets 87%" means nothing. You cannot tell whether 87% is a triumph or whether always guessing "no" would have scored 86%.
+“99.2% accurate” sounds strong until the positive rate is 0.8%: predicting every case negative also achieves 99.2% accuracy.
 
----
+## 1. Use three reference points
 
-## 1. The trivial baseline
+| Baseline | Example | What it tests |
+|---|---|---|
+| Trivial predictor | Majority class; training mean or median | Does the model beat a minimal reference? |
+| Current system | Fraud rules; analyst queue; vendor score | Does it improve what people already use? |
+| Simple fitted model | Regularized linear or logistic model | Is added complexity worthwhile? |
 
-| Task | Trivial baseline |
+For squared error, a constant training mean is a natural reference; for absolute error, use the training median. A time forecast should also face a last-value or seasonal reference.
+
+Learn baseline values using training data. Compare candidates on the same validation examples and metrics.
+
+## 2. A worked comparison
+
+Suppose a review team handles 100 cases daily:
+
+| Method | Actual frauds found among 100 reviews |
 |---|---|
-| Classification | always predict the majority class |
-| Imbalanced classification | predict all-negative, then report precision/recall |
-| Regression | always predict the training mean or median |
-| Time series | predict the last observed value |
-| Ranking | rank by popularity, or keep the current order |
+| Existing rules | 24 |
+| Logistic model | 37 |
+| Boosted trees | 39 |
 
-```python
-DummyClassifier(strategy="most_frequent").fit(X_train, y_train).score(X_test, y_test)
-```
+The logistic model finds 13 more frauds at the same review budget. The extra two from boosting may be useful, but check uncertainty, fraud value, latency, and maintenance cost before deciding.
 
-### Intuition
+A small score difference is not automatically noise. Its reliability depends on sample size, dependence, and how the comparison was selected.
 
-On a fraud dataset with a 0.8% positive rate, that dummy scores **99.2% accuracy** — and so does a model that has learned nothing.
+## 3. When a rule may be enough
 
-### Rule of thumb
+If the requirement is exactly “flag transactions above $10,000 from accounts less than one day old,” implement and measure that rule. A model is useful only if another learnable pattern improves the outcome.
 
-> Quote the baseline in the same breath as the model. "0.91 area under the receiver operating characteristic curve (ROC-AUC)" means little; "0.91 vs 0.74 for the current rule" is a result.
+Other reasons to postpone ML include unavailable labels, no credible evaluation, or operating costs that exceed the expected benefit. A rule also needs monitoring: its assumptions can become stale as the world changes.
 
----
+## 4. Keep the baseline available
 
-## 2. The rule-based baseline
+A reference can expose regressions after a pipeline change and provide a fallback when a model cannot serve. It need not be the simplest possible method; the existing strong system is often the most important comparison.
 
-Whatever the business does today:
+Failing to beat a trivial baseline is a reason to investigate labels, signal, fitting, and evaluation. It does not prove a bug: the available features may contain little predictive information.
 
-```text
-the hand-written fraud rules
-the analyst's spreadsheet
-"sort by most recent"
-the vendor's off-the-shelf score
-```
-
-### Core intuition
-
-This is the one that matters most, because it is the thing your model has to **replace**. Beating the dummy but only matching the existing rules means the project produced nothing except a new maintenance burden.
-
----
-
-## 3. The simple-model baseline
-
-```python
-Pipeline([("scale", StandardScaler()), ("clf", LogisticRegression())]).fit(X_train, y_train)
-```
-
-### Intuition
-
-Useful in two directions:
-
-```text
-complex model barely beats it  →  ship the simple one
-simple model is TERRIBLE       →  suspect the features or the labels,
-                                   not the capacity
-```
-
----
-
-## 4. Reading the gaps
-
-```text
-dummy        0.50 ROC-AUC
-current rule 0.74 ROC-AUC
-logistic     0.86 ROC-AUC   ← most of the value is here
-boosted tree 0.89 ROC-AUC   ← the extra 0.03 has a cost
-deep model   0.895 ROC-AUC  ← probably noise
-```
-
-> **Area under the receiver operating characteristic curve (ROC-AUC)** is a single score for how well a classifier ranks positive examples above negative ones: 0.5 is coin-flipping and 1.0 is perfect.
-
-### Core intuition
-
-The shape of that ladder is the real finding. Most of the value arrives with the first honest model; everything after is an engineering trade against latency, explainability, and maintenance.
-
-### Rule of thumb
-
-> The value of ML is the gap between the model and the best simple alternative — not the model's absolute score.
-
----
-
-## 5. When not to use ML at all
-
-Say no when:
-
-- the rule is short, stable, and auditable,
-- the cost of a wrong answer is unacceptable and the rule is legally required,
-- there is not enough data, or the labels do not exist and cannot be obtained,
-- **nobody will own the monitoring and retraining after launch.**
-
-### Common issue
-
-That last one is the adult answer. A model with no owner degrades silently, and a degraded model is worse than the rule it replaced because everyone still trusts it.
-
----
-
-## 6. Baselines protect you during the project
-
-A baseline is a permanent control:
-
-```text
-catches pipeline bugs      if you cannot beat the mean, something is broken
-bounds a feature's value   how much is this really worth?
-gives a fallback           when the model service fails in production
-is cheap to keep running   in shadow mode, as a canary
-```
-
----
-
-## What matters most
-
-- **Quote the baseline in the same breath as the model.** "0.91 ROC-AUC" is a number; "0.91 vs 0.74 for the current rule" is a result.
-- **There are three baselines:** the trivial one (majority class, mean), whatever the business does today, and a simple model you can build in an hour.
-- **The shape of the ladder is the finding.** Most of the value arrives with the first honest model; the rest is a trade against latency and maintenance.
-- **A model that can't beat the trivial baseline signals a bug,** and one that barely beats the rules may not be worth shipping.
-- **A model with no owner is worse than the rule it replaced,** because it decays silently while everyone still trusts it.
-
-Next topic is **Bias-variance tradeoff**.
+> **Mental image:** a model's score is a height measurement. The baseline supplies the ground it stands on.

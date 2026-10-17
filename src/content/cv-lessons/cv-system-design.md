@@ -2,13 +2,15 @@
 
 ## 1. Start with the decision
 
+**CV system design** connects a product decision to image capture, data, prediction, evaluation, and deployment. A **prediction unit** is the item receiving one decision, such as an image, physical product, or tracked person.
+
 What must the product do: reject an item, locate damage, read a field, retrieve a product, or preserve identity?
 
 Define the prediction unit and expensive errors. An image class can reject an item; it cannot mark the defect location.
 
 ## 2. Make requirements measurable
 
-Specify quality, localization tolerance, latency, throughput, memory, supported capture conditions, and uncertain-input behavior.
+Specify quality, **localization tolerance** (acceptable position/boundary error), latency, throughput, memory, supported capture conditions, and uncertain-input behavior.
 
 For inspection, evaluate physical items rather than counting repeated views as independent successes.
 
@@ -28,7 +30,7 @@ Choose image labels, boxes, masks, or sequences to match the output. Define anno
 
 ## 4. Choose a baseline and objective
 
-Start with the cheapest sensible system: thresholding, pretrained classification, detection, embedding search, or detection-plus-tracking.
+A **baseline** is a simple reference implementation; the **objective/loss** is the training criterion used to fit its parameters. Start with the cheapest sensible system: thresholding, pretrained classification, detection, embedding search, or detection-plus-tracking.
 
 Explain the output, loss, and architecture using object size, relevant pretraining, data, and hardware.
 
@@ -38,7 +40,7 @@ Add complexity when a measured failure justifies it.
 
 | Product | Useful outcome |
 |---|---|
-| Inspection | Item recall at fixed false-reject rate |
+| Inspection | Item recall: fraction of defective items found; false-reject rate: fraction of acceptable items incorrectly rejected |
 | OCR | Exact field correctness |
 | Search | Recall@K and catalog coverage |
 | Tracking | Identity and event correctness |
@@ -47,11 +49,11 @@ Measure critical slices and uncertainty. Isolate components, then evaluate end t
 
 ## 6. Budget the whole pipeline
 
-Profile decode, preprocessing, model, postprocessing, transport, and queues. Estimate peak memory at supported shapes.
+**Profiling** measures time/resource use by pipeline stage. Profile decode, preprocessing, model, postprocessing, transport, and queues. Estimate peak memory at supported shapes.
 
 Choose edge/cloud placement, batching, and failure behavior.
 
-Search needs index refresh; video needs state and missing-frame handling. Version the complete pipeline and retain rollback.
+An **index refresh** updates stored searchable vectors/entries as the catalog or encoder changes. Search needs it; video needs state and missing-frame handling. Version the complete pipeline and retain rollback.
 
 ## 7. Plan the improvement loop
 

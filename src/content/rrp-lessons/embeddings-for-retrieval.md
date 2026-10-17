@@ -1,112 +1,51 @@
 ## Embeddings
 
-**An embedding turns something - a user, an item, a word - into a short list of numbers, arranged so that things that belong together end up close together.**
+An **embedding** is a numeric vector representing an entity or input. Retrieval compares user or request vectors with item vectors using a learned compatibility measure.
 
-```text
-        "running shoes"     ●
-             "trainers"      ●        ← close: similar meaning
-          "marathon kit"   ●
+“Close” means useful under a particular representation and objective; it does not automatically mean similar in every human sense.
 
-                                 ●  "dishwasher tablets"   ← far away
-```
+## 1. Where a vector comes from
 
-That is all. Closeness in the space *is* the prediction.
-
----
-
-## 1. Why numbers rather than categories
-
-A category label tells you only whether two things are identical:
-
-```text
-"running shoes" vs "trainers"  →  different strings  →  no relationship at all
-```
-
-### Core intuition
-
-A vector tells you *how* related they are, on a continuous scale, so the model can generalize from one to the other. That is what makes embeddings the basic currency of retrieval.
-
----
-
-## 2. Where the vectors come from
-
-| Source | Produces | Handles new items? |
+| Method | Representation | New-item implication |
 |---|---|---|
-| Matrix factorization | one vector per known identifier | no |
-| A model that reads item **features** | a vector from title, category, image | yes |
-| A pretrained text or image model | a vector from raw content | yes |
+| Identifier lookup | A learned vector for each known ID | Needs a defined unknown-ID strategy |
+| Feature encoder | Computes a vector from attributes | Can encode new items with supported features |
+| Pretrained encoder | Reuses a representation learned elsewhere | Requires checking relevance to this task |
 
-The distinction in the last column is the one that matters. A vector learned per identifier needs interaction history. A vector *computed from features* exists the moment the item does, so it can represent a new item with no interactions—a solution to item cold start.
+An **encoder** maps inputs to vectors. An **embedding table** stores vectors accessed by identifier. A model can combine both.
 
-### Rule of thumb
+Being encodable does not mean immediately searchable: the item must also be admitted to a compatible, sufficiently fresh index.
 
-> If the embedding is computed from features, new items are retrievable on day one. If it is looked up by id, they are invisible until retrained.
+## 2. The comparison rule matters
 
----
-
-## 3. How closeness is measured
-
-```text
-dot product      u · v                    bigger = more relevant; magnitude counts
-cosine           u · v / (|u| |v|)        direction only; popularity damped
-euclidean        |u − v|                  straight-line distance
+```rrp-visual
+embedding-geometry
 ```
 
-### Common issue
+For vectors \(u,v\):
 
-Cosine and normalized dot products are the usual choices. Whichever you train with, the index must use the same one - a mismatch between training and serving here is a real and confusing bug.
+\[
+\text{dot}=u^\top v,\qquad
+\text{cosine}=\frac{u^\top v}{\lVert u\rVert\lVert v\rVert},\qquad
+\text{distance}=\lVert u-v\rVert
+\]
 
----
+The **norm** \(\lVert v\rVert\) is vector length. Dot product includes length; cosine compares direction. For unit-length vectors, squared Euclidean distance equals \(2-2\,u^\top v\), so those orderings agree after reversing distance.
 
-## 4. Calculate a match rather than picturing it
+Zero-length vectors need a defined handling rule for cosine. Normalizing vectors changes a model that was trained to use their lengths; it is not automatically a harmless serving optimization.
 
-For user vector `[1, 2]`, item A `[2, 1]` scores `1×2 + 2×1 = 4`; item B `[−1, 0]` scores −1. A ranks above B under the dot-product objective.
+## 3. The objective shapes the map
 
-These values are compatibility scores, not probabilities. Changing to cosine normalizes vector lengths and can change the ordering, so it is a modeling decision rather than a harmless index setting.
+Vectors trained from clicks can encode click attractiveness and historical exposure. Text-trained vectors can favor similar descriptions while missing complementary purchase behavior.
 
----
+An item–item similarity space and a user–item compatibility space are not interchangeable just because both contain 128 numbers. Independently trained encoders may use incompatible coordinates.
 
-## 5. Embeddings encode whatever you trained them on
+Evaluate exact retrieval using the intended vectors and comparison rule before tuning an approximate index. Poor exact matches point to representation, objective, or data issues; poor approximation of good exact matches points to search issues.
 
-This is the part people skip.
+## 4. Account for size and updates
 
-```text
-trained on clicks   → the space encodes what gets clicked
-                      (including clickbait, and whatever was shown a lot)
-trained on purchases→ the space encodes what gets bought
-trained on text     → the space encodes what is described similarly
-                      (two items can be described alike and behave nothing alike)
-```
+Vector dimension controls capacity and per-item storage. Ten million 128-dimensional float32 vectors require 5.12 billion bytes before index metadata and replication.
 
-### Rule of thumb
+Version encoders, preprocessing, normalization, and index contents together. Inspect common, rare, and new-item neighborhoods, then confirm quality with a realistic retrieval benchmark rather than relying on an attractive two-dimensional projection.
 
-So "these two items are close" always means "close with respect to the objective I trained on". When a similarity looks wrong, the objective is usually the reason.
-
----
-
-## 6. Practical notes
-
-- **Dimension** is a capacity-versus-cost dial; 64-256 is typical. Bigger vectors cost memory in the index and time in the lookup.
-- **Freshness**: identifier-based vectors go stale as the catalogue changes, so the model and index need regular updates.
-- **One space or several**: users and items must live in the *same* vector space for a dot product to measure compatibility. A two-tower model achieves this by training separate user and item encoders together.
-- **Size**: hundreds of millions of identifiers multiplied by 128 numbers can dominate storage and memory cost.
-
----
-
-## 7. Check representation quality before index tuning
-
-Inspect neighbors for common, rare, and new items. Evaluate whether held-out positive items rank highly under an exact vector search on a manageable sample.
-
-If exact search returns poor matches, a faster approximate index cannot fix the embedding objective. If exact search is good but the index misses those matches, tune the search stage instead.
-
----
-
-## What matters most
-
-- **An embedding is a short list of numbers positioned so that related things sit close together,** and closeness is the prediction.
-- **Vectors computed from features work for new items;** vectors looked up per id do not.
-- **Train and serve with the same similarity measure,** or you get a quiet, confusing bug.
-- **The space encodes whatever objective produced it,** so a strange neighbour usually indicts the training signal.
-- **Users and items must share one space** for a dot product between them to mean anything.
-
-Next topic is **Two-tower retrieval**.
+> **Mental image:** an embedding map has a purpose and a ruler. Changing either changes which destinations appear nearby.

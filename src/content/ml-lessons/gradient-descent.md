@@ -153,6 +153,10 @@ These are starting points, not laws.
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 ```
 
+```dl-visual
+gradient-descent
+```
+
 ---
 
 # 5. Gradient descent doesn't guarantee the global minimum

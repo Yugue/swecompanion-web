@@ -2,7 +2,7 @@
 
 ## 1. Ask for a region
 
-A **promptable segmenter** uses points, boxes, or masks to select a region. A SAM-style model separates image encoding from prompt-conditioned mask decoding.
+A **promptable segmenter** predicts a pixel mask for a region specified by guidance such as points, boxes, or an earlier mask. **SAM (Segment Anything Model)** is a model family using reusable image features and a prompt-conditioned mask decoder.
 
 ```text
 image → cached image features ──────┐
@@ -10,7 +10,7 @@ image → cached image features ──────┐
 point / box / mask → prompt features┘
 ```
 
-Reuse the image features for multiple prompts.
+Here a **prompt** is spatial guidance specifying the desired region. **Caching image features** means storing the encoder output so multiple prompts can reuse it without encoding the image again.
 
 ## 2. Prompts express intent
 
@@ -22,6 +22,10 @@ Reuse the image features for multiple prompts.
 One point on a person might mean the whole person, shirt, or arm. Multiple candidate masks can expose that ambiguity.
 
 Text-based localization needs an additional compatible component; do not assume every promptable segmenter accepts text.
+
+```cv-visual
+prompt-mask
+```
 
 ## 3. Reuse changes cost
 
@@ -35,7 +39,7 @@ Transform prompt coordinates with the image resize/crop. Invalidate cached featu
 
 A coherent region can still be the wrong object, reflection, or object part.
 
-Prompt accuracy and upstream detection affect results. Automatic mask generation also needs selection and duplicate filtering.
+Prompt accuracy and upstream detection affect results. **Automatic mask generation** supplies many prompts automatically, then selects and deduplicates their candidate masks.
 
 A boundary does not establish class identity or complete panoptic understanding.
 

@@ -137,12 +137,8 @@ For one example:
 
 Think:
 
-```text
-BatchNorm:
-same feature ↓ across batch
-
-LayerNorm:
-features → within one example
+```dl-visual
+normalization-axes
 ```
 
 ### Interview answer

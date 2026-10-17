@@ -1,120 +1,44 @@
 ## Serving inside a latency budget
 
-**The entire funnel has to finish in the time a page takes to load.** That budget, not model quality, is what fixes the shape of the system.
+A **serving architecture** turns a request into a usable recommendation response. Its latency includes features, retrieval, scoring, list selection, communication, and queueing—not just model computation.
 
-### Chapter goal
+## 1. Budget the critical path
 
-By the end of Chapter 6, you should be able to allocate a serving budget across funnel stages, preserve online/offline feature consistency, build training and retraining pipelines, detect drift, introduce exploration safely, and estimate storage, compute, and network cost.
-
----
-
-## 1. A worked budget
-
-```text
-50ms total for recommendations
-├──  5ms  request parsing, user lookup
-├── 10ms  retrieval (several sources, in parallel)
-├── 15ms  feature fetching          ← usually the biggest slice
-├── 15ms  ranking ~500 candidates
-├──  3ms  re-ranking and policy
-└──  2ms  slack
+```rrp-visual
+serving-path
 ```
 
-### Core intuition
+Independent retrieval sources can run in parallel. The request waits for whichever responses the merge policy requires, subject to deadlines; adding their elapsed times is not the parallel critical path.
 
-Two things surprise people about this. First, **feature fetching can cost as much as inference**—they tie in this illustrative budget. Second, the budget is not spent evenly - and knowing where it actually goes is the difference between fixing the problem and shrinking the model for no reason.
+The figure's 50 ms allocation is illustrative. Measure end-to-end latency under realistic traffic and failures. Summing individual stage percentiles does not give the end-to-end percentile.
 
----
+**p99 latency** is the time within which 99% of measured requests finish. It reveals a slow tail that a mean can hide.
 
-## 2. Budget tail latency rather than just averages
+## 2. Choose what runs ahead of time
 
-The **95th-percentile latency (p95)** is the time within which 95% of requests complete. A feature store averaging 3 ms but occasionally taking 80 ms can break a 50 ms request budget.
+| Work | Possible placement | Main tradeoff |
+|---|---|---|
+| Item vectors and neighbor lists | Batch or incremental updates | Cost amortization versus freshness |
+| Long-run user summaries | Periodic updates | Reuse versus changing interests |
+| Popularity by context | Cached lists | Low request cost versus staleness |
+| Current query and session context | Request or recent-event path | Freshness versus latency |
 
-Measure end-to-end latency under load; adding individual stage percentiles does not give the end-to-end percentile. Use deadlines and bounded queues so overloaded services do not accumulate unlimited work.
+Whole-list precomputation can help when many requests can reuse a list. It can also freeze a feed or waste work on users who never return. Compare actual cache reuse and freshness requirements.
 
----
+## 3. Bound dependencies and failures
 
-## 3. Why feature fetching dominates
+Batch candidate feature reads and scoring where it helps. Profile communication, embedding access, model work, and queueing separately before choosing an optimization.
 
-```text
-500 candidates × 40 item features   → a lot of lookups
-+ 1 user's features                 → one lookup, but a big one
-+ cross features                    → computed, sometimes per candidate
-```
+Give optional sources deadlines. Define supported stale values, missing indicators, or fallback models for failed features. The fallback must be evaluated with the inputs it actually receives.
 
-Fixes, roughly in order of payoff:
+A cached or curated response still needs current hard eligibility checks. Returning fewer valid items can be preferable to filling slots with unavailable ones.
 
-```text
-batch the lookups          one request for 500 items, not 500 requests
-co-locate the store        network hops are the cost, not the store
-precompute cross features  where the user-item pair is predictable
-cache hot items            a small fraction of items appear in most requests
-shrink the candidate set   fewer candidates is the bluntest lever
-```
+## 4. Log the final action and outcome linkage
 
-### Rule of thumb
+Record request ID, displayed items and positions, versions, feature values or snapshot references, and any fallback. If the policy is randomized, log the actual action probability at the appropriate action granularity.
 
-> Before optimizing the model, measure where the milliseconds go. It is usually not the model.
+A candidate returned by retrieval, selected by ranking, sent by the server, and rendered on screen are different events. Link outcomes to the appropriate display so training does not mistake unseen server results for non-clicks.
 
----
+Version model, transforms, index, calibrator, schema, and decision policy as compatible components, and retain a usable rollback path.
 
-## 4. Precompute whatever does not depend on the request
-
-```text
-nightly / hourly        item embeddings, the approximate-nearest-neighbor (ANN) index, item-item lists,
-                        item quality scores, popularity by segment
-per user, periodically  long-term interest vectors, heavy users' full slates
-at request time         only what genuinely needs the live context
-```
-
-### Rule of thumb
-
-For very heavy users, computing the whole recommendation list offline and serving a lookup is often much cheaper than ranking live - and it is a legitimate answer to a scaling question.
-
----
-
-## 5. Every stage needs a timeout and a fallback
-
-```text
-retrieval source times out   → use the others, log it
-feature store slow           → serve with default/stale features, log it
-ranker unavailable           → fall back to a cached popularity list
-everything fails             → show a sensible static list, never an error
-```
-
-### Common issue
-
-The product requirement is that the page renders. An eligible fallback list is often better than a failed page; policy checks must still hold, and the fallback chain should be explicit rather than accidental.
-
----
-
-## 6. Caching
-
-```text
-per user     the computed slate, for a short window - careful, it freezes the feed
-per item     features and embeddings - safe, high hit rate
-per segment  popularity lists by country, device, surface - very effective
-per query    for search, the head of the query distribution is tiny and hot
-```
-
-The head of almost every distribution here is extremely concentrated, so a small cache usually gets a large hit rate. The risk is staleness: a cached slate that does not respond to what the user just did will feel broken, so user-level caches need short lifetimes and invalidation on new activity.
-
----
-
-## 7. Log what actually reached the user
-
-Record the request ID, final displayed items and positions, model/index versions, features or feature snapshot references, and any fallback used. Candidate selection is not the same event as a rendered impression.
-
-Connect subsequent outcomes to those impressions. Otherwise the training pipeline may learn from items that were ranked but never displayed, or attribute fallback traffic to the primary model.
-
----
-
-## What matters most
-
-- **The latency budget fixes the architecture,** and every stage gets an explicit slice of it.
-- **Feature fetching usually costs more than inference,** so measure before shrinking the model.
-- **Precompute everything that does not depend on the request,** including whole slates for the heaviest users.
-- **Every stage needs a timeout and a fallback,** ending at a static list - the page must always render.
-- **Caches work well because the head of every distribution is concentrated,** but user-level caches must expire quickly or the feed freezes.
-
-Next topic is **Features, freshness, and skew**.
+> **Mental image:** latency is a relay with some parallel runners. Measure the route the request actually waits for, including its backup route.

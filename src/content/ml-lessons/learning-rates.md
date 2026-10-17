@@ -246,6 +246,10 @@ Large updates immediately can destabilize training.
 
 Warmup lets the model **ease into training**.
 
+```dl-visual
+learning-rate
+```
+
 ---
 
 # 8. Why Transformers especially use warmup

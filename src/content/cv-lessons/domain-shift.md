@@ -2,18 +2,22 @@
 
 ## 1. Performance depends on the distribution
 
+**Domain shift** means the data-generating conditions at use time differ from training/evaluation conditions. **Robustness** is the ability to retain useful behavior under specified variations.
+
 New cameras, lighting, populations, classes, or acceptance rules can invalidate earlier evidence.
 
 First check pipeline correctness. A BGR/RGB mismatch needs a transform fix.
 
 ## 2. Distinguish changes
 
+X denotes input images and Y their target labels. These names describe different changes in their probability distributions:
+
 | Change | Description | Example |
 |---|---|---|
-| Covariate | \(P(X)\) changes | New lighting/camera |
-| Label prior | \(P(Y)\) changes | Defects become more common |
-| Concept | \(P(Y\mid X)\) changes | Revised acceptance criteria |
-| Open set | New categories appear | Unseen defect type |
+| Input/covariate shift | \(P(X)\) changes; pure covariate shift assumes \(P(Y\mid X)\) stays fixed | New lighting/camera |
+| Label-prior shift | Class prevalence \(P(Y)\) changes | Defects become more common |
+| Concept/target shift | The input-to-target relationship \(P(Y\mid X)\) changes | Revised acceptance criteria |
+| Open-set change | Inputs include categories outside the known label set | Unseen defect type |
 
 Changes can coexist. Label-prior correction needs assumptions about class-conditional inputs; unlabeled data alone may not identify prevalence reliably.
 
@@ -38,7 +42,7 @@ failure → check pipeline → review new-domain labels → identify cause
 - Appearance mismatch: collect representative data and test fine-tuning.
 - Changed target meaning: revise annotation.
 
-Unlabeled adaptation can reinforce errors. Keep an independent labeled holdout.
+**Domain adaptation** adjusts a system to target-domain data, potentially without labels. Unlabeled adaptation can reinforce errors. Keep an independent labeled holdout.
 
 ## 5. Monitor actionable signals
 
@@ -50,7 +54,7 @@ Assign an owner and response to each alert.
 
 ## 6. Collect useful new examples
 
-Active learning uses uncertainty, model disagreement, diversity, or important failure slices.
+**Active learning** selects which unlabeled examples to annotate next, aiming to improve learning per label. Selection can use uncertainty, model disagreement, diversity, or important failure slices.
 
 Uncertainty alone can select unreadable images repeatedly. Diversity reduces near-duplicate labeling.
 
@@ -60,7 +64,7 @@ Keep representative evaluation independent. Hard-example collections do not esti
 
 Version data, label policy, preprocessing, weights, thresholds, and indexes together.
 
-Compare stable and recent holdouts, including old domains still in use. Use shadow evaluation, limited rollout, and rollback criteria.
+Compare stable and recent holdouts, including old domains still in use. **Shadow evaluation** runs a candidate beside production without using its predictions for product decisions. **Limited rollout** exposes a small portion of real traffic; **rollback** restores the previous version when specified regressions occur. Define these criteria before release.
 
 Check selection effects: reviewing only flagged images hides unflagged misses.
 

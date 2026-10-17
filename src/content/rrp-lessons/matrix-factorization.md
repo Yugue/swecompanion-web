@@ -1,157 +1,45 @@
 ## Matrix factorization
 
-**Give every user a short list of numbers, give every item a short list of numbers, and arrange things so that multiplying them together reproduces who liked what.**
+**Matrix factorization** represents users and items with short learned vectors. Their dot products approximate an interaction or rating matrix under a chosen training objective.
 
-```text
-        the giant empty grid              two small dense tables
-    ┌─────────────────────────┐        ┌──────────┐   ┌──────────┐
-    │ 10M users × 1M items    │   ≈    │ 10M × 32 │ × │ 32 × 1M  │
-    │ 99.9% empty             │        │  users   │   │  items   │
-    └─────────────────────────┘        └──────────┘   └──────────┘
+The **latent factors** are learned coordinates, rather than observed attributes supplied by the dataset.
+
+## 1. A large matrix, two vector tables
+
+```rrp-visual
+matrix-factorization
 ```
 
-Instead of storing ten trillion cells, you store 350 million numbers - and you can now fill in any cell you like.
-
----
-
-## 1. The prediction
+For user vector \(p_u\) and item vector \(q_i\), a common score is:
 
 \[
-\text{score}(u, i) \;=\; \mathbf{p}_u \cdot \mathbf{q}_i \;+\; b_u + b_i + \mu
+s(u,i)=p_u^\top q_i+b_u+b_i+\mu
 \]
 
-- \(\mathbf{p}_u\) - the user's vector, maybe 32 to 256 numbers
-- \(\mathbf{q}_i\) - the item's vector, the same length
-- \(b_u, b_i, \mu\) - offsets for this user, this item, and the overall average
+The dot product models compatibility. \(b_u\), \(b_i\), and \(\mu\) are user, item, and global offsets. For ratings they can capture generous raters and generally high-rated items.
 
-### Core intuition
+With \(p_u=[1,2]\), \(q_i=[2,1]\), and zero offsets, the score is \(1\times2+2\times1=4\). It is not automatically four stars or a probability; meaning comes from the objective and any output transformation.
 
-A prediction is a **dot product**: multiply the two lists element by element and add up. Because this calculation is cheap, it remains useful for retrieving candidates from very large catalogues.
+## 2. Training decides what is approximated
 
----
+For observed ratings, minimize prediction error over rated cells plus **regularization**, a penalty discouraging unstable or excessive fitted values. A missing rating is not a zero-star rating.
 
-## 2. Watching it fill in a blank
+For clicks or watches, missing cells have uncertain meaning. Confidence-weighted or sampled pairwise objectives define how unobserved entries affect fitting. The same vector architecture can therefore learn different score scales and relationships.
 
-Four users, four films, and a grid that is mostly empty. `?` is what we want to predict:
+**Alternating least squares (ALS)** fixes item vectors while solving user vectors, then reverses the roles. Suitable squared-error objectives make each subproblem tractable. **Stochastic gradient descent (SGD)** updates parameters from sampled observations or comparisons. Neither choice is universally restricted to one feedback type.
 
-```text
-            Heat   Alien   Amélie   Up
-   Ann        5      4        ?      2
-   Ben        4      5        1      ?
-   Cara       1      ?        5      4
-   Dan        ?      1        4      5
-```
+## 3. Compactness has a cost
 
-Consider two illustrative factor vectors. They show the scoring mechanism; they are not a claimed fit to the exact ratings above:
+With one million users, 100,000 items, and 32 coordinates per vector, the two tables contain 35.2 million numbers, before offsets and training state.
 
-```text
-              factor 1   factor 2            factor 1   factor 2
-   Ann          1.8       −0.9      Heat        1.9       −0.8
-   Ben          1.9       −0.7      Alien       1.7       −1.0
-   Cara        −1.0        1.7      Amélie     −0.9        1.8
-   Dan         −0.8        1.9      Up         −1.1        1.6
-```
+Real interaction logs are usually stored sparsely rather than allocating every missing matrix cell. Factorization adds shared structure for prediction; it is not simply a requirement to replace a physically stored dense matrix.
 
-Now Ann's rating for Amélie is just a dot product:
+Larger vectors add capacity, memory, and evidence requirements for rare entities. Choose their size and penalty using validation.
 
-\[
-(1.8)(-0.9) + (-0.9)(1.8) = -1.62 - 1.62 = -3.24 \;\rightarrow\; \text{rescaled: a low score}
-\]
+## 4. Understand the limits
 
-And Cara's for Alien:
+Plain identifier-only factorization has limited evidence for new IDs and no direct input for a changing query or arbitrary user–item feature. Side-feature models and separate retrieval sources can help.
 
-\[
-(-1.0)(1.7) + (1.7)(-1.0) = -3.4 \;\rightarrow\; \text{also low}
-\]
+Individual latent axes are not uniquely named concepts: rotating both tables together can preserve dot products. Interpreting an axis as “action movies” is a hypothesis requiring evidence, not a built-in explanation.
 
-The dot products fill the blanks without film descriptions. To predict ratings on the original star scale, the fitted model also needs its offsets and rating loss. These illustrative scores show relative compatibility, not exact star predictions.
-
-### Common issue
-
-Looking at it afterwards you might say factor 1 is "action" and factor 2 is "gentle drama". That interpretation is optional: rotating both sets of vectors together can preserve dot products without preserving the axis labels.
-
----
-
-## 3. What the numbers mean
-
-Nobody tells the model what the dimensions are. It invents them to fit the data:
-
-```text
-dimension 7  might end up meaning   "action-heavy"
-dimension 19 might end up meaning   "made before 1990"
-dimension 24 might end up meaning   nothing nameable at all
-```
-
-These are **latent factors** - latent because they were never observed, only inferred. If a user scores high on dimension 7 and an item does too, their dot product is large and the item ranks well.
-
-Be careful with the product-manager version of this. The dimensions are usually **not** individually interpretable, they change completely when you retrain, and reading meaning into them is mostly storytelling.
-
-### Rule of thumb
-
-> The factors are useful as a whole and meaningless one at a time.
-
----
-
-## 4. The biases are doing real work
-
-The \(b_u + b_i + \mu\) part is easy to skip over and often accounts for a surprising share of the accuracy:
-
-```text
-μ    = the overall average level of engagement
-b_i  = this item is generally popular, regardless of who sees it
-b_u  = this user engages with everything / hardly anything
-```
-
-### Rule of thumb
-
-Only what is left after removing those three is genuine personalization. Fitting biases first, then factors, is both faster and more stable.
-
----
-
-## 5. Choose the loss to match the observations
-
-For explicit ratings, minimize prediction error on observed ratings, plus regularization. A missing rating is not a zero-star rating.
-
-For implicit engagement, the zeros are uncertain rather than dislikes. Use a confidence-weighted or sampled ranking objective instead of fitting the same rating loss blindly. The vector architecture alone does not determine what its scores mean.
-
----
-
-## 6. How it is fitted
-
-Two standard approaches, and the choice is practical:
-
-| | Alternating least squares | Stochastic gradient descent |
-|---|---|---|
-| Idea | fix items, solve users; fix users, solve items | nudge both a little, per observation |
-| Parallelizes | very well | less well |
-| Suits | implicit feedback over all cells | sparse explicit observations |
-| Typical use | large batch jobs | streaming, or many side features |
-
-### Common issue
-
-Both need regularization - a penalty that keeps the vectors small - or the model fits the handful of interactions each rare user has and generalizes to nothing.
-
----
-
-## 7. What it cannot do
-
-```text
-new item   → no vector has been learned → cannot be scored at all
-new user   → same problem
-features   → there is nowhere to put "the item is 3 minutes long"
-context    → nowhere to put "it is Tuesday morning"
-```
-
-Plain matrix factorization learns one vector per **id**, so anything without an id in the training data is invisible. The rest of this guide is largely about fixing that: factorization machines add features, two-tower models compute the vectors *from* features, and rankers add context.
-
----
-
-## What matters most
-
-- **Two small dense tables replace one enormous empty grid,** and any cell can then be filled in.
-- **A prediction is a dot product,** which is cheap enough to power retrieval over millions of items.
-- **The learned dimensions are latent** - invented by the model, not individually interpretable, and different after every retrain.
-- **The per-user and per-item offsets carry a lot of the accuracy;** only what remains is real personalization.
-- **It learns one vector per id,** so new items, new users, features, and context are all outside what it can express.
-
-Next topic is **Factorization for implicit feedback**.
+> **Mental image:** each user and item receives coordinates on a learned compatibility map. The loss decides which observations that map should explain.

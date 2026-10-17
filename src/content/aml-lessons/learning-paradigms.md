@@ -1,133 +1,43 @@
 ## Supervised, unsupervised, and self-supervised learning
 
-These three names answer a single question:
+A **learning paradigm** describes the signal used to learn. Start with what you want the model to do and which signals the data provides.
 
-> **Do your examples come with the right answer attached?**
+## 1. Supervised learning: learn from supplied answers
 
-```text
-you have the answers        → supervised       "50,000 emails, marked spam or not"
-you have no answers         → unsupervised     "50,000 emails, find some structure"
-the data contains its own   → self-supervised  "hide a word, predict it from the rest"
-```
+Each training example pairs an input \(x\) with a target \(y\), also called a label. The model learns to predict \(y\) from \(x\).
 
-The paradigm is not a preference. It is decided by what is already in your data.
+| Input | Target | Task |
+|---|---|---|
+| Email text | Spam or not spam | Classification |
+| Order details at checkout | Actual delivery minutes | Regression |
 
----
+Labels may come from people or recorded outcomes. Clicks are labels too, but they reflect what users were shown as well as what they liked.
 
-## 1. The three cases in one line each
+## 2. Unsupervised learning: find structure
 
-```text
-supervised       (x, y)         learn to predict a known target
-unsupervised     (x)            find structure with no target
-self-supervised  (x, y = g(x))  invent the target from the input itself
-```
+There is no supplied target for each input. **Clustering** groups similar examples; **density estimation** models where examples tend to occur; **dimensionality reduction** represents them with fewer coordinates.
 
-**Reinforcement learning** is a fourth family: an agent learns by taking actions and receiving rewards instead of training from a fixed set of correct answers. It is a separate problem setting from the three covered here.
+For example, cluster customers by purchase frequency and basket size. The groups need evaluation: are they stable, interpretable, and useful? If independent reference groups exist, you can compare against them.
 
----
+A cluster number is an identifier, not a discovered business truth.
 
-## 2. Supervised learning
+## 3. Self-supervised learning: construct the prediction task
 
-\[
-D = \{(x_1,y_1),\dots,(x_n,y_n)\}
-\]
-
-Training minimizes the gap between \(\hat y\) and \(y\).
-
-```python
-model.fit(X_train, y_train)
-```
-
-### Intuition
-
-Almost every production system you will be asked to design is supervised, because businesses care about predicting one specific named outcome.
-
-### Common issue
-
-The hard part is rarely the algorithm. It is that **labels—the correct outcomes attached to examples—are often expensive, delayed, or noisy**.
-
----
-
-## 3. Unsupervised learning
-
-Only \(x\). The algorithm looks for structure:
-
-- **clustering** — which points group together,
-- **density estimation** — what counts as normal,
-- **dimensionality reduction** — which directions matter.
-
-```python
-labels = KMeans(n_clusters=6).fit_predict(X)
-```
-
-### Intuition
-
-There is no accuracy here, because there is nothing to be accurate against.
-
-### Rule of thumb
-
-> Unsupervised results are a hypothesis, not an answer. Someone has to look at the clusters and decide they mean something.
-
----
-
-## 4. Self-supervised learning
-
-The target is built from the input by a rule \(g\):
-
-- hide a word, predict it from the rest of the sentence,
-- hide a patch of an image, reconstruct it,
-- take two augmentations of one row and pull them together.
-
-### Core intuition
-
-No human labels, but a genuine prediction task — which is why it trains like supervised learning and scales to enormous unlabelled datasets.
-
-It is the engine behind every pretrained model.
-
-### Rule of thumb
-
-In applied ML its role is: **pretrain on the cheap unlabelled data, fine-tune on the expensive labelled data.**
-
----
-
-## 5. Semi-supervised and weak supervision
-
-The realistic middle ground, and a strong interview answer because it matches real projects.
-
-| Situation | Approach |
-|---|---|
-| 2k labels, 10M unlabelled rows | Pretrain on all of it, fine-tune on the 2k |
-| Labels expensive, a heuristic exists | Programmatic labels, then clean the noisy ones |
-| Budget to label selectively | Active learning — label what the model is least sure about |
-| Labels arrive later | Train on older data, validate as labels mature |
-
----
-
-## 6. Choosing, in practice
-
-Work from the data, not from the algorithm you like:
+**Self-supervised learning** creates targets from the data itself. Hide a word and predict it from the remaining sentence:
 
 ```text
-Do I have outcomes for my rows?
-├── yes, enough      → supervised
-├── yes, very few    → semi-supervised / pretrain + fine-tune
-└── no
-    ├── want groups   → clustering
-    ├── want "unusual"→ anomaly detection
-    └── want features → self-supervised representations
+original:  the parcel arrived on Tuesday
+input:     the parcel arrived on [MASK]
+target:    Tuesday
 ```
 
-### Rule of thumb
+The hidden answer must be withheld from the model's input for that task. Learning from many such examples can produce useful **representations**—features that capture reusable patterns. A later supervised task can adapt them using labels; this adaptation is called **fine-tuning**.
 
-> "We have no labels" almost never means "use unsupervised learning." It usually means *go find the implicit label* — a click, a return, a chargeback, a cancellation.
+## 4. Related setups
 
----
+- **Semi-supervised learning:** combine labelled and unlabelled data for a target task. For example, learn from 2,000 reviewed messages and additional unlabelled messages.
+- **Weak supervision:** train with noisy or indirect labels, such as labels generated by heuristics. Check which mistakes those heuristics introduce.
+- **Active learning:** select examples for human labelling, often using uncertainty and diversity.
+- **Reinforcement learning:** learn actions from rewards received through interaction. A reward evaluates an outcome, rather than supplying the correct action for every input.
 
-## What matters most
-
-- **The data picks the paradigm, not your preference.** Ask what supervision signal your rows actually contain.
-- **"We have no labels" usually means "find the implicit label"** - a click, a return, a chargeback - before reaching for unsupervised learning.
-- **Unsupervised output is a hypothesis.** There is nothing to be accurate against, so a person has to decide the clusters mean something.
-- **Self-supervised learning is the bridge for scarce labels:** pretrain on cheap unlabelled data, then fine-tune on the expensive labelled data.
-
-Next topic is **Features, labels, and a training example**.
+> **Mental image:** a teacher supplies answers, the dataset supplies puzzles, or the algorithm looks for structure. These are different learning signals, and a project can combine them.

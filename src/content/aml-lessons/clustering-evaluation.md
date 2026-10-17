@@ -1,134 +1,46 @@
 ## Choosing k and evaluating clusters
 
-**With clustering there is no right answer to check against,** so there is no accuracy to compute and nothing to be correct about.
+**Clustering evaluation** asks whether a partition captures useful structure. Without reference labels, there is no ordinary target accuracy to compute—but geometry, stability, and downstream use still provide evidence.
 
-Quality has to be argued instead - from the geometry of the groups, from whether they survive being re-run on slightly different data, and from whether anyone can actually use them. Being comfortable saying that is most of the answer.
+## 1. Inertia rewards extra centers
 
----
+For k-means, **inertia** is the sum of squared distances to assigned centers. Its best achievable value cannot increase as \(k\) grows; with one center per distinct observation it can reach zero.
 
-## 1. The elbow method
+The **elbow method** looks for diminishing improvement, rather than minimizing inertia:
 
-Plot inertia (within-cluster sum of squares) against k:
+| k | Illustrative inertia | Reduction from previous k |
+|---|---|---|
+| 2 | 900 | — |
+| 3 | 450 | 450 |
+| 4 | 400 | 50 |
+| 5 | 370 | 30 |
 
-```text
-inertia │●
-        │ ●
-        │   ●
-        │     ●___        ← the "elbow": additional clusters stop paying
-        │         ●___●___●
-        └──────────────────── k
-```
+Here 3 is a candidate, not a proven true cluster count. Real curves often have no clear elbow, and fitted local optima can disrupt the ideal monotonic pattern.
 
-### Common issue
+## 2. Silhouette measures separation
 
-Inertia always decreases as k grows - at k = n it is zero - so you are looking for the point of diminishing returns, not a minimum. Be honest about the weakness: on real data the elbow is often a gentle curve with no obvious corner.
-
----
-
-## 2. Silhouette
-
-For each point, compare how close it is to its own cluster versus the nearest other cluster:
+For a point, let \(a\) be its mean distance to other points in its own cluster. Let \(b\) be the smallest mean distance to points in any other cluster.
 
 \[
-s(i) = \frac{b(i) - a(i)}{\max\{a(i),\,b(i)\}}
+s=\frac{b-a}{\max(a,b)}
 \]
 
-where a(i) is the mean distance to its own cluster and b(i) the mean distance to the nearest other cluster.
+With \(a=2\) and \(b=5\), silhouette is 0.6. Near 1 means strong separation under that metric, near 0 weak separation, and negative values suggest a closer alternative cluster.
 
-```text
- s ≈  1  → comfortably inside its cluster
- s ≈  0  → on a boundary
- s ≈ -1  → probably assigned to the wrong cluster
-```
+Inspect per-cluster scores and sizes, not only the mean. Silhouette favors certain compact, separated shapes and can undervalue useful nonconvex clusters. A singleton has a defined implementation convention rather than the ordinary within-cluster mean.
 
-```python
-silhouette_score(X_scaled, labels)
-```
+## 3. Check reproducibility without mistaking it for truth
 
-### Rule of thumb
+Refit on suitable resamples or later periods. Compare assignments for common observations, or evaluate both fitted rules on a common reference set when they support new-point assignment.
 
-Unlike inertia, the silhouette score is comparable across values of k, so you can take the maximum. Plot the per-point distribution too, not just the mean - one collapsing cluster is visible there and invisible in the average.
+**Adjusted Rand index (ARI)** compares whether pairs of points are grouped together, correcting for chance. It is unchanged by renaming cluster IDs. One means identical partitions; values near zero indicate chance-level agreement under its reference model, and negative values are possible.
 
----
+Stable partitions can still be unhelpful—for example, stable groups caused by an irrelevant measurement scale.
 
-## 3. Other internal indices
+## 4. Use independent reference and product evidence
 
-| Index | Idea | Direction |
-|---|---|---|
-| Calinski-Harabasz | between-cluster vs within-cluster dispersion | higher better |
-| Davies-Bouldin | average similarity of each cluster to its most similar one | lower better |
-| Gap statistic | compare inertia to what uniform random data would give | larger gap better |
-| Bayesian information criterion (BIC) / Akaike information criterion (AIC), for Gaussian mixture models | likelihood penalized by parameter count | lower better |
+If reference groups exist, ARI or other partition measures can compare against them. Raw cluster accuracy is misleading because IDs are arbitrary.
 
-### Common issue
+Profile groups with sizes, representative examples, and feature distributions. Ask whether the groups support a meaningful action or reveal a reproducible pattern. Validate any claimed campaign benefit experimentally rather than assuming distinct groups imply distinct treatment effects.
 
-They frequently disagree. Treat agreement across several as weak confirmation, not proof.
-
----
-
-## 4. Stability is the strongest internal evidence
-
-Run the clustering on bootstrap samples or random 80% subsets and check whether the same points keep landing together (measured with the adjusted Rand index between runs):
-
-```text
-k = 3 → adjusted Rand index (ARI) across resamples ≈ 0.86   ← stable, reproducible structure
-k = 7 → ARI across resamples ≈ 0.31   ← the algorithm is inventing splits
-```
-
-### Rule of thumb
-
-> A clustering that changes completely when you resample the data is not a finding. Stability is the closest thing to validation that unsupervised learning has.
-
----
-
-## 5. External indices, when some labels exist
-
-If a partial ground truth exists - known segments, a small labelled sample - compare partitions properly rather than by accuracy (cluster ids are arbitrary):
-
-- **Adjusted Rand index**: agreement on pairs of points, corrected for chance. 0 = random, 1 = identical.
-- **Normalized mutual information**: shared information between the two partitions.
-- **Homogeneity / completeness / V-measure**: each cluster contains one class / each class lands in one cluster, and their harmonic mean.
-
----
-
-## 6. The test that actually decides it
-
-### Core intuition
-
-Internal indices measure geometry. The business question is usefulness:
-
-- **Are the clusters interpretable?** Profile each one - size, means of key features, a few representative members - and see whether a human can name it. "High-spend weekend-only mobile buyers" is a result; "cluster 4" is not.
-- **Do they behave differently downstream?** If two segments respond identically to every campaign, the split has no value regardless of its silhouette.
-- **Are they actionable and stable over time?** Re-run next month: if membership churns wildly, nothing can be built on it.
-- **Are they operationally usable?** Four segments that map to four campaigns beat eleven mathematically tidier ones the team cannot staff.
-
----
-
-## 7. A practical procedure
-
-```text
-1. scale (and reduce dimensionality if d is large)
-2. sweep k, record inertia, silhouette, and one other index
-3. shortlist 2-3 candidate k values
-4. check stability by resampling at each candidate
-5. profile the clusters at the survivor and have a human read them
-6. pick the one that is stable AND usable, and say why
-```
-
----
-
-## Interview mental model
-
-There is no ground truth, so quality has to be argued from three directions - and saying that plainly is most of the answer:
-
-```text
-geometry   silhouette, Calinski-Harabasz, Davies-Bouldin, the elbow in inertia
-stability  re-run on resampled data - do the same points stay together?
-usefulness can a human name each cluster, and do the clusters behave differently?
-```
-
-- **Inertia always falls as k rises,** so the elbow is a point of diminishing returns, not a minimum. Silhouette, unlike inertia, is comparable across k.
-- **Stability is the strongest internal evidence.** A clustering that changes completely when you resample is not a finding.
-- **The business test decides it:** four segments that map to four campaigns beat eleven mathematically tidier ones nobody can staff.
-
-Next topic is **Anomaly detection**.
+> **Mental image:** geometry proposes a partition, resampling tests its repeatability, and the intended use decides whether it matters.

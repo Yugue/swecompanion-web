@@ -24,19 +24,19 @@ A **dot product** multiplies corresponding entries, then adds them:
 [1,2]\cdot[3,4]=1(3)+2(4)=11
 \]
 
-Matrix multiplication performs many dot products:
+A **linear transformation** multiplies an input by a matrix; it preserves addition/scaling and sends zero to zero. Matrix multiplication performs many dot products:
 
 \[
 X:(B,D),\quad W:(D,K)\quad\Rightarrow\quad XW:(B,K)
 \]
 
-Example: **[32, 128] × [128, 10] → [32, 10]**.
+B is batch size, D input features, and K output features. Example: **[32, 128] × [128, 10] → [32, 10]**.
 
 Elementwise multiplication instead gives [1,2] × [3,4] = [3,8].
 
 ## 3. Norms and similarity
 
-A norm measures vector **length**:
+A **norm** measures vector size. The **L2 (Euclidean) norm** is ordinary geometric length:
 
 \[
 \|a\|_2=\sqrt{\sum_i a_i^2}
@@ -44,7 +44,7 @@ A norm measures vector **length**:
 
 Example: [3,4] has length 5.
 
-Cosine compares **direction**, removing magnitude:
+**Cosine similarity** compares vector direction, removing magnitude. In the formula, \(a^T\) is the transpose, turning a column into a row:
 
 \[
 \cos(a,b)=\frac{a^Tb}{\|a\|_2\|b\|_2}
@@ -70,7 +70,7 @@ State pixel-center/corner conventions. Transform labels with the image; rotating
 
 ## 5. Homogeneous coordinates
 
-Append 1 so a matrix can include translation:
+An **affine transformation** adds an offset to a linear transformation. **Homogeneous coordinates** add a scale coordinate to represent these translations and perspective with matrices. Represent a 2D point \((x,y)\) as \((x,y,1)\):
 
 \[
 \begin{bmatrix}x'\\y'\\1\end{bmatrix}
@@ -81,7 +81,7 @@ Append 1 so a matrix can include translation:
 
 Example: (4,7) becomes (14,4).
 
-More general matrices encode rotation, scale, shear, or perspective. For projective output (u,v,w), divide by w: (10,20,2) becomes (5,10).
+These matrices can encode rotation, scale, **shear** (slanting axes), or **perspective** (apparent size changing with depth). For projective output (u,v,w), divide by w: (10,20,2) becomes (5,10).
 
 ## 6. Composition and inversion
 
@@ -94,7 +94,7 @@ Example: start at x=1.
 
 Order matters.
 
-An inverse undoes an invertible transform. Image warping commonly maps each destination pixel back to its source coordinate, avoiding forward-mapping holes.
+An inverse undoes an invertible transform. **Image warping** creates an image under a coordinate transformation. It commonly maps each destination pixel back to its source coordinate, avoiding forward-mapping holes.
 
 ## 7. Interview reasoning
 

@@ -4,11 +4,12 @@
 
 Be able to explain:
 
-- Capture and sampling: what light becomes pixels, and what evidence is lost.
-- Spatial processing: antialiasing, derivatives, morphology, coordinates.
-- Geometry: matching, RANSAC, perspective, stereo, aperture ambiguity.
-- Learning: forward pass, loss, gradients, update, generalization.
-- Architecture: convolution, residual paths, attention.
+- **Capture/sampling:** measure light on a pixel grid. **Antialiasing** removes patterns too fine for that grid.
+- **Derivatives:** measure local change. **Morphology:** modify mask shapes with neighborhood rules.
+- **Matching:** propose corresponding points. **RANSAC (Random Sample Consensus):** fit a model despite outliers. **Stereo:** recover depth from two views.
+- **Aperture problem:** a local edge cannot reveal motion along itself.
+- **Forward pass:** compute predictions. **Loss:** score training error. **Backpropagation:** compute parameter sensitivities. **Generalization:** perform well on new inputs.
+- **Convolution:** reuse local filters. **Residual path:** add a bypassed input to a learned correction. **Attention:** combine token features using learned relevance weights.
 
 For each, give an intuition, assumption, failure, and alternative.
 
@@ -22,7 +23,7 @@ O=\left\lfloor\frac{I+2P-D(K-1)-1}{S}\right\rfloor+1
 
 \(I,P,D,K,S\) are input size, padding, dilation, kernel size, and stride. Apply per axis. With \(I=32,K=3,P=1,D=1,S=2\), \(O=16\).
 
-Receptive field \(r\) and input-space spacing \(j\):
+The **receptive field** is the input region that can affect one output cell. Track its size \(r\) and output-cell spacing \(j\), measured in input pixels:
 
 \[
 r_l=r_{l-1}+(K_l-1)D_lj_{l-1},\qquad j_l=j_{l-1}S_l
@@ -30,7 +31,7 @@ r_l=r_{l-1}+(K_l-1)D_lj_{l-1},\qquad j_l=j_{l-1}S_l
 
 Start at \(r=j=1\).
 
-Rectified stereo depth:
+**Rectification** aligns two views so matched points lie on the same row. **Disparity** d is their horizontal position difference; **baseline** B is camera separation. Rectified stereo depth:
 
 \[
 Z=\frac{fB}{d}
@@ -61,18 +62,18 @@ For patch width \(P\), \(N=HW/P^2\) when dimensions divide evenly. Halving \(P\)
 P=\frac{TP}{TP+FP},\quad R=\frac{TP}{TP+FN},\quad F_1=\frac{2PR}{P+R}
 \]
 
-Here \(P\) means precision. With \(TP=8,FP=2,FN=2\), precision and recall are \(0.8\).
+Here \(P\) means **precision**, the fraction of predicted positives correct. R is **recall**, the fraction of actual positives found; F1 is their harmonic mean. TP/FP/FN are correct positives, false positives, and missed positives. With \(TP=8,FP=2,FN=2\), precision and recall are \(0.8\).
 
 \[
 \mathrm{IoU}(A,B)=\frac{|A\cap B|}{|A\cup B|},\qquad
 \mathrm{Dice}(A,B)=\frac{2|A\cap B|}{|A|+|B|}
 \]
 
-Specify binary/soft versions, absent classes, and aggregation.
+**Intersection over Union (IoU)** divides intersection area by union area. **Dice** divides twice the intersection by total predicted/reference area. Specify binary/soft versions, absent classes, and aggregation.
 
-AP summarizes ranked precision/recall under matching rules. mAP needs class and IoU averaging definitions.
+**Average Precision (AP)** summarizes ranked precision/recall under matching rules. **Mean AP (mAP)** averages specified AP results; state the class and IoU averaging definitions.
 
-CER/WER count edits divided by reference length. Tracking also needs identity metrics.
+**Character/Word Error Rate (CER/WER)** counts edits divided by reference character/word length. Tracking also needs identity metrics.
 
 ## 5. Task → output map
 
@@ -90,6 +91,8 @@ CER/WER count edits divided by reference length. Tracking also needs identity me
 Choose by required output and evidence.
 
 ## 6. Task → objective and metric map
+
+**CE** means cross-entropy, a probability-mismatch loss; **BCE** is its binary-label form. **CTC (Connectionist Temporal Classification)** trains ordered sequence recognition without fixed character alignment. **PCK/OKS** evaluate keypoints by scale-aware distance; **IDF1/HOTA** evaluate identity and tracking association quality. Earlier task chapters define their matching rules.
 
 | Task | Typical objective | Evaluation |
 |---|---|---|
@@ -153,4 +156,4 @@ Start unfamiliar questions with available evidence and assumptions.
 
 **Question:** Explain a vision concept in 90 seconds.
 
-**Answer structure:** State the problem and mental image. Trace the operation, give one equation with variables, and show a small example. Explain one parameter, assumption, failure, and tradeoff; then apply it to the task or constraint being discussed.
+**Answer structure:** First state explicitly what the concept is, what problem it solves, and its input/output. Then give a mental image. Trace the operation, give one equation with variables, and show a small example. Explain one parameter, assumption, failure, and tradeoff; then apply it to the task or constraint being discussed.

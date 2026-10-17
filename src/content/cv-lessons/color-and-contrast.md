@@ -10,6 +10,8 @@ Example: red and green lights may have similar grayscale brightness. Removing co
 
 ## 2. RGB, BGR, and HSV
 
+**OpenCV** is an image-processing/computer-vision library; its Python module is cv2.
+
 | Representation | Meaning / use |
 |---|---|
 | RGB | Red, green, blue; common model convention |
@@ -17,13 +19,13 @@ Example: red and green lights may have similar grayscale brightness. Removing co
 | Grayscale | One brightness-like channel |
 | HSV | Hue, saturation, value; simple color rules |
 
-**Hue** is a circular color angle. Red may need two intervals around the range endpoints.
+**HSV** means hue, saturation, and value: color identity, color strength relative to brightness, and the largest RGB component. **Hue** is a circular color angle. Red may need two intervals around the range endpoints.
 
 Low saturation makes hue unreliable. Lighting and white balance can shift colors.
 
 ## 3. Gamma
 
-A power transform changes midtones:
+**Gamma correction** remaps intensity with a power law, changing midtones more than the endpoints:
 
 \[
 y=x^\gamma,\qquad x\in[0,1]
@@ -49,8 +51,8 @@ A **histogram** counts pixels in intensity bins. It ignores where those pixels o
 Example: rearranging every pixel leaves the histogram unchanged.
 
 - **Contrast stretching:** expand a chosen intensity range.
-- **Equalization:** redistribute values using the cumulative histogram.
-- **CLAHE:** local equalization with limited amplification.
+- **Histogram equalization:** remap intensity using the cumulative histogram, the fraction of pixels at or below each value.
+- **CLAHE (Contrast Limited Adaptive Histogram Equalization):** equalize small regions while limiting histogram peaks to reduce excessive local amplification.
 
 These can amplify noise. None recovers clipped detail.
 
@@ -79,7 +81,7 @@ These operations do different things:
 | Standardize | Subtract channel mean, divide by standard deviation |
 | Equalize | Change the intensity distribution |
 
-Input standardization is separate from internal BatchNorm/LayerNorm. Match pretrained preprocessing.
+Input standardization changes image values before the network. Normalizing features inside a network is a separate operation, covered in Chapter 4.4. Match the preprocessing expected by the pretrained model.
 
 ## 7. Interview reasoning
 

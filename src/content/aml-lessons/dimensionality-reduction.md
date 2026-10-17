@@ -1,123 +1,55 @@
-## Dimensionality reduction and principal component analysis (PCA)
+## Dimensionality reduction and principal component analysis
 
-**"Dimensions" here just means columns** - a table with 500 features is 500-dimensional.
+**Dimensionality reduction** represents examples using fewer features. **Feature selection** retains original columns; **feature extraction** constructs new combined coordinates.
 
-More columns are not automatically better. Past a point they make distances meaningless, models unstable, and training slow, so reduction trades away a little information for a lot of stability.
+Removing redundant or noisy dimensions can improve speed and stability, but can also discard useful signal.
 
----
+## 1. Why more columns can hurt
 
-## 1. The curse of dimensionality
+Irrelevant coordinates add noise to distances and give flexible models more chances to fit accidental patterns. Under common high-dimensional distributions, near and far distances become less distinct.
 
-As d grows, data becomes sparse: the volume of the space explodes, and any fixed number of points covers less and less of it.
+This is part of the **curse of dimensionality**: covering a high-dimensional space densely can require far more samples. The effect depends on the data's structure and useful dimensions; it is not a universal rule that each feature requires exponentially more training data.
 
-The practical consequence is that **distances stop discriminating**:
+## 2. PCA finds high-variance directions
 
-\[
-\frac{d_{\max} - d_{\min}}{d_{\min}} \rightarrow 0 \quad \text{as } d \rightarrow \infty
-\]
+**Principal component analysis (PCA)** finds perpendicular directions of maximum variance in centered data, then projects examples onto a selected subset.
 
-Every point becomes roughly equidistant from every other, which quietly destroys k-NN, k-means, and radial-basis-function (RBF) kernels. It also means each additional feature needs exponentially more data to be estimated reliably.
-
-### Rule of thumb
-
-> Distance-based methods are the first casualties of high dimensionality. Trees and linear models with regularization cope far better.
-
----
-
-## 2. Two different remedies
-
-```text
-feature selection → keep a subset of the original columns   (interpretable)
-feature extraction → build new combined columns             (compact, opaque)
+```aml-visual
+pca-projection
 ```
 
-### Intuition
+The first **principal component** follows the widest spread. The next captures the greatest remaining variance while perpendicular to the first.
 
-Selection keeps "income" as "income". Extraction gives you "0.3 × income − 0.7 × tenure + ...", which is compact but cannot be explained to a regulator.
-
----
-
-## 3. PCA
-
-PCA finds the orthogonal directions of maximum variance and projects onto the first k of them.
+For centered data \(X_c\), with chosen component directions in \(V_k\):
 
 \[
-X_{\text{centered}} = U\Sigma V^{\top}, \quad X_{\text{pca}} = X_{\text{centered}} V_k
+Z=X_cV_k
 \]
 
-Each component has an **explained variance ratio**; they are ordered, and they sum to 1 across all components.
+\(Z\) is the lower-dimensional representation. The **explained variance ratio** is the fraction of training variance captured by a component.
+
+## 3. Variance is not predictive value
+
+PCA ignores labels. A low-variance direction could separate fraud from legitimate behavior; discarding it would hurt the target task despite retaining 95% of input variance.
+
+Center inputs. Scale first when different feature units should contribute comparably; raw-unit variance can be intentional in other applications. Fit every step on training folds only.
 
 ```python
-pca = PCA(n_components=0.95).fit(X_scaled)   # keep 95% of variance
-print(pca.explained_variance_ratio_[:5])
+pipe = Pipeline([
+    ("scale", StandardScaler()),
+    ("pca", PCA(n_components=0.95)),
+    ("model", LogisticRegression()),
+])
 ```
 
-Three requirements people forget:
+PCA usually reduces model input size, not the number of raw measurements needed: computing a component can still require every original column.
 
-1. **Center and scale first** - PCA maximizes variance, and variance depends on units, so an unscaled dollar column will become component 1 by itself.
-2. **Fit on training data only**, then transform validation and test with the same rotation.
-3. **It is unsupervised** - it maximizes variance, not usefulness. The direction that explains the most variance is not necessarily the one that predicts the label.
+## 4. Choose the remedy for the goal
 
-### Common issue
+Use selection when original features must remain identifiable or expensive measurements should be removed. Label-based selection belongs inside cross-validation.
 
-That third point is a good interview line: PCA can throw away the exact low-variance direction the label depends on.
+Use PCA when correlated numeric measurements can be compressed and validation confirms the tradeoff.
 
----
+**t-SNE** and **UMAP** are nonlinear methods often used for exploration. Nearby points in their plots can reveal local structure, but apparent cluster sizes and global distances need caution. UMAP can transform new points and can be used as a model feature step when fitted and validated properly; it is not restricted to visualization.
 
-## 4. When PCA actually helps
-
-| Situation | Why it helps |
-|---|---|
-| Hundreds of correlated numeric sensors | Collapses redundancy, stabilizes linear models |
-| Multicollinearity breaking coefficients | Components are orthogonal by construction |
-| Visualization | Two components plot on a page |
-| Latency or memory pressure | Fewer features to compute and serve |
-| Noise reduction | Low-variance components are often mostly noise |
-
-### Rule of thumb
-
-And when it does not: few features, tree models (which handle correlated and irrelevant features well), or any setting where you must explain individual feature effects.
-
----
-
-## 5. Feature selection alternatives
-
-| Method | Idea | Caveat |
-|---|---|---|
-| Filter (correlation, mutual information, χ²) | Score each feature against the label independently | Misses features that matter only in combination |
-| Wrapper (forward/backward, recursive feature elimination or RFE) | Repeatedly train and drop the weakest | Expensive; overfits if done outside cross-validation (CV) |
-| Embedded (sparsity-inducing L1 regularization, tree importance) | The model does selection while fitting | The cheapest good default |
-
-> Selection must happen **inside** cross-validation. Choosing features by looking at the whole dataset first is leakage, and it can inflate scores by a lot.
-
----
-
-## 6. t-SNE and UMAP are visualization methods, not feature extractors
-
-t-distributed stochastic neighbor embedding (t-SNE) and Uniform Manifold Approximation and Projection (UMAP) produce beautiful 2-D plots and are used constantly for exploration - but:
-
-- they optimize *local* neighborhood structure, so global distances and cluster sizes in the plot are not meaningful,
-- they have no simple transform for new points (t-SNE has none at all),
-- distances in the embedding are not stable across runs.
-
-### Rule of thumb
-
-Use them to look at your data. Do not feed their output to a downstream model.
-
----
-
-## What matters most
-
-- **High dimensions make distances stop discriminating,** so k-NN, k-means, and RBF kernels degrade first; regularized linear models and trees cope far better.
-- **Selection keeps original columns (explainable); extraction builds new ones (compact, opaque).** Choose based on whether you must explain individual features.
-- **PCA needs three things:** scale first, fit on training data only, and remember it maximizes variance - not usefulness for the label.
-- **Feature selection must happen inside cross-validation,** or choosing features from the whole dataset leaks and inflates scores.
-- **t-SNE and UMAP are for looking at data,** not for producing features - their global distances and cluster sizes aren't meaningful.
-
----
-
-## Chapter 2 checkpoint
-
-For one raw dataset, write the transformation order and mark which operations must be fitted on training data only. Explain how each transformation changes information, scale, dimensionality, or leakage risk—not merely which library function performs it.
-
-That completes **Chapter 2 — Data and features**. Next topic is **Linear regression**.
+> **Mental image:** PCA rotates a stretched cloud, then keeps its broad axes. It preserves spread, not necessarily the answer to your prediction problem.

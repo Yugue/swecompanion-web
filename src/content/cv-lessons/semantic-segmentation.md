@@ -6,9 +6,11 @@
 
 Example: both people receive “person,” without separate identities.
 
-Dense regression instead predicts depth or intensity. Both require context and spatial alignment.
+**Dense prediction** returns an output at each pixel or spatial location. **Dense regression** predicts continuous values such as depth or intensity. Both require context and spatial alignment.
 
 ## 2. Encoder and decoder
+
+An **encoder** converts the image into features, often reducing resolution to gather context. A **decoder** turns those features into a spatial prediction. A **skip connection** passes earlier features directly to a later stage.
 
 ```text
 image → fine features → coarse context → decoder → pixel output
@@ -17,7 +19,7 @@ image → fine features → coarse context → decoder → pixel output
 
 The encoder learns context; the decoder restores spatial outputs.
 
-U-Net-style skips often concatenate fine features. They differ from residual addition. Upsampling alone cannot restore all lost evidence.
+**U-Net** is an encoder–decoder segmentation architecture with skip connections between corresponding resolutions. Its skips often concatenate fine features. They differ from residual addition. Upsampling alone cannot restore all lost evidence.
 
 ## 3. Shapes and reconstruction
 
@@ -25,7 +27,7 @@ U-Net-style skips often concatenate fine features. They differ from residual add
 - Targets: **[B,H,W]** class IDs.
 - Softmax: across K.
 
-Interpolation or learned decoding upsamples features/logits. Transposed convolution is learned upsampling, not a general inverse; some settings produce checkerboards.
+Interpolation or learned decoding upsamples features/logits. A **transposed convolution** is a learned operation distributing input contributions onto a larger spatial grid; it is not generally the inverse of a convolution. Uneven overlap can produce checkerboard artifacts.
 
 Track resize offsets, especially for thin boundaries.
 
@@ -33,7 +35,7 @@ Track resize offsets, especially for thin boundaries.
 
 Pixel cross-entropy can be dominated by background.
 
-One soft Dice convention is:
+The **Dice coefficient** measures region overlap as twice the intersection divided by total predicted/reference area. **Soft Dice** replaces hard predictions with probabilities for a trainable overlap objective. One convention is:
 
 \[
 D=\frac{2\sum_i p_i y_i+\epsilon}
@@ -74,7 +76,9 @@ Use matching ignore-index policy. Resample class IDs categorically, not with bil
 
 Depth needs valid-pixel handling, scale, and depth errors.
 
-Restoration can use MSE, PSNR, or SSIM:
+**Mean Squared Error (MSE)** averages squared prediction errors. **Peak Signal-to-Noise Ratio (PSNR)** expresses that error relative to the allowed signal range on a logarithmic scale. **Structural Similarity (SSIM)** compares local brightness, contrast, and structural patterns.
+
+Restoration can use these measures:
 
 \[
 \mathrm{PSNR}=10\log_{10}(\mathrm{MAX}^2/\mathrm{MSE})

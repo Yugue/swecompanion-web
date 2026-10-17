@@ -2,7 +2,7 @@
 
 ## 1. The transform is part of the model
 
-Weights expect a particular decoding, orientation, color, range, and geometry contract.
+**Preprocessing** turns source image data into model inputs; **postprocessing** turns raw model outputs into usable predictions. Their **input/output contract** specifies decoding, orientation, color, range, geometry, and coordinate conventions.
 
 ```text
 bytes → decode/orient → color/range → resize/crop → model
@@ -19,7 +19,7 @@ Version preprocessing and postprocessing with the weights.
 | Channels | BGR supplied instead of RGB |
 | Range | 0–255 supplied instead of 0–1 |
 | Orientation | Different EXIF handling |
-| Geometry | Stretching instead of letterboxing |
+| Geometry | Stretching instead of letterboxing, an aspect-preserving resize with padding |
 | Masks | Interpolation mixes class IDs |
 
 Compare actual transformed examples across training, validation, and serving.
@@ -29,6 +29,8 @@ Compare actual transformed examples across training, validation, and serving.
 \[
 x'_c=\frac{x_c-\mu_c}{\sigma_c}
 \]
+
+Here c is a color channel, \(\mu_c\) its reference mean, and \(\sigma_c\) its standard deviation.
 
 For \(x=0.75,\mu=0.5,\sigma=0.25\), the normalized value is \(1\).
 
@@ -52,11 +54,15 @@ x_m=sx+p_x,\qquad x=\frac{x_m-p_x}{s}
 
 A \(640\times480\) image on a \(640\times640\) canvas has \(s=1\) and centered vertical padding \(80\). Original \((100,50)\) becomes \((100,130)\).
 
+```cv-visual
+letterbox
+```
+
 Store actual rounded scales and offsets per image, including crops and rotations.
 
 ## 5. Tile without losing the image
 
-Tiles preserve small detail but reduce context.
+**Tiles** are smaller image crops processed separately. They preserve small detail but reduce context.
 
 Use overlap for boundary objects, restore tile offsets, and merge duplicates. For masks, combine outputs consistently to avoid seams.
 
@@ -74,7 +80,7 @@ Decoding, augmentation, or transfer can leave the accelerator waiting.
 
 Measure input time separately from model compute. Version interpolation and transform parameters; keep cached data and augmentation randomness intentional.
 
-Test the dynamic shapes production actually uses.
+**Dynamic shapes** are input dimensions that can vary between requests. Test the dimensions production actually uses.
 
 ## 8. Interview reasoning
 

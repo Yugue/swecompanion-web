@@ -326,6 +326,12 @@ The same chain rule, just across more operations.
 loss.backward()  # computes gradients for W2, b2, W1, b1
 ```
 
+The walkthrough uses a new two-input network and half-squared loss L = ½(ŷ − 1)².
+
+```dl-visual
+mlp-backprop
+```
+
 ---
 
 # 7. Why it's called "backpropagation"

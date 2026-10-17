@@ -1,154 +1,44 @@
 ## Feedback loops
 
-**The system's choices become its own training data.** What it shows today is what it will learn from tomorrow, which makes every bias self-reinforcing.
+A **feedback loop** occurs when recommendations affect exposure and behavior, which then affect training or future selection. The loop can reinforce a useful signal or amplify a misleading one.
 
-```text
-    ┌──────────────────────────────────────┐
-    │                                      ▼
-  model  →  shows items  →  gets engagement  →  trains on it  →  model
-    ▲                                                              │
-    └──────────────────────────────────────────────────────────────┘
+It is a process over time, not a synonym for a popular catalogue.
+
+## 1. Exposure changes the evidence
+
+```rrp-visual
+feedback-cycle
 ```
 
----
+An item given more exposure can collect more clicks even without a higher click rate. A learner using total clicks as quality can then give it still more exposure.
 
-## 1. Popularity compounds
+Meanwhile, an item with few displays has less evidence and greater uncertainty. Treating that uncertainty as demonstrated low quality can keep it hidden.
 
-```text
-item is slightly more popular
-   → ranked slightly higher
-   → shown more
-   → gets more engagement
-   → looks much more popular
-   → ranked much higher
-```
+Equal observed CTR does not prove equal intrinsic quality: audiences, placements, and small-sample noise can differ. Exposure concentration alone does not prove harmful causal amplification either.
 
-A small initial advantage turns into a permanent one, not because the item got better but because it got seen. Meanwhile:
+## 2. Offline tests can inherit the loop
 
-```text
-item is never shown
-   → generates no engagement data
-   → looks bad (or looks like nothing)
-   → continues to never be shown
-```
+If training and evaluation both use data from the same narrow exposure policy, a model can score well while improving little outside that observed region.
 
-### Core intuition
+An unseen item has no logged outcome to credit. Changes in list variety, inventory access, or long-term discovery can therefore be poorly represented by an ordinary next-click benchmark.
 
-An item that would have been excellent is indistinguishable, in the logs, from one that is genuinely poor. **Absence of evidence becomes evidence of absence.**
+Offline evaluation remains useful for its defined task. It is incomplete evidence about the evolving population and all unobserved alternatives.
 
----
+## 3. Monitor opportunities and outcomes together
 
-## 2. Four weeks of compounding
-
-Two items enter the catalogue equally good. One gets a slightly better start:
-
-```text
-week    item A                              item B
-   impressions   clicks   click-through rate (CTR)   impressions   clicks   CTR
-  1        1,000        52     5.2%            1,000        48     4.8%
-  2        1,400        73     5.2%              700        34     4.8%
-  3        2,600       135     5.2%              340        16     4.7%
-  4        6,100       317     5.2%              120         6     5.0%
-```
-
-Their click rates never diverge - both hover around 5%. The items are, and remain, equally good.
-
-But by week 4 item A is getting **fifty times the exposure**, purely because a 0.4-point head start in week 1 earned it slightly more impressions, which produced slightly more evidence, which earned it more impressions.
-
-Now the damaging part. Item B's numbers are increasingly unreliable:
-
-```text
-week 1   48 clicks from 1,000 impressions   → a solid estimate
-week 4    6 clicks from   120 impressions   → almost no information
-```
-
-The system is most uncertain about exactly the items it has stopped showing, and it reads that uncertainty as low value. **Absence of evidence has become evidence of absence**, and nothing in the metrics will flag it - item A really does get clicked.
-
----
-
-## 3. Distinguish concentration from causal amplification
-
-High exposure concentration does not by itself prove a harmful loop; some items really are more relevant or available. Track exposure, engagement per exposure, eligibility, and uncertainty together.
-
-Use controlled exploration or intervention data to ask whether equally promising items are losing their chance to gather evidence. A concentration chart is a diagnostic signal, not a complete causal explanation.
-
----
-
-## 4. The same mechanism per user
-
-```text
-you click a cooking video
-   → you get more cooking videos
-   → you click those (they are, after all, relevant)
-   → you get almost only cooking videos
-```
-
-Every step is locally correct. The model's metrics improve the whole way down. And the user's experience narrows until they stop finding anything new - which usually shows up as a slow decline in sessions, long after the ranking change that caused it.
-
-### Rule of thumb
-
-> A recommender can look like it is improving while the world it shows is shrinking. Accuracy metrics will not tell you.
-
----
-
-## 5. Why offline metrics cannot detect it
-
-The test set comes from the same logs as the training set, so it contains the same narrowing:
-
-```text
-model narrows what it shows → logs narrow → test set narrows
-        → model scores well on the narrowed test set
-```
-
-### Rule of thumb
-
-You need metrics computed over the **catalogue and the user population**, not over the logs: coverage, intra-list diversity, and how those move over weeks. Trend lines matter more than levels here.
-
----
-
-## 6. What actually breaks the loop
-
-| Defence | Mechanism |
+| Observation | What else to inspect |
 |---|---|
-| Exploration | deliberately show uncertain items to generate missing evidence |
-| Diversity in re-ranking | force variety into the final list regardless of score |
-| Exposure caps | limit how often any one item can occupy a slot |
-| Position-bias correction | stop mistaking placement for quality |
-| Coverage monitoring | notice the narrowing while it is still reversible |
-| Fresh-item quotas | guarantee new inventory some impressions |
+| Few items receive most impressions | Eligibility, demand, placements, provider concentration |
+| New inventory gets no engagement | Whether it was represented, indexed, retrieved, or shown |
+| Per-user lists narrow | Task intent, history, satisfied engagement, repeated exposure |
+| CTR rises while discovery falls | Outcome definitions and experiment evidence |
 
-### Common issue
+Track distributions and trends, not only totals. An exposure share falling from 10% to 1% can be important even if overall clicks rise.
 
-Exploration explicitly creates evidence about uncertain alternatives. Diversity rules and fresh-item quotas can also produce new observations when they change what gets shown; logging and monitoring tell you whether that information is useful.
+## 4. Gather evidence about alternatives
 
----
+Controlled exploration can generate observations for uncertain eligible items. List variety, fresh-item budgets, and exposure limits can also change which evidence is collected, but are not automatically unbiased experiments.
 
-## 7. Saying this well in an interview
+Log the selection process and actual probabilities when needed. Estimate position effects with suitable variation. Compare policies using a design that can answer the intended causal question, including longer effects when relevant.
 
-```text
-"Recommenders train on data they generated, so biases compound. Popular
- items get shown, get engagement, and look better; items never shown
- generate no evidence and stay invisible. Offline metrics can't see it,
- because the test set inherits the same narrowing. I'd track catalogue
- coverage and list diversity as trends, and spend a small exploration
- budget - that explicitly buys evidence about uncertain alternatives,
- while diversity and exposure rules help keep the catalogue accessible."
-```
-
----
-
-## What matters most
-
-- **The system generates its own training data,** so every bias reinforces itself.
-- **Absence of evidence becomes evidence of absence** - an item never shown cannot be learned to be good.
-- **The same mechanism narrows one user's feed,** with every individual step looking locally correct.
-- **Offline metrics cannot detect it,** because the test set inherits the same narrowing - so track coverage and diversity as trends.
-- **Exploration deliberately buys missing evidence.** Diversity, caps, and quotas can broaden exposure too; measure whether they produce useful learning.
-
----
-
-## Chapter 5 checkpoint
-
-Take one offline gain and list the assumptions required for it to predict an online gain. Then design the experiment, guardrails, exposure logging, slice analysis, novelty and coverage checks, and feedback-loop monitoring that could confirm or reject it.
-
-That completes **Chapter 5 — Evaluation**. Next topic is **Serving inside a latency budget**.
+> **Mental image:** a spotlight moves toward what earlier light revealed. Keep track of the dark areas as well as the bright ones.

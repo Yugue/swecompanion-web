@@ -3,11 +3,23 @@ import { InlineMarkdown } from "./InlineMarkdown";
 import { LessonTable } from "./LessonTable";
 import { DisplayMath } from "./Math";
 import { GitBranch, Code2 } from "lucide-react";
+import { CvLessonVisual } from "@/components/cv/visuals/CvLessonVisual";
+import { DlLessonVisual } from "@/components/ml/visuals/DlLessonVisual";
+import { AmlLessonVisual } from "@/components/aml/visuals/AmlLessonVisual";
+import { RrpLessonVisual } from "@/components/rrp/visuals/RrpLessonVisual";
 
 const NUMBERED_ITEM = /^\d+\.\s+/;
 
 export function LessonBlockView({ block }: { block: LessonBlock }) {
   switch (block.type) {
+    case "rrp-visual":
+      return <RrpLessonVisual id={block.text.trim()} />;
+    case "aml-visual":
+      return <AmlLessonVisual id={block.text.trim()} />;
+    case "dl-visual":
+      return <DlLessonVisual id={block.text.trim()} />;
+    case "visual":
+      return <CvLessonVisual id={block.text.trim()} />;
     case "heading1":
       return (
         <h2 className="mb-2.5 mt-6 text-2xl font-bold leading-tight text-text">

@@ -2,6 +2,8 @@
 
 ## 1. Labels define the decision
 
+An **annotation** is a reference label attached to an image, region, pixel, or landmark. An **annotation policy** specifies exactly how to produce those labels.
+
 A faint scratch might be a defect, acceptable wear, or an uncertain case. Decide which before collecting labels.
 
 Define the positive/negative policy and annotation unit: image, box, mask, text, or keypoint.
@@ -16,7 +18,7 @@ product decision → policy → pilot labels → disagreement review
                      └──────── revise ───────────┘
 ```
 
-Specify classes, occlusion, truncation, minimum size, overlap, and ignored regions.
+Specify classes, **occlusion** (hidden by another surface), **truncation** (cut off by the image boundary), minimum size, overlap, and ignored regions.
 
 - Boxes: visible or estimated full extent?
 - Masks: which boundary and instance?
@@ -27,7 +29,7 @@ Use concrete examples for borderline cases.
 
 ## 3. Audit quality
 
-Double-label a representative pilot and adjudicate disagreements. Look for missing annotations as well as wrong ones.
+**Double-labeling** assigns the same examples to independent annotators. **Adjudication** uses a reviewer or agreed policy to resolve their disagreements. Apply both to a representative pilot. Look for missing annotations as well as wrong ones.
 
 | Error | What the model learns | Repair |
 |---|---|---|
@@ -48,7 +50,7 @@ Split by the intended source/group unit. Balanced training data and representati
 
 ## 5. Handle rare cases
 
-Sampling, weighting, augmentation, and targeted collection solve different shortages.
+**Oversampling** repeats underrepresented examples more often; **class weighting** changes their loss contribution. Augmentation transforms available examples; targeted collection obtains new ones. They solve different shortages.
 
 Oversampling five defects repeatedly may teach memorization. Synthetic defects may miss real artifacts.
 
@@ -58,13 +60,13 @@ Collect hard negatives, such as reflections mistaken for scratches, and enough r
 
 Image labels are often cheaper than boxes, and boxes cheaper than masks. Measure actual workflow cost.
 
-Counting may need boxes. Measuring damaged area may need masks. Weak supervision must still demonstrate the required output.
+Counting may need boxes. Measuring damaged area may need masks. **Weak supervision** trains with less detailed, noisy, or indirect labels—for example image-level tags when masks are needed. It must still demonstrate the required output.
 
 Assisted labeling cost includes correction and review.
 
 ## 7. Keep traceability
 
-Version datasets, provenance, ontology, and annotation policies.
+**Provenance** records where data/labels came from. A **label ontology** defines categories and their relationships. Version both with datasets and annotation policies.
 
 For each failure, ask: missing coverage, ambiguous target, wrong annotation, or model limitation?
 

@@ -1,152 +1,45 @@
 ## Features, freshness, and skew
 
-**Ranking features arrive on three different clocks, and the most valuable ones are on the fastest.**
+**Feature freshness** describes how current a value is when used. **Train/serve skew** is a mismatch between how values or transformations are produced for training and live decisions.
 
-```text
-batch          hourly or nightly     long-run user interests, item popularity
-near-real-time seconds to minutes    "clicks in the last 10 minutes", live counts
-request-time   now                   device, hour, query, page, position
+A recent-looking timestamp does not guarantee that all recent events were included.
+
+## 1. Separate three update rhythms
+
+| Rhythm | Example | Appropriate when |
+|---|---|---|
+| Batch | Long-run category interests | Slow-changing evidence is sufficient |
+| Near real time | Session actions or recent item demand | Recent events add measured value |
+| Request time | Query, current device, current candidate context | Information is specific to this decision |
+
+Faster updates add operational cost and can amplify noise. Validate the quality benefit rather than assuming the fastest feature is always the most valuable.
+
+Define both the window and its endpoint. “Clicks in ten minutes before the last nightly job” differs from “clicks in the ten minutes before this request.”
+
+## 2. Event time is not availability time
+
+```rrp-visual
+feature-availability
 ```
 
----
+A click at 13:59 arriving at 14:02 was unavailable for the 14:00 prediction. A historical reconstruction that includes it leaks information, despite its earlier event timestamp.
 
-## 1. Recency is where the value is
+A **point-in-time join** retrieves the feature version available at the decision time. It must respect arrival and publication delays as well as when underlying events occurred.
 
-```text
-"this user's category affinity over 90 days"      useful
-"what this user clicked 4 minutes ago"            far more predictive
-```
+A **watermark** describes a streaming pipeline's estimate of event-time progress. It helps manage windows and late arrivals; it is not a guarantee that no later event can appear.
 
-### Common issue
+## 3. Preserve the serving definition
 
-The catch is that the second is much harder to build. It needs a streaming pipeline, must survive bursts, and has to be correct within seconds. A "recent behavior" feature computed by a nightly job is not recent enough for a sequence model that depends on the user's latest actions.
+Different timezones, deduplication, units, null rules, and window boundaries can turn similarly named features into different values.
 
----
+Log values as served or sufficient versioned references, share transformation definitions, and replay representative requests to compare reconstruction. Floating-point comparisons may require documented tolerances.
 
-## 2. Three clocks, one request
+Logging helps preserve original inputs. Later schema, preprocessing, or representation changes can still introduce skew, so it does not remove every future failure.
 
-What is actually available when the request arrives:
+## 4. Make stale and missing behavior explicit
 
-```text
-BATCH (rebuilt nightly)                        age at request time: 0-24h
-  user_category_affinity_90d = 0.31
-  item_lifetime_ctr          = 0.041
-  creator_quality_score      = 0.78
+Zero recent clicks differs from a failed counter lookup. Define acceptable ages, missing-value representation, and fallback behavior per feature. Train and test the model with the fallback states it must handle.
 
-NEAR-REAL-TIME (streaming counters)            age: 2-30 seconds
-  user_clicks_last_10min     = 3
-  item_impressions_last_1h   = 14,203
-  item_ctr_last_1h           = 0.052          ← is this video suddenly going viral?
+Monitor arrival delay, publication delay, feature age, null rate, coverage, timeout rate, and useful distribution changes. These signals distinguish a slow data path from a genuine shift in behavior.
 
-REQUEST-TIME (computed now)                    age: 0
-  device = mobile, hour = 19, surface = home_feed
-```
-
-The middle block is where the value and the difficulty both live. `item_ctr_last_1h` is how a system notices that something is trending *today*, and it requires a streaming pipeline that survives traffic spikes and is correct within seconds.
-
-Get that wrong in the cheapest way - compute it nightly - and it silently becomes a batch feature with a misleading name:
-
-```text
-feature named  "clicks_last_10min"
-actually       "clicks in the 10 minutes before last night's 02:00 job"
-               → always 0 for anything that happened today
-               → the model learns to ignore it entirely
-```
-
-Nothing errors. The feature is present, typed correctly, and useless.
-
----
-
-## 3. Event time and arrival time are different clocks
-
-A click can happen at 14:00 and arrive at 14:03. A **watermark** is a pipeline's estimate of how far event-time processing has progressed; it helps decide when a time window is sufficiently complete.
-
-Define how late events update counters, and deduplicate retries. Monitor arrival delay as well as feature age so a fresh-looking update does not hide missing recent activity.
-
----
-
-## 4. Train/serve skew is the expensive bug
-
-**The same feature computed two different ways** in training and serving.
-
-```text
-training pipeline   Structured Query Language (SQL) over the warehouse,
-                    "clicks in the last 7 days"
-serving path        a counter service, "clicks in the last 7 days"
-                    ↓
-            subtly different: timezone, late-arriving events,
-            deduplication, what counts as a click
-                    ↓
-            model receives inputs unlike the ones it learned on
-                    ↓
-            NOTHING ERRORS. Performance is just quietly worse.
-```
-
-### Rule of thumb
-
-> If a feature is defined twice, it is defined differently. The only question is by how much.
-
----
-
-## 5. The defences, in order of effectiveness
-
-```text
-1. log features AS SERVED, and train on those logs        ← the real fix
-2. one implementation, shared or owned by a feature store
-3. shadow-compare: recompute offline, diff against the logged values
-4. contract tests on a fixed sample, asserting equality
-```
-
-### Rule of thumb
-
-Option 1 preserves the recorded feature values and removes a major recomputation mismatch. It does not prevent later schema, preprocessing, or feature-version changes from creating new skew. It costs storage and it is worth it.
-
----
-
-## 6. Point-in-time correctness
-
-Even with one implementation, the training pipeline has to reconstruct what was true **at the moment of the impression**, not what is true now.
-
-```text
-impression at 14:00, user's click count then    = 12
-same feature computed today                     = 47    ← includes the future
-```
-
-### Core intuition
-
-Training on the second teaches the model to use information it will never have. It is leakage, and it is easy to introduce with an innocent-looking join. Logging as served avoids it entirely.
-
----
-
-## 7. Specify missing and stale behavior per feature
-
-Distinguish a genuine zero from an unavailable value. Zero recent clicks means something different from a feature service that failed to return a counter.
-
-Set an acceptable age and default policy for each feature. Where useful, supply a missingness indicator or age value to a model trained to handle it, then test that fallback on real outage scenarios.
-
----
-
-## 8. What to monitor
-
-```text
-per feature:  null rate, mean, and distribution shift vs training
-              staleness - when was this last updated?
-              coverage - what fraction of requests have it at all?
-system:       fallback rate per feature, and timeouts
-```
-
-### Common issue
-
-A feature that silently starts arriving null for 30% of requests will degrade the model with no error anywhere. Null rate and staleness per feature catch more real incidents than any statistical drift test.
-
----
-
-## What matters most
-
-- **Features arrive on three clocks,** and the fast ones carry the most signal and cost the most to build.
-- **A "recent behavior" feature updated nightly is not one,** and this is how sequence models quietly fail in production.
-- **Train/serve skew is the expensive bug** - the same feature computed two ways, with no error raised.
-- **Logging features as served and training on those logs** removes a major source of recomputation skew and supports point-in-time correctness; preprocessing and version checks are still required.
-- **Monitor null rate, staleness, and coverage per feature** - they catch more incidents than drift statistics.
-
-Next topic is **Building the training data**.
+> **Mental image:** each feature has both a date on the event and a date it reached the model's desk. Historical predictions can use only what had reached the desk.

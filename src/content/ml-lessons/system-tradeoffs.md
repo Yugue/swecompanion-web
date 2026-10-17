@@ -635,14 +635,8 @@ A useful concept is the **Pareto frontier**.
 
 Imagine:
 
-```text
-Quality
-  ▲
-  │              ● C
-  │         ● B
-  │    ● A
-  │
-  └──────────────────► Cost
+```dl-visual
+pareto
 ```
 
 Model B might have:

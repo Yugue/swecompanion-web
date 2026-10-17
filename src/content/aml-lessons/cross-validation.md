@@ -1,157 +1,54 @@
 ## Cross-validation
 
-Cross-validation (CV) estimates performance by repeatedly fitting on part of the data and evaluating on a different held-out part. It trades compute for a more reliable estimate when data is limited.
+**Cross-validation (CV)** repeatedly fits a learning procedure on one portion of data and evaluates it on a held-out portion. It lets several examples serve in the validation role across different fits.
 
-For classification examples below, **area under the receiver operating characteristic curve (ROC-AUC)** measures how often the model ranks a randomly chosen positive above a randomly chosen negative.
+## 1. Rotate the held-out fold
 
----
-
-## 1. k-fold
-
-```text
-fold 1: [test][    train    ]
-fold 2: [train][test][ train]
-fold 3: [   train  ][test   ]
-                             → k scores → mean ± std
+```aml-visual
+cross-validation
 ```
+
+In five-fold CV, fit five models, each on four folds, and score on the remaining fold. The **fold** is one subset in that rotation.
 
 ```python
-scores = cross_val_score(pipeline, X, y, cv=5)
-print(scores.mean(), scores.std())
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
+scores = cross_val_score(pipe, X_dev, y_dev, cv=cv, scoring="roc_auc")
 ```
 
-- **k = 5 or 10** is the usual compromise; larger k means less bias (more training data per fold) and more compute.
-- **Leave-one-out** (k = n) is nearly unbiased but has high variance and costs n fits - rarely worth it.
-- Report the **spread**, not just the mean. A 0.4% difference between two models means nothing if the fold-to-fold standard deviation is 2%.
+The example uses **ROC-AUC**, which measures how often positives outrank negatives. Here `X_dev` contains development data; an independent final test set remains outside this process. The mean summarizes performance across held-out folds. Fold spread shows variation across those folds, not a ready-made confidence interval.
 
----
+## 2. Choose folds that match the claim
 
-## 2. What the fold scores actually look like
-
-Five folds on the same model and data:
-
-```text
-fold       1      2      3      4      5
-ROC-AUC  0.842  0.871  0.836  0.859  0.848      mean 0.851, std 0.014
-```
-
-That spread is the point. Now suppose a colleague reports a new model at 0.860 and calls it an improvement. It sits comfortably inside one standard deviation of the old model's fold-to-fold noise, so nothing has been demonstrated.
-
-```text
-model A   0.851 ± 0.014
-model B   0.860 ± 0.016      ← the difference is smaller than the noise
-```
-
-The right comparison uses the **same folds** for both models and looks at the per-fold differences, which cancels the shared fold-to-fold variation:
-
-```text
-fold          1       2       3       4       5
-B − A      +0.004  +0.012  −0.003  +0.019  +0.013    mean +0.009
-```
-
-### Core intuition
-
-Four of five folds favour B, consistently and by a similar amount. That is much stronger evidence than comparing two means, and it costs nothing except fixing the random seed for the splits.
-
----
-
-## 3. The variants, and when each is required
-
-| Variant | Use when | What it protects |
-|---|---|---|
-| `KFold` | Rows are i.i.d. | nothing special |
-| `StratifiedKFold` | Classification, especially imbalanced | each fold keeps the class ratio |
-| `GroupKFold` | Repeated entities (user, patient, device) | the same entity never spans folds |
-| `TimeSeriesSplit` | Time-ordered data | never trains on the future |
-| `RepeatedStratifiedKFold` | Small data, noisy estimates | averages over several shufflings |
-
-### Common issue
-
-Stratification is the default for classification, and it matters most exactly where people forget it: with a 1% positive rate, an unstratified fold can contain almost no positives, and its score is meaningless.
-
----
-
-## 4. Time-series cross-validation
-
-Standard k-fold is invalid when the data has a time order, because most folds train on data that comes after the test slice.
-
-```text
-TimeSeriesSplit:
-  train [████]                test [██]
-  train [██████████]          test [██]
-  train [████████████████]    test [██]
-```
-
-### Rule of thumb
-
-Training sets grow forward; the test slice is always in the future. Add a **gap** the length of your label delay - if a label matures after 30 days, training data must stop 30 days before the test window begins.
-
----
-
-## 5. Everything fitted goes inside the fold
-
-This is where cross-validation is most often invalidated:
-
-```python
-# WRONG - the scaler and the selector saw the held-out fold
-X_s = StandardScaler().fit_transform(X)
-X_s = SelectKBest(k=20).fit_transform(X_s, y)
-cross_val_score(LogisticRegression(), X_s, y, cv=5)
-
-# RIGHT - refitted per fold
-pipe = Pipeline([("scale", StandardScaler()),
-                 ("select", SelectKBest(k=20)),
-                 ("clf", LogisticRegression())])
-cross_val_score(pipe, X, y, cv=5)
-```
-
-Feature selection is the worst offender. Selecting the 20 features most correlated with y over the whole dataset, then cross-validating, can show strong performance on **pure noise** - the selection has already used every label.
-
-### Rule of thumb
-
-> Anything that calls `.fit()` belongs inside the Pipeline: scalers, imputers, encoders, selectors, principal component analysis (PCA), resamplers, and calibrators.
-
----
-
-## 6. What CV is and is not
-
-| Cross-validation gives you | It does not give you |
+| Evaluation target | Fold construction |
 |---|---|
-| A lower-variance estimate of generalization | An unbiased estimate *after* you tune on it |
-| Comparable scores for competing models | Protection against leakage in the features |
-| A spread that tells you if a difference is real | A final model - you refit on all the data at the end |
+| New independent rows | K-fold, often shuffled |
+| Class balance in independent classification data | Stratified folds |
+| New patients, users, or devices | Grouped folds |
+| Future periods | Forward-time folds |
 
-### Common issue
+**Stratification** preserves approximate class ratios. **Grouping** keeps an entity wholly on one side of a split. Neither automatically enforces the other or respects time.
 
-Once hyperparameters are chosen by CV, the CV score is optimistic for the *selected* configuration. Report the test set, or use nested CV.
+For a historical forward-time fit, include only labels available at its training cutoff. A gap or removal of overlapping label windows may be necessary. Sort by time and define the intended evaluation windows explicitly.
 
----
+## 3. Refit preprocessing each time
 
-## 7. Nested cross-validation
+The unit being evaluated is the complete procedure:
 
 ```text
-outer fold  → hold out a test slice
-    inner CV on the remaining data → choose hyperparameters
-    fit with those, score on the outer slice
-repeat → an honest estimate of "my whole procedure"
+fold's training rows → fit imputer / encoder / scaler / selector → fit model
+fold's held-out rows → apply stored transformations             → score
 ```
 
-```python
-inner = GridSearchCV(pipe, grid, cv=5)
-scores = cross_val_score(inner, X, y, cv=5)   # k_outer × k_inner fits
-```
+A pipeline organizes this refitting. Target encoding and resampling require suitable fold-aware implementations too; not every operation fits an ordinary scikit-learn transformation pipeline.
 
-### Rule of thumb
+Selecting columns from all labels before CV invalidates the evaluation, even if the classifier itself only sees training folds.
 
-Expensive, and the right answer when someone asks "how well does this model really do" after heavy tuning on a small dataset.
+## 4. Tuning and final evaluation
 
----
+Choosing the best configuration using CV also selects partly for favorable score noise. Its winning CV score can be optimistic.
 
-## What matters most
+Use an untouched test set after choosing, or **nested CV**: an inner loop tunes and an outer held-out loop evaluates the whole tuning procedure. Refit the chosen configuration on the designated development data before final testing or deployment.
 
-- **Report the spread, not just the mean.** A 0.4% gap between models is meaningless when folds vary by 2%.
-- **Pick the variant that matches the dependence in your data:** stratified for classification, grouped for repeated entities, and forward-chaining with a gap for time series.
-- **Anything that calls `.fit()` goes inside the Pipeline** - scalers, imputers, encoders, selectors, PCA, resamplers. Feature selection outside the fold can manufacture a strong model from pure noise.
-- **After tuning on CV, the CV score is optimistic** for the configuration you picked; report a held-out test set or use nested CV.
+Compare candidates on the same folds and inspect paired differences. A difference smaller than fold standard deviation is not automatically meaningless; shared fold difficulty and dependence matter.
 
-Next topic is **Hyperparameter search**.
+> **Mental image:** rotate which exercise is held out, rebuilding the entire learner each time. Keep the final exam outside the rotation.

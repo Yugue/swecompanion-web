@@ -90,6 +90,11 @@ export function MlPartDetails({
               </span>
               <Link
                 href={`${basePath}/${topic.id}`}
+                onNavigate={() => {
+                  // Keep the source chapter in this history entry so browser Back
+                  // restores it through the hub's existing hash restoration.
+                  window.history.replaceState(window.history.state, "", `#${part.id}`);
+                }}
                 className="flex min-w-0 flex-1 items-center gap-3.5 py-2.5"
               >
                 <span

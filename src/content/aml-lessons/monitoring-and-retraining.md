@@ -1,171 +1,41 @@
 ## Monitoring, drift, and retraining
 
-A deployed model decays. Not because the code changed, but because the world did. Monitoring exists so that you notice before the business does.
+**Model monitoring** checks service health, input quality, predictions, and outcomes after deployment. **Drift** is a change in the data distribution or its relationship with the target. A deployed model may degrade; decline is not inevitable or automatically repaired by retraining.
 
-Offline evaluation assumes a fixed dataset. Production monitoring handles the harder setting where the input distribution, label availability, and even the decision policy change over time.
+## 1. Observe what is available now and later
 
----
-
-## 1. Monitor three layers
-
-```text
-1. INPUTS       feature distributions, null rates, cardinality, freshness
-2. PREDICTIONS  score distribution, flag rate, latency, error rate
-3. OUTCOMES     actual quality, once labels arrive
-```
-
-Layer 3 is the one you care about and the one that arrives last - sometimes months later. Layers 1 and 2 are proxies available immediately, which is why they carry most of the alerting.
-
-The single most useful cheap alarm: **the flag rate**. If a model that normally flags 2% of traffic suddenly flags 9%, something changed - upstream data, the population, or the pipeline - and you know it today rather than in sixty days.
-
----
-
-## 2. The three kinds of drift
-
-| Type | What changes | Example | Retraining helps? |
-|---|---|---|---|
-| Covariate shift | P(x) | A marketing push brings a new user demographic | Usually yes |
-| Label shift | P(y) | The fraud base rate triples | Yes, plus recalibration |
-| Concept drift | P(y \| x) | Fraudsters change tactics; the same behavior now means something different | Only with **new labels** |
-
-### Common issue
-
-Concept drift is the hard case: the relationship itself has changed, so retraining on old labels rebuilds the old, now-wrong model. You need fresh ground truth first.
-
----
-
-## 3. The same failure, seen at three layers
-
-A feature pipeline breaks on the 3rd. Here is when each layer notices:
-
-```text
-day    inputs                    predictions            quality
- 3     null rate 2% → 31%        flag rate 2.0% → 0.7%  (labels not mature)
- 4     still broken              flag rate 0.6%         (labels not mature)
- 7     noticed by an engineer    flag rate 0.6%         (labels not mature)
-...
-33     -                         -                      recall 0.44 → 0.19
-```
-
-The input layer knew on day 3. The quality metric - the one everybody actually cares about - confirmed it on day 33, by which point a month of fraud went uncaught.
-
-That thirty-day gap is the entire argument for monitoring inputs and predictions rather than waiting for the outcome:
-
-```text
-inputs       null rate, range, cardinality, staleness       today
-predictions  the FLAG RATE, and the score distribution      today
-quality      precision, recall, business outcome            when labels mature
-```
-
-**The flag rate is the single most useful cheap alarm.** It needs no labels, it moves immediately, and it catches upstream breakage, population shift, and pipeline bugs alike. A model that normally flags 2% of traffic and suddenly flags 0.6% or 9% is telling you something changed - today, not next month.
-
----
-
-## 4. Detecting input drift
-
-Compare a recent window against the training distribution, per feature:
-
-- **Population Stability Index (PSI)** - the standard in industry:
-
-\[
-\text{PSI} = \sum_b (\text{actual}_b - \text{expected}_b)\ln\frac{\text{actual}_b}{\text{expected}_b}
-\]
-
-```text
-PSI < 0.1   stable
-0.1 - 0.25  moderate shift, investigate
-> 0.25      significant shift, act
-```
-
-- **Kolmogorov-Smirnov (KS) test** for continuous features, **chi-square** for categorical ones,
-- simple guardrails that catch more real incidents than any statistic: null rate, min/max range, cardinality, and **staleness** of each feature.
-
-### Common issue
-
-Beware the multiple-testing trap: with 200 features and a p-value threshold, something is always "significant". Use effect sizes like PSI and alert on the features the model actually relies on.
-
----
-
-## 5. Label delay decides your cadence
-
-```text
-event ────────────── label observable ────── retrain possible
-  t                    t + 60 days              t + 60 days + training
-```
-
-### Core intuition
-
-With a 60-day chargeback delay, quality metrics are always two months behind, and a regression can hide for that long. This is what makes input and prediction monitoring essential rather than optional - and it is the constraint that shapes the whole retraining schedule.
-
----
-
-## 6. Retraining triggers
-
-| Trigger | Mechanism | Fits |
+| Layer | Example signals | When available |
 |---|---|---|
-| Scheduled | Weekly/monthly retrain on the latest window | Steady, predictable drift |
-| Threshold-based | Fire when PSI or a quality metric crosses a limit | Sporadic shocks |
-| Event-based | A product launch, a new market, a policy change | Known discontinuities |
-| Continuous / online | Incremental updates | Fast-moving, high-volume, well-labelled problems |
+| Service and inputs | Latency, errors, missing rates, units, feature age | Immediately |
+| Predictions | Score distribution, flag rate, slice volumes | Immediately |
+| Outcomes | Precision, recall, calibration, business impact | After labels or outcomes arrive |
 
-### Rule of thumb
+If a feature's missing rate jumps from 2% to 31%, investigate before waiting a month for churn labels. A changing flag rate is a useful clue, not a diagnosis. A fixed top-500 queue may keep its count constant even while ranking quality deteriorates.
 
-Scheduled retraining with threshold-based alarms on top is the common, defensible default.
+## 2. Name the distribution change carefully
 
-> Automated retraining needs automated validation. A pipeline that retrains and deploys without a quality gate will happily ship a model trained on a broken upstream table.
+| Type | Formal meaning | Example |
+|---|---|---|
+| Covariate shift | P(x) changes while P(y given x) stays fixed | More customers from an already understood region |
+| Label shift | P(y) changes while P(x given y) stays fixed | Different class proportions under that assumption |
+| Concept drift | P(y given x) changes | The same behavior now indicates a different outcome |
 
----
+Real changes can mix these cases. Input drift alone does not prove quality loss. A well-specified model may remain accurate under some covariate shifts; loss of coverage is a different concern.
 
-## 7. Rolling out a retrain
+Recalibration may help changed probability meaning. Concept drift generally requires recent outcome evidence. Retraining on unchanged old labels cannot teach a newly changed relationship.
 
-Treat every retrain as a deploy, not a refresh:
+## 3. Investigate before triggering retraining
 
-```text
-new model → offline eval on a fresh holdout   (must beat the incumbent)
-          → shadow against live traffic       (compare predictions)
-          → canary on a small percentage
-          → full rollout, with rollback ready
-```
+Compare recent and reference distributions using meaningful windows, effect sizes, and counts. Simple schema, range, missingness, and freshness checks often reveal pipeline faults.
 
-### Common issue
+Statistical tests or binned drift measures can add evidence, but universal alarm cutoffs are unreliable. Large samples make tiny changes statistically detectable; many monitored features create multiple-testing issues.
 
-And re-tune the **threshold** afterwards. The score distribution moves with every retrain, so the previous operating point no longer corresponds to the same precision and recall. Skipping this step causes a surprising number of post-retrain incidents.
+Match the response to the cause: repair a broken join, improve coverage, adjust a validated policy, recalibrate, or retrain. Do not train on broken inputs merely because an alarm fired.
 
----
+## 4. Validate every update and watch feedback
 
-## 8. Feedback loops
+Evaluate a candidate on a recent suitable holdout, important slices, calibration, and operating constraints. Recheck its threshold, roll out with monitoring, and keep rollback available. A retraining schedule is not a quality guarantee.
 
-If the model's decisions change the data it later trains on, it can reinforce its own mistakes:
+**Feedback loops** occur when decisions change the outcomes later observed. Blocked transactions may never reveal whether fraud would have occurred. Log decisions and label availability; an unobserved counterfactual outcome cannot simply be logged as ground truth. Appropriate experiments or evaluation designs may be needed.
 
-- a recommender only observes clicks on what it chose to show,
-- a fraud model that blocks a segment never learns that segment was fine,
-- a credit model that declines applicants never sees whether they would have repaid.
-
-Mitigations: hold out a small random control that is scored but not acted on, add exploration, and log the counterfactual where possible. Naming this risk unprompted is a strong signal in an interview.
-
----
-
-## Interview mental model
-
-Quality metrics arrive last - sometimes months later - so monitoring is built in layers, and the cheap ones carry the alerting:
-
-```text
-inputs       feature distributions, null rate, range, cardinality, staleness   (today)
-predictions  the FLAG RATE - the single most useful cheap alarm                (today)
-quality      precision, recall, business outcome            (after labels mature)
-```
-
-Then name the drift, because the fix differs:
-
-```text
-covariate shift  P(x) moved      → retraining usually helps
-label shift      P(y) moved      → retrain and recalibrate
-concept drift    P(y|x) moved    → retraining on OLD labels rebuilds the wrong model
-```
-
-- **Label delay sets your cadence.** A 60-day chargeback window means a regression can hide for two months.
-- **Scheduled retraining with threshold alarms on top** is the defensible default - and automated retraining needs an automated quality gate.
-- **Re-tune the threshold after every retrain,** because the score distribution moves and the old operating point no longer means the same precision.
-- **Watch for feedback loops:** a model that blocks a segment never learns that segment was fine.
-
-Next topic is **Answering a Basics-of-ML interview question**.
+> **Mental image:** immediate sensors report the instrument's condition; delayed outcomes report whether its predictions still help.

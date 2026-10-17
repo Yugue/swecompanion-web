@@ -1,180 +1,58 @@
 ## Confusion matrix, precision, and recall
 
-**Once a model makes a yes/no prediction, only four outcomes are possible.** A confusion matrix counts those outcomes.
+A **confusion matrix** counts predicted classes against actual classes. For binary classification, first name the **positive class**—the event to detect, such as fraud. Positive does not mean desirable.
 
-First choose the **positive class**: the event you are trying to detect. In fraud detection, “fraud” is positive and “legitimate transaction” is negative. Positive does not mean good; it means the condition is present.
+## 1. Four possible outcomes
 
-```text
-                              actual class
-                         negative       positive
-predicted negative  │       TN       │      FN       │
-predicted positive  │       FP       │      TP       │
+```aml-visual
+confusion-matrix
 ```
 
-The first letter says whether the prediction was correct: **T** means true/correct and **F** means false/incorrect. The second letter says what the model predicted: **P** means positive and **N** means negative.
+**True** means correct; **false** means incorrect. **Positive** or **negative** describes the prediction:
 
----
+- **TP:** fraud correctly flagged.
+- **FP:** a legitimate purchase wrongly flagged—a false alarm.
+- **FN:** fraud missed.
+- **TN:** a legitimate purchase correctly allowed.
 
-## 1. The four counts
-
-| Count | Full name | What happened | Fraud example |
-|---|---|---|---|
-| TP | True positive | Predicted positive, actually positive | Fraud correctly flagged |
-| FP | False positive | Predicted positive, actually negative | Legitimate purchase wrongly flagged |
-| TN | True negative | Predicted negative, actually negative | Legitimate purchase correctly allowed |
-| FN | False negative | Predicted negative, actually positive | Fraud missed by the model |
-
-The two mistakes are not interchangeable. A false negative in cancer screening misses a real tumour; a false positive sends a healthy patient for unnecessary follow-up.
-
-Precision and recall summarize different parts of these four counts:
+The figure contains 100 actual frauds and 180 flags. Which denominator you choose changes the question:
 
 \[
-\text{precision} = \frac{TP}{TP+FP}, \qquad \text{recall} = \frac{TP}{TP+FN}
+\text{precision}=\frac{TP}{TP+FP}=\frac{80}{180}\approx44\%
 \]
-
-### Core intuition
-
-Say them in words, and the formulas stop needing memorizing:
-
-```text
-precision   of everything predicted positive, how much was actually positive?
-recall      of everything actually positive, how much did the model catch?
-```
-
----
-
-## 2. A worked example
-
-A fraud model reviews 10,000 transactions. 100 are genuinely fraudulent. It flags 180:
-
-```text
-                        actually fraud    actually fine
-   model says fraud         80 TP           100 FP        ← flagged 180
-   model says fine          20 FN         9,800 TN
-                              ───            ─────
-                              100            9,900
-```
 
 \[
-\text{precision} = \tfrac{80}{180} = 0.44 \qquad
-\text{recall} = \tfrac{80}{100} = 0.80 \qquad
-\text{accuracy} = \tfrac{9880}{10000} = 0.988
+\text{recall}=\frac{TP}{TP+FN}=\frac{80}{100}=80\%
 \]
 
-### Intuition
+**Precision:** of the flags, how many were right? **Recall:** of the actual frauds, how many were found?
 
-Three numbers, three different stories. Recall says we catch four fifths of the fraud. Precision says that when we block someone we are wrong more often than right — 100 real customers blocked to catch 80 frauds.
-
-### Rule of thumb
-
-Whether that is good depends entirely on what a blocked customer costs relative to a missed fraud. No metric decides that for you.
-
----
-
-## 3. Why accuracy is usually the wrong headline
+## 2. Accuracy can hide the expensive error
 
 \[
-\text{accuracy} = \frac{TP+TN}{TP+TN+FP+FN}
+\text{accuracy}=\frac{TP+TN}{n}=\frac{9880}{10000}=98.8\%
 \]
 
-### Common issue
+Predicting every transaction legitimate would achieve 99% accuracy here and catch no fraud. Accuracy is valid as a fraction correct; it is an incomplete headline when error costs or class frequencies make those correct predictions unequal in value.
 
-With a 0.8% positive rate, "always predict negative" scores **99.2%** and catches nothing.
+**Specificity** is recall for negatives: \(TN/(TN+FP)\). **Balanced accuracy** averages positive recall and specificity, giving the two classes equal weight.
 
-Accuracy only informs when classes are roughly balanced **and** both errors cost the same — which is rare in the problems interviewers choose.
+## 3. Thresholds and F-scores
 
----
-
-## 4. The trade-off is a threshold, not a different model
-
-```text
-threshold ↓ 0.2   → flag more → recall ↑, precision ↓
-threshold ↑ 0.8   → flag less → precision ↑, recall ↓
-```
-
-### Intuition
-
-Both are trivially gamed alone: flag everything for 100% recall, or flag only the single surest case for near-perfect precision. That is why they are always quoted as a pair.
-
----
-
-## 5. F1, and weighting one side
+Lowering the score threshold flags more cases: recall cannot decrease on a fixed dataset, while false positives cannot decrease. Precision may rise or fall because it depends on which cases enter the flagged set.
 
 \[
-F_1 = 2\cdot\frac{\text{precision}\cdot\text{recall}}{\text{precision}+\text{recall}}
+F_1=\frac{2TP}{2TP+FP+FN}
 \]
 
-### Core intuition
+F1 balances precision and recall through their harmonic mean. \(F_\beta\) places more emphasis on recall for \(\beta>1\); its formula uses \(\beta^2\), not a direct conversion from dollar costs. For known costs, evaluate those costs explicitly.
 
-The **harmonic** mean punishes imbalance. Precision 1.0 with recall 0.0 gives an arithmetic mean of 0.5 and an F1 of **0** — which is the desired behavior.
+If no cases are flagged, precision's denominator is zero. State the reporting convention rather than treating that as perfect precision.
 
-\[
-F_\beta = (1+\beta^2)\cdot\frac{\text{precision}\cdot\text{recall}}{\beta^2\,\text{precision}+\text{recall}}
-\]
+## 4. More than two classes
 
-### Rule of thumb
+**Macro** averaging gives every class equal weight. **Weighted** averaging weights by class count. **Micro** averaging pools counts; micro-F1 equals accuracy for ordinary single-label classification across all classes.
 
-\(\beta = 2\) weights recall twice as heavily as precision. Use \(F_\beta\) rather than F1 whenever the two errors genuinely differ in cost.
+A confusion matrix describes decisions at one threshold. Ranking and probability metrics need the original scores too.
 
----
-
-## 6. Choosing by what the mistake costs
-
-| Problem | Expensive error | Metric that leads |
-|---|---|---|
-| Cancer screening | Missing a real case | Recall |
-| Spam filtering | A real email quarantined | Precision |
-| Fraud blocking | Both | Precision at fixed recall, or expected cost |
-| Search / recommendations | Irrelevant results on top | Precision@k |
-| Triage for human review | Missing what the team could have handled | Recall at their capacity |
-
-### Rule of thumb
-
-> Name which mistake hurts more, and the metric picks itself.
-
-The strongest version names the **dollar cost** of each error and compares expected costs.
-
----
-
-## 7. Multiclass: which average you report
-
-| Averaging | How | Effect |
-|---|---|---|
-| Macro | per class, unweighted mean | every class counts equally |
-| Weighted | per class, weighted by support | dominated by frequent classes |
-| Micro | pool all TP/FP/FN | equals accuracy for single-label |
-
-### Common issue
-
-With imbalanced classes macro and micro tell opposite stories — macro-F1 collapses if a rare class is handled badly, micro barely moves. Always say which one you are reporting.
-
----
-
-## 8. Other counts worth recognizing
-
-```text
-specificity           TN/(TN+FP)    recall for the negative class
-false positive rate   1 − specificity   the x-axis of the ROC curve
-balanced accuracy     mean of recall and specificity
-Matthews correlation  uses all four cells, behaves well under skew
-```
-
----
-
-## Interview mental model
-
-Every metric here is a different summary of the same four counts, so start from the cost:
-
-```text
-which mistake hurts more?
-  a miss (FN)        → lead with recall      (cancer screening, triage)
-  a false alarm (FP) → lead with precision   (spam, blocking good customers)
-  both, measurably   → expected cost: C_FP·FP + C_FN·FN
-```
-
-- **Precision and recall are quoted as a pair** because each is trivially gamed alone - flag everything, or flag only the surest case.
-- **F1's harmonic mean punishes imbalance,** and \(F_\beta\) lets you state the asymmetry outright.
-- **Accuracy only informs when classes are balanced and both errors cost the same,** which is rare in the problems interviewers pick.
-- **Say which multiclass averaging you used:** macro treats rare classes equally, micro is dominated by frequent ones, and they can tell opposite stories.
-
-Next topic is **Regression metrics**.
+> **Mental image:** precision looks down the flagged pile; recall looks across the actual-positive pile. Their shared overlap is TP.

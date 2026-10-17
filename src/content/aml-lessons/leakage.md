@@ -1,155 +1,52 @@
 ## Data leakage
 
-Leakage is information in the training data that **will not exist at prediction time**. It is the most expensive bug in applied ML, because it does not produce an error - it produces excellent numbers and a model that fails in production.
+**Data leakage** occurs when training or model selection uses information that would be unavailable in the prediction or evaluation setting being claimed. It makes offline performance look better than the procedure can deliver.
 
----
+## 1. Check the prediction timeline
 
-## 1. The one-line test
+For a churn score made on Monday:
 
-> Could this value have been computed, **exactly as it is**, at the moment the prediction is made?
+| Candidate feature | Valid? |
+|---|---|
+| Account age on Monday | Yes |
+| Sessions recorded in the preceding 30 days | Yes, if already available |
+| Cancellation reason recorded next month | No |
+| Lifetime support tickets computed today for an old snapshot | Only if restricted to what was known at that snapshot |
 
-If no, it is leakage. Apply it to every column, one at a time. The words "exactly as it is" are doing real work - a feature can exist at prediction time and still be leaky if its *value* was computed later.
+The question is: **could this exact value have been produced at the claimed prediction time?** A value can have an old event timestamp but arrive or be corrected later.
 
-Run it on a churn model and it sorts the columns quickly:
+A feature need not cause the outcome to be valid. Availability and evaluation design determine leakage, rather than whether the feature is causal.
 
-```text
-account_age_days           knowable at t?  yes   →  fine
-plan_tier                  knowable at t?  yes   →  fine
-logins_last_30d            knowable at t?  yes   →  fine, IF the window ends before t
-support_tickets_total      knowable at t?  ...   →  careful: total as of WHEN?
-cancellation_reason        knowable at t?  no    →  leakage, it only exists after churn
-days_until_cancellation    knowable at t?  no    →  leakage, it IS the label
-```
-
-### Common issue
-
-The middle row is where real systems go wrong. "Total support tickets" computed today includes tickets filed *after* the prediction date, so the same column is legitimate or leaky depending entirely on how the pipeline built it. Nothing in the column name tells you which.
-
----
-
-## 2. Target leakage
-
-A feature that is a consequence of the label rather than a cause:
-
-```text
-predicting fraud      → feature "investigation_opened"     (only opens for fraud)
-predicting churn      → feature "cancellation_reason"      (exists only after churn)
-predicting diagnosis  → feature "treatment_prescribed"     (follows the diagnosis)
-predicting conversion → feature "total_order_value"        (zero unless converted)
-```
-
-These features are wildly predictive and completely useless. The model learns to read the answer.
-
-### Common issue
-
-Symptom: a single feature dominates importance, and the classifier's **area under the receiver operating characteristic curve (ROC-AUC)** is suspiciously close to 1.
-
----
-
-## 3. Preprocessing leakage
-
-Any statistic computed over the full dataset before splitting:
+## 2. Preprocessing can leak too
 
 ```python
-# WRONG - μ and σ include the test rows
-X = StandardScaler().fit_transform(X)
-X_train, X_test = train_test_split(X)
+# Leaks evaluation statistics into training:
+X_scaled = StandardScaler().fit_transform(X)
+X_train, X_test = train_test_split(X_scaled)
 
-# RIGHT - every fit happens inside the fold
-Pipeline([("scale", StandardScaler()), ("clf", LogisticRegression())])
+# Fits the complete procedure on training rows only:
+pipe = Pipeline([
+    ("scale", StandardScaler()),
+    ("model", LogisticRegression()),
+])
 ```
 
-The same applies to imputation medians, target encodings, feature selection, resampling, and **principal component analysis (PCA)** rotations. All of them learn something from the data, so all of them belong inside the pipeline.
+**Feature selection**, which chooses columns using their relationship with the target, is especially risky outside the training fold. It can find accidental correlations even when no real signal exists.
 
-### Intuition
+Imputation, PCA, encoders, and resampling also need fold-specific fitting. A pipeline helps organize this; it cannot repair features already built from future events.
 
-This leak is small per-feature and enormous in aggregate - with feature selection on the full dataset it can manufacture a strong model out of pure noise.
+## 3. Respect the generalization target
 
----
+If deployment must handle new patients, scans from the same patient on both sides inflate the estimate. Group by patient before splitting.
 
-## 4. Temporal leakage
+If deployment predicts future transactions, evaluate on later periods and ensure training labels were available at the historical training cutoff.
 
-Any aggregate whose window extends past the prediction time:
+Repeated customers across a forward-time split can be appropriate when the product predicts for existing customers. Shared entities are a problem when they violate what the evaluation claims to measure.
 
-```text
-prediction at t
-   ↓
-[────────── 30-day window ──────────]      ← legal
-        [──── window crosses t ────]       ← leakage
-```
+## 4. Investigate suspicious improvements
 
-Also temporal:
+A jump from 0.82 to 0.99 ranking quality is a cue to inspect feature timestamps, joins, duplicates, target-derived columns, and split construction. It is not proof of leakage.
 
-- a random train/test split on time-ordered data (the model trains on the future),
-- a "customer lifetime value" feature that includes post-prediction purchases,
-- backfilled data that was corrected later - the corrected value was not knowable at t.
+Target encoding needs out-of-fold training values. For a temporal task, its inner folds must respect time too; excluding a row's own label is insufficient if tomorrow's labels remain visible.
 
-### Rule of thumb
-
-> If the data has a timestamp, split chronologically and leave a gap as long as the label delay.
-
----
-
-## 5. Group leakage
-
-The same entity in both train and test:
-
-| Data | The entity | Leak |
-|---|---|---|
-| Medical images | the patient | Two scans of one patient split across train/test |
-| Sessions | the user | Model recognizes the user, not the behavior |
-| Product photos | the product listing | Same item, different angle |
-| Duplicated rows | the row itself | Literally the same example |
-
-### Rule of thumb
-
-Fix with grouped splits (`GroupKFold`) keyed on the entity.
-
----
-
-## 6. How to catch it
-
-```text
-1. AUC jumps from 0.82 → 0.99 after adding a feature?     → suspect that feature
-2. One feature dominates permutation importance?          → check its timeline
-3. Offline great, online mediocre?                        → leakage or train/serve skew
-4. Chronological validation ≪ random validation?          → temporal leakage
-```
-
-The most reliable defense is procedural, not statistical:
-
-- write down the prediction timestamp for each row and audit each feature against it,
-- build every transformation inside a `Pipeline`,
-- validate chronologically whenever time exists,
-- treat any large, sudden metric jump as a bug until proven otherwise.
-
-**The subtle case: leakage from the future of *other* rows.** Target encoding computed over the whole training set leaks each row's own label into its own feature. Out-of-fold encoding fixes it.
-
-A "number of transactions by this merchant" feature computed over the full history leaks tomorrow's transactions into today's row. Computing it as-of the prediction time fixes it.
-
-Both are invisible in the schema and obvious in the timeline.
-
----
-
-## Interview mental model
-
-One question catches every case:
-
-```text
-Could this value be computed, exactly as it is, at the moment of prediction?
-        no  →  leakage
-```
-
-Then know the five places it hides, since interviewers will probe for them:
-
-```text
-target        a feature that is a consequence of the label
-preprocessing a scaler, imputer, encoder, or selector fitted before the split
-temporal      a window that crosses t, or a random split on time-ordered data
-group         the same user, patient, or product on both sides of the split
-other rows    target encoding or full-history aggregates that see the future
-```
-
-Leakage raises no error; it produces excellent numbers. So treat any sudden metric jump as a bug until proven otherwise, and rely on procedure over inspection: an explicit prediction timestamp per row, every transformation inside a `Pipeline`, and chronological validation whenever time exists.
-
-Next topic is **Dimensionality reduction and principal component analysis**.
+> **Mental image:** reconstruct the model's desk at prediction time. Anything added to that desk later must stay out of the historical input.

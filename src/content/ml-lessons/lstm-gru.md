@@ -306,22 +306,8 @@ Don't memorize the spaghetti diagrams you often see online.
 
 Remember this simpler version:
 
-```text
-                         ┌──────────────────────┐
-                         │     cell state       │
-cₜ₋₁ ──────── × ───────► + ──────────────────► cₜ
-                ▲          ▲                     │
-                │          │                     │
-             forget      write                   │
-              gate         │                     ▼
-                │       candidate              tanh
-                │          ▲                     │
-                │          │                     × ◄── output gate
-                │          │                     │
-                └────┐ ┌───┘                     ▼
-                     │ │                         hₜ
-                     ▼ ▼
-                  [xₜ, hₜ₋₁]
+```dl-visual
+lstm-memory
 ```
 
 At each step:

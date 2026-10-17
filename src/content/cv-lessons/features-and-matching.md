@@ -2,7 +2,7 @@
 
 ## 1. Landmarks and fingerprints
 
-A **detector** chooses repeatable points. A **descriptor** summarizes their neighborhoods. A matcher proposes corresponding points.
+A **local feature** represents a distinctive image neighborhood. A **keypoint detector** chooses repeatable landmark locations; here, detector means a point detector, not an object-box detector. A **descriptor** summarizes their neighborhoods. A matcher proposes corresponding points.
 
 ```text
 image A → points + descriptors ─┐
@@ -18,7 +18,7 @@ image B → points + descriptors ─┘
 - Straight edge: movement along it is ambiguous.
 - Corner: changes in two directions reveal movement.
 
-A structure tensor summarizes local gradients:
+The **structure tensor** is a small matrix summarizing how intensity varies in different directions within a neighborhood:
 
 \[
 M=\sum_W w
@@ -27,15 +27,19 @@ M=\sum_W w
 
 W is a neighborhood; w weights its pixels.
 
-Two large eigenvalues suggest a corner, one an edge, neither a flat region. Harris uses this information.
+An **eigenvector** gives a principal direction of this matrix; its **eigenvalue** measures gradient variation along that direction. Two large eigenvalues suggest a corner, one an edge, neither a flat region.
+
+The **Harris corner detector** scores this matrix to identify locations with strong changes in two directions.
 
 ## 3. Feature families
 
 | Method | Main idea | Output / limitation |
 |---|---|---|
 | Harris | Two-direction intensity change | Points; needs descriptor/scale handling |
-| SIFT | Scale and orientation normalization | Floating-point gradients; more work |
-| ORB | Fast corners and binary comparisons | Compact; limited under strong changes |
+| SIFT (Scale-Invariant Feature Transform) | Detect landmarks across image scales and describe their oriented local gradients | Floating-point descriptors; more work |
+| ORB (Oriented FAST and Rotated BRIEF) | Detect corners, estimate orientation, and encode rotated pixel comparisons as bits | Binary descriptors; limited under strong changes |
+
+In ORB, **FAST** finds corners using intensity tests around a pixel; **BRIEF** describes a patch using pairs of brightness comparisons. Rotation adjustment makes those comparisons follow the estimated orientation.
 
 Scale/rotation robustness does not cover arbitrary viewpoint changes.
 
@@ -50,7 +54,7 @@ Example:
 - Distances 10/11 → ratio 0.91: ambiguous.
 - Distances 10/30 → ratio 0.33: more distinctive.
 
-Mutual matching is another filter. Neither establishes geometry.
+**Mutual matching** keeps a pair when each descriptor is the other's best match. It is another ambiguity filter. Neither establishes geometry.
 
 ## 5. Invariance has limits
 
@@ -71,8 +75,8 @@ Handle absent descriptors when no usable points exist.
 
 Fit a plausible transform and inspect:
 
-- Inlier count.
-- Residual error.
+- **Inlier count:** matches consistent with the fitted transform.
+- **Residual error:** distance between observed and transform-predicted positions.
 - Spatial coverage.
 
 Many matches in one tiny corner can still give an unstable full-image alignment.

@@ -1,125 +1,45 @@
-## Support vector machines (SVMs)
+## Support vector machines
 
-**A support vector machine separates two classes by drawing the dividing line as far away from both of them as it can.**
+A **support vector machine (SVM)** fits a class boundary using a margin: a corridor separating the boundary from nearby training points. A wider margin discourages fragile boundaries.
 
-Logistic regression asks "what line makes this data most likely?". An SVM asks "what line leaves the widest empty corridor between the two groups?" - and only the handful of points sitting closest to that corridor matter at all.
+## 1. The corridor and its supports
 
----
-
-## 1. The margin
-
-Among all separating hyperplanes, the SVM picks the one that maximizes the distance to the nearest training points.
-
-```text
-        ○   ○                      ○  ○
-    ○  ─ ─ ─ ─ ─ ─ ─ ─           margin boundary
-      ───────────────            ← decision boundary
-    ● ─ ─ ─ ─ ─ ─ ─ ─            margin boundary
-   ●     ●    ●
+```aml-visual
+svm-margin
 ```
 
-The points that touch the margin are the **support vectors**. They alone define the boundary: delete every other training point and the solution is unchanged. That is a memorable, true, and interview-ready fact.
+For a linear score \(f(x)=w^\top x+b\), the boundary is \(f(x)=0\). The standard margin boundaries are \(f(x)=\pm1\), with total width \(2/\lVert w\rVert\).
 
-### Core intuition
+**Support vectors** are training examples with nonzero coefficients when the fitted boundary is written as a weighted combination of training examples. In a soft-margin SVM they include points on the margin and violating it, including misclassified points; they are not only correctly separated boundary points.
 
-The intuition for why a wide margin is good: a boundary far from all training points is less likely to flip when new points arrive - it is a geometric form of regularization.
+## 2. Allow violations with a cost
 
----
-
-## 2. Soft margin and C
-
-Real data is not separable, so the SVM allows violations with a penalty:
+Real classes often overlap. A **soft margin** permits violations while penalizing them:
 
 \[
-\min_{w,b} \; \frac{1}{2}\lVert w\rVert^2 + C\sum_i \xi_i
+\min_{w,b}\frac12\lVert w\rVert^2+C\sum_i\max(0,1-y_i f(x_i))
 \]
 
-- \(\lVert w\rVert^2\) small ⟺ margin wide,
-- \(\xi_i\) is how far point i is on the wrong side,
-- **C** sets the exchange rate between the two.
+Labels here are \(-1\) and \(+1\). The second term uses **hinge loss**. For a positive example, scores 2, 0.5, and −1 give losses 0, 0.5, and 2.
 
-| C | Behavior |
-|---|---|
-| Small C | Wide margin, more violations tolerated, more regularized, may underfit |
-| Large C | Narrow margin, few violations, fits training data hard, may overfit |
+Smaller \(C\) places less emphasis on training violations relative to the weight penalty. Larger \(C\) penalizes violations more. It does not guarantee a particular validation result; tune it.
 
-### Rule of thumb
+## 3. Kernels express nonlinear boundaries
 
-> C is the regularization knob, and it works *inversely* to a penalty strength: small C means strong regularization.
-
----
-
-## 3. Hinge loss
-
-The SVM's loss ignores examples that are already comfortably correct:
+A **kernel** computes an inner product in an implicit feature space:
 
 \[
-L = \max(0, \; 1 - y\,f(x)), \quad y \in \{-1, +1\}
+K(x,x')=\phi(x)^\top\phi(x')
 \]
 
-```text
-correct and beyond the margin  → loss 0        (contributes nothing)
-correct but inside the margin  → small loss
-wrong side                     → linearly growing loss
-```
+The **radial basis function (RBF)** kernel uses \(\exp(-\gamma\lVert x-x'\rVert^2)\). Large \(\gamma\) gives each point a more local influence; small \(\gamma\) gives broader influence. Tune \(C\) and \(\gamma\) together, with appropriate scaling.
 
-### Intuition
+The kernel avoids explicitly constructing the richer feature vector. It does not avoid comparing examples, which can be expensive.
 
-Compare with log loss, which is never exactly zero: logistic regression keeps pushing every point further from the boundary, while the SVM stops caring once a point is safe. That difference is why the SVM solution depends only on the support vectors.
+## 4. Choose by data and cost
 
----
+Kernel SVM training can become expensive as row count grows, and serving depends on the number of support vectors. Linear solvers are often more suitable for large, sparse feature matrices.
 
-## 4. The kernel trick
+The decision score is not a probability. A kernel score is also not generally a geometric distance in the original input space. If probabilities are needed, fit a calibration mapping using held-out predictions.
 
-To handle nonlinear boundaries, map x into a higher-dimensional space where the classes become separable. The trick is that the optimization only ever needs **inner products**, and a kernel computes those without constructing the space:
-
-\[
-K(x, x') = \phi(x)^{\top}\phi(x')
-\]
-
-| Kernel | Formula | Use |
-|---|---|---|
-| Linear | \(x^{\top}x'\) | High-dimensional sparse data (text); fastest |
-| Polynomial | \((\gamma x^{\top}x' + r)^p\) | Explicit interaction terms |
-| Radial basis function (RBF, Gaussian) | \(\exp(-\gamma\lVert x-x'\rVert^2)\) | The nonlinear default |
-
-For RBF, **gamma** sets how far a single training point's influence reaches: large gamma means a tight, wiggly boundary (overfitting); small gamma means a smooth, nearly linear one. C and gamma must be tuned **together** - they trade off against each other.
-
-```python
-# SVC means support-vector classifier
-SVC(kernel="rbf", C=1.0, gamma="scale")
-```
-
----
-
-## 5. Practical constraints
-
-| Property | Consequence |
-|---|---|
-| Training is roughly O(n²)-O(n³) | Painful past ~100k rows; use `LinearSVC` or stochastic gradient descent (SGD) instead |
-| Needs scaled features | Both the margin and the RBF distance are scale-dependent |
-| Outputs a signed distance, not a probability | `probability=True` fits Platt scaling, which costs internal cross-validation (CV) |
-| Multiclass is one-vs-one or one-vs-rest | Not native; cost grows with the number of classes |
-| Memory holds the support vectors | Serving cost grows with how many there are |
-
----
-
-## 6. SVM vs logistic regression
-
-They often produce similar boundaries, and the honest comparison is:
-
-- **Logistic regression** if you want probabilities, coefficients you can explain, and speed at large n.
-- **SVM with RBF** if the boundary is genuinely nonlinear, the dataset is moderate, and you only need the decision.
-- In high-dimensional sparse text, a **linear SVM** and logistic regression are close competitors; pick by cross-validation, not by taste.
-
----
-
-## What matters most
-
-- **An SVM maximizes the margin,** and only the support vectors - the points touching it - define the boundary. Delete the rest and nothing changes.
-- **C is regularization in reverse:** small C means a wide margin and strong regularization; large C fits the training data hard.
-- **Hinge loss stops caring once a point is safe,** whereas log loss keeps pushing - which is why the SVM solution is sparse in the data.
-- **The kernel trick needs only inner products,** so it gives nonlinear boundaries without building the high-dimensional space; for RBF, tune C and gamma together.
-- **Practical limits:** scale features, training is roughly quadratic or worse in n, and it outputs a distance rather than a probability.
-
-Next topic is **Decision trees**.
+> **Mental image:** place a corridor between classes, allow costly intrusions where necessary, and let kernels bend the separation through a different feature space.

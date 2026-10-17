@@ -334,6 +334,10 @@ For regression:
 - **Huber**: strong choice when outliers exist
 - **MAE**: when robustness to large errors matters
 
+```dl-visual
+regression-losses
+```
+
 ---
 
 ## 8. Loss vs metric

@@ -1,156 +1,45 @@
 ## Class imbalance
 
-**Class imbalance means one outcome is far rarer than the other** - one fraudulent transaction in a thousand, or three clicks in a thousand impressions.
+**Class imbalance** means some target classes appear much less often than others. A 0.1% fraud rate supplies one positive example per thousand transactions.
 
-Most problems worth modelling look like this, and training on the raw data quietly fails: a model that always answers "not fraud" is right 99.9% of the time and catches nothing. Interviewers use this topic specifically to check whether you notice.
+Imbalance can make evaluation misleading and minority patterns hard to learn. It does not mean unweighted training always fails.
 
----
+## 1. Start with prevalence and the operating point
 
-## 1. Why accuracy lies here
+**Prevalence** is the positive fraction. At 0.1%, an all-negative predictor is 99.9% accurate and has zero recall.
 
-A dataset with a 0.1% positive rate gives 99.9% accuracy to a model that always predicts "negative" and catches nothing.
+Report the baseline, precision, recall, and actual counts at a useful threshold. Average precision summarizes ranking behavior, but the review team still needs to know what enters its queue.
 
-\[
-\text{accuracy} = \frac{\text{correct}}{\text{total}} \; \text{is dominated by the majority class}
-\]
+Distinguish rarity from sample count: 0.1% of one billion examples is one million positives; 0.1% of one thousand is one positive. The second problem has far less evidence.
 
-### Rule of thumb
+## 2. Try the decision threshold first
 
-So the first move on any imbalanced problem is to **quote the majority-class baseline** and switch to metrics that ignore the sea of true negatives: precision, recall, F-beta, and precision-recall area under the curve (PR-AUC).
+A model can rank positives usefully while rarely predicting positive at the default threshold of 0.5. Lowering the cutoff may meet the decision's needs without changing training.
 
----
+For 10,000 cases with 50 positives:
 
-## 2. What imbalance does to a model, concretely
+| Threshold | TP | FP | Precision | Recall |
+|---|---|---|---|---|
+| Higher | 2 | 1 | 66.7% | 4% |
+| Lower | 35 | 65 | 35% | 70% |
 
-10,000 transactions, 50 of them fraud. Train a standard classifier and this is the usual result:
+These are illustrative operating points. Choose by error costs and capacity using validation data, then evaluate the chosen policy honestly.
 
-```text
-                     actually fraud    actually fine
- model says fraud           2                1
- model says fine           48            9,949
-```
+## 3. Weights and resampling change fitting
 
-```text
-accuracy  = 9,951 / 10,000 = 99.5%     ← looks excellent
-recall    =      2 / 50     =  4%      ← catches almost nothing
-precision =      2 / 3      = 67%      ← and is cautious when it does
-```
+- **Class weighting:** multiply selected classes' losses. No rows are removed, but the fitting objective changes.
+- **Random oversampling:** duplicate minority training examples. It adds emphasis, not independent information.
+- **Undersampling:** remove majority examples, reducing work while losing information.
+- **SMOTE (Synthetic Minority Over-sampling Technique):** interpolate between minority neighbors to create synthetic examples. These can be implausible for mixed categories, sparse spaces, or time-dependent data.
 
-Nothing is broken. The model is doing exactly what it was asked: minimizing average error. With 199 negatives for every positive, the cheapest way to be right is to almost never say "fraud", and the loss function has no way to know you care disproportionately about those 50 rows.
+Perform resampling only within training folds. Never resample validation or test to make results look balanced. Preserve the population you need to evaluate, unless the evaluation explicitly estimates weighted target-population performance.
 
-### Core intuition
+## 4. Preserve probability meaning and label quality
 
-That is the whole problem in one table - and it also shows why the first move is to change **what you measure**, before touching the data or the model.
+Oversampling positives changes the apparent base rate; class weights can have a similar effect on probability estimates. Fit calibration on representative held-out predictions if probabilities are used directly. Analytic corrections require assumptions about the sampling process.
 
----
+Check whether negatives include undetected positives. More weight on noisy labels can amplify their errors.
 
-## 3. The three levers
+When positive patterns are poorly covered, consider better labelling, a high-recall first stage, or anomaly detection alongside supervised learning. Rarity alone does not determine the right method.
 
-```text
-1. threshold   → change the decision, not the model      (cheapest, always available)
-2. class weight→ change the loss                          (no data distortion)
-3. resampling  → change the data the model sees           (most invasive)
-```
-
-### Common issue
-
-Candidates often jump straight to Synthetic Minority Over-sampling Technique (SMOTE), which creates minority examples by interpolating between nearby minority points. The stronger answer starts with the threshold, because a well-trained probabilistic model plus a cost-aware threshold solves a large share of imbalance problems by itself.
-
----
-
-## 4. Class-weighted loss
-
-Penalize minority mistakes more heavily during optimization:
-
-\[
-L = -\sum_i w_{y_i}\big[y_i\log \hat p_i + (1-y_i)\log(1-\hat p_i)\big]
-\]
-
-```python
-LogisticRegression(class_weight="balanced")      # w_c ∝ 1 / freq(c)
-LGBMClassifier(scale_pos_weight=neg_count/pos_count)
-```
-
-No data is duplicated or discarded, so it avoids resampling's worst side effects - but it still shifts the model's probabilities away from the true base rate.
-
-**Focal loss** goes further, down-weighting examples that are already easy so the gradient concentrates on hard and rare ones:
-
-\[
-L = -(1-p_t)^{\gamma}\log p_t
-\]
-
----
-
-## 5. Resampling
-
-| Method | What it does | Risk |
-|---|---|---|
-| Random oversampling | Duplicates minority rows | Overfits the duplicated points |
-| SMOTE | Synthesizes minority points by interpolating neighbors | Can invent implausible points; poor in high dimensions |
-| Random undersampling | Drops majority rows | Throws away information |
-| Undersample + ensemble | Several balanced subsets, then average | Costlier, but keeps most information |
-
-Two rules that matter more than the choice:
-
-> Resample **inside** the cross-validation fold, never before splitting - otherwise synthetic copies of validation rows end up in training.
-
-> Evaluate on the **original, untouched** distribution. Resampling is a training-time trick, not a change to reality.
-
----
-
-## 6. What resampling does to probabilities
-
-If you oversample positives 50×, the model learns a world where positives are 50× more common. Its 0.5 no longer means "50% chance in production".
-
-Two fixes:
-
-- correct analytically using the known sampling ratio, or
-- fit a calibrator (Platt or isotonic) on a held-out set with the **real** class balance.
-
-### Rule of thumb
-
-This matters whenever the probability itself is consumed - expected loss, pricing, risk tiers. If the system only thresholds or ranks, the distortion is absorbed by the threshold and calibration is optional.
-
----
-
-## 7. When imbalance is extreme
-
-At 1 in 100,000, supervised classification starts to run out of signal, and other framings become viable:
-
-- **anomaly detection**, which does not need positive labels at all,
-- **two-stage**: a cheap high-recall filter, then an expensive precise model on what survives,
-- **cost-sensitive ranking**: give the review team the top-k by score and measure recall@k,
-- **collect better labels**, which is often the highest-value action.
-
----
-
-## 8. Do not forget the data itself
-
-Imbalance sometimes signals a framing problem:
-
-- the window may be too short (30-day churn is rarer than 90-day),
-- the unit may be wrong (per transaction vs per account),
-- positives may be under-labelled rather than genuinely rare - undetected fraud is recorded as negative.
-
-### Common issue
-
-That last point is worth raising: with implicit labels, your "negatives" include every positive nobody caught.
-
----
-
-## Interview mental model
-
-Reach for the levers in this order - the common mistake is starting at the bottom:
-
-```text
-1. metrics     quote the majority baseline, switch to precision/recall/PR-AUC
-2. threshold   change the decision, not the model        ← cheapest, often enough
-3. class weight change the loss, distort no data
-4. resampling  change the data the model sees            ← most invasive
-```
-
-Two rules govern resampling: do it **inside** the fold, never before the split, and evaluate on the **original** distribution. And remember it moves the model's probabilities off the real base rate, so calibrate on a held-out set with the true balance whenever the probability itself is consumed.
-
-At extreme rarity, change the framing instead - anomaly detection, a two-stage high-recall filter, or recall@k against review capacity. And question the data: a too-short window, the wrong unit, or undetected positives labelled as negatives.
-
-Next topic is **Comparing models honestly**.
+> **Mental image:** there are three controls: which errors you measure, where you act on scores, and what evidence training emphasizes. They solve different problems.

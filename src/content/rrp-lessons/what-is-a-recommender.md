@@ -1,115 +1,46 @@
 ## What a recommender actually does
 
-**A recommender picks a short list out of a very large catalogue, for one person, at one moment.**
+A **recommendation system** selects items likely to be useful for a person in a particular context. **Ranking** orders candidates; **personalization** adapts the selection or order using information about the user or session.
 
-That sentence contains the whole difficulty. A video app has ten million videos and six slots on the home screen. The job is not to predict a number - it is to *choose*.
+A video service may choose six videos from millions. A useful prediction score helps make that choice, but the product receives a list, not just a number.
 
-### Chapter goal
+## 1. Start with the surface
 
-By the end of Chapter 1, you should be able to frame a recommendation surface, explain the retrieval-ranking funnel, distinguish explicit and implicit signals, choose ranking metrics and baselines, and design first-step strategies for new users and items.
+A **surface** is the place where recommendations appear.
 
----
-
-## 1. The same machine with different names
-
-```text
-search        → rank documents for a query
-home feed     → rank items for a user
-ads           → rank ads for a user, weighted by money
-"people you   → rank people for a person
- may know"
-```
-
-### Core intuition
-
-All four score candidates for a user in a context, then show the best few. Learn one and you have learned the shape of all of them.
-
----
-
-## 2. One product surface, four different problems
-
-"Recommendations" on a single video app means at least four systems that share machinery and optimize different things:
-
-```text
-surface            candidates      what "good" means            metric
-home feed          everything      something worth watching     watch time / session
-search results     query-matched   answers THIS query           ranking quality, relevance
-"up next"          related to now  keeps the session going      continuation rate
-notifications      everything      worth interrupting for       precision, unsubscribes
-```
-
-Notice the last row. The same model that is excellent at the home feed is dangerous in notifications, because the cost of a bad recommendation jumps from "you scroll past" to "you turn notifications off permanently". Avoiding bad interruptions matters especially here; the same relevance objective and error costs should not be copied blindly from a feed.
-
-### Rule of thumb
-
-That is why the first question in any of these interviews is *which surface*, and why answering "a recommender" without saying which one is the most common way to sound unfocused.
-
----
-
-## 3. The size gap decides the design
-
-```text
-    10,000,000 items in the catalogue
-             ↓
-             6 shown on screen
-```
-
-You cannot run an expensive ranking model over ten million items within a typical page-load budget. Systems therefore retrieve a smaller candidate set first and rank only those candidates.
-
----
-
-## 4. Predicting a rating is not the job
-
-The famous version of this problem was "predict the star rating this user would give this film". That is a regression problem, and it is **not** what a product needs.
-
-```text
-predict the rating   →  "you would give this 4.2 stars"
-choose the list      →  "here are six things, in this order"
-```
-
-A model can be excellent at the first and useless at the second. What matters is whether the handful of items you actually showed were the right ones.
-
-### Rule of thumb
-
-> You are graded on the top of the list, not on the accuracy of every score.
-
----
-
-## 5. The part that makes this domain hard
-
-You only ever find out what happened for the items you chose to show.
-
-```text
-shown     → you observe a click or no click
-not shown → no outcome from this exposure; preference remains unknown
-```
-
-### Common issue
-
-An ordinary classifier often sees a fixed dataset. A recommender **creates** much of its own data by deciding what to show, then training on the resulting interactions. This circularity causes **position bias**—higher items are seen more—and **feedback loops**, where past recommendations shape future training data. It can also make offline results overstate live performance.
-
----
-
-## 6. The score is a means, not the goal
-
-There are three different things people call "the metric", and confusing them causes a lot of arguing:
-
-| Level | Example | Who cares |
+| Surface | Decision | Example success criterion |
 |---|---|---|
-| Model output | predicted click probability | the ranker |
-| List quality | was the top-6 any good | the product |
-| Business outcome | did people come back tomorrow | the company |
+| Home feed | What to discover | Satisfied viewing or useful discovery |
+| Search | What answers this query | Relevant results near the top |
+| Up next | What follows this item | A useful continuation |
+| Notification | Whether to interrupt at all | Useful opens without unwanted interruptions |
 
-A model improvement that does not move the second is not an improvement. One that moves the second but not the third needs a conversation.
+The same item can be suitable for a feed and unsuitable for a notification. Different surfaces have different error costs and constraints.
 
----
+## 2. Predictions support a policy
 
-## What matters most
+A **policy** maps the available context to an action, possibly at random. Here the action might be an ordered list.
 
-- **The output is an ordered list of a few items chosen from millions,** and that size gap drives every architectural decision that follows.
-- **Search, feeds, ads, and friend suggestions are one machine** - score candidates for a user in a context, show the best few.
-- **"Predict the rating" and "choose what to show" are different problems.** Only the second is what a product needs.
-- **You never observe what would have happened for items you did not show,** which is what separates this domain from ordinary prediction.
-- **Keep model score, list quality, and business outcome separate** in your head and in your answers.
+```text
+inputs → predicted outcomes → eligible-item selection and ordering → displayed list
+```
 
-Next topic is **The retrieval and ranking funnel**.
+Predicted click probability, expected watch time, or a relevance score can inform selection. Scores need not be probabilities unless their downstream use requires that meaning.
+
+A star-rating predictor can also help recommendations. Its rating error alone does not establish that it chooses a good top-six list.
+
+## 3. Measure three different things
+
+- **Prediction quality:** do estimated outcomes match observations?
+- **List quality:** are useful items in good positions, with appropriate variety?
+- **Product outcome:** does using the policy help users and meet the product's goals?
+
+For example, a higher click rate can come with more disappointed viewers. Define success and counter-signals before optimizing a convenient proxy.
+
+## 4. The system influences its evidence
+
+You usually observe outcomes only after exposure. If a video was never displayed, its missing click is not a demonstrated rejection.
+
+Past placement affects which observations reach training. This creates **exposure bias**—unequal opportunities to observe item outcomes—and can create **feedback loops**, where future recommendations reinforce past exposure.
+
+> **Mental image:** a recommender is a shop window that learns from its own visitors. What it puts in the window changes what it can learn about next.

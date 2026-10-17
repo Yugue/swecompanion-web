@@ -2,7 +2,7 @@
 
 ## 1. Projection loses depth
 
-A 3D point becomes a 2D pixel:
+A **camera model** describes how scene points become pixels. The ideal **pinhole model** projects a 3D point along a ray through one camera center onto an image plane:
 
 ```text
 world → camera frame → divide by depth → pixels
@@ -13,7 +13,13 @@ Points on the same ray can share a pixel.
 
 Example: (1,0,5) and (2,0,10) have the same X/Z ratio.
 
+```cv-visual
+projection
+```
+
 ## 2. Extrinsics change the coordinate frame
+
+A **coordinate frame** specifies an origin and axes. **Extrinsics** describe the camera's position and orientation (**pose**) relative to the world frame.
 
 With the world-to-camera convention:
 
@@ -30,6 +36,8 @@ The camera center in world coordinates is \(-R^Tt\), not generally t.
 State which direction the transform uses.
 
 ## 3. Intrinsics map rays to pixels
+
+**Intrinsics** are the camera's internal ray-to-pixel parameters. Pixel-unit focal lengths set image scale; the **principal point** is where the optical axis intersects the image plane.
 
 \[
 u=f_x\frac{X_c}{Z_c}+c_x,\qquad
@@ -51,7 +59,7 @@ Compact form: \(\lambda x=K[R\mid t]P_w^h\), using homogeneous points. K contain
 
 Example: straight lines appear curved near the image edge.
 
-Calibrate with known patterns in varied positions/tilts. Reprojection error compares measured corners with projected corners.
+**Camera calibration** estimates intrinsics, lens distortion, and pattern poses from known geometry observed in images. Use known patterns in varied positions/tilts. Reprojection error compares measured corners with projected corners.
 
 ## 5. Preprocessing changes calibration
 
@@ -78,7 +86,7 @@ Inspect errors across the image; recalibrate after material optics/focus/zoom ch
 
 Intrinsics do not determine depth from one pixel.
 
-Calibration also does not remove blur, rolling-shutter deformation, or scene motion.
+Calibration also does not remove blur, **rolling-shutter deformation** (different sensor rows captured at different times), or scene motion.
 
 ## 8. Interview reasoning
 

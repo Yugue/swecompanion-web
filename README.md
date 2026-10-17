@@ -21,6 +21,39 @@ tables, and equations through the site's lesson parser.
 After building, `npm run check:cv -- --export` also checks the 48 exported lesson pages,
 internal links, canonical URLs, and sitemap entries.
 
+Graphical figures use a fenced `cv-visual` block containing a registered ID, such as
+`convolution`. Register titles, captions, and accessible descriptions in
+`src/lib/cvVisuals.ts`; renderers live in `src/components/cv/visuals`.
+Run `npx tsx scripts/checkCvVisuals.ts` to verify figure placements and the numerical
+examples, including convolution outputs and independently checked MLP gradients.
+
+The Deep Learning guide uses `dl-visual` blocks, registered in `src/lib/dlVisuals.ts`,
+and shares the convolution and MLP demonstrations. Run `npx tsx scripts/checkDlVisuals.ts`
+for its figure and numerical checks; add `--export` after building to check the exported figures.
+
+The Applied ML → Basics of ML guide has 46 chapters across seven Parts. Its concise
+definitions, worked examples, and selective figures live in `src/content/aml-lessons`.
+Use an `aml-visual` fence with an ID from `src/lib/amlVisuals.ts`; its SVG renderers
+live in `src/components/aml/visuals`. Run `npx tsx scripts/checkAmlGuide.ts` to check
+curriculum coverage, parsed tables and math, figure references, and numerical claims.
+Add `--export` after building to verify all chapter pages, figures, links, and sitemap entries.
+The audit's technical references include scikit-learn's guidance on
+[calibration](https://scikit-learn.org/stable/modules/calibration.html),
+[cross-validation](https://scikit-learn.org/stable/modules/cross_validation.html),
+[preprocessing](https://scikit-learn.org/stable/modules/preprocessing.html), and
+[leakage prevention](https://scikit-learn.org/stable/common_pitfalls.html).
+
+The RRP guide has 45 chapters across seven Parts. Sources in `src/content/rrp-lessons`
+define new concepts explicitly, use worked examples, and include selective diagrams.
+Use an `rrp-visual` fence with an ID from `src/lib/rrpVisuals.ts`; its SVG renderers
+live in `src/components/rrp/visuals`. Run `npx tsx scripts/checkRrpGuide.ts` to validate
+coverage, tables, math, figure references, and numerical examples. Add `--export`
+after building to check all chapter pages, accessible figures, links, and sitemap entries.
+Technical references include Google's [recommendation overview](https://developers.google.com/machine-learning/recommendation/overview/types),
+the [YouTube retrieval and ranking paper](https://research.google/pubs/deep-neural-networks-for-youtube-recommendations/),
+[Bayesian personalized ranking](https://arxiv.org/abs/1205.2618), and
+[counterfactual risk minimization](https://proceedings.mlr.press/v37/swaminathan15.pdf).
+
 ```bash
 npm install
 npm run dev

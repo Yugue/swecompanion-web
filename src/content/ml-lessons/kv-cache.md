@@ -74,6 +74,10 @@ So:
 
 > old K/V are reused; only the new token's projections are computed.
 
+```dl-visual
+kv-cache
+```
+
 ---
 
 ## 3. Why cache K and V, but not all old Queries?

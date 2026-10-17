@@ -186,6 +186,10 @@ plt.plot(train_losses); plt.plot(val_losses)
 
 The **shape over time** tells you what happened.
 
+```dl-visual
+learning-curves
+```
+
 ---
 
 # 6. More data mainly helps variance

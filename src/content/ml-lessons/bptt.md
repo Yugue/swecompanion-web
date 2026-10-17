@@ -388,12 +388,8 @@ But we **detach its previous computational history**.
 
 Conceptually:
 
-```text
-chunk 1                    chunk 2
-
-h₁ → ... → h₂₀     X     h₂₀ → h₂₁ → ... → h₄₀
-                   ↑
-             stop gradient
+```dl-visual
+bptt-truncation
 ```
 
 The forward state continues.

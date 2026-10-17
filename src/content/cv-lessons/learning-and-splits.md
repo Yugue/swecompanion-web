@@ -2,22 +2,22 @@
 
 ## 1. Define one prediction
 
-Choose the **prediction unit** before the model.
+The **prediction unit** is what one answer describes: an image, object, pixel, or video clip.
 
 Examples:
-- Classification: one class per image.
-- Detection: a set of boxes per image.
+- **Image classification:** assign category labels to an image.
+- **Object detection:** locate objects with rectangles (**bounding boxes**) and category labels.
 - Video: a label per clip or identity per object.
 
-Use only inputs available at inference.
+**Inference** means using a trained model to make predictions. Use only information available when the deployed application makes its prediction.
 
 ## 2. Choose the learning signal
 
 | Learning | Signal | Example |
 |---|---|---|
-| Supervised | Task labels | Defect/no defect |
-| Unsupervised | Structure | Feature clustering |
-| Self-supervised | Targets from observations | Predict missing patches |
+| Supervised: learn from provided input–target pairs | Human or measured labels | Defect/no defect |
+| Unsupervised: discover patterns without task labels | Data structure | Group similar feature vectors into clusters |
+| Self-supervised: construct targets from the input data | Relationships or hidden content | Predict missing image patches |
 
 Self-supervised learning still has an objective.
 
@@ -25,13 +25,15 @@ Self-supervised learning still has an objective.
 
 ## 3. Establish a baseline
 
-Start with a cheap credible solution:
-- Majority class.
+A **baseline** is a simple comparison system. Start with a cheap credible solution:
+- **Majority-class predictor:** always choose the most common category.
 - Threshold/morphology.
-- Pretrained classifier.
-- Nearest-neighbor features.
+- **Pretrained classifier:** reuse a model already trained on other data.
+- **Nearest-neighbor prediction:** compare image feature vectors and use the closest labeled examples.
 
-Example: at 1% defect prevalence, “always good” gives **99% accuracy, zero defect recall**.
+**Prevalence** is the fraction of true positives in the population. **Accuracy** is the fraction of all predictions correct; **recall** is the fraction of actual positives found.
+
+At 1% defect prevalence, “always good” gives **99% accuracy, zero defect recall**.
 
 Measure whether complexity improves the relevant outcome.
 
@@ -43,9 +45,11 @@ validation → select settings / thresholds / checkpoints
 test       → evaluate the selected system
 ```
 
-Repeated test tuning makes it another validation set. Fit preprocessing statistics on training data.
+A **checkpoint** is a saved set of model weights at a training step. Repeated test tuning makes the test set another validation set. Fit preprocessing statistics on training data.
 
 ## 5. Split independent sources
+
+**Data leakage** occurs when information unavailable for genuinely new predictions enters training or selection, making evaluation too optimistic.
 
 Example: neighboring frames from one video appear nearly identical. A random frame split can leak the same scene into both sets.
 
@@ -63,7 +67,7 @@ A useful test includes realistic lighting, object size, and class prevalence.
 
 Example: a balanced benchmark helps compare classes but may not predict factory alert volume.
 
-Use separate holdouts for new cameras or future time periods; state what each tests.
+A **holdout** is a group of examples excluded from fitting. Use separate holdouts for new cameras or future time periods; state what each tests.
 
 ## 7. Count independent evidence
 

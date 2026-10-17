@@ -1,126 +1,46 @@
 ## Regression, classification, ranking, and clustering
 
-**The task type is the shape of the answer you want back:** a number, a category, an ordering, or a grouping.
+A **task type** describes the output you need. Choose it from the decision the output will support.
 
-```text
-"how many minutes will this delivery take?"  → a number    → regression
-"is this transaction fraud?"                 → a category  → classification
-"which 10 results belong at the top?"        → an ordering → ranking
-"which of our customers behave alike?"       → groups      → clustering
-```
+## 1. Four output shapes
 
-Picking the shape commits you to everything downstream — what the model minimizes, how you score it, and what decision the product makes.
-
----
-
-## 1. The four shapes
-
-| Task | Output | Scored on |
+| Task | What it produces | Example |
 |---|---|---|
-| Regression | a number | how far off the number is, on average |
-| Classification | one of C categories (or a probability) | how often it is right, and which mistake it makes |
-| Ranking | an ordering over candidates | whether the good items reached the top |
-| Clustering | a group assignment | how tight and how separated the groups are |
+| Regression | A numeric estimate | Delivery will take 34 minutes |
+| Classification | A category or class probabilities | Transaction is fraudulent or legitimate |
+| Ranking | An ordering of candidates | Customers ordered by churn risk |
+| Clustering | Groups based on similarity | Customers grouped by shopping behavior |
 
-> **New to this?** Common scores include **mean squared error (MSE)** for numeric predictions, **log loss** for predicted class probabilities, **normalized discounted cumulative gain (NDCG)** for ranked lists, and the **silhouette score** for cluster separation. For now, only the task shape matters.
+A numeric class code does not make a task regression: predicting “category 3” still means choosing a category, not estimating a quantity.
 
----
+## 2. Three kinds of classification
 
-## 2. Binary, multiclass, and multilabel
+- **Binary:** exactly two classes, such as spam and not spam.
+- **Multiclass:** exactly one of several classes, such as cat, dog, or bird.
+- **Multilabel:** several labels can be true together, such as politics and economics for one article.
 
-Three different problems that candidates blur constantly.
+**Softmax** converts class scores into probabilities summing to one; it suits mutually exclusive classes. Independent **sigmoids** convert each score into its own probability and are a common multilabel choice.
 
-```text
-binary      exactly two options            "spam" or "not spam"
-multiclass  one of many, pick exactly one  a photo is a cat OR a dog OR a bird
-multilabel  any number true at once        an article is politics AND economics
-```
+An article can be 80% likely to concern politics and 70% likely to concern economics. Those probabilities describe separate events and need not sum to one.
 
-### Core intuition
+## 3. One business problem, different tasks
 
-The difference is whether the categories **compete**.
+For customer churn:
 
-Multiclass says they do, so the probabilities are forced to sum to 1 — more confidence in "cat" must mean less in "dog". Multilabel says they do not, so each label gets its own yes/no decision and its own threshold.
+| Decision | Framing | Useful evaluation |
+|---|---|---|
+| Estimate probability of churn within 30 days | Binary classification | Probability accuracy and error costs |
+| Call the 500 highest-risk customers | Ranking | How many eventual churners enter that queue |
+| Estimate when churn will occur | Time-to-event modelling | Time-sensitive predictions with incomplete outcomes |
 
-### Rule of thumb
+A customer who has not churned yet supplies a lower bound on survival time. This is **censoring**; treating it as an ordinary known regression target is misleading.
 
-> If two labels can be true at once, you cannot use softmax.
+A classifier's scores can also create a ranking. Ranking quality measures order; **calibration** asks whether a stated probability matches event frequency. A good order does not guarantee good probabilities.
 
-The machinery is the **sigmoid function**, which turns one score into one probability, and **softmax**, which turns one score per class into probabilities that sum to 1.
+## 4. Match evaluation to the task
 
----
+Regression cares about error size. Classification cares about the types of mistakes and, when used, probability quality. Ranking cares especially about the top of the list. Clustering needs geometry, stability, reference labels where available, and downstream usefulness.
 
-## 3. The same question, framed three ways
+For a queue of 500, **recall@500** means the fraction of all actual positives found in those 500 places. It does not tell you whether calling those customers prevents churn; that needs evidence about the intervention.
 
-> "How likely is this customer to churn next month?"
-
-- **Binary classification** — y = 1 if they churned within 30 days. Simple, gives a probability, needs a fixed window.
-- **Regression on time-to-event** — predict days until churn. More informative, but a customer who has not churned has no usable answer; you only know they lasted *at least* this long. That is a **censored** label and needs special handling.
-- **Ranking** — order customers by risk so the team works the top 500. Only the ordering has to be right.
-
-### Rule of thumb
-
-> The deciding question is always: what decision does the output feed?
-
-If the team can only call 500 people, ranking is the honest framing — and the metric is recall@500, not accuracy.
-
----
-
-## 4. Ranking is not classification with sorting
-
-\[
-\text{ranking cares about } s_i > s_j, \text{ not about } s_i \approx P(y_i = 1)
-\]
-
-### Intuition
-
-A ranking model only has to get the **order** right. Its scores can be systematically too high and it loses nothing.
-
-So a ranking-only system does not care whether the scores are believable as probabilities — but a system that multiplies the score by a dollar amount **does**. If the model says 0.7, the event should happen about 70% of the time among predictions near 0.7. That property is **calibration**.
-
----
-
-## 5. Clustering is a different kind of object
-
-Clustering has no y, so it has no correctness. Two analysts can produce different, equally valid clusterings of the same data.
-
-```text
-you cannot validate against a held-out label
-you judge it by stability under resampling, and usefulness downstream
-the number of clusters is a choice someone has to defend
-```
-
----
-
-## 6. Picking the framing
-
-```text
-business question
-   ↓
-what decision is made, by whom, how often?
-   ↓
-what output shape does that decision need?
-   ↓
-task type → loss → metric → threshold
-```
-
-Worked example—food delivery estimated time of arrival (ETA):
-
-- the decision is a number shown to the user → regression,
-- but the cost is asymmetric (10 minutes late hurts far more than 10 early), so plain MSE is wrong,
-- so use a quantile loss and show the 80th percentile, not the mean.
-
-### Rule of thumb
-
-> The task type comes from the decision, and the loss comes from the cost of being wrong in each direction.
-
----
-
-## What matters most
-
-- **The task type comes from the decision the output feeds,** and the loss comes from the cost of being wrong in each direction.
-- **Multiclass and multilabel are different problems.** If two labels can be true at once, you cannot use softmax.
-- **Ranking only has to get the order right.** It can skip calibration - unless the score gets multiplied by a dollar value.
-- **Clustering has no correctness,** so it is judged by stability and downstream usefulness, and the cluster count is a choice you must defend.
-
-Next topic is **Parameters, hyperparameters, and capacity**.
+> **Mental image:** choose the answer's shape first: a ruler, a set of category boxes, a sorted queue, or groups on a map.

@@ -33,7 +33,7 @@ mean = readings.mean()
 variance = readings.var(unbiased=False)
 ```
 
-A noisy measurement can still be unbiased.
+An **unbiased** measurement has the correct expected value even though individual readings fluctuate.
 
 ## 3. Why averaging works
 
@@ -55,16 +55,16 @@ But:
 
 | Model | Mental image | Typical response |
 |---|---|---|
-| Gaussian additive | Small fluctuations everywhere | Mild smoothing |
-| Poisson shot noise | Random photon arrivals | More light / signal-aware modeling |
-| Impulse | A few extreme pixels | Median filter |
-| Correlated | Shared stripes or errors | Address the shared source |
+| Gaussian additive | Bell-shaped random errors added to the signal | Mild smoothing |
+| Poisson shot noise | Photon-count fluctuations; variance grows with expected count | More light / signal-aware modeling |
+| Impulse | A few extreme pixels, often called salt-and-pepper noise | Median: replace a value with its neighborhood's middle value |
+| Correlated | Errors vary together, such as shared sensor stripes | Address the shared source |
 
 Real sensor noise can depend on brightness.
 
 ## 5. Bayes’ rule
 
-Bayes combines **prior belief** with **observed evidence**:
+**Bayes' rule** updates the probability of a hypothesis after evidence. A **prior** is its probability before that evidence:
 
 \[
 P(H\mid E)=\frac{P(E\mid H)P(H)}{P(E)}
@@ -77,11 +77,11 @@ Example: a bright spot could be a scratch or reflection. Its shape and the usual
 - **Likelihood:** evidence given the hypothesis.
 - **Posterior:** hypothesis after seeing evidence.
 
-A smoothness prior helps reconstruction but may erase a real thin scratch.
+A **smoothness prior** favors similar values at neighboring pixels. It can stabilize reconstruction but erase a real thin scratch.
 
 ## 6. Uncertainty in estimates
 
-A sample mean estimates the population mean.
+A **sample** is the collected observations; the **population** is the broader set we want to describe. A sample mean estimates its population mean.
 
 Example: 1,000 adjacent frames from one video contain less independent evidence than 1,000 separate scenes.
 

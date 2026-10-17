@@ -50,20 +50,13 @@ For:
 A   B   C   D
 ```
 
-the allowed attention pattern is:
+Compare bidirectional and causal visibility, with padding blocked in both:
 
-```text
-             KEY
-          A   B   C   D
-       ┌─────────────────
-Q   A  │ ✓   ✗   ✗   ✗
-U   B  │ ✓   ✓   ✗   ✗
-E   C  │ ✓   ✓   ✓   ✗
-R   D  │ ✓   ✓   ✓   ✓
-Y
+```dl-visual
+attention-mask
 ```
 
-Interpret it row by row.
+Interpret the causal panel row by row.
 
 Token `A` can see:
 

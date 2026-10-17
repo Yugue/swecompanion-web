@@ -1,106 +1,56 @@
 ## Gaussian mixture models
 
-A **Gaussian mixture model (GMM)** treats the data as coming from several Gaussian distributions mixed together. It is the probabilistic generalization of k-means, and it gives **soft** cluster memberships.
+A **Gaussian mixture model (GMM)** represents a data distribution as a weighted combination of Gaussian components. Each component has a center and a spread; a point can partly belong to several components.
 
----
-
-## 1. The model
+## 1. Add distributions instead of drawing hard regions
 
 \[
-p(x) = \sum_{k=1}^{K}\pi_k\,\mathcal{N}(x \mid \mu_k, \Sigma_k), \qquad \sum_k \pi_k = 1
+p(x)=\sum_{j=1}^{K}\pi_j\mathcal N(x\mid\mu_j,\Sigma_j),\qquad \sum_j\pi_j=1
 \]
 
-Each component has a weight \(\pi_k\), a mean \(\mu_k\), and a covariance \(\Sigma_k\). Because it defines a full probability density over x, a GMM is a **generative** model: you can sample from it, score the likelihood of a new point, and use it for density estimation - none of which k-means can do.
+\(\pi_j\) is a nonnegative component weight, \(\mu_j\) its mean, and \(\Sigma_j\) its **covariance**, describing spread and relationships between feature directions. A Gaussian is a bell-shaped density in one dimension and an elliptical density in several dimensions.
 
-```python
-GaussianMixture(n_components=5, covariance_type="full").fit(X)
+```aml-visual
+gaussian-mixture
 ```
 
----
+A **density** is not an individual point's probability. Probabilities come from integrating density over a region.
 
-## 2. Soft assignment
+## 2. Soft membership is conditional on the model
 
-Instead of "point i is in cluster 3", a GMM gives a **responsibility**:
+A **responsibility** is a component's share of the density at a point:
 
 \[
-\gamma_{ik} = P(z_i = k \mid x_i) = \frac{\pi_k\,\mathcal{N}(x_i\mid\mu_k,\Sigma_k)}{\sum_j \pi_j\,\mathcal{N}(x_i\mid\mu_j,\Sigma_j)}
+\gamma_{ij}=\frac{\pi_j\mathcal N(x_i\mid\mu_j,\Sigma_j)}{\sum_l\pi_l\mathcal N(x_i\mid\mu_l,\Sigma_l)}
 \]
+
+A result [0.5, 0.5] means the two fitted components are equally plausible sources of that point. It does not establish two equally likely real-world customer identities.
+
+Hard labels choose the largest responsibility and hide this ambiguity.
+
+## 3. Expectation-maximization fits the components
+
+**Expectation-maximization (EM)** alternates two steps:
 
 ```text
-point A → [0.97, 0.02, 0.01]   clearly cluster 1
-point B → [0.48, 0.51, 0.01]   genuinely on a boundary
+E-step: compute responsibilities from current components
+M-step: update weights, means, and covariances using those responsibilities
 ```
 
-### Core intuition
+Exact EM updates do not decrease likelihood, but do not guarantee a global optimum. Try suitable initialization and restarts. Covariance regularization helps prevent a component collapsing onto one observation with vanishing spread.
 
-Point B is the interesting one. A hard assignment hides that ambiguity; a responsibility of roughly 0.5 says "this customer sits between two segments" - which may be exactly what the business needs to know, and is a good reason to route it to a human.
+**Likelihood** measures how well the fitted distribution accounts for the observed data.
 
----
+## 4. Choose flexibility and component count
 
-## 3. Fitting with expectation-maximization (EM)
-
-There is no closed form, so expectation-maximization alternates:
-
-```text
-E-step: given the current parameters, compute responsibilities γ
-M-step: given γ, re-estimate π, μ, Σ as weighted averages
-repeat until the log-likelihood stops improving
-```
-
-### Common issue
-
-Each iteration is guaranteed not to decrease the likelihood - but like k-means, EM converges to a **local** optimum, so initialization (usually from k-means) and multiple restarts matter.
-
----
-
-## 4. Covariance type is the capacity knob
-
-| `covariance_type` | Shape allowed | Parameters per component |
-|---|---|---|
-| `spherical` | circles, one variance | 1 |
-| `diag` | axis-aligned ellipses | d |
-| `tied` | one shared full covariance | d(d+1)/2 total |
-| `full` | arbitrary ellipses, any orientation | d(d+1)/2 each |
-
-`full` is the most expressive and needs the most data - with d = 50 that is 1,275 parameters per component, which overfits quickly. `diag` is the common compromise in higher dimensions.
-
-### Rule of thumb
-
-> The relationship to remember: k-means is a GMM with spherical, equal covariances and hard assignments.
-
----
-
-## 5. Choosing the number of components
-
-Because a GMM is a likelihood model, you can use the **Bayesian information criterion (BIC)** or **Akaike information criterion (AIC)**. Both reward fit while penalizing extra parameters—an advantage over k-means, where inertia always improves as k grows:
-
-\[
-\text{BIC} = -2\log \hat L + p\log n, \qquad \text{AIC} = -2\log\hat L + 2p
-\]
-
-Both penalize parameter count p; pick the K that minimizes them.
+Spherical covariance allows round components. Diagonal covariance allows axis-aligned spreads. Full covariance allows rotated ellipses but needs \(d(d+1)/2\) covariance parameters per component in \(d\) dimensions.
 
 ```python
-[GaussianMixture(k).fit(X).bic(X) for k in range(2, 12)]
+GaussianMixture(n_components=2, covariance_type="full", n_init=5)
 ```
 
-BIC penalizes complexity more heavily than AIC and usually gives the more conservative, more defensible answer.
+The **Bayesian information criterion (BIC)** and **Akaike information criterion (AIC)** compare fit with a parameter-count penalty; lower is preferred under the criterion. Held-out likelihood and downstream usefulness provide other evidence. None proves components are natural semantic groups.
 
-**What it is good and bad at**
+k-means is closely related to a small-variance limit with equal spherical components and hard assignments. Ordinary soft GMM fitting is not simply identical to k-means.
 
-**Good**: elliptical clusters of different sizes and orientations; soft memberships; density estimation and anomaly detection via low likelihood; a principled criterion for K; sampling new data.
-
-**Bad**: assumes Gaussian components, which is often wrong for skewed or heavy-tailed data; struggles in high dimensions with `full` covariance; sensitive to initialization; a component can collapse onto a single point and drive the likelihood to infinity (regularized in practice by `reg_covar`).
-
----
-
-## What matters most
-
-- **A GMM is k-means made probabilistic.** In fact k-means *is* a GMM with round, equal-sized components and hard assignments.
-- **Soft assignment is the payoff.** A point that is 0.48 / 0.51 between two clusters is flagged as genuinely ambiguous, which a hard label hides.
-- **It defines a probability density,** so unlike k-means it can score how likely a new point is - useful for anomaly detection - and generate new samples.
-- **`covariance_type` is the capacity dial:** `full` fits ellipses at any angle but needs a lot of data; `diag` is the usual compromise in higher dimensions.
-- **Because it is a likelihood model, BIC and AIC can choose the number of components** - a real advantage over k-means, where the objective always improves with more clusters.
-- **EM converges only to a local optimum,** so initialization (usually from k-means) and restarts matter.
-
-Next topic is **Choosing k and evaluating clusters**.
+> **Mental image:** overlapping transparent hills explain the cloud. Responsibilities say how much each hill contributes at one location.

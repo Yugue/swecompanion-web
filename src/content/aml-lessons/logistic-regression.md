@@ -1,141 +1,51 @@
 ## Logistic regression
 
-The default classifier in industry, and the one worth knowing precisely: it is a **linear model of the log-odds**, not a regression on 0/1 labels.
+**Logistic regression** is a classification model that turns a weighted sum of features into a class probability. For a binary target, it models the log-odds as a linear function.
 
----
-
-## 1. The model
+## 1. Score → sigmoid → probability
 
 \[
-z = w^{\top}x + b, \qquad p = \sigma(z) = \frac{1}{1+e^{-z}}
+z=w^\top x+b,\qquad p=\sigma(z)=\frac{1}{1+e^{-z}}
 \]
 
-The sigmoid maps any real number into (0, 1):
+The **sigmoid** maps any real score to a number between 0 and 1.
 
-```text
-z = -4  → p ≈ 0.02
-z =  0  → p = 0.50
-z = +4  → p ≈ 0.98
+```aml-visual
+logistic-sigmoid
 ```
 
-The decision boundary is where \(p = 0.5\), i.e. \(w^{\top}x + b = 0\) - a **line, plane, or hyperplane**. The model is nonlinear in p but linear in the boundary it can draw.
+A score of 0 gives probability 0.5; a score of 2 gives about 0.881. A threshold of 0.5 predicts positive when \(z\ge0\). That boundary is linear in the input features. Engineered inputs can make it nonlinear in the original measurements.
 
-```python
-LogisticRegression(C=1.0).fit(X_train, y_train).predict_proba(X_test)[:, 1]
-```
+## 2. Train with log loss
 
----
-
-## 2. The loss
-
-Log loss (binary cross-entropy):
+For labels \(y_i\in\{0,1\}\):
 
 \[
-L = -\frac{1}{n}\sum_i \Big[ y_i\log p_i + (1-y_i)\log(1-p_i) \Big]
+L=-\frac1n\sum_i[y_i\log p_i+(1-y_i)\log(1-p_i)]
 \]
 
-If the truth is 1, the loss is \(-\log p\): predicting 0.99 costs almost nothing, predicting 0.01 costs a lot. It punishes **confident mistakes** hard, which is exactly the behavior you want from something that outputs probabilities.
+**Log loss**, or binary cross-entropy, is the negative log-likelihood of the observed binary outcomes. For a positive example, predicting 0.9 costs about 0.105; predicting 0.1 costs about 2.303.
 
-### Core intuition
+The objective is **convex** in the weights: it has no local minimum worse than a global minimum. Every local minimum is global, but convexity alone does not guarantee a unique finite solution or solver convergence. Perfectly separable data without regularization can drive weights indefinitely larger.
 
-This loss is **convex** - it has one single lowest point, like a bowl, rather than several dips to get stuck in. So training always lands in the same place, and where it starts does not matter.
+Squared probability error is also a meaningful probability score—the **Brier score**. Used through a sigmoid, however, it loses this convex objective and has less helpful gradients for saturated, confidently wrong predictions.
 
-## 3. Why not squared error?
+## 3. Interpret odds carefully
 
-This is a standard interview question and there are two answers, of increasing quality.
-
-**The optimization answer.** Squared error wrapped around a sigmoid is non-convex in \(w\), so there are local minima and the fit depends on where you started. Log loss with a sigmoid is convex - one bottom, always found.
-
-**The better answer: the two losses are fitting different things.**
-
-Log loss is the negative log-likelihood of a Bernoulli outcome, so minimizing it *is* maximum-likelihood estimation of a probability. Squared error is fitting a number that happens to live in [0, 1] and has no probabilistic meaning.
-
-You can see the practical difference in the gradients. Suppose the truth is 1 and the model says 0.01 - a confident, badly wrong prediction:
-
-```text
-squared error    loss = (0.01 − 1)² = 0.98      gradient is SMALL,
-                                                 because the sigmoid is flat out there
-                                                 → the model barely corrects
-
-log loss         loss = −log(0.01) = 4.6        gradient is LARGE
-                                                 → the model corrects hard
-```
-
-### Intuition
-
-Squared error's gradient vanishes exactly where the model is most wrong, because it is multiplied by the sigmoid's derivative, which is near zero at the extremes. Log loss cancels that term. So confident mistakes are punished in proportion to how confident and how mistaken they were - which is the behavior you want from something that outputs probabilities.
-
----
-
-## 4. Log-odds and the odds ratio
-
-Rearranging the sigmoid gives the reason this model is used in regulated industries:
+**Odds** are \(p/(1-p)\). The model says:
 
 \[
-\log\frac{p}{1-p} = w^{\top}x + b
+\log\frac{p}{1-p}=w^\top x+b
 \]
 
-So \(w_j\) is the change in **log-odds** per unit of \(x_j\), and \(e^{w_j}\) is an **odds ratio**.
+Increasing feature \(x_j\) by one multiplies the odds by \(e^{w_j}\), holding other features fixed. A coefficient near 0.693 doubles the odds; it does not double the probability.
 
-> A coefficient of 0.7 means the odds multiply by e^0.7 ≈ 2 for each unit increase.
+## 4. Strengths and limits
 
-### Rule of thumb
+Logistic regression is fast to serve and a useful baseline. Scale numeric features when coefficient penalties or optimization need comparable units. In common implementations, smaller `C` means stronger regularization.
 
-That sentence - reportable, auditable, defensible - is why logistic regression survives in credit, insurance, and medicine regardless of what else is available.
+Its probabilities are **not guaranteed calibrated**. Calibration means predictions near 0.7 correspond to about 70% positives. Model mismatch, sampling, regularization, and distribution changes can break that property; measure it on representative held-out data.
 
----
+For mutually exclusive multiclass outcomes, a multinomial model uses softmax. For multilabel outcomes, independent binary predictions are a common approach.
 
-## 5. Regularization is on by default
-
-scikit-learn's `LogisticRegression` applies **L2 regularization**, which penalizes the sum of squared coefficients, with strength `C` (where **C is the inverse** of the penalty: small C = strong regularization). Two consequences:
-
-- you must **scale your features**, or the penalty punishes features by their unit of measurement,
-- C is the one hyperparameter genuinely worth tuning.
-
-Use **L1 regularization**, which penalizes the sum of absolute coefficient values, when you want many coefficients to become exactly zero for feature selection.
-
----
-
-## 6. Multiclass
-
-Two ways to extend past binary:
-
-| Approach | How | Notes |
-|---|---|---|
-| One-vs-rest | C independent binary models | Simple; probabilities do not sum to 1 without normalizing |
-| Multinomial (softmax) | One model, softmax over C scores | The usual default, properly normalized |
-
-\[
-p_c = \frac{e^{z_c}}{\sum_{k} e^{z_k}}
-\]
-
-### Common issue
-
-For **multilabel** problems (several labels can be true at once), use C independent sigmoids instead - softmax would force them to compete.
-
----
-
-## 7. Strengths and limits
-
-| Strengths | Limits |
-|---|---|
-| Fast to train and to serve (a dot product) | Boundary is linear unless you engineer features |
-| Well-calibrated probabilities out of the box | Needs scaling, and sensitive to outliers in x |
-| Coefficients are explainable | Underperforms boosted trees on rich tabular data |
-| Convex - reproducible fits | Cannot capture interactions unless you add them |
-
-### Intuition
-
-The calibration point is underrated: logistic regression is a *probability* model, so among predictions near 0.7, the event should occur about 70% of the time. Random forests and support-vector machines (SVMs) do not provide that **probability calibration** automatically.
-
----
-
-## What matters most
-
-- **It is a linear model of the log-odds,** which is why the boundary is a hyperplane and why a coefficient converts cleanly into an odds ratio you can report.
-- **Log loss is the maximum-likelihood objective for a Bernoulli outcome,** convex, and punishes confident mistakes - a better answer than "squared error gets stuck."
-- **It regularizes by default, with C as the *inverse* penalty,** so scale your features and treat C as the hyperparameter worth tuning.
-- **Its probabilities are usually trustworthy out of the box,** unlike forests and SVMs.
-- **Use softmax when classes compete and independent sigmoids when several labels can be true.**
-
-Next topic is **k-Nearest Neighbors**.
+> **Mental image:** a linear score passes through an S-shaped probability dial; the decision threshold is a separate setting.

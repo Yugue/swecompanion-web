@@ -2,13 +2,13 @@
 
 ## 1. Reuse the reasoning
 
-These cases use illustrative constraints. For each, connect the decision to evidence, output, data, evaluation, and serving.
+A **system-design case** works backward from an intended decision and constraints to a complete prediction pipeline. These cases use illustrative constraints. For each, connect the decision to evidence, output, data, evaluation, and serving.
 
 > Mental image: follow one input all the way to the product's decision.
 
 ## 2. Defect inspection: requirements and baseline
 
-Assume item rejection within **100 ms**, with costly misses and limited false rejects.
+Assume item rejection within **100 ms**. A **miss** accepts a defective item; a **false reject** rejects an acceptable one. Misses are costly, but false rejects must also be limited.
 
 At 800 pixels/second and 10 ms exposure:
 
@@ -21,6 +21,8 @@ An eight-pixel smear can hide a tiny scratch. Test exposure and lighting before 
 Define severity and borderline labels. Include reflection negatives; split by batch/session. Compare threshold/morphology and pretrained classification baselines.
 
 ## 3. Defect inspection: model and serving
+
+An **anomaly score** measures departure from known-normal examples; **patch scoring** applies a decision to small image crops. Aggregate local results into the required item-level decision.
 
 | Requirement | Candidate output |
 |---|---|
@@ -44,11 +46,11 @@ document → text regions → recognition → layout → fields
 
 Preserve small characters and rectify crops. Split by vendor/template/source.
 
-Start with an OCR engine and rules for common layouts. Add learned layout reasoning when field ambiguity warrants it.
+**Optical Character Recognition (OCR)** converts visible characters into text. **Field extraction** assigns the recognized text to named fields such as total or currency. Start with an OCR engine and rules for common layouts. Add learned layout reasoning when field ambiguity warrants it.
 
 ## 5. Document extraction: evaluation and review
 
-Measure region recall, CER/WER, exact fields, accepted-output errors, and review load.
+Measure region recall, **CER/WER** (character/word edit errors divided by reference length), exact fields, accepted-output errors, and review load.
 
 “1250” → “1280” may barely affect document-wide CER but invalidates the total.
 
@@ -60,7 +62,9 @@ Inspect decimals, signs, currencies, and subtotal/total conflicts. Ground genera
 
 Assume one million catalog items and a **200 ms** candidate deadline.
 
-Define relevance: exact SKU, style, or substitute?
+**Retrieval relevance** specifies which results should count as useful. Define it: exact **SKU** (catalog variant identifier), style, or substitute?
+
+**Approximate Nearest Neighbor (ANN) search** retrieves similar vectors without exhaustive comparison. **Reranking** reevaluates a shortlist with an additional scorer.
 
 ```text
 offline: catalog → encoder → vectors → index
@@ -85,7 +89,7 @@ Assume fixed cameras at **30 frames/second** with persistent within-camera IDs.
 
 Clarify cross-camera identity and tolerated occlusion duration.
 
-Start with detection, motion prediction, and gated one-to-one association. Add appearance for ambiguous crossings.
+**Tracking** connects detections over time into persistent identities. Start with detection, motion prediction, and **gated association**, rejecting implausible pairs before one-to-one matching. Add appearance for ambiguous crossings.
 
 Define track creation/retirement and dropped-frame handling. Split full videos/sessions; label difficult crossings.
 
@@ -97,7 +101,7 @@ Specify stale-frame dropping and use actual timestamps.
 
 Inspect similar clothing, camera movement, and occlusion. Longer retention bridges gaps but risks wrong reconnection.
 
-Evaluate detection, IDF1/HOTA, and event outcomes.
+Evaluate detection, **IDF1** (identity precision/recall balance), **HOTA** (combined detection/association accuracy), and event outcomes.
 
 **Decision trigger:** Strong detections with crossing ID swaps call for association improvements.
 

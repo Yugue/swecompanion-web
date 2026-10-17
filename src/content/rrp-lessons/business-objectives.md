@@ -1,120 +1,43 @@
 ## Connecting the model to the business
 
-**The thing you can optimize is never quite the thing the business wants,** and naming that gap precisely is most of the judgement being tested.
+A **business objective** states the outcome the recommendation policy should improve. A **proxy** is a more convenient measured signal used in its place, such as clicks for useful discovery.
 
-A **proxy objective** is a measurable signal such as clicks or watch time used in place of the business outcome we truly care about. This chapter examines that gap, then covers fairness and policy, cross-stage failure diagnosis, and complete system design.
+A proxy can be helpful without being identical to the intended benefit.
 
-### Chapter goal
+## 1. Write a metric contract
 
-By the end of Chapter 7, you should be able to connect proxy objectives to business outcomes, keep hard policy outside weighted scores, diagnose failures by funnel stage, design an end-to-end recommendation, ranking, and personalization (RRP) system, and explain the tradeoffs clearly in an interview.
+| Field | Example for a discovery feed |
+|---|---|
+| Population | Eligible active users in the experiment |
+| Primary outcome | Useful viewing per assigned user over a week |
+| Measurement | Defined completion or satisfaction criteria |
+| Guardrails | Complaint, latency, and inventory-access limits |
+| Evaluation horizon | Enough time for the specified outcomes and effects |
 
-```text
-what you can train on today      clicks, watch time, purchases
-what the business actually wants retention, lifetime value, a healthy marketplace
-                                 ↑ too slow and too diffuse to optimize directly
-```
+Define numerator, denominator, window, exclusions, and missing outcomes. “More purchases” per impression, active user, or assigned user can reward different behavior.
 
----
+**Guardrails** are predefined limits used alongside the primary outcome. Decide whether a measure is a hard limit or a weighted tradeoff before seeing a favorable result.
 
-## 1. Optimizing a proxy finds its flaws
+## 2. Inspect how a proxy can diverge
 
-```text
-optimize clicks         → clickbait
-optimize watch time     → longer content, autoplay, binge loops
-optimize purchases      → discounting, and pushing what is easy to sell
-optimize session length → making things harder to find
-```
+Click optimization can favor attractive but disappointing presentation. Watch-time optimization can favor long content. Purchase optimization can favor discounts with poor margins or later returns.
 
-Each of these is the optimizer doing its job correctly. The proxy diverged from the goal, and enough pressure found the divergence. That is not a modelling failure - it is what proxies do.
+These are possible mechanisms, not guaranteed outcomes of every optimizer. Measure the counter-signals relevant to the product instead of assuming the proxy is either perfect or useless.
 
-### Rule of thumb
+A better predicted risk or click probability also does not prove that acting on it improves the intended outcome. Predictions and interventions answer different questions.
 
-> Assume any metric you optimize hard will eventually be gamed by your own system. Decide in advance what you will hold fixed.
+## 3. Define utility before blending outputs
 
----
+Expected click value, watch seconds, and complaint probability have different units. A combined score needs explicit conversions, costs, or experimentally justified tradeoffs.
 
-## 2. Turn a business goal into a metric contract
+For per-impression expected purchase value, specify the purchase probability's conditioning, attribution, and value definition. Revenue, margin, and retained value after returns are different targets.
 
-Define population, denominator, measurement window, and exclusions. 'More purchases' could mean purchases per impression, per active user, or per week; each creates different incentives.
+Long-horizon outcomes can be used for training when mature evidence exists. Their delay affects responsiveness and measurement cost; it does not make them universally impossible to optimize.
 
-Specify primary outcomes and guardrail thresholds before tuning. Distinguish leading signals available quickly from outcomes that need mature cohorts, such as returns or weekly retention.
+## 4. Include all affected participants
 
----
+A marketplace serves buyers, sellers, and the platform. Exposure concentration may benefit some users or reflect genuine demand while making discovery difficult for new providers.
 
-## 3. Marketplaces have several parties
+Measure provider opportunity, eligible inventory coverage, user value, and the intended business outcome. State whose cost is being traded and which requirement cannot be overridden by a score.
 
-```text
-buyers      want relevance and good prices
-sellers     want exposure and a fair chance
-platform    wants transactions, growth, and both sides to stay
-```
-
-A ranker optimizing only buyer engagement will concentrate traffic on a few proven sellers, which raises short-term conversion and starves the supply side. Then listings dry up and the catalogue - the platform's real asset - stops growing.
-
-### Rule of thumb
-
-So marketplace ranking usually carries explicit supply-side protections: minimum exposure for new sellers, caps on how much traffic one seller can receive, and **catalogue coverage**, the fraction of inventory that is shown at all.
-
----
-
-## 4. Long-term value is valuable but slow to learn from
-
-```text
-retention      measurable in weeks   → far too slow for a training loop
-lifetime value measurable in months  → and confounded by everything
-```
-
-The practical resolution is a two-layer structure:
-
-```text
-train on:      short-term predictions you can measure   (click, watch, complaint)
-combine with:  weights set from what correlates with long-term outcomes
-validate on:   long-horizon holdback experiments, run for months
-```
-
-### Core intuition
-
-That last line is what serious teams do and what most candidates never mention: a small slice of traffic held on a fixed policy for a long period, so you can see the long-run effect of everything else.
-
----
-
-## 5. Guardrails are how you hold the line
-
-```text
-primary metric     the thing you are trying to move
-guardrails         the things you refuse to lose, at any primary gain
-                   → complaint rate, coverage, seller diversity,
-                     latency, new-item impression share
-```
-
-### Rule of thumb
-
-The point of a **guardrail metric** is that it is **not** traded off: if complaint rate or latency crosses its limit, the launch fails even when the main metric improves. Declaring guardrails before an experiment makes mixed results decidable.
-
----
-
-## 6. Answering the trade-off question
-
-```text
-"Engagement is up 5%, seller diversity down 20%."
-
-"That is a supply-side risk, not a win. Concentrating traffic raises
- conversion now and reduces the catalogue later, and the catalogue is
- the asset. I'd hold diversity as a guardrail rather than a weighted term,
- add an exposure floor for newer sellers in re-ranking, and check the
- long-horizon holdback before shipping. If the business decides the
- trade is worth it, that is a legitimate call - but it should be made
- explicitly rather than by a loss function."
-```
-
----
-
-## What matters most
-
-- **You optimize a proxy, and enough optimization pressure will find where the proxy diverges** - that is what proxies do, not a modelling bug.
-- **Marketplaces have several parties whose interests conflict,** and buyer-only optimization starves the supply side.
-- **Long-term outcomes are slow, sparse, and confounded,** so fast proxies often support the training loop while long-horizon experiments validate business value.
-- **Guardrails must not be traded off.** Once a guardrail becomes a weighted term, optimization spends it.
-- **Name the trade explicitly and let the business decide it** rather than letting a loss function decide by default.
-
-Next topic is **Fairness, policy, and what not to show**.
+Use an experiment suited to interference, outcome delay, and cumulative effects. A higher short-term proxy alone is not a complete launch criterion.

@@ -1,156 +1,54 @@
 ## Regularization: L1, L2, and elastic net
 
-**Regularization is telling the model "keep it simple" by charging it a fee for complexity.**
-
-You add a penalty to the training objective that grows with the model's coefficients. The model accepts a little more training error in exchange for being less sensitive to noise and performing better on unseen data. L1 and L2 create that trade in different ways.
-
----
-
-## 1. The objective
+**Regularization** discourages overly complex or unstable fits. In linear models, it commonly adds a coefficient penalty to the data loss:
 
 \[
-L_{\text{total}} = \underbrace{L_{\text{data}}(w)}_{\text{fit the data}} + \lambda\,\underbrace{R(w)}_{\text{stay simple}}
+L_{total}(w)=L_{data}(w)+\lambda R(w)
 \]
 
-### Common issue
+The strength \(\lambda\) controls the tradeoff. Better training fit alone no longer wins if it requires a costly coefficient pattern.
 
-\(\lambda\) is the exchange rate. In scikit-learn's linear models it appears as `alpha` (larger = more regularization) and in logistic regression and SVMs as `C = 1/λ` (smaller = more regularization). Mixing those two up is a common slip.
+## 1. L1 and L2 change the shape of the choice
 
----
+```aml-visual
+regularization-geometry
+```
 
-## 2. L2 (ridge)
+| Penalty | Form | Typical effect |
+|---|---|---|
+| L2, or ridge | \(\sum_jw_j^2\) | Shrinks coefficients; stabilizes correlated directions |
+| L1, or lasso | \(\sum_j\lvert w_j\rvert\) | Can set some coefficients exactly to zero |
+| Elastic net | A weighted mixture of L1 and L2 | Combines sparsity and stabilization |
 
-\[
-R(w) = \sum_j w_j^2
-\]
+**Sparsity** means many coefficients are zero. L1's corners on coordinate axes make zero coefficients common; L2's rounded constraint usually shrinks without selecting exact zeros. Exact zeros under L2 are still possible for some datasets.
 
-- shrinks all coefficients **smoothly toward zero**, never exactly to zero,
-- has a closed form: \(w = (X^{\top}X + \lambda I)^{-1}X^{\top}y\), which is always invertible,
-- handles correlated features gracefully by **splitting the weight between them**,
-- is the default when you believe many features each contribute a little.
+## 2. Correlated features need care
+
+If two standardized features contain nearly the same signal, many weight combinations can predict similarly.
+
+Ridge discourages large opposing coefficients and tends to share weight across similar features. Lasso may retain one and remove another, with the choice changing across samples. Elastic net can retain related groups while still producing sparsity.
+
+A selected feature is not proven causal, and a removed one is not proven irrelevant. Selection reflects the model, other available features, and penalty strength.
+
+## 3. Tune the whole procedure
+
+Scale numeric features when their units should be treated comparably. Fit the scaler within each training fold, then tune penalty strength using validation or cross-validation.
 
 ```python
-Ridge(alpha=1.0)  |  LogisticRegression(penalty="l2", C=1.0)
+pipe = Pipeline([
+    ("scale", StandardScaler()),
+    ("model", Ridge(alpha=1.0)),
+])
 ```
 
----
+Larger `alpha` generally means a stronger penalty. For models using `C`, smaller `C` means stronger regularization. Exact normalization conventions differ across estimators; do not assume every library's parameters are numerically interchangeable.
 
-## 3. L1 (lasso)
+An intercept is commonly left unpenalized. Penalizing it would also pull the baseline prediction toward zero.
 
-\[
-R(w) = \sum_j \lvert w_j\rvert
-\]
+## 4. The same idea outside coefficients
 
-- drives some coefficients **exactly to zero**, so it selects features,
-- the penalty is not differentiable at 0, so it is fitted with coordinate descent, not plain gradient descent,
-- with correlated features it tends to pick one arbitrarily and zero the rest - unstable for interpretation,
-- is the default when you believe only a few features matter.
+Depth limits and minimum leaf sizes constrain trees. Early stopping limits the number of boosting corrections. Larger neighbor counts smooth k-NN predictions.
 
-The geometric intuition, worth being able to sketch: the L1 constraint region is a diamond with corners on the axes, and the loss contours usually touch it at a corner - and a corner means a coordinate is exactly zero. The L2 region is a circle with no corners, so it touches at a non-zero point.
+These mechanisms can reduce sensitivity to training noise, often at the cost of more bias. Too strong a restriction underfits. More representative data can improve generalization too, but it is additional information rather than a coefficient penalty.
 
-```text
-L1 (diamond)              L2 (circle)
-     ◇   contour hits        ○   contour hits
-    ╱ ╲  a corner → w=0     (  )  the edge → w small
-```
-
----
-
-## 4. Seeing the difference on real coefficients
-
-Same data, same features, three settings. Watch what happens to the coefficients:
-
-```text
-feature          no penalty      L2 (ridge)     L1 (lasso)
-─────────────────────────────────────────────────────────────
-income              4.81            2.10           1.94
-income_usd          4.79            2.08           0.00   ← duplicate, dropped
-tenure             −1.22           −0.95          −0.88
-tenure_months      −1.19           −0.93           0.00   ← duplicate, dropped
-n_logins            0.31            0.22           0.07
-random_noise_1      0.88            0.11           0.00   ← noise, dropped
-random_noise_2     −0.79           −0.09           0.00   ← noise, dropped
-```
-
-Three things to read off it.
-
-**Without a penalty, noise gets real coefficients.** The two random columns picked up weights of 0.88 and −0.79 by fitting whatever accident was in the training sample.
-
-**L2 shrank everything and zeroed nothing.** Notice the two duplicate pairs: ridge split the weight roughly evenly between them (2.10 and 2.08). That is the behaviour you want when correlated features are both genuinely informative.
-
-### Intuition
-
-**L1 zeroed six of nine.** It kept one of each duplicate pair and discarded the other - and *which* one it kept is essentially arbitrary. That is the instability that makes lasso a poor choice when you need to explain which features matter.
-
----
-
-## 5. Elastic net
-
-\[
-R(w) = \rho\sum_j\lvert w_j\rvert + (1-\rho)\sum_j w_j^2
-\]
-
-Sparsity from L1, stability from L2. Preferred when features are correlated *and* you want selection - lasso alone picks one of a correlated group at random, elastic net keeps the group together.
-
-```python
-ElasticNet(alpha=0.1, l1_ratio=0.5)
-```
-
----
-
-## 6. Choosing
-
-| Situation | Penalty |
-|---|---|
-| Many features, all plausibly relevant | L2 |
-| Many features, few expected to matter, want sparsity | L1 |
-| d ≫ n (5,000 features, 800 rows) | L1 or elastic net |
-| Correlated feature groups | L2 or elastic net |
-| Coefficient stability matters for explanation | L2 |
-
-Two non-negotiables:
-
-1. **Scale the features first.** The penalty is on raw coefficient size, so without scaling you punish features by their unit of measurement.
-### Rule of thumb
-
-2. **Tune λ by cross-validation.** It is not a constant you can guess; `RidgeCV`/`LassoCV` exist for exactly this.
-
----
-
-## 7. Regularization outside linear models
-
-The idea is universal; only the mechanism changes:
-
-| Model | Regularizer |
-|---|---|
-| Decision tree | max depth, min samples per leaf, cost-complexity pruning |
-| Random forest | tree depth, min leaf size, feature subsampling |
-| Gradient boosting | learning-rate shrinkage, fewer trees (early stopping), subsampling, L1/L2 on leaf weights |
-| Support-vector machine (SVM) | C (and the margin itself is a regularizer) |
-| k-NN | larger k |
-| Any iterative model | early stopping |
-| Any model | more data, which is the regularizer you cannot buy with a hyperparameter |
-
----
-
-## 8. Regularization trades bias for variance
-
-\[
-\text{variance} \downarrow \quad\text{while}\quad \text{bias} \uparrow
-\]
-
-### Core intuition
-
-That trade is favorable only up to a point. Too much regularization gives you a flat, underfitting model - which is why the strength must be tuned, and why adding regularization to a model that is already underfitting makes things worse.
-
----
-
-## What matters most
-
-- **You are deliberately fitting the training data worse** in exchange for better generalization: lower variance bought with higher bias.
-- **L2 shrinks smoothly and splits weight between correlated features; L1 zeroes coefficients outright** and picks one of a correlated group arbitrarily. Elastic net gives sparsity with stability.
-- **The geometric reason L1 selects:** its constraint region has corners on the axes, and a corner means a coordinate is exactly zero.
-- **Scale first, then tune λ by cross-validation** - and keep straight that `alpha` rises with regularization while `C` falls.
-- **The idea generalizes:** depth limits and pruning for trees, shrinkage and early stopping for boosting, C for SVMs, larger k for k-NN, and more data for everything.
-
-Next topic is **Diagnosing overfitting and underfitting**.
+> **Mental image:** regularization makes a complicated explanation pay rent. Keep complexity only when its improvement survives validation.

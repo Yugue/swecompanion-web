@@ -282,6 +282,10 @@ where:
 - \(z_i\) = logit
 - \(T\) = temperature
 
+```dl-visual
+temperature
+```
+
 ---
 
 ## 8. Low temperature

@@ -2,7 +2,7 @@
 
 ## 1. Two views constrain depth
 
-Each matched pixel defines a viewing ray. **Triangulation** finds their 3D agreement.
+**Stereo vision** estimates depth from two cameras viewing the same scene. Each matched pixel defines a viewing ray; **triangulation** estimates the 3D point whose projections best agree with both observations.
 
 ```text
 left pixel → ray ─╲
@@ -14,22 +14,24 @@ Reliable depth needs correct matches and calibrated cameras.
 
 ## 2. Epipolar geometry narrows matching
 
+**Epipolar geometry** describes the constraints between two camera views. A pixel in one image restricts its counterpart to an **epipolar line** in the other image:
+
 \[
 {x'}^TFx=0
 \]
 
-F is the fundamental matrix; x and x′ are homogeneous pixel points.
+The **fundamental matrix** F encodes this two-view relation in pixel coordinates; x and x′ are homogeneous pixel points.
 
 It restricts a match to a line, rather than mapping it to one fixed point.
 
-- **Essential matrix:** calibrated normalized coordinates and relative motion.
-- **Rectification:** corresponding points lie on approximately the same row.
+- **Essential matrix:** the equivalent two-view constraint in calibrated, normalized camera coordinates; it encodes relative rotation and translation direction.
+- **Rectification:** warp the images so corresponding epipolar lines become aligned rows.
 
 The search becomes one-dimensional.
 
 ## 3. Disparity gives depth
 
-For rectified stereo:
+**Disparity** d is a matched point's horizontal pixel-position difference between rectified views. The **baseline** B is the distance between camera centers. For a standard parallel rectified pair:
 
 \[
 Z=\frac{fB}{d}
@@ -42,6 +44,10 @@ With f=800,B=0.1 m:
 - d=8 → Z=10 m.
 
 Larger baseline improves sensitivity but increases occlusion/viewpoint differences.
+
+```cv-visual
+stereo
+```
 
 ## 4. Distant depth is unstable
 
@@ -68,14 +74,14 @@ Smoothness can fill gaps but blur boundaries. Preserve invalid-region informatio
 
 ## 6. Pose and scale
 
-Monocular two-view geometry generally leaves translation scale ambiguous.
+**Monocular** means using one camera. Its two-view motion geometry generally determines translation only up to an unknown overall scale.
 
 Metric scale can come from:
 - Known stereo baseline.
 - Known object dimensions.
 - Additional sensors.
 
-**PnP** estimates pose using known 3D points and their 2D observations.
+**PnP (Perspective-n-Point)** is a camera-pose estimation problem: given known 3D landmarks and their 2D image locations, estimate the camera's rotation and translation.
 
 ## 7. Classical versus learned depth
 
@@ -83,7 +89,7 @@ Metric scale can come from:
 - Learned stereo: learned matching/regularization with geometric evidence.
 - Monocular learning: appearance priors.
 
-Check metric versus relative output, boundaries, and domain shift. Smooth-looking depth need not be physically accurate.
+**Metric depth** uses physical units; **relative depth** supplies depth relationships without necessarily fixing physical scale. **Domain shift** means input conditions differ from those used to develop the model. Check all three, especially at boundaries. Smooth-looking depth need not be physically accurate.
 
 ## 8. Interview reasoning
 

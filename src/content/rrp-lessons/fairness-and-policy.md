@@ -1,105 +1,39 @@
 ## Fairness, policy, and what not to show
 
-**Ranking decides who gets attention,** which makes exposure something you are allocating whether or not you meant to.
+**Eligibility policy** determines which items may be shown. **Fairness objectives** specify how quality, opportunity, or exposure should be assessed across people or providers.
 
----
+They are related but not interchangeable: a list can meet eligibility rules while distributing opportunities poorly under a chosen fairness objective.
 
-## 1. Two sides to it
+## 1. Define the comparison
 
-```text
-user-side     do different groups of users get equally good recommendations?
-item-side     do different creators, sellers, or publishers get a fair chance
-              at being seen?
-```
+| Perspective | Example question | Evidence to report |
+|---|---|---|
+| User side | Do relevant user groups receive useful results? | Group quality, counts, uncertainty |
+| Provider side | Who receives eligible exposure? | Impression shares, new-provider access |
+| Opportunity | Are similarly qualified items treated comparably? | Defined relevance reference and exposure |
 
-### Core intuition
+Equal exposure, exposure proportional to a chosen relevance measure, and new-provider opportunity are different objectives. Select the appropriate one for the product instead of treating one formula as universally fair.
 
-The second is easy to forget and often the one with commercial and regulatory weight. A system can be excellent for every user and still concentrate all exposure on a handful of suppliers.
+Historical labels can reflect prior exposure. Removing a sensitive input alone does not remove correlated proxies or guarantee equal outcomes.
 
----
+## 2. Enforce hard rules as hard rules
 
-## 2. Popularity bias is the default outcome
+A disallowed item should not remain selectable with a finite penalty that a large relevance score can outweigh.
 
-Nothing malicious has to happen:
+Apply eligibility checks early where supported and recheck the final response, including cached slates. Log policy version, removal reason, and required metadata status. Define the valid fallback when a required check cannot be completed.
 
-```text
-popular item → ranked higher → shown more → more engagement → looks better
-new/niche    → no data       → ranked low → not shown       → still no data
-```
+Soft variety or provider targets can use penalties, quotas, or other explicit selection rules. Document their priority and what happens when the requested list is infeasible.
 
-Left alone, this creates a **feedback loop**: popular items receive more exposure, which produces more interactions and makes them appear even more popular. Counteracting it requires something deliberate, such as exposure floors, per-item caps, or exploration.
+## 3. Separate observed patterns from conclusions
 
-### Rule of thumb
+A concentrated catalogue is a signal to investigate, not proof of unfairness. Items can differ in availability, demand, and purpose.
 
-> Fair exposure does not emerge from accurate ranking. If nothing in the system enforces it, it does not happen.
+Compare appropriate eligible groups, inspect position-adjusted opportunities where supported, and include sample size and uncertainty. A tiny group can have an unstable rate; an apparently merit-based score can inherit incumbency from biased historical labels.
 
----
+A change that improves one fairness criterion can worsen another. Report the chosen tradeoff and affected groups rather than claiming every definition can be satisfied together.
 
-## 3. Identify context-specific policy requirements
+## 4. Keep policy context explicit
 
-Housing, employment, financial services, advertising, minors' content, and regional availability can carry different requirements. Determine the current rules for the actual jurisdiction and surface with the responsible legal and policy teams; a general study guide is not a compliance specification.
+Content eligibility and decision requirements depend on the actual surface, users, product, and applicable rules. Identify the responsible policy definitions and owners rather than deriving them from a general recommendation score.
 
-Removing a sensitive attribute alone does not eliminate discrimination risk: other inputs may correlate with it. Keep policy context explicit and audit the resulting decisions, not just the feature list.
-
----
-
-## 4. Policy is a filter, not a score
-
-This is the part most worth getting right in an interview:
-
-```text
-✗  add a penalty to the ranking score for disallowed items
-       → a score can always be outweighed by a large enough relevance
-       → "mostly not shown" is not a policy
-
-✓  remove disallowed items from the slate, as a hard rule
-       → filter early where possible; recheck hard rules before final display
-       → auditable: you can log exactly what was filtered and why
-```
-
-### Rule of thumb
-
-Soft constraints belong in the score. Hard ones belong in a filter. Mixing them up is how a policy violation ships.
-
----
-
-## 5. Audit eligibility and exposure decisions
-
-Attach a reason and policy version to filtered items. Recheck availability and policy at serving time, including cached slates, because a previously allowed item can become disallowed.
-
-Monitor missing policy metadata, blocked-item leakage, and how filters affect different eligible providers. Use a safe fallback when required policy information is unavailable; relevance is not a reason to bypass the check.
-
----
-
-## 6. Choose the comparison before judging fairness
-
-Equal impressions, exposure proportional to relevance, and opportunity for new suppliers are different objectives. Define the eligible population and the intended comparison before choosing a metric.
-
-Examine uncertainty in small groups and whether the relevance labels inherit historical exposure bias. An apparently merit-based rule can reproduce incumbency if 'merit' is measured only by past traffic.
-
----
-
-## 7. Measuring it
-
-```text
-user-side     ranking quality sliced by user segment, looking at the worst slice
-item-side     exposure distribution across creators/sellers - Gini or share of top 1%
-              new-item impression share
-              exposure relative to quality, not just absolute exposure
-```
-
-That last line matters: perfectly equal exposure is not the goal either, since items genuinely differ in quality. The usual framing is whether exposure is proportionate to merit rather than to incumbency.
-
-And note the honest caveat - the fairness definitions conflict with each other, so you cannot satisfy all of them at once. Saying which one you chose and why is the mature answer.
-
----
-
-## What matters most
-
-- **Two sides: users receiving good results, and items getting a fair chance at exposure.** The second is easier to forget.
-- **Popularity bias is the default outcome,** so fair exposure has to be enforced rather than expected.
-- **"We didn't use the protected attribute" is not a defence,** because correlated features reproduce it.
-- **Policy belongs in a filter, not in the score** - a score can always be outweighed, and "mostly not shown" is not a policy.
-- **Measure exposure relative to merit, not equality,** and say which fairness definition you chose, since they conflict.
-
-Next topic is **Characteristic failure modes**.
+Evaluate both candidate retrieval and final display. A final-list audit alone may miss groups excluded before ranking, while a retrieval audit alone may miss unequal placement or later filtering.

@@ -60,6 +60,12 @@ This is called **weight sharing**.
 
 So if that filter learns to detect a vertical edge, it can detect a vertical edge on the left, middle, or right side of the image.
 
+Try a separate 5 × 5 image below. These hand-chosen kernels make edge detection and averaging easy to compare.
+
+```dl-visual
+convolution
+```
+
 ---
 
 ### 2. What is the CNN actually learning?

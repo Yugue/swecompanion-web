@@ -1,157 +1,53 @@
 ## Boosting and gradient-boosted trees
 
-Boosting builds trees **sequentially**, each one correcting what the current ensemble still gets wrong. On tabular data it is the strongest default model, which makes it a very common interview subject.
+**Gradient boosting** builds an additive model one correction at a time. Each new tree is trained to improve the loss of the current ensemble.
 
----
+## 1. Start with a constant, then correct it
 
-## 1. The idea
+For squared-error regression, begin with the training target mean. The **residual** is actual minus current prediction.
 
-```text
-F0(x) = a constant (the mean, or the log-odds of the base rate)
-   ↓  compute what is still wrong
-h1 fits those errors        → F1 = F0 + η·h1
-   ↓  compute what is still wrong
-h2 fits those errors        → F2 = F1 + η·h2
-   ...
-```
+| Example | Actual | Initial prediction | Residual | New tree prediction |
+|---|---|---|---|---|
+| A | 300 | 250 | +50 | +40 |
+| B | 200 | 250 | −50 | −40 |
+| C | 250 | 250 | 0 | 0 |
 
-Each \(h_m\) is a **shallow** tree (depth 3-6). Individually they are weak; the sum is strong.
-
----
-
-## 2. Watching it work, on three rows
-
-Before the general version, here is the whole algorithm on a tiny regression problem. Predict house price; start by predicting the average.
+With learning rate \(\eta=0.1\), add one tenth of the tree's correction:
 
 ```text
-              truth    F0 (mean)   residual = what's still wrong
-  house A      300        250            +50
-  house B      200        250            −50
-  house C      250        250              0
+A: 250 + 0.1 × 40  = 254  → residual +46
+B: 250 + 0.1 × −40 = 246  → residual −46
+C: 250 + 0.1 × 0   = 250  → residual 0
 ```
 
-Tree 1 is fitted **to the residual column**, not to the price. Say it learns "bigger houses are underpriced by about 50" and predicts +40, −40, 0. With a learning rate of 0.1 we add only a tenth of it:
+The next tree fits what remains wrong about the sum so far. It does not independently fit the original targets like a bagged tree.
 
-```text
-              F1 = F0 + 0.1×h1     new residual
-  house A      250 + 4 = 254           +46
-  house B      250 − 4 = 246           −46
-  house C      250 + 0 = 250             0
-```
+## 2. Why “gradient”?
 
-Tree 2 is now fitted to *that* residual column. And so on, several hundred times. Each tree is weak, each correction is small, and the sum creeps toward the truth.
-
-```text
-F0 → +η·h1 → +η·h2 → +η·h3 → ... → F_m
-     each tree fits what the SUM SO FAR still gets wrong
-```
-
-### Intuition
-
-Two things fall out of this picture immediately. The trees must be **shallow**, because each one only has to capture a small remaining correction. And more trees can **overfit**, because the residuals eventually contain nothing but noise and the model will happily fit that too.
-
----
-
-## 3. Why "gradient"
-
-For squared error, "what is still wrong" is the residual \(y - F(x)\). Gradient boosting generalizes this: each tree fits the **negative gradient of the loss** with respect to the current predictions.
+For loss \(L(y,F)\), form targets from its negative derivative with respect to the current prediction:
 
 \[
-r_i^{(m)} = -\left[\frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}\right]_{F = F_{m-1}}
+r_i^{(m)}=-\left.\frac{\partial L(y_i,F)}{\partial F}\right|_{F=F_{m-1}(x_i)},
+\qquad F_m(x)=F_{m-1}(x)+\eta h_m(x)
 \]
 
-\[
-F_m(x) = F_{m-1}(x) + \eta\, h_m(x)
-\]
+For \(\tfrac12(y-F)^2\), that derivative gives the residual. Other losses give other correction targets. This lets boosting address classification, robust regression, and asymmetric costs. Some implementations also use curvature when estimating updates.
 
-### Core intuition
+## 3. Tune the correction size and complexity
 
-That framing is what lets the same algorithm optimize log loss, Huber, quantile, or a ranking objective - it is gradient descent, but in function space, taking one tree-shaped step at a time.
+- **Learning rate:** shrinks each correction.
+- **Tree depth or leaf count:** controls which interactions each correction can express.
+- **Tree count:** controls how many corrections are added.
+- **Early stopping:** selects a stopping point using validation performance.
 
----
+Smaller steps usually require more trees; neither more trees nor smaller steps guarantees better generalization. Trees are often shallow for regularization, but boosting does not mathematically require a specific depth.
 
-## 4. Learning rate and number of trees
+Later corrections can fit noise. Validation must reflect groups and time where relevant, including the data used for early stopping.
 
-These two hyperparameters are a single trade-off:
+## 4. When to try it
 
-```text
-η = 0.3, 100 trees   → fast, coarse, easy to overfit
-η = 0.05, 800 trees  → slow, fine-grained, usually better
-```
+Boosted trees are a strong candidate for many tabular datasets with nonlinear relationships. Compare them with a simple baseline and measure serving cost. Named implementations include XGBoost, LightGBM, and CatBoost; their category handling, missing-value support, and regularization differ.
 
-\(\eta\) shrinks each tree's contribution, so more trees are needed. The standard recipe:
+Unlike an ordinary regression tree or a forest of leaf means, an additive boosted model is not universally bounded by the observed target range. It still generally lacks the natural trend extrapolation of a suitable linear model.
 
-> Fix a small learning rate, then choose the number of trees by early stopping on a validation set.
-
-```python
-GradientBoostingClassifier(learning_rate=0.05, n_estimators=2000, max_depth=3,
-                           validation_fraction=0.1, n_iter_no_change=50)
-```
-
-### Common issue
-
-Unlike a random forest, **more trees can overfit here** - the ensemble keeps reducing training error and will eventually start fitting noise.
-
----
-
-## 5. Bias vs variance, one more time
-
-| | Random forest | Gradient boosting |
-|---|---|---|
-| Base learner | deep tree (low bias, high variance) | shallow tree (high bias, low variance) |
-| Mechanism | average away variance | add capacity to reduce bias |
-| Direction | parallel | sequential |
-
-### Rule of thumb
-
-Saying this cleanly - *bagging attacks variance, boosting attacks bias* - is one of the highest-value sentences in this chapter.
-
----
-
-## 6. The modern implementations
-
-| Library | Distinguishing idea |
-|---|---|
-| XGBoost | Regularized objective, second-order (Newton) steps, sparsity-aware splits |
-| LightGBM | Histogram binning and leaf-wise growth - much faster on large data |
-| CatBoost | Ordered boosting and native categorical handling, resistant to target leakage |
-
-All three add row and column subsampling (stochastic boosting, which also decorrelates), L1 penalties on absolute leaf weights, L2 penalties on squared leaf weights, and native missing-value handling.
-
-Key hyperparameters worth naming: `learning_rate`, `n_estimators` (with early stopping), `max_depth` or `num_leaves`, `min_child_weight`/`min_samples_leaf`, `subsample`, `colsample_bytree`, and the regularization terms.
-
----
-
-## 7. Strengths and limits
-
-**Strengths**: state of the art on tabular problems; handles mixed types, missing values, and nonlinear interactions; supports many losses; feature importance and SHapley Additive exPlanations (SHAP) come easily.
-
-**Limits**:
-
-- sequential, so training does not parallelize across trees,
-- more sensitive to hyperparameters than a forest,
-- **sensitive to label noise** - it keeps focusing on the examples it gets wrong, and mislabelled rows are exactly those,
-- like all tree models, it cannot extrapolate beyond the training range of y,
-- many trees to serve, though usually still fast.
-
-### Rule of thumb
-
-> On tabular data with under a few million rows, gradient-boosted trees are the model to beat - and deep learning usually does not beat them.
-
----
-
-## What matters most
-
-- **Each shallow tree fits the negative gradient of the loss,** which makes boosting gradient descent in function space and lets one algorithm handle log loss, Huber, quantile, or ranking objectives.
-- **Learning rate and tree count are a single trade-off:** fix a small rate and let early stopping on validation choose the number of trees.
-- **Bagging attacks variance; boosting attacks bias.** That is also why extra trees can *overfit* here but cannot in a forest.
-- **It is sensitive to label noise,** because it keeps concentrating on the examples it gets wrong - and mislabelled rows are exactly those.
-- **XGBoost, LightGBM, and CatBoost** add regularized objectives, subsampling, and native missing-value or categorical handling. On tabular data under a few million rows it is the model to beat.
-
----
-
-## Chapter 3 checkpoint
-
-Choose an algorithm for three contrasting datasets and justify each choice using data size, dimensionality, linearity, feature type, interpretability, training cost, and inference cost. Name the simplest baseline each model must beat.
-
-That completes **Chapter 3 — Core supervised algorithms**. Next topic is **Loss functions for classical models**.
+> **Mental image:** revise a draft through small edits. Every edit responds to the draft currently on the page.

@@ -1,136 +1,50 @@
 ## Loss functions for classical models
 
-A loss function answers:
+A **loss function** assigns a cost to a prediction. Training minimizes an aggregate of those costs, often with a complexity penalty. An **evaluation metric** measures the behavior you care about after fitting.
 
-> **How wrong is this prediction, and how strongly should training react?**
+## 1. The loss defines the target of learning
 
-The model minimizes loss during training. The product is judged with metrics after training. Those may be related, but they are not interchangeable.
+For prediction error \(e=\hat y-y\):
 
-### Chapter goal
-
-By the end of Chapter 4, you should be able to connect loss, optimization, regularization, validation, and hyperparameter search into one generalization workflow, then distinguish a training problem from an overfitting problem before changing the model.
-
----
-
-## 1. Loss is for learning; metrics are for decisions
-
-A useful training loss must provide a smooth signal that tells optimization how to change the parameters.
-
-```text
-training:   parameters → predictions → differentiable loss → parameter update
-evaluation: predictions → threshold or ranking → business-facing metric
+```aml-visual
+regression-losses
 ```
 
-Accuracy and the **F1 score**—the harmonic mean of precision and recall—are useful evaluation metrics but poor direct objectives: a small score change usually does nothing until it crosses a threshold.
-
-### Rule of thumb
-
-Choose a loss the optimizer can learn from, then choose metrics that represent the decision you care about.
-
----
-
-## 2. Regression losses encode how errors should count
-
-For prediction error `e = actual - predicted`:
-
-| Loss | Behavior | Use when |
+| Loss | Per-example behavior | Ideal population target |
 |---|---|---|
-| Mean squared error (MSE): `e²` | Large errors dominate | Large misses are genuinely much worse |
-| Mean absolute error (MAE): `abs(e)` | Every extra unit costs the same | Outliers should not dominate |
-| Huber | Squared near zero, linear in the tails | Mostly clean data with occasional bad outliers |
-| Quantile | Under- and over-prediction cost differ | You need a percentile or asymmetric decision |
+| Squared error | \(e^2\) | Conditional mean |
+| Absolute error | \(\lvert e\rvert\) | Conditional median |
+| Huber | Quadratic near zero, linear outside a chosen boundary | A compromise sensitive to its boundary |
+| Quantile | Different slopes for under- and overprediction | Chosen conditional percentile |
 
-MSE estimates the conditional mean; MAE estimates the conditional median. Quantile loss can estimate a chosen percentile, such as demand that will be exceeded only 10% of the time.
+“Conditional” means among outcomes with the same available inputs. A restricted fitted model may only approximate these ideal targets.
 
-### Core intuition
+For outcomes [1, 1, 10], the mean is 4 and the median is 1. Those are different best constant predictions because the losses ask different questions.
 
-The loss defines what “best prediction” means, not only how quickly the model trains.
+## 2. Classification losses
 
----
+**Log loss** scores predicted class probabilities. For a positive example, loss is \(-\log p\): a confident mistake such as \(p=0.01\) costs about 4.605.
 
-## 3. Classification losses train scores, not final labels
+**Hinge loss**, commonly used by support vector machines, is \(\max(0,1-yf(x))\) for labels \(y\in\{-1,1\}\). It becomes zero when the signed score reaches the required margin.
 
-**Log loss** rewards calibrated probability assigned to the true class and punishes confident mistakes heavily:
+Log loss encourages probability accuracy; hinge loss encourages separation. Neither guarantees a good model when inputs or model assumptions are inadequate.
 
-```text
-log loss = -y log(p) - (1-y) log(1-p)
-```
+## 3. Quantile loss expresses asymmetry
 
-It is the standard choice when probability quality matters or when a threshold will be selected later.
+For residual \(r=y-\hat y\) and quantile \(q\):
 
-**Hinge loss** asks for the correct side of a margin and is associated with support-vector machines. It emphasizes separation rather than probability estimation.
+\[
+\ell_q(r)=\begin{cases}qr,&r\ge0\\(q-1)r,&r<0\end{cases}
+\]
 
-```text
-need probabilities → log loss
-need a separating margin → hinge loss
-```
+At \(q=0.8\), underpredicting by 10 costs 8; overpredicting by 10 costs 2. Under ideal conditions, minimizing expected loss targets the 80th percentile.
 
-A model trained with hinge loss needs an additional calibration step if downstream systems require probabilities.
+For linear per-unit costs, the appropriate quantile is underprediction cost divided by the sum of under- and overprediction costs. Choose it from the decision rather than because 0.8 sounds cautious.
 
----
+## 4. Loss, weights, and thresholds have different roles
 
-## 4. Rare classes change weighting, not the definition of truth
+**Class weights** multiply selected examples' losses, changing what fitting emphasizes. They may improve the desired operating performance and can change probability calibration.
 
-Class weighting makes errors on rare or costly classes contribute more:
+A **threshold** changes actions after scores are fitted. Start by evaluating thresholds under the actual costs or review budget; changing training weights is a separate experiment.
 
-```text
-weighted loss = class weight × ordinary loss
-```
-
-Focal loss goes further by reducing the contribution of easy examples so training concentrates on hard ones.
-
-Both choices change what the optimizer emphasizes. They may improve recall while making raw probabilities less representative of the real base rate. Recheck calibration and choose the production threshold afterward.
-
-### Common issue
-
-Weights do not create information. If positives are mislabeled or missing, a larger weight amplifies the noise too.
-
----
-
-## 5. Match the objective to the cost structure
-
-Suppose a missed fraud costs $500 and a manual review costs $5. Those costs should influence weighting and threshold selection, but they play different roles:
-
-```text
-loss weights → what patterns training emphasizes
-threshold    → which scores trigger an action
-```
-
-Do not hide hard constraints inside an average objective. If review capacity is capped at 1,000 cases per day, that is an operating constraint used when selecting the threshold.
-
----
-
-## 6. Why you do not train directly on F1
-
-F1 depends on thresholded counts:
-
-```text
-F1 = 2 × precision × recall / (precision + recall)
-```
-
-A tiny probability change usually leaves every predicted label unchanged, so F1 provides no useful local direction for gradient-based optimization.
-
-Use the two-stage pattern:
-
-```text
-train with a smooth loss such as log loss
-        ↓
-evaluate scores on validation data
-        ↓
-select the threshold that meets F1, cost, or capacity goals
-```
-
-The test set remains untouched until model and threshold choices are complete.
-
----
-
-## What matters most
-
-- **Loss drives parameter updates; metrics judge the resulting system.**
-- **MSE, MAE, Huber, and quantile loss encode different beliefs about regression errors.**
-- **Log loss trains probabilities; hinge loss trains a margin.**
-- **Class weighting and focal loss change emphasis and may require recalibration.**
-- **Training weights and production thresholds solve different problems.**
-- **Train with a smooth surrogate, then select thresholds using validation data.**
-
-Next topic is **Optimization: closed form, gradient descent, and stochastic gradient descent**.
+Accuracy and F1 are discontinuous in thresholded predictions and usually supply no useful local gradient. Train with an appropriate surrogate such as log loss, then choose the threshold on validation data. Not every training algorithm requires a smooth loss: trees and specialized optimizers can handle other objectives.

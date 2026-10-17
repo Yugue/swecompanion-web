@@ -67,41 +67,10 @@ The small value \(r\) is called the **rank**.
 
 ## 2. Mental picture
 
-Instead of training this entire matrix:
+Follow the input through the frozen base and the trainable bottleneck:
 
-```text
-                W
-        ┌─────────────────┐
-        │                 │
-        │ huge matrix     │
-        │                 │
-        │                 │
-        └─────────────────┘
-
-       everything trainable
-```
-
-LoRA does:
-
-```text
-               frozen W
-        ┌─────────────────┐
-        │                 │
-        │ pretrained      │
-        │ weights         │
-        │                 │
-        └─────────────────┘
-                 +
-                 │
-       ┌─────────┴─────────┐
-       │                   │
-       ▼                   ▼
-   small A              small B
-       │                   │
-       └────── B A ────────┘
-                 │
-                 ▼
-          small learned update
+```dl-visual
+lora
 ```
 
 Only \(A\) and \(B\) are trained.

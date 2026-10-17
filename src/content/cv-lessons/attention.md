@@ -14,13 +14,13 @@ Convolution uses a fixed local neighborhood; attention can reach distant, conten
 
 ## 2. Queries, keys, and values
 
-Learned projections of features produce:
+A **projection** here is a learned linear map turning token features into vectors for a particular role:
 
 - **Query:** what this token seeks.
 - **Key:** how another token can be matched.
 - **Value:** information passed onward.
 
-Self-attention gets all three from one sequence. Cross-attention gets queries from one sequence and keys/values from another.
+**Self-attention** exchanges information within one token sequence: all three come from that sequence. **Cross-attention** lets one sequence read another: queries come from one, keys/values from the other.
 
 These roles are learned, rather than literal questions and answers.
 
@@ -31,13 +31,19 @@ These roles are learned, rather than literal questions and answers.
 =\operatorname{softmax}\left(\frac{QK^T}{\sqrt{d_k}}+M\right)V
 \]
 
-\(d_k\) is query/key width; \(M\) is an optional additive mask. Softmax runs over keys for each query.
+Q/K/V hold query/key/value vectors. \(d_k\) is query/key width. \(M\) is an optional additive **attention mask**: typically 0 for allowed pairs and negative infinity for excluded pairs. Softmax runs over keys for each query.
 
 Weights \([0.75,0.25]\) and scalar values \([2,10]\) give \(0.75(2)+0.25(10)=4\).
+
+```cv-visual
+attention
+```
 
 Scaling limits growth in dot-product magnitude with width under common variance assumptions.
 
 ## 4. Follow the shapes
+
+An **attention head** is one query/key/value projection set and its attention operation. B is batch size, N token count, and \(d_v\) value width.
 
 | Quantity, one head | Shape |
 |---|---|
@@ -58,16 +64,16 @@ Cross-attention can have different query and key counts. This example omits mask
 
 Multiple heads use different projections, concatenate outputs, and apply an output projection.
 
-A Transformer block also has:
+A **Transformer** is a neural-network architecture built from repeated attention and per-token transformation blocks. Each block also has:
 
 - Normalization and residual paths for stable learning.
-- A feed-forward network applied to each token.
+- A **feed-forward network**, usually dense layers and a nonlinear activation applied independently to each token.
 
 Attention mixes tokens; the feed-forward network transforms features within each token. Head roles need not be human-interpretable.
 
 ## 6. Position and masks
 
-Without position information, reordering tokens simply reorders outputs. Position encodings supply spatial meaning.
+A **position encoding** supplies a token's location using added vectors or position-dependent attention terms. Without position information, reordering tokens simply reorders outputs.
 
 Padding masks exclude nonexistent tokens. Causal masks hide future output tokens during generation; ordinary image encoding can use the full image.
 
@@ -75,7 +81,7 @@ Padding masks exclude nonexistent tokens. Causal masks hide future output tokens
 
 Dense self-attention has \(N^2\) token pairs. Doubling tokens gives four times as many pairs.
 
-Fused implementations reduce intermediate memory; projections and feed-forward layers still add work.
+A **fused attention implementation** combines operations in a hardware-efficient routine, often avoiding storage of the full score matrix. Such implementations reduce intermediate memory; projections and feed-forward layers still add work.
 
 Attention weights alone are not a causal explanation. Global context can also introduce background shortcuts.
 

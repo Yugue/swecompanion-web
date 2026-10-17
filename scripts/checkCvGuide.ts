@@ -6,6 +6,7 @@ import { cvParts, cvTopics, cvLessonNumbers, cvReferencesByTopic } from "../src/
 import { getLessonBlocks } from "../src/lib/getLessonBlocks";
 import { parseInline, parseTableRows } from "../src/lib/lessonParser";
 import { CV_PATH } from "../src/lib/mlDomains";
+import { isCvVisualId } from "../src/lib/cvVisuals";
 
 // Validate the actual authored content through the same parser used by lesson pages.
 // This catches missing pages, broken prerequisites, unsupported source formatting,
@@ -24,6 +25,7 @@ let equations = 0;
 let tables = 0;
 let diagrams = 0;
 let examples = 0;
+let visuals = 0;
 let words = 0;
 const seen = new Set<string>();
 for (const topic of cvTopics) {
@@ -51,6 +53,9 @@ for (const topic of cvTopics) {
       assert.ok(rows.length >= 2, `${topic.id}: empty table`);
       assert.ok(rows.every((row) => row.length === rows[0].length), `${topic.id}: uneven table columns`);
       tables++;
+    } else if (block.type === "visual") {
+      assert.ok(isCvVisualId(block.text.trim()), `${topic.id}: unknown visual ${block.text}`);
+      visuals++;
     } else if (block.type === "diagram") {
       diagrams++;
     } else if (block.type === "code") {
@@ -76,7 +81,7 @@ assert.ok(examples >= 10);
 if (process.argv.includes("--export")) {
   const validPaths = new Set([CV_PATH, ...cvTopics.map((topic) => `${CV_PATH}/${topic.id}`)]);
   const hub = fs.readFileSync(path.join(process.cwd(), "out", `${CV_PATH.slice(1)}.html`), "utf8");
-  assert.ok(hub.includes("48") && hub.includes("full lessons"), "Exported hub is missing lesson count");
+  assert.ok(hub.includes("48") && hub.includes("lessons"), "Exported hub is missing lesson count");
   const sitemap = fs.readFileSync(path.join(process.cwd(), "out/sitemap.xml"), "utf8");
   for (const topic of cvTopics) {
     const lessonPath = `${CV_PATH}/${topic.id}`;
@@ -86,6 +91,9 @@ if (process.argv.includes("--export")) {
     assert.ok(!html.includes("katex-error"), `${topic.id}: math rendering failed in exported page`);
     assert.ok(html.includes(`rel="canonical" href=`) && html.includes(lessonPath), `${topic.id}: missing canonical`);
     assert.ok(sitemap.includes(`${lessonPath}</loc>`), `${topic.id}: missing sitemap entry`);
+    for (const block of getLessonBlocks(topic.id, "cv").filter((block) => block.type === "visual")) {
+      assert.ok(html.includes(`data-cv-visual="${block.text.trim()}"`), `${topic.id}: visual missing from static page`);
+    }
     for (const match of html.matchAll(/href="(\/mldomain\/cv[^"\s]*)"/g)) {
       const target = match[1].split(/[?#]/)[0];
       assert.ok(validPaths.has(target), `${topic.id}: broken internal link ${target}`);
@@ -93,4 +101,4 @@ if (process.argv.includes("--export")) {
   }
   console.log("Static export validated: CV hub, all 48 lesson pages, canonical URLs, internal links, and sitemap entries.");
 }
-console.log(`CV guide validated: ${cvTopics.length} lessons, ${words} words, ${equations} equations, ${tables} tables, ${diagrams} diagrams, ${examples} examples.`);
+console.log(`CV guide validated: ${cvTopics.length} lessons, ${words} words, ${equations} equations, ${tables} tables, ${diagrams} text diagrams, ${visuals} graphical figures, ${examples} examples.`);

@@ -1,109 +1,50 @@
 ## Interpretability and feature importance
 
-Interpretability answers "why this prediction". It is needed for three different reasons - debugging, trust, and legal obligation - and the method you choose depends on which one you are serving.
+**Interpretability** concerns understanding how a model uses inputs to produce predictions. An explanation can describe the model overall or one particular prediction; those are different questions.
 
----
+## 1. Global versus local
 
-## 1. Intrinsic vs post-hoc
-
-```text
-intrinsic : the model IS the explanation
-            linear coefficients, shallow trees, rule lists
-post-hoc  : a separate method approximates a black box
-            permutation importance, SHapley Additive exPlanations (SHAP), Local Interpretable Model-agnostic Explanations (LIME), and partial dependence
-```
-
-### Core intuition
-
-Post-hoc explanations are **approximations of the model**, not descriptions of reality. Saying this out loud is a mark of seriousness - a SHAP plot is a story about the model, and the model is a story about the data.
-
----
-
-## 2. Global vs local
-
-| Scope | Question | Methods |
+| Question | Scope | Useful methods |
 |---|---|---|
-| Global | Which features drive the model overall? | Permutation importance, mean absolute SHAP and a partial-dependence plot (PDP) |
-| Local | Why *this* prediction? | SHAP values, LIME, counterfactuals |
+| Which inputs does the model rely on overall? | Global | Permutation importance; aggregate attributions |
+| How does its prediction change across a feature? | Global or individual | Partial dependence; individual effect curves |
+| Why this output for this example? | Local | Coefficients, decision path, feature attributions |
 
-### Rule of thumb
+A small tree or linear model can be inspected directly, although correlated inputs can still complicate interpretation. **Post-hoc methods** analyze an already fitted model rather than making the model itself transparent.
 
-Regulatory requirements ("why was I declined?") are local. Debugging and feature-pruning decisions are global. They need different tools and can disagree.
+## 2. Permutation importance tests reliance
 
----
-
-## 3. Tree impurity importance is biased
-
-### Common issue
-
-`feature_importances_` sums the impurity reduction attributable to each feature. It is free and it is misleading:
-
-- it favors **high-cardinality** and **continuous** features, which offer more possible split points,
-- it is computed on **training** data, so it rewards features the model overfits on,
-- with correlated features it arbitrarily concentrates credit on whichever one was split first.
-
-> Use it for a quick look. Do not make decisions with it.
-
----
-
-## 4. Permutation importance
-
-Shuffle one feature's column and measure how much the **validation** score drops:
+**Permutation importance** shuffles one feature in held-out data and measures how much the chosen score worsens.
 
 ```python
-permutation_importance(model, X_val, y_val, n_repeats=10, scoring="roc_auc")
+permutation_importance(model, X_val, y_val,
+                       scoring="roc_auc", n_repeats=10, random_state=0)
 ```
 
-- measures what the model actually uses, on held-out data,
-- model-agnostic,
-- but with correlated features it **understates** both: shuffling one leaves the other to carry the signal, so both look unimportant. Group correlated features and permute them together when this matters.
+A large drop suggests the fitted model relies on that feature for this metric and dataset. Correlated inputs can substitute for one another, hiding individual importance; shuffling can also create implausible input combinations. Consider grouped permutations where justified.
 
----
+Tree impurity importance summarizes training split gains and can favor continuous or high-cardinality features. It is not a direct measure of held-out predictive value.
 
-## 5. SHAP
+## 3. SHAP distributes a prediction across inputs
 
-SHAP assigns each feature a contribution to a single prediction, based on Shapley values from cooperative game theory:
+**SHapley Additive exPlanations (SHAP)** uses a Shapley-value attribution framework to express an output relative to a reference:
 
 \[
-\hat f(x) = \phi_0 + \sum_{j=1}^{d}\phi_j
+f(x)=\phi_0+\sum_j\phi_j
 \]
 
-### Intuition
+```aml-visual
+feature-attributions
+```
 
-The prediction decomposes exactly into a base value plus per-feature contributions - which is what makes it usable as a local explanation.
+The output scale matters. Contributions that add in log-odds cannot be added directly to probabilities. The reference dataset and the way missing features are represented affect attribution; different SHAP methods make different dependence assumptions, and some are approximations.
 
-- **Additive and consistent**, with a clear theoretical basis,
-- `TreeSHAP` computes it efficiently for tree ensembles,
-- averaging absolute SHAP values gives a global ranking as well,
-- caveats: expensive for non-tree models, and the standard implementation assumes feature independence, so correlated features distribute credit in ways that can mislead.
+Additivity explains the model's output under that attribution setup. It does not establish which feature caused the outcome in reality.
 
----
+## 4. Effects and causes are separate
 
-## 6. Effect shape, not just magnitude
+A **partial dependence plot (PDP)** averages predictions while varying a chosen feature. **Individual conditional expectation (ICE)** keeps a curve per example, exposing differences hidden by the average. Both can evaluate unrealistic feature combinations when inputs are correlated.
 
-Importance says *how much*; partial dependence says *in which direction*:
+If support contacts predict churn, discouraging customers from contacting support is not thereby a valid intervention. A causal conclusion needs experimental evidence or a justified causal design.
 
-- **PDP**: the average predicted outcome as one feature varies - reveals nonlinearity and thresholds,
-- **Individual conditional expectation (ICE)**: one line per instance, which exposes heterogeneity a PDP average hides,
-- **Monotonic constraints**: rather than checking the shape afterwards, force it - "risk must not decrease as debt increases" is a constraint modern gradient-boosted-machine (GBM) libraries support directly, and it is often the cleanest way to satisfy a reviewer.
-
-**The caveat that must be said**
-
-> Importance is correlational, not causal. An important feature is one the model leans on, not a lever you can pull.
-
-### Common issue
-
-"Customers who contact support churn more" does not mean discouraging support contact reduces churn. Causal claims require an experiment or a causal design, and confusing the two is the most consequential mistake in this area.
-
----
-
-## What matters most
-
-- **Ask which of the three jobs you are doing** - debugging, building trust, or meeting a legal obligation - because they need different tools.
-- **Global and local answer different questions.** "Which features drive the model?" uses permutation importance or mean SHAP; "why was *I* declined?" is local and is what regulators mean.
-- **Built-in tree importance is biased** toward continuous and high-cardinality features, and it is computed on training data. Use it for a glance, not for decisions.
-- **Permutation importance measures what the model actually uses on held-out data,** but correlated features make both look unimportant - group them and permute together.
-- **SHAP splits a single prediction exactly into a base value plus per-feature contributions,** which is what makes it usable locally; it assumes feature independence, so correlation still distorts it.
-- **Post-hoc explanations describe the model, not reality,** and importance is correlational - an important feature is one the model leans on, not a lever you can pull.
-
-Next topic is **Serving a model: batch, online, and train/serve skew**.
+> **Mental image:** an explanation is a map of the model's reasoning under stated assumptions. Check the map's scale, reference, and blind spots before using it to act.

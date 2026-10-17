@@ -200,6 +200,10 @@ Why it matters:
 - latent-variable models
 - statistical assumptions
 
+```dl-visual
+normal-distribution
+```
+
 ---
 
 # 10. Conditional probability

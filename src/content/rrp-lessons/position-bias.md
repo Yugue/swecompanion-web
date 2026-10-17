@@ -1,133 +1,45 @@
 ## Position bias
 
-**Items at the top get clicked partly because they are at the top.** So a click is not evidence of relevance alone - it is evidence of relevance *and* of having been placed somewhere visible.
+**Position bias** means an item's placement changes the chance it is examined or clicked, beyond the item's underlying appeal. A click is therefore evidence about both the item and its presentation.
 
-```text
-same item, same user, different slot:
-   position 1   →  8% click rate
-   position 5   →  3%
-   position 10  →  1%
+Raw CTR at different ranks does not identify this effect: the old policy deliberately placed different items at different ranks.
+
+## 1. A simple examination model
+
+```rrp-visual
+position-examination
 ```
 
-Nothing about the item changed.
-
----
-
-## 1. Why it corrupts training
-
-```text
-old ranker puts item A at position 1
-        ↓
-item A gets clicked a lot
-        ↓
-the new model learns "item A is great"
-        ↓
-it puts item A at position 1
-```
-
-### Core intuition
-
-The model learns to reproduce the old ranker's placement decisions and calls it relevance. Left uncorrected, this is one of the main reasons a new model cannot outperform the one that generated its training data.
-
----
-
-## 2. Compare positions without confusing clicks with visibility
-
-Suppose a randomized swap experiment estimates **relative examination** at position 5 to be half that at position 1. Set the reference multipliers to e₁=1 and e₅=0.5; these are relative effects, not directly observed absolute examination probabilities.
-
-```text
-item       position   observed CTR   relative examination   adjusted score
-A             1           6%                1                  6% / 1 = 6%
-B             5           4%               0.5                 4% / 0.5 = 8%
-```
-
-Under the examination model, B's adjusted evidence is stronger, despite its lower raw click rate. The adjustment puts both items on a reference-position scale; it does not prove either item's absolute relevance probability.
-
-Estimate position effects from comparable items and audiences with adequate observations. Dividing by the raw click rate of an unrelated item would confuse relevance with examination.
-
----
-
-## 3. The standard model of what happens
-
-Separate *being looked at* from *being wanted*:
+Under a particular model, clicking requires examination and attractiveness after examination:
 
 \[
-P(\text{click}) \;=\; P(\text{examined} \mid \text{position}) \times P(\text{relevant} \mid \text{user}, \text{item})
+P(click\mid x,i,r)=e(r,x)\,a(i,x)
 \]
 
-```text
-examined   depends on position (and layout, device, how far they scrolled)
-relevant   depends on the user and the item  ← the only part you want to learn
-```
+\(e\) is examination probability for rank \(r\) and context \(x\); \(a\) is conditional click attractiveness, assumed independent of rank in this model.
 
-If the model's assumptions hold and the examination term is identified, correction can recover relevance on the appropriate scale. Often an experiment identifies only relative examination effects.
+If \(a=0.1\), examination 0.8 at rank 1 gives CTR 0.08. Examination 0.4 at rank 5 gives CTR 0.04 for the same attractiveness.
 
----
+This illustrates an assumption, not an examination estimate inferred from those two click rates alone.
 
-## 4. Know the limits of the examination model
+## 2. Identify placement effects with suitable evidence
 
-The product decomposition assumes that position changes examination, not the item's underlying relevance. Users may also trust top-ranked items more, and one item may change whether they inspect the next.
+Randomized swaps can compare similar items and audiences under different placements. Natural rank variation or joint click models may also help, but require assumptions about confounding and identifiability.
 
-These **trust** and **interaction** effects violate the simple model. Validate corrections with randomized swaps and relevant device/layout slices instead of treating the formula as a universal causal explanation.
+Often evidence identifies only relative examination, such as rank 5 receiving half the examination of rank 1. Dividing CTR by that relative multiplier puts it on a reference-position scale; it does not automatically recover absolute preference probability.
 
----
+Measure layout and device differences. “Position” can include scrolling, image size, and grid location, not just a vertical rank number.
 
-## 5. Estimating the position effect
+## 3. Corrections have limits
 
-| Method | How | Cost |
-|---|---|---|
-| Randomization | occasionally shuffle the top k and compare click rates by slot | cleanest, costs a little engagement |
-| Swap experiments | sometimes swap two adjacent positions | cheaper, less disruptive |
-| Intervention harvesting | find the same item shown at different ranks naturally | free, and confounded |
-| Model it jointly | learn examination and relevance together | no traffic cost, relies on assumptions |
+Bias-aware learning can weight observed evidence using an appropriate examination model. A model trained with observed position can also score candidates at a common reference position, if its assumptions support that use.
 
-Some randomization makes the estimate trustworthy. This is another benefit of **exploration**, which deliberately varies what is shown to collect less biased evidence.
+Neither turns every unclicked low-rank item into a definite negative preference. Small examination estimates also produce large inverse weights and unstable results; clipping changes the bias–variance tradeoff.
 
-### Rule of thumb
+## 4. Distinguish other mechanisms
 
-> You cannot separate position from relevance using data where position was never varied.
+Users may trust high-ranked items more, and one result can change attention to others. These effects violate the simple examination-times-attractiveness model.
 
----
+Examination probability is also distinct from **selection propensity**: the probability that the serving policy chose an action. Correcting visibility and evaluating a different policy are related but different problems.
 
-## 6. Correcting for it
-
-One approach uses a **bias-aware learning objective** that weights observed clicks by inverse examination probability, so an observed click from a rarely examined slot receives more weight. This requires an appropriate click model; it is not a recipe to weight every non-click as confirmed dislike.
-
-Another approach includes observed position in a click model, then fixes it to the same reference position for every candidate when scoring. This is simpler but relies on the model separating position from relevance rather than using correlated placement as a shortcut.
-
-Validate either correction using interventions and surface-specific checks. Correcting examination bias is related to—but distinct from—reweighting actions for off-policy evaluation.
-
----
-
-## 7. Keep weighting assumptions and variance visible
-
-In a bias-aware click objective, clicked observations can be weighted by inverse examination propensity. This does not mean every unclicked low-position item becomes a strong negative.
-
-Small estimated propensities create large weights and noisy estimates. Inspect weight distributions, apply documented clipping if necessary, and report the resulting bias–variance trade-off. Examination probability is also distinct from the probability a logging policy chose an action.
-
----
-
-## 8. It is not only vertical position
-
-```text
-above the fold vs below         a scroll is a bigger barrier than a slot
-left vs right                   in a grid layout
-image size                      bigger tiles draw more attention
-device                          a phone shows two items, a TV shows twenty
-```
-
-### Common issue
-
-"Position" means "how likely was this to be seen", and that depends on the whole layout. A correction fitted on desktop and applied to mobile will be wrong.
-
----
-
-## What matters most
-
-- **A click confounds relevance with placement,** so uncorrected click training teaches the model to reproduce the old ranker.
-- **The standard decomposition splits examination from relevance,** and only the second is worth learning.
-- **Estimating the examination term needs some randomization,** or the same item observed at different ranks.
-- **Two approaches:** a bias-aware click objective using examination weights, or a position-aware model scored at a fixed reference position. Both require validated assumptions.
-- **Position means visibility,** so it depends on layout and device - one correction does not transfer across surfaces.
-
-Next topic is **Estimating what a new policy would have done**.
+> **Mental image:** placement controls the spotlight. More applause under a brighter spotlight does not, by itself, prove a better performance.

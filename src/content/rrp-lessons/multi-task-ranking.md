@@ -1,139 +1,48 @@
 ## Multiple objectives
 
-**Optimizing clicks alone reliably produces clickbait,** because the click is the easiest thing in the chain to provoke and the least connected to whether anyone was glad.
+**Multi-task learning** fits several predicted outcomes using shared or partly shared representations. **Multi-objective selection** combines predicted outcomes or constraints to choose what to show.
 
-```text
-optimize clicks   →  shocking thumbnails, misleading titles
-                  →  clicks go up, satisfaction goes down
-                  →  the metric says you won
+Sharing a model and choosing a product tradeoff are different decisions.
+
+## 1. Give every head a defined target
+
+A **head** is an output component predicting one task, such as a click probability, expected watch time, or complaint probability.
+
+```rrp-visual
+multi-task-heads
 ```
 
-So real rankers predict several outcomes and combine them.
+Define the unit and conditioning for each output. If watch time is zero without a click, then:
 
----
+\[
+E[watch\mid x]=P(click\mid x)E[watch\mid click,x]
+\]
 
-## 1. What single-objective optimization converges on
+A 0.2 click probability and 60 seconds conditional expected watch give 12 seconds per impression. The identity requires the stated event relationship and consistent measurement windows.
 
-Rank purely by predicted click rate and watch what wins over six months:
+## 2. Do not invent unavailable labels
 
-```text
-week 1    click-through rate (CTR) 4.1%   avg watch 8m12s   complaints 0.2%   sessions/user 5.1
-week 8    CTR 5.3%   avg watch 6m40s   complaints 0.5%   sessions/user 5.0
-week 16   CTR 6.8%   avg watch 4m05s   complaints 1.4%   sessions/user 4.6
-week 24   CTR 7.9%   avg watch 2m50s   complaints 2.9%   sessions/user 3.9
-```
+For “watch duration given a click,” an unclicked impression has no observed conditional watch outcome. Mask that task's loss for unavailable labels, or deliberately define and model unconditional watch time per impression.
 
-In this illustrative scenario the optimized metric nearly doubled, while satisfaction-related outcomes worsened.
+A loss mask prevents treating missing labels as observations. It does not by itself remove selection bias in a task trained only on clicked items.
 
-Nothing malfunctioned. The system searched for what makes people click and found it: shocking thumbnails, overstated titles, and content engineered for the first five seconds. Those genuinely do raise click rate, and they are why the user is now opening the app less often.
+Shared representations can help sparse tasks, but tasks can also compete for capacity. Compare each task with a suitable single-task reference and inspect its own quality and calibration.
 
-### Core intuition
-
-That is the whole case for multiple objectives in one table. And note which column noticed first - **average watch time** started falling in week 8, long before sessions per user moved. Cheap counter-signals are your early warning; the business metric confirms it much later.
-
----
-
-## 2. One model, several heads
+## 3. Training and serving weights do different jobs
 
 ```text
-                     ┌──► P(click)
-shared body ─────────┼──► E[watch time]
-(embeddings + layers)├──► P(like)
-                     ├──► P(share)
-                     └──► P(complaint)
+training weights → how task losses update shared parameters
+serving weights  → how predicted outcomes influence item selection
 ```
 
-### Intuition
+A candidate score might combine expected useful watch seconds with a cost for predicted complaints. Seconds and probabilities have different units; serving weights should define the intended conversion or utility.
 
-The body is shared, which is the main technical benefit: the abundant signal (clicks) helps the model learn representations that the sparse signals (shares, complaints) could never learn on their own.
+Calibrated probabilities are useful when the score claims expected value. Arbitrary latent scores from unrelated tasks do not acquire comparable meaning merely by adding them.
 
----
+## 4. Keep objectives and constraints explicit
 
-## 3. Handle outcomes that are only defined after a click
+A convenient proxy can diverge from satisfaction. Optimizing clicks can encourage misleading presentation in some settings; it does not guarantee clickbait or declining retention in every product.
 
-Watch duration may be observed only for clicked videos. Do not treat every unclicked impression as an observed zero for a conditional watch-duration task.
+A **guardrail** is a predefined acceptable limit, such as complaint rate or latency. Hard eligibility conditions cannot be traded away with a weighted quality score.
 
-Use a loss mask for unavailable labels, or define unconditional watch time per impression explicitly. If the head predicts watch time given a click, multiply by click probability before interpreting it as expected watch time per impression.
-
----
-
-## 4. Combining into one score
-
-```text
-score = w₁·P(click) + w₂·E[watch] + w₃·P(share) − w₄·P(complaint)
-```
-
-Two things are worth saying about those weights:
-
-- **They are a product decision, not a modelling one.** How much is a share worth relative to a complaint is a question for the people who own the product, and it should be argued explicitly rather than tuned quietly.
-- **They only mean anything if the predictions are comparable.** A probability is **calibrated** when predictions near 0.7 occur about 70% of the time. Adding a calibrated probability to a badly calibrated score produces a number with no clear interpretation.
-
-### Rule of thumb
-
-> If you cannot say what one unit of each objective is worth, you do not have a combined score - you have an arbitrary weighting.
-
----
-
-## 5. When tasks help and when they fight
-
-```text
-help:   click and watch-time are related
-        → shared representations transfer, the sparse task gets stronger
-
-fight:  click and complaint often pull in opposite directions
-        → gradients conflict, and the shared body can end up worse at both
-```
-
-### Common issue
-
-Architectures exist specifically to give conflicting tasks room to diverge - mixtures of experts with per-task gating, so each task can lean on different parts of the shared capacity. The point to remember is that multi-task is not free: badly matched tasks degrade each other.
-
----
-
-## 6. Negative objectives are the important ones
-
-```text
-P(complaint)        "report", "not interested", "hide"
-P(unsubscribe)      the strongest signal a platform gets
-P(regret)           surveyed satisfaction, very sparse and very valuable
-```
-
-### Rule of thumb
-
-These are rare, which makes them hard to model, and they are the only thing standing between engagement optimization and a bad product. Subtracting a predicted complaint rate is the mechanism by which "do not chase clicks" becomes something the system actually does.
-
----
-
-## 7. Separate training weights from product weights
-
-Loss weights control how strongly each task updates the shared model; serving weights control how predictions combine into a recommendation score. They solve different problems.
-
-Evaluate each task separately and compare with single-task baselines. A combined metric can hide a complaint head that deteriorated because abundant click examples dominated training.
-
----
-
-## 8. What this looks like in an interview
-
-The strong version of this answer names the trade-off explicitly:
-
-```text
-"Engagement is up 5% and complaints are up 8%. That is not obviously a win.
- I'd put the complaint rate into the ranker as a negative term with a weight
- set from how much a complaint costs us in retention, and I'd hold the
- complaint rate as a guardrail in a randomized A/B test—control A versus candidate B—rather than as a tuning knob."
-```
-
-A **guardrail metric** is an outcome that must not degrade, such as complaint rate or latency. Naming one makes the launch criterion concrete.
-
----
-
-## What matters most
-
-- **Clicks alone produce clickbait,** because the click is the easiest outcome to provoke.
-- **One shared body with several heads** lets abundant signals teach representations that sparse signals cannot learn alone.
-- **The combining weights are a product decision** and should be argued explicitly.
-- **Weights only mean something if the predictions are comparable,** which requires calibration.
-- **Tasks can conflict as well as help,** which is why architectures exist to give them separate capacity.
-- **Negative objectives - complaints, hides, unsubscribes - are what keep engagement optimization honest.**
-
-Next topic is **When the score has to be a real probability**.
+Evaluate the selected policy through an appropriate experiment, with primary outcomes and guardrails agreed in advance. A multi-head architecture alone does not establish a better product tradeoff.

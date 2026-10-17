@@ -22,7 +22,7 @@ Lighting changes, reflections, and occlusion break the assumption.
 
 ## 3. The aperture problem
 
-One equation cannot determine both u and v.
+The **aperture problem** is motion ambiguity when only a small local patch is visible: a straight edge reveals motion across itself but not along itself. One equation cannot determine both u and v.
 
 Example: \(I_x=2,I_y=0,I_t=-6\) gives **u=3**, with v unconstrained.
 
@@ -32,14 +32,18 @@ corner → two directions constrained
 flat   → little motion evidence
 ```
 
+```cv-visual
+aperture
+```
+
 ## 4. Add neighborhood or global constraints
 
-**Lucas–Kanade** combines nearby gradient equations, assuming shared local motion.
+**Lucas–Kanade** is a local optical-flow estimation method. It fits one motion vector to nearby brightness-gradient equations, assuming the patch shares approximately the same motion.
 
 **Dense methods** add smoothness or learned correspondence.
 
-- Sparse flow: selected points.
-- Dense flow: broad spatial coverage.
+- **Sparse flow:** displacement at selected points.
+- **Dense flow:** displacement at every or nearly every pixel.
 - Smoothness: fills weak regions but may smear motion boundaries.
 
 More output values do not guarantee more reliable evidence.
@@ -48,7 +52,7 @@ More output values do not guarantee more reliable evidence.
 
 A 32-pixel displacement becomes four pixels after 8× reduction.
 
-Estimate coarse motion, then refine at higher resolution.
+**Coarse-to-fine estimation** first solves motion on a reduced image, scales that estimate up, and refines it at higher resolution.
 
 Tiny objects may disappear on the coarse grid. Large motion and occlusion can still defeat the method.
 
@@ -70,7 +74,7 @@ next_points, valid, error = cv2.calcOpticalFlowPyrLK(
 
 Check validity before reusing points.
 
-Flow helps stabilization, alignment, and short-term motion cues. Tracking additionally needs identity and lifecycle rules.
+Flow helps **video stabilization**, reducing apparent camera shake by compensating estimated movement, as well as alignment and short-term motion cues. Tracking additionally needs identity and lifecycle rules.
 
 ## 8. Interview reasoning
 

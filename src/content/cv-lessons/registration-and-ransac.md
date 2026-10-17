@@ -17,7 +17,13 @@ Choose the geometric model from the scene; extra flexibility can fit errors as w
 | Affine | Shear/unequal scale; parallel lines | Local geometric approximation |
 | Homography | Perspective; straight lines | Planar poster |
 
-A homography has eight effective parameters. It cannot generally align depth-dependent parallax.
+A **homography** is a projective mapping between image-plane coordinates, represented by a 3 × 3 matrix up to scale. It has eight effective parameters.
+
+**Parallax** is depth-dependent apparent movement caused by changing viewpoint. One homography cannot generally align it across a scene with different depths.
+
+```cv-visual
+transforms
+```
 
 ## 3. Fit correspondences
 
@@ -29,9 +35,11 @@ For source points \(p_i\), destination points \(q_i\), and transform T:
 
 Example: predicted x=102, observed x=100 → two-pixel horizontal residual.
 
-Squared errors let bad matches dominate. A homography needs at least four nondegenerate point pairs; collinear points are insufficient.
+This is **least-squares fitting**, minimizing the sum of squared residuals. Squaring lets bad matches dominate. A homography needs at least four nondegenerate point pairs; collinear points are insufficient.
 
 ## 4. RANSAC finds agreement
+
+**RANSAC (Random Sample Consensus)** is a robust model-fitting method: it estimates a model despite **outliers**, observations that do not follow the intended relation. Here, it takes tentative point matches and returns a transform plus the matches that support it.
 
 ```text
 sample → fit candidate → count inliers → repeat → refit best consensus
@@ -40,6 +48,10 @@ sample → fit candidate → count inliers → repeat → refit best consensus
 An **inlier** is a match within the residual tolerance.
 
 Example: 60 matches agree with one transform and 40 are scattered. RANSAC can fit the 60-point group without trusting every match initially.
+
+```cv-visual
+ransac
+```
 
 ## 5. Iterations and thresholds
 
@@ -69,7 +81,7 @@ Three pixels is illustrative. Check coverage, residuals, overlap, and plausible 
 - Repeated patterns support a wrong transform.
 - A moving foreground outvotes the background.
 - Different depths need different apparent motion.
-- Degenerate samples waste trials.
+- **Degenerate samples**, such as collinear points for a homography, lack enough geometric information and waste trials.
 
 Use the simplest adequate model.
 

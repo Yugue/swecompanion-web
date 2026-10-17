@@ -31,10 +31,12 @@ The derivative is local; an oversized step can still hurt.
 
 ## 3. Apply the chain rule
 
-```text
-input → layer → activation → output → loss
-               forward →
-               ← sensitivities
+The **chain rule** computes the derivative of a composition by multiplying local derivatives. **Backpropagation** is an efficient reverse traversal of the network's computation graph that applies this rule to obtain parameter gradients.
+
+The walkthrough uses an **MLP (multilayer perceptron)**: a feed-forward network of dense layers. This example has two inputs, two ReLU hidden units, and one linear output. ReLU(z) = max(0, z).
+
+```cv-visual
+mlp-backprop
 ```
 
 For intermediate h:
@@ -48,11 +50,11 @@ Backpropagation applies local derivatives in reverse, reusing intermediate resul
 
 ## 4. Two-layer shapes
 
-Using batch rows:
+Using batch rows, with the walkthrough's weight matrices transposed:
 
 \(Z=XW_1+b_1,\ H=\phi(Z),\ O=HW_2+b_2\).
 
-For loss sensitivity \(G_O\):
+Here O is the output and \(G_O=\partial L/\partial O\) its loss gradient. \(G_H\) and \(G_Z\) are the corresponding intermediate gradients; \(\odot\) means elementwise multiplication and \(\phi'\) the activation derivative:
 
 \[
 G_H=G_OW_2^T,\quad
@@ -82,19 +84,19 @@ loss.backward()  # compute derivatives
 optimizer.step()  # change weights
 ```
 
-Gradients accumulate unless cleared. Intentional accumulation needs appropriate loss scaling; BatchNorm can still differ from a larger physical batch.
+**Gradient accumulation** adds gradients across backward calls before an update. Gradients accumulate unless cleared. Intentional accumulation needs appropriate loss scaling; BatchNorm can still differ from a larger physical batch.
 
 ## 7. Common failures
 
-- Detached tensor → broken gradient path.
-- Saturation → tiny gradients.
-- Large derivative products → explosions.
+- **Detaching** removes a tensor from the computation graph → broken gradient path.
+- **Saturation**, an activation's nearly flat region → tiny gradients.
+- **Exploding gradients**, very large sensitivities after repeated multiplication → unstable updates.
 - Wrong targets → valid gradients toward the wrong goal.
 
 Check presence, scale, and destination of gradients.
 
 ## 8. Interview reasoning
 
-**Question:** Explain training without hiding behind autograd.
+**Question:** Explain training without hiding behind autograd (automatic differentiation software).
 
 **Answer:** Forward computes predictions/loss. Backward combines local derivatives, adding shared-path contributions. The optimizer then updates weights using those gradients.

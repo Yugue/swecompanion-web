@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen } from "lucide-react";
 import { CV_DOMAIN, cvParts, cvTopicCount } from "@/lib/cvStudyData";
-import { CV_PATH, ML_DOMAINS } from "@/lib/mlDomains";
+import { ML_DOMAINS } from "@/lib/mlDomains";
+import { MlWritersNote } from "@/components/ml/MlWritersNote";
+import { MlGuideStats } from "@/components/ml/MlGuideStats";
+import { MlInterviewExplanation } from "@/components/ml/MlInterviewExplanation";
 
 export function CvHero() {
   return (
@@ -13,38 +15,23 @@ export function CvHero() {
         Computer Vision / Image Processing
       </h1>
       <p className="mb-3 text-base leading-relaxed text-text-muted">
-        A standalone guide for mid-to-senior software and ML engineers preparing at roughly
+        <span className="font-bold text-text">Designed for: </span>
+        Mid-to-senior software and ML engineers preparing at roughly
         Google L4–L5 depth. Start with images and classical vision, then build toward learned
         representations, modern models, and practical system design.
       </p>
+      <MlWritersNote />
+      <MlGuideStats
+        lessonCount={cvTopicCount}
+        chapterCount={cvParts.length}
+        quizCount={cvParts.reduce((count, part) => count + part.quizQuestionCount, 0)}
+      />
       <p className="mb-5 text-sm leading-relaxed text-text-muted">
         No separate Deep Learning course required. Learn through first-principles explanations,
         diagrams, formulas, comparison tables, small PyTorch/OpenCV examples, and interview
         reasoning prompts.
       </p>
-      <div className="mb-5 flex flex-wrap gap-2.5 text-[13px] font-medium text-text">
-        <span className="rounded-md bg-surface-high/60 px-3 py-2">{cvParts.length} Parts</span>
-        <span className="rounded-md bg-surface-high/60 px-3 py-2">{cvTopicCount} full lessons</span>
-        <span className="rounded-md bg-surface-high/60 px-3 py-2">Progress saved as you study</span>
-      </div>
-      <div className="mb-5 rounded-lg border border-outline/55 bg-surface-high/40 p-4">
-        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-text">
-          <BookOpen size={17} className="text-accent-blue" /> How to study
-        </div>
-        <p className="mb-3 text-sm leading-relaxed text-text-muted">
-          Follow the numbered path if you are new to vision. Each lesson links to its
-          prerequisites and ends with an interview question and a worked answer. Use the final
-          revision lesson to revisit formulas, task mappings, and common mistakes.
-        </p>
-        <div className="flex flex-wrap gap-x-5 gap-y-2">
-          <Link href={`${CV_PATH}/${cvParts[0].topics[0].id}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-blue">
-            Start with lesson 1.1 <ArrowRight size={15} />
-          </Link>
-          <Link href={`${CV_PATH}/interview-revision`} className="text-sm font-semibold text-accent-blue">
-            Interview revision
-          </Link>
-        </div>
-      </div>
+      <MlInterviewExplanation />
       <p className="mb-3 text-sm font-bold text-text">Explore ML domains</p>
       <div className="flex flex-wrap gap-2">
         {ML_DOMAINS.map(({ name, href }) => {

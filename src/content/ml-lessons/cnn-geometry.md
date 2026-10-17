@@ -37,17 +37,8 @@ A neuron in layer 2 looks at \(3\times3\) neurons from layer 1, and **each of th
 
 The effective receptive field becomes:
 
-```text
-Layer 1                 Layer 2
-
-3×3 pixels              5×5 original pixels
-┌─────┐                  ┌─────────┐
-│ xxx │                  │ xxxxx   │
-│ xxx │     →            │ xxxxx   │
-│ xxx │                  │ xxxxx   │
-└─────┘                  │ xxxxx   │
-                         │ xxxxx   │
-                         └─────────┘
+```dl-visual
+receptive-field
 ```
 
 For stride \(1\):

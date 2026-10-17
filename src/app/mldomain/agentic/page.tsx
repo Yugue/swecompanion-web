@@ -102,8 +102,8 @@ export default function AgenticAiHubPage() {
           <main className="mx-auto max-w-4xl px-4 py-6 sm:px-8">
             <MlHero
               domain={DOMAIN}
-              covers="Agentic AI development - the agent loop, tool use, planning, memory, multi-agent design, evaluation and the production concerns an ML engineer is expected to reason about"
               lessonCount={agenticTopicCount}
+              chapterCount={agenticParts.length}
               quizCount={QUIZ_COUNT}
             />
 

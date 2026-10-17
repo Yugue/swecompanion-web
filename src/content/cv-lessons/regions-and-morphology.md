@@ -4,6 +4,8 @@
 
 **Thresholding** separates pixels using an intensity rule.
 
+A **foreground mask** marks selected pixels as 1 (or white) and the remaining background as 0 (black).
+
 Example: dark components on a bright belt become foreground. The result is a binary mask, not yet a list of objects.
 
 ## 2. Global versus adaptive thresholds
@@ -11,7 +13,7 @@ Example: dark components on a bright belt become foreground. The result is a bin
 | Method | Rule | Useful setting |
 |---|---|---|
 | Fixed | Same cutoff everywhere | Stable lighting |
-| Otsu | Maximize intensity-group separation | Separable foreground/background |
+| Otsu's method: automatically choose a global cutoff from the intensity histogram | Minimize within-group variance, equivalently maximize between-group separation | Separable foreground/background |
 | Adaptive | Derive a local cutoff | Uneven illumination |
 
 Example: one global cutoff may fail on the shadowed half of a document; local thresholds adjust to each neighborhood.
@@ -20,7 +22,7 @@ Neighborhood size matters: it can also remove large dark regions or retain textu
 
 ## 3. Morphology uses a small stencil
 
-A **structuring element** defines the neighborhood pattern.
+**Mathematical morphology** is a family of shape operations that modify a mask using a small neighborhood pattern called a **structuring element**.
 
 With white foreground:
 
@@ -48,19 +50,25 @@ mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
 Choose stencil shape and size from the artifact.
 
+```cv-visual
+morphology
+```
+
 ## 5. Components and contours
 
 **Connected components** group touching foreground pixels.
 
-Two diagonally touching pixels are:
+**Four-connectivity** allows horizontal/vertical neighbors; **eight-connectivity** also allows diagonals. Two diagonally touching pixels are:
 - Separate under four-connectivity.
 - Joined under eight-connectivity.
 
-Measure area, box, centroid, and aspect ratio.
+Measure area (pixel count), bounding box, **centroid** (mean foreground position), and **aspect ratio** (width divided by height).
 
 **Contours** describe boundaries; holes and nesting affect their interpretation.
 
 ## 6. A counting baseline
+
+A **baseline** is a simple reference system used to judge whether a more complex approach improves the task.
 
 ```text
 capture → threshold → morphology → components → size/shape filters → count

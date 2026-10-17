@@ -93,17 +93,8 @@ This is the most important intuition.
 
 Gradient traveling backward through many blocks sees:
 
-```text
-gradient
-   │
-   ▼
-LayerNorm
-   │
-   ▼
-residual addition
-   │
-   ▼
-previous block
+```dl-visual
+norm-placement
 ```
 
 The identity path is interrupted by normalization.
@@ -118,21 +109,7 @@ With:
 y=x+F(\operatorname{LN}(x))
 \]
 
-there is a completely direct path:
-
-```text
-forward:
-
-x ───────────────────────────────► y
- \                               ▲
-  └► LN ─► F ────────────────────┘
-
-
-backward:
-
-gradient ◄────────────────────────
-          direct identity path
-```
+the Pre-LN shortcut goes directly from input to output, as shown above.
 
 The derivative contains:
 

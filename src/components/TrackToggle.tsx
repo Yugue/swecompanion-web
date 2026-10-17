@@ -10,7 +10,7 @@ export type Track = "leetcode" | "ml" | "mlsd";
 // `shortLabel` replaces `label` below the sm breakpoint so the bar fits a phone.
 const TRACKS: { id: Track; label: string; shortLabel?: string; href: string }[] = [
   { id: "leetcode", label: "LeetCode", href: CODING_PATH },
-  { id: "ml", label: "ML", href: DEFAULT_ML_DOMAIN_PATH },
+  { id: "ml", label: "ML Domain", shortLabel: "ML", href: DEFAULT_ML_DOMAIN_PATH },
   { id: "mlsd", label: "ML System Design", shortLabel: "ML SD", href: ML_SYSTEM_DESIGN_PATH },
 ];
 

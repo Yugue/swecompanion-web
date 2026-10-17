@@ -102,8 +102,8 @@ export default function RrpHubPage() {
           <main className="mx-auto max-w-4xl px-4 py-6 sm:px-8">
             <MlHero
               domain={DOMAIN}
-              covers="Recommendation, ranking and prediction systems - the retrieval and ranking funnel, the models behind it, and the evaluation and production concerns an ML engineer is expected to reason about"
               lessonCount={rrpTopicCount}
+              chapterCount={rrpParts.length}
               quizCount={QUIZ_COUNT}
             />
 

@@ -4,7 +4,7 @@
 
 **Assignment** decides which predictions learn from each object, background, or ignored region.
 
-Rules can use overlap, centers, predicted quality, or one-to-one matching.
+**Ground truth** means reference annotations used as correct targets for training/evaluation. Assignment rules can use overlap, centers, predicted quality, or one-to-one matching.
 
 Example: one labeled car may supervise selected nearby candidates, not every location equally.
 
@@ -19,6 +19,8 @@ Thousands of easy background candidates can dominate a few objects.
 A missing car label can teach a real car as background.
 
 ## 3. Focal loss
+
+**Focal loss** is a modified cross-entropy objective that reduces already-easy examples' influence. In detection, it keeps abundant easy background candidates from overwhelming the useful training signal:
 
 \[
 L_{\mathrm{focal}}=-\alpha_t(1-p_t)^\gamma\log p_t
@@ -36,11 +38,13 @@ Gamma=0 recovers weighted cross-entropy. Difficult mislabeled examples also rece
 
 | Loss | Measures |
 |---|---|
-| L1 / smooth L1 | Coordinate differences |
-| IoU-based | Geometric overlap |
-| Generalized IoU | Also enclosing-region penalty |
+| L1: absolute coordinate error; smooth L1: quadratic near zero, linear beyond a transition | Coordinate differences |
+| IoU loss, commonly 1 − IoU | Geometric overlap |
+| Generalized IoU (GIoU): adjust IoU using unused area in the smallest enclosing box | Overlap plus separation of disjoint boxes |
 
 Plain IoU gives no overlap-based gradient for disjoint boxes.
+
+**Objectness** scores whether a candidate contains any target object, separately from which class it belongs to.
 
 ```text
 assignment → class/objectness loss + box loss + optional mask/keypoint loss
@@ -63,7 +67,7 @@ Use benchmark ignore/crowd, area, and detection-limit rules.
 
 ## 6. AP and mAP
 
-AP summarizes ranked precision/recall under stated interpolation.
+**Average Precision (AP)** summarizes a precision–recall curve obtained by ranking detections by confidence and matching them to reference objects under explicit rules. It rewards finding objects early in that ranking.
 
 Two objects, ranked predictions TP,FP,TP:
 
@@ -73,9 +77,9 @@ Two objects, ranked predictions TP,FP,TP:
 | 2 | 0.5 | 0.5 |
 | 3 | 1 | 2/3 |
 
-Simple all-points precision-envelope AP ≈ **0.833**; benchmark sampling may differ.
+A **precision envelope** replaces precision at a recall value with the best precision at that or higher recall. Simple all-points envelope AP ≈ **0.833** here; benchmark sampling may differ.
 
-mAP averages stated classes/thresholds. COCO-style AP averages IoUs 0.50–0.95. AP50/AP75 are overlap criteria, not confidence cutoffs.
+**Mean Average Precision (mAP)** averages AP across stated categories and possibly matching thresholds. **COCO (Common Objects in Context)** is an object-recognition dataset/benchmark; its primary detection AP averages IoU thresholds 0.50–0.95. AP50/AP75 are overlap criteria, not confidence cutoffs.
 
 ## 7. Diagnose errors
 

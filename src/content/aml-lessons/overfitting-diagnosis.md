@@ -1,177 +1,51 @@
 ## Diagnosing overfitting and underfitting
 
-**Underfitting** means the model cannot fit even the training pattern; both training and validation performance are poor. **Overfitting** means it fits the training sample much better than unseen validation data.
+**Underfitting** means the fitted model fails to capture useful patterns. **Overfitting** means it captures training-specific details that do not transfer to new examples.
 
-The practical skill is reading learning curves and train/validation gaps, deciding which failure is present, and choosing a fix that targets that failure.
+Train and validation performance provide clues; they do not identify the cause by themselves.
 
----
+## 1. Start with comparable errors
 
-## 1. Start with two numbers
+| Training error | Validation error | Investigate |
+|---|---|---|
+| High | High | Weak features, limited capacity, excessive regularization, failed fitting, or noise |
+| Low | Much higher | Overfitting, dataset shift, pipeline mismatch, or unreliable evaluation |
+| Low | Low | A successful fit, or an overly easy or leaky evaluation |
 
-```text
-train score   val score   reading
-─────────────────────────────────────────────────────────
-  0.72          0.70      underfitting / optimization issue
-  0.99          0.80      poor generalization
-  0.99          0.98      healthy, or leakage - check
-  0.55          0.54      model or pipeline is broken
+“High” is relative to a baseline, the task, and the error costs. A 55% accuracy model on a balanced task may contain little signal; it does not automatically prove a bug.
+
+Compute metrics using the same definitions and preprocessing. Avoid comparing training accuracy with validation log loss.
+
+## 2. Separate three kinds of curves
+
+**Learning curves** vary training-set size while keeping the evaluation protocol comparable.
+
+If validation keeps improving as data grows, more representative data may help. If both curves plateau at poor performance, investigate features, model restrictions, optimization, and noise. A plateau over a limited range is evidence, not proof that more data can never help.
+
+A **validation curve** varies one hyperparameter. For example, validation accuracy might peak at tree depth 8 even while training accuracy continues increasing.
+
+An **iteration curve** tracks training steps for one fit. Falling training loss with rising validation loss suggests that later steps are fitting less transferable detail. Early stopping retains a checkpoint chosen from validation performance.
+
+```aml-visual
+learning-curves
 ```
 
-### Rule of thumb
+## 3. Rule out competing explanations
 
-Neither number alone is a diagnosis. A validation score of 0.80 is excellent next to 0.78 training and alarming next to 0.99.
+Before increasing regularization, check:
 
----
+- Does validation represent the deployment population and time period?
+- Are features computed identically across splits?
+- Are labels aligned with rows and fully observed?
+- Does the result vary greatly across suitable resamples?
+- Are apparent errors actually label problems?
 
-## 2. The same model, three diagnoses
+Group leakage often inflates validation scores; a shifted validation population can instead make them worse. Both undermine a simplistic gap diagnosis.
 
-Three projects, each reporting "the model is not good enough":
+## 4. Make a targeted next experiment
 
-```text
-            train    val     gap      what is actually wrong
- project A   0.72    0.70    0.02     underfitting - it cannot even fit what it has seen
- project B   0.99    0.80    0.19     overfitting - or leakage, or a tiny val set
- project C   0.55    0.54    0.01     broken - a coin flip on a balanced problem
-```
+For an overly restricted fit, try better features, adequate training, or more useful capacity. For sample sensitivity, try regularization, averaging, or more representative data.
 
-The prescriptions are completely different, and two of them are the opposite of each other:
+A flexible model fitted to a small subset is a useful pipeline check: can it fit that subset well? Failure suggests inspecting capacity, regularization, duplicate inputs with conflicting targets, labels, and code. A constrained linear model is not expected to memorize arbitrary labels, even with only 100 rows.
 
-```text
- A  →  more capacity, better features, LESS regularization
- B  →  more data, MORE regularization, simpler model
- C  →  stop tuning. check the labels, the join, and the target column.
-```
-
-Project C is the one worth dwelling on. A score near chance is almost never a modelling problem - it is shuffled labels, a broken join, a target column that leaked away, or features that are all null. The overfit-100-rows check at the end of this lesson catches it in about a minute.
-
-### Common issue
-
-And the most common real mistake is treating project A like project B: seeing a disappointing number, reaching for regularization, and making a model that already could not fit the data fit it even less.
-
----
-
-## 3. Learning curves over training-set size
-
-Train on 10%, 20%, ... 100% of the data and plot both scores:
-
-```text
-score                     score
- │ train ───────────       │ train ─────────────
- │ val   ──────────        │        ╲
- │       (converged)       │ val ────╲────────
- └──────── data →          └──────── data →
-   HIGH BIAS                 HIGH VARIANCE
-   curves meet, both low     large persistent gap,
-   more data won't help      val still rising → more data helps
-```
-
-### Core intuition
-
-This is the single most informative plot in applied ML, and naming it in an interview is a strong signal. It answers the expensive question - "should we go collect more data?" - before anyone spends money.
-
----
-
-## 4. Validation curves over a hyperparameter
-
-Fix the data, sweep one hyperparameter:
-
-```text
-max_depth:    2     4     8     16    32
-train:      0.74  0.81  0.91  0.98  1.00
-val:        0.73  0.80  0.86  0.84  0.79
-                          ↑ best generalization
-```
-
-### Intuition
-
-The peak is the capacity the data can support. Past it, training keeps improving and validation degrades - the textbook overfitting signature.
-
----
-
-## 5. Curves over training iterations
-
-For iteratively fitted models such as boosting, **stochastic gradient descent (SGD)**, and neural networks:
-
-```text
-iteration   1     50    200   500
-train      1.20  0.62  0.31  0.11
-val        1.25  0.68  0.55  0.77
-                        ↑ early stopping point
-```
-
-Early stopping is the cheapest regularizer available: stop where validation stops improving, and keep the best checkpoint.
-
-### Rule of thumb
-
-> Diagnose from the shape over time, not from one final number.
-
----
-
-## 6. A large gap is not automatically overfitting
-
-Before adding regularization, rule out the impostors:
-
-| Alternative cause | How to check |
-|---|---|
-| Leakage in training | Audit features against the prediction timestamp |
-| Group leakage | Is the same user/patient/item in both splits? |
-| Distribution shift between splits | Compare feature distributions train vs val |
-| Validation set too small | Re-split with a different seed; how much does the score move? |
-| Label noise in validation | Hand-check a sample of the "errors" |
-| Different preprocessing per split | Is everything inside one Pipeline? |
-
-### Common issue
-
-A tiny validation set is the most common false alarm: with 200 rows, ±3% is just resampling noise.
-
----
-
-## 7. The fixes, matched to the diagnosis
-
-**Underfitting**
-- increase capacity (depth, features, polynomial terms, a stronger model family),
-- reduce regularization,
-- train longer / lower the learning rate and let it converge,
-- improve the features - usually the real answer.
-
-**Overfitting**
-- more data, or augmentation where it applies,
-- stronger regularization (penalties on absolute or squared weights, pruning, or more minimum samples per leaf),
-- fewer features, or a simpler model,
-- early stopping,
-- ensembling by averaging.
-
----
-
-## 8. The sanity check that catches bugs
-
-Before any of this, verify the model can **overfit 100 examples**:
-
-```python
-small = X_train[:100]
-model.fit(small, y_train[:100])
-model.score(small, y_train[:100])   # should be near 1.0
-```
-
-### Rule of thumb
-
-If it cannot memorize 100 rows, you do not have a capacity problem. You have a bug - shuffled labels, a broken transform, a runaway learning rate, or a target column that is not what you think it is.
-
----
-
-## Interview mental model
-
-Diagnose from shapes over time, not from one final number:
-
-```text
-learning curve (vs data size)   → curves meet low = bias; persistent gap = variance
-                                  and it answers "should we collect more data?"
-validation curve (vs a hyper)   → the peak is the capacity the data supports
-iteration curve (vs steps)      → where validation turns up is the early-stopping point
-```
-
-Before calling a large gap overfitting, rule out the impostors: leakage, the same entity on both sides, a distribution difference between splits, or simply a validation set small enough that ±3% is resampling noise.
-
-And run the bug check first - a model that cannot memorize 100 rows doesn't have a capacity problem, it has shuffled labels, a broken transform, or the wrong target column.
-
-Next topic is **Cross-validation**.
+> **Mental image:** use curves as diagnostic readings. Test the suspected cause before prescribing the fix.

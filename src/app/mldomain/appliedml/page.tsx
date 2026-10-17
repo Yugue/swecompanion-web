@@ -102,8 +102,8 @@ export default function AppliedMlHubPage() {
           <main className="mx-auto max-w-4xl px-4 py-6 sm:px-8">
             <MlHero
               domain={DOMAIN}
-              covers="Applied Machine Learning fundamentals - the classical models, data work, and evaluation every ML engineer is expected to reason about"
               lessonCount={amlTopicCount}
+              chapterCount={amlParts.length}
               quizCount={QUIZ_COUNT}
             />
 

@@ -1,148 +1,43 @@
 ## When the score has to be a real probability
 
-**A model is calibrated when its 0.7 means the thing happens 70% of the time.** Ranking does not need that. Several things downstream of ranking need it badly.
+**Calibration** means predicted probabilities match observed event frequencies on a relevant population. Among many predictions near 0.2, about 20% should have the event.
 
----
+Ranking and probability meaning are different properties.
 
-## 1. Ranking survives any distortion of the score
+## 1. Order survives some score changes
 
-```text
-true rates:     0.40   0.20   0.10
-model says:     0.80   0.40   0.20      ← every number is doubled and WRONG
-ranking:        same order                ← completely unaffected
+Multiplying all positive scores by two preserves their order. A ranking metric using that same order stays unchanged, even if the numbers no longer represent probabilities correctly.
+
+This does not prove the original ordering was perfect. Nor does every transformation preserve order: squaring negative scores, for example, can reverse comparisons.
+
+## 2. Check frequencies, not only the average
+
+```rrp-visual
+calibration
 ```
 
-### Core intuition
+A **reliability diagram** compares mean predicted probability with observed positive frequency within bins. Report counts and uncertainty; a globally correct average can hide errors by score band or surface.
 
-Multiply every score by two, square them, take logs - as long as the transformation preserves order, the ranked list is identical. So a model can rank perfectly and be badly calibrated, and ranking metrics will never notice.
+Log loss and **Brier score**, mean squared probability error, evaluate probability predictions but mix calibration with other aspects of prediction quality. Binned calibration summaries also depend on binning and sample size.
 
----
+## 3. Correct a known sampling shift carefully
 
-## 2. Where it suddenly matters
-
-```text
-ads / auctions      expected value = predicted rate × bid
-                    → inflate the rate by 40% and you overspend by 40%
-
-blending            w₁·P(click) + w₂·P(purchase)
-                    → if the two are on different scales, the weights are meaningless
-
-thresholds          "auto-promote anything above 0.6"
-                    → the threshold only has a stable meaning if the score does
-
-showing a number    "83% match"
-                    → obviously
-
-budget pacing       spend forecasts built from predicted rates
-```
-
-### Rule of thumb
-
-> The moment the score is multiplied by anything - money, another probability, a cost - it has to be true, not just correctly ordered.
-
-Advertising is the clearest case: the whole auction is arithmetic on predicted rates, so a miscalibrated model does not rank things wrongly, it charges the wrong amounts.
-
----
-
-## 3. The same model, two jobs
-
-A ranker's predicted click rates, against what actually happened:
-
-```text
-item    predicted    actual     ranked correctly?
-  A       0.40        0.20            ✓ 1st
-  B       0.24        0.12            ✓ 2nd
-  C       0.10        0.05            ✓ 3rd
-```
-
-Every prediction is exactly **double** the truth. As a ranker this model is flawless: normalized discounted cumulative gain (NDCG), area under the receiver-operating-characteristic curve (ROC-AUC), and precision@k are all unaffected because the ordering did not change.
-
-Now put the same numbers into an ad auction, where you charge based on expected value:
-
-```text
-                bid    predicted    expected value    TRUE value
-  advertiser A  $2.00     0.40          $0.80           $0.40
-  advertiser B  $4.00     0.24          $0.96           $0.48
-```
-
-The ranking still picks B, which is right. But every forecast, budget projection, and reserve price built on those numbers is 100% too high. You do not misrank anything - you misprice everything.
-
-```text
-ranking       cares about    order           → survives any monotone distortion
-auctions      care about     the number      → a 2× error is a 2× error
-```
-
-### Rule of thumb
-
-That is the entire distinction, and it is the most reliable follow-up question in this area.
-
----
-
-## 4. The thing that breaks calibration here
-
-Down-sampling negatives is near-universal in this domain - a 1% click rate means 99 non-click rows for each click row, so you keep a fraction of them.
-
-```text
-true rate           1%
-keep 1 in 10 negatives
-training rate      ~9.2%     ← the model learns THIS
-```
-
-The model is now systematically over-confident by a large factor. The correction is arithmetic, because the sampling rate is known:
+Suppose all clicks are retained, while each non-click is independently retained with probability \(w\). If \(p_s\) accurately estimates the sampled-data probability, then:
 
 \[
-p_{\text{true}} = \frac{p}{p + (1-p)/w}
+p_{population}=\frac{w p_s}{1-p_s+w p_s}
 \]
 
-where \(w\) is the down-sampling rate for negatives. This analytic correction assumes all positives are kept, each negative is retained independently with probability w, and p estimates the sampled-data probability. It corrects the sampling shift, not other model errors.
+A real click rate of 1% becomes about 9.17% when retaining one tenth of non-clicks. Substituting \(w=0.1\) reverses that sampling change.
 
----
+This formula assumes the stated sampling process. Feature-dependent sampling needs corresponding conditional probabilities; arbitrary class weighting or model error is not automatically fixed by this one expression.
 
-## 5. Other sources of miscalibration
+## 4. Use and maintain probability meaning
 
-| Source | Effect |
-|---|---|
-| Down-sampled negatives | rates inflated, correctable analytically |
-| Class weighting | same effect, same fix |
-| Distribution shift | yesterday's calibration is wrong today |
-| Pairwise training | there is no meaningful scale at all |
-| Ensembling or blending | scales differ between components |
+For an expected event value, a calibrated event probability can be multiplied by its correctly defined value. Auction payments and spending also depend on the actual auction and pacing rules; doubling a click estimate does not universally double the amount charged.
 
-### Common issue
+Fit a **calibrator**, a mapping from scores to probabilities, using held-out or out-of-fold predictions. Sigmoid calibration uses a simple S-shaped mapping; isotonic calibration fits a flexible monotonic one.
 
-The last row is why blending and calibration are usually discussed together.
+Respect time and groups in calibration data, evaluate independently, and recheck after retraining or population changes. A pure top-k ordering may not need calibration; expected-value calculations and probability reporting do.
 
----
-
-## 6. Check buckets, not just the overall mean
-
-Group held-out predictions into ranges and compare average predicted probability with observed frequency in each range. This is a **reliability diagram**.
-
-An overall prediction of 5% matching a 5% click rate can still hide severe errors for high-score items or individual surfaces. Report bucket counts and uncertainty, and check slices large enough to support a reliable estimate.
-
----
-
-## 7. Fixing it
-
-```text
-1. analytic correction     when you know the sampling rate      ← do this first
-2. Platt scaling           fit a small logistic on held-out scores
-3. isotonic regression     fit a flexible monotone mapping; needs more data
-4. per-segment calibration separate mappings per country, device, surface
-```
-
-### Rule of thumb
-
-Two rules: fit the calibrator on **held-out** data the model did not train on, and **re-fit it after every retrain**, because the score distribution moves. Monitoring is simple and worth doing - compare the average predicted rate against the realized rate, daily.
-
----
-
-## What matters most
-
-- **Ranking only needs order, and order survives any monotone distortion,** so ranking metrics cannot detect miscalibration.
-- **Auctions, blending, thresholds, and displayed numbers all need the score to be true.**
-- **Down-sampling negatives is standard here and inflates predicted rates,** but the sampling rate is known so the correction is arithmetic.
-- **Fit calibrators on held-out data and re-fit after every retrain,** because the score distribution moves.
-- **Monitor predicted versus realized rates daily** - it is the cheapest check in the system.
-
-Next topic is **Re-ranking the final list**.
+> **Mental image:** the ranking uses the order of marks on a ruler. Probability decisions also need the ruler's units to be correct.

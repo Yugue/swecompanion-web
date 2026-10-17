@@ -72,6 +72,10 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
 This is the form you should know best.
 
+```dl-visual
+gradient-clipping
+```
+
 ---
 
 ## 3. When does clipping happen?

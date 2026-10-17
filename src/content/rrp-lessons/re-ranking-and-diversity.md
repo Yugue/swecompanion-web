@@ -1,134 +1,45 @@
 ## Re-ranking the final list
 
-**The ranker scores items one at a time, so it cannot see that the list it produced is ten variations of the same thing.**
+**Re-ranking** selects or adjusts a final list using candidate scores, relationships among items, and constraints. It addresses properties of the selected set that an independent per-item score may miss.
 
-```text
-top 6 by score:   pasta recipe  ★0.91
-                  pasta recipe  ★0.90
-                  pasta recipe  ★0.89
-                  pasta recipe  ★0.88
-                  pasta recipe  ★0.87
-                  pasta recipe  ★0.86
+A joint slate model can also learn list interactions; a separate greedy re-ranker is one practical approach, not a mathematical requirement for every system.
+
+## 1. Separate eligibility from preferences
+
+Remove disallowed or unavailable candidates using **hard rules**. Relevance, variety, or freshness can then influence choices within the eligible set.
+
+If two retrieval sources return the same item, merge their provenance rather than displaying accidental duplicates. Distinct but near-identical items may require a separate similarity or creator rule.
+
+## 2. Penalize redundancy with already selected items
+
+A common greedy rule, related to **maximal marginal relevance**, chooses the next candidate using:
+
+\[
+U(i\mid S)=relevance(i)-\beta\max_{j\in S}similarity(i,j)
+\]
+
+\(S\) is the selected set and \(\beta\) controls the redundancy penalty. Define the initial choice when \(S\) is empty.
+
+```rrp-visual
+re-ranking
 ```
 
-Six excellent individual scores. One bad page. Fixing this needs a stage that sees the whole slate.
+If A is already selected, candidate B with relevance 0.9 and similarity 0.95 scores 0.615 at \(\beta=0.3\). Candidate C with relevance 0.8 and similarity 0.2 scores 0.74, so C is selected next.
 
-**Why the ranker cannot solve it.** The ranker's score is a function of one user and one item. Whether an item is redundant depends on **the other items you already picked**, which is not available to a per-item score.
+The penalty's meaning depends on the scales and similarity measure. It can lower the original relevance score while improving actual satisfaction; variety need not reduce product value.
 
-That is not a modelling gap to be closed - it is a property of the problem. Hence a final stage that operates on the list.
+## 3. Handle conflicting constraints explicitly
 
----
+A six-slot list with at most one item per creator needs six eligible creators. If only four are available, retrieve more, relax a documented soft target, or return fewer items.
 
-## 1. Separate hard rules from preferences
+A high score cannot override hard eligibility. Revalidate cached and selected items against current requirements before display, and log removal reasons and infeasible requests.
 
-Hard rules remove disallowed, unavailable, or duplicate items. Soft preferences trade relevance against variety, freshness, or novelty. Apply eligibility checks before selection, then revalidate the final response.
+A minimum fresh-item share is a selection rule. Whether it provides useful exploration depends on which uncertain items receive exposure and what evidence is logged.
 
-Do not let a high score buy its way around a hard rule. When soft preferences conflict, the weighting or priority order should be explicit.
+## 4. Evaluate the whole policy
 
----
+Measure list similarity, useful variety, creator coverage, user outcomes, and cost. Compare against the same candidate pool to isolate the list-selection change.
 
-## 2. The standard mechanism
+Then test product effects with an appropriate experiment. Six unrelated items can be diverse and unhelpful; repeated familiar items can be appropriate for replenishment or continue-watching.
 
-Pick items one slot at a time, trading relevance against difference from what is already selected:
-
-```text
-next item = argmax [ λ · relevance(item) − (1−λ) · max similarity(item, already chosen) ]
-```
-
-```text
-λ = 1.0   pure relevance, the original list
-λ = 0.7   noticeably varied, small relevance cost
-λ = 0.3   very varied, visibly worse items
-```
-
-The slot-by-slot structure is what lets each choice depend on the ones before it.
-
-### Rule of thumb
-
-> Diversity costs relevance by construction. The question is how much the product is willing to pay, and it is a product question.
-
----
-
-## 3. A diversity trade-off with three items
-
-Suppose A is already selected. B has relevance 0.9 and similarity to A of 0.95; C has relevance 0.8 and similarity 0.2. With score `relevance − 0.3 × similarity`, B scores 0.615 and C scores 0.74.
-
-The reranker chooses C even though B's individual relevance is higher. The penalty buys list variety; its scale must be comparable with the relevance score.
-
----
-
-## 4. What else happens in this stage
-
-Re-ranking is where every whole-list rule lands, because it is the only stage where the whole list exists:
-
-```text
-variety          not six near-identical items
-spread           no single creator or seller dominating the page
-freshness        guarantee at least some new or recent items
-policy           hard filters - age restrictions, regional rules, safety
-business         sponsored slots, promotions, inventory commitments
-deduplication    the same item arriving from several retrieval sources
-```
-
-### Rule of thumb
-
-Policy belongs here as a **hard filter**, not as a penalty added to a score. A score is soft and can always be outweighed; a rule that must never be broken has to be applied as a filter.
-
----
-
-## 5. Position effects
-
-Re-ranking is also where you can act on the fact that position itself changes behavior:
-
-```text
-slot 1 gets far more attention than slot 6
-        ↓
-what you put in slot 1 is not just "the best item"
-        ↓
-it is also the item whose exposure you are choosing to buy
-```
-
-Placing a new or uncertain item high is **exploration**: deliberately trying uncertain options so the system can learn how users respond.
-
----
-
-## 6. What if the requested list is impossible?
-
-A six-slot list with at most one item per creator needs six eligible creators. If retrieval returns only four, the reranker cannot satisfy both requirements.
-
-Fetch more candidates or relax documented soft diversity targets in priority order. Return fewer items when necessary rather than violating hard safety or availability rules. Log how often constraints are infeasible.
-
----
-
-## 7. Measuring it
-
-Diversity work is invisible to per-item metrics, so it needs its own:
-
-```text
-intra-list similarity   average pairwise similarity within one shown list
-unique creators         how many distinct sources in the top 6
-category entropy        how spread across categories
-catalogue coverage      what fraction of inventory is ever shown
-```
-
-### Common issue
-
-Because it trades against engagement in the short term, evaluate it with a randomized **A/B test**—control system A versus candidate B—with engagement as a guardrail rather than as the target.
-
----
-
-## What matters most
-
-- **Redundancy is invisible to a per-item score,** because it depends on the other items chosen - so it needs a whole-list stage.
-- **The standard mechanism picks slots one at a time,** trading relevance against similarity to what is already selected.
-- **Diversity costs relevance by construction,** and how much to pay is a product decision.
-- **Policy belongs here as a hard filter, not a score penalty,** because a score can always be outweighed.
-- **It needs its own metrics** - intra-list similarity, unique creators, coverage - since per-item metrics cannot see it.
-
----
-
-## Chapter 4 checkpoint
-
-For one ranked surface, specify labels, sampling, feature availability, model family, loss, calibration requirement, serving budget, and final-list constraints. Explain which decisions operate per item and which require seeing the whole slate.
-
-That completes **Chapter 4 — Ranking models**. Next topic is **Offline evaluation and its limits**.
+> **Mental image:** a set of individually good ingredients is not automatically a good meal. Selection must account for what is already on the plate.

@@ -1,140 +1,49 @@
 ## Train, validation, and test splits
 
-**You cut your data into three piles, because you are asking three different questions and one pile can only answer one of them honestly.**
+A **data split** separates examples used for learning from examples used for evaluation. Train, validation, and test sets have different jobs.
 
-```text
- ┌──────────────── all your data ────────────────┐
- │   train 60%      │  validation 20% │ test 20% │
- └──────────────────┴─────────────────┴──────────┘
-   learn from it      make choices      final score,
-                      with it           looked at once
+## 1. Three roles
+
+```aml-visual
+data-splits
 ```
 
-Using one pile for two of those questions does not raise an error. It quietly makes the final number too good.
+- **Training:** fit parameters and preprocessing statistics.
+- **Validation:** choose features, model family, hyperparameters, and thresholds.
+- **Test:** estimate performance after those choices are fixed.
 
----
+A 60/20/20 split is an example, not a requirement. Ensure evaluation has enough examples of important outcomes. With limited data, **cross-validation** rotates held-out folds through the validation role.
 
-## 1. What each split is for
+Repeatedly changing the model after seeing test results makes that set part of development. A fresh evaluation is then needed for an independent final estimate.
 
-```text
-train      → fit the parameters
-validation → choose hyperparameters, features, model family, threshold
-test       → estimate performance on new data   (use once)
-```
+## 2. Make the split match deployment
 
-### Rule of thumb
-
-60/20/20, or 80/10/10 when data is plentiful. With little data, replace one fixed validation set with **cross-validation**, which rotates several held-out folds through the validation role, and still keep an untouched test set.
-
----
-
-## 2. Why the test set must stay untouched
-
-Every time you look at the test set and change something, you have used it to make a decision — which makes it a validation set.
-
-```text
-experiment 1..200 : validation score climbs 0.81 → 0.87
-final test score  : 0.81
-```
-
-### Core intuition
-
-You did not find a better model. You found the configuration that best fits the noise in your validation set.
-
-### Rule of thumb
-
-> The test set answers "how good is this model?" exactly once. After that you own a second validation set and no test set.
-
----
-
-## 3. Splitting by the right unit
-
-A random row-level split is wrong whenever rows are not independent.
-
-| Data | Wrong split | Right split |
-|---|---|---|
-| Multiple sessions per user | random rows | group by user |
-| Several photos of one product | random images | group by product |
-| Repeat purchases | random transactions | group by customer |
-| Anything with time | random rows | chronological |
-
-```python
-GroupShuffleSplit(n_splits=1, test_size=0.2).split(X, y, groups=user_id)
-```
-
-### Intuition
-
-If the same user appears in train and test, the model can recognize *that user* rather than the pattern — and the test score measures memorization.
-
----
-
-## 4. When the data has a time order
-
-```text
-random split (wrong)   : ░░█░░█░█░░█░░░█░   train and test interleaved in time
-chronological (right)  : ░░░░░░░░░░░█████   train on the past, test on the future
-```
-
-### Intuition
-
-A random split lets the model see next week's holiday spike while predicting this week's — an advantage it will never have in production.
-
-### Common issue
-
-Chronological splits usually score **lower** than random ones. That lower number is the true one.
-
-Add a gap when labels are delayed: a 30-day label needs a 30-day buffer, or training data contains outcomes you could not have known.
-
----
-
-## 5. Keeping the three comparable
-
-The splits should differ only by their role, not their content:
-
-- **stratify** classification splits so the class balance matches,
-- check key segments — geography, device, tier — appear in all three,
-- keep validation large enough that its score is not noise.
-
-```python
-train_test_split(X, y, test_size=0.2, stratify=y, random_state=0)
-```
-
-### Common issue
-
-A 200-row validation set moves ±3% from resampling alone, which is larger than most improvements you will be trying to detect.
-
----
-
-## 6. What goes wrong most often
-
-| Symptom | Likely cause |
+| What must the model handle? | Suitable evaluation |
 |---|---|
-| Test ≪ validation | Over-tuning on validation, or a distribution difference |
-| Test ≈ train, both very high | Leakage, or the same entity in both splits |
-| Score swings between runs | Validation set too small, or unstratified |
-| Great offline, poor online | Random split on time-ordered data, or train/serve skew |
+| New independent examples from the same population | Random split |
+| Previously unseen patients or customers | Hold entire entities out |
+| Future transactions | Train on earlier data, evaluate later |
+| Both new entities and future periods | Enforce both restrictions |
 
----
+The same customer appearing in train and validation is not automatically leakage. It may match predicting that customer's future purchases. It is unsuitable for estimating performance on entirely new customers.
 
-## Interview mental model
+For classification, **stratification** preserves approximate class proportions. It does not fix time or group leakage; those restrictions come first.
 
-Three splits exist because there are three different questions:
+## 3. Account for label availability
 
-```text
-fit the parameters                     → train
-choose (hypers, features, threshold)   → validation
-how good is the chosen model?          → test, touched once
+Imagine training a churn model on July 1 using a label that needs 30 days to mature. A June 25 snapshot has no complete label yet. Exclude it from that historical training run.
+
+A temporal evaluation may therefore need a gap or removal of overlapping outcome windows. Size that gap from label availability and dependence, rather than from an arbitrary percentage.
+
+New request features can still be used at prediction time even when recent labels are unavailable.
+
+## 4. Fit transformations inside training
+
+```python
+pipe.fit(X_train, y_train)  # learns imputation, scaling, and model values
+scores = pipe.predict_proba(X_val)[:, 1]
 ```
 
-Then make the split mimic deployment, because a split that doesn't will produce a score that is fiction:
+A **pipeline** bundles transformations with a model. During cross-validation, each fold must fit its own pipeline. Computing a mean, encoding, or feature selection using evaluation rows leaks information into the process being evaluated.
 
-```text
-rows repeat per user / product?   → split by that entity
-model predicts the future?        → split chronologically
-labels take 30 days to mature?    → leave a 30-day gap
-rare positives?                   → stratify
-```
-
-If the test score is far below validation, suspect over-tuning. If both look too good, suspect leakage or the same entity on both sides.
-
-Next topic is **Confusion matrix, precision, and recall**.
+> **Mental image:** training is practice, validation is rehearsal, and test is the final assessment. Rehearsing on the final questions changes what the assessment measures.

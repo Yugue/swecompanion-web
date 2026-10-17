@@ -1,114 +1,48 @@
 ## Parameters, hyperparameters, and capacity
 
-**A parameter is a number the model works out for itself while training. A hyperparameter is a number you pick before training starts.**
+**Parameters** are the fitted values that determine a model's predictions. **Hyperparameters** control how the model or learning procedure is configured.
 
-```text
-you pick        →  "build a tree at most 8 levels deep"   hyperparameter
-model works out →  which question each level asks         parameter
-```
+For a decision tree, training chooses split thresholds and leaf predictions. You choose settings such as maximum depth.
 
-**Capacity** is the third word: how complicated a pattern the model can express. Hyperparameters are the dial that sets it.
+## 1. Which is which?
 
----
-
-## 1. The definition
+| Model | Fitted state | Hyperparameters |
+|---|---|---|
+| Linear regression | Coefficients and intercept | Penalty type and strength |
+| Decision tree | Split features, thresholds, leaf values | Maximum depth, minimum leaf size |
+| Random forest | Fitted trees | Tree count, feature sampling |
+| k-nearest neighbors | Stored training examples and any search index | Neighbor count, distance, weighting |
+| k-means clustering | Cluster centers | Cluster count, initialization, restarts |
 
 ```python
-model = RandomForestClassifier(max_depth=8, n_estimators=500)  # hyperparameters
-model.fit(X_train, y_train)                                    # parameters
+model = DecisionTreeClassifier(max_depth=4)  # choose configuration
+model.fit(X_train, y_train)                 # learn splits and leaf values
 ```
 
-| Model | Parameters | Hyperparameters |
-|---|---|---|
-| Linear / logistic regression | coefficients, intercept | penalty type, regularization strength |
-| Decision tree | split features, thresholds, leaf values | max depth, min samples per leaf |
-| Random forest | every tree in the forest | number of trees, max features per split |
-| Gradient boosting | every tree, every leaf value | learning rate, number of trees, depth |
-| k-NN | none — it stores the data | k, distance metric, weighting |
-| k-means | the centroids | k, initialization, restarts |
+A fitted model includes more than a vector of weights. Nearest-neighbor methods retain the dataset itself.
 
-### Intuition
+## 2. Capacity: what patterns can it express?
 
-Everything in the right-hand column is something a person chose. **Regularization**, in that first row, is a penalty that discourages the model from becoming unnecessarily complex.
+**Capacity** is the range and complexity of patterns a model can represent. A depth-one tree asks one question; a deeper tree can express many interacting rules.
 
-### Common issue
+**Regularization** restricts or penalizes a fit to discourage unstable complexity. Higher capacity can fit useful detail and sample-specific noise. It does not guarantee better validation performance. Training error often falls as capacity increases when models are nested and fitted well, but actual training algorithms need not follow a perfectly monotonic curve.
 
-Look at k-NN: its "training" is storage, so **all** of its behavior comes from hyperparameters.
+Not every hyperparameter changes capacity: a random seed changes randomness; a search-index setting may mainly change prediction speed.
 
----
-
-## 2. Capacity
-
-\[
-\text{low capacity} \rightarrow \text{cannot fit the signal} \qquad \text{high capacity} \rightarrow \text{can also fit the noise}
-\]
-
-### Core intuition
-
-Training error falls monotonically as capacity rises. So if you chose hyperparameters on training data, it would always vote for the most complex model available.
-
-That is precisely why a separate validation set has to exist.
-
-### Rule of thumb
-
-> Parameters are fitted to minimize training error. Hyperparameters are fitted to minimize *validation* error. Same idea, different dataset.
-
----
-
-## 3. Tuning is fitting
+## 3. Use different data for fitting and choosing
 
 ```text
-fit parameters  on train      →  training error
-choose hypers   on validation →  validation error is now optimistic
-report          on test       →  the only honest number
+training data   → fit parameters
+validation data → compare configurations
+final test data → evaluate the selected procedure
 ```
 
-### Intuition
+Suppose depth 4 scores 0.84 on validation and depth 20 scores 0.79, despite perfect training accuracy. Validation favors depth 4 because its predictions transfer better.
 
-Every hyperparameter you tune consumes a little of the validation set's independence.
+Trying hundreds of configurations can also fit noise in validation. Keep a final test set or use an outer evaluation loop that the search never sees.
 
-### Common issue
+## 4. Preprocessing is part of the configuration
 
-Tune 300 configurations and your best validation score is partly a measurement of luck — see **hyperparameter search** and **comparing models honestly**.
+Choosing median imputation versus another strategy is a hyperparameter choice. The actual median learned from training data is fitted state. **Early stopping**, which chooses when to stop iterative training using validation performance, is another data-informed choice.
 
----
-
-## 4. The awkward cases
-
-Some settings do not sit neatly in either box, and saying so is a good sign:
-
-- **Epochs with early stopping** — chosen by watching validation loss, so it is a hyperparameter fitted on validation data.
-- **Number of clusters k** — a hyperparameter with no validation label to tune against, which is why choosing k needs its own methods.
-- **Preprocessing choices** — imputation, encoding, scaling are hyperparameters of the whole pipeline.
-
-### Rule of thumb
-
-> If it is a choice, and the data tells you whether the choice was good, it is a hyperparameter — and it belongs inside the cross-validation loop.
-
----
-
-## 5. Which ones actually matter
-
-| Model | The one that matters most | Usually fine at default |
-|---|---|---|
-| Gradient boosting | learning rate (with n_estimators) | subsample, column sampling |
-| Random forest | max features, min leaf size | number of trees — more is just slower |
-| Logistic regression | C (regularization strength) | solver |
-| Support-vector machine (SVM) with a radial-basis-function (RBF) kernel | C and gamma together | kernel cache, tolerance |
-| k-NN | k, and the feature scaling | index leaf size |
-
-### Intuition
-
-Most dimensions are flat. That is why random search beats grid search — it spends its budget sampling many values of the one or two that are not.
-
----
-
-## What matters most
-
-- **Same idea, different dataset:** parameters are fitted to minimize training error, hyperparameters to minimize validation error.
-- **Hyperparameters set capacity,** and training error only ever falls as capacity rises - so training data would always vote for the most complex model.
-- **Tuning is fitting.** Every configuration you try uses up a little of the validation set's independence.
-- **Preprocessing choices are hyperparameters too,** so they belong inside the cross-validation loop.
-- **Only one or two settings matter per model,** which is why random search beats grid search.
-
-Next topic is **Train, validation, and test splits**.
+> **Mental image:** hyperparameters choose the tool and its settings; training adjusts its fitted parts. Validation checks the whole tool.

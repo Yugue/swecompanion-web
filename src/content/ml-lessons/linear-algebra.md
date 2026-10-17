@@ -183,7 +183,9 @@ y = W @ x
 
 This is the core operation behind a neural network's linear layer.
 
-genui{"learning_viz":{"type_id":"MATRIX_MULTIPLICATION_ROW_COLUMN_RULE"}}
+```dl-visual
+matrix-product
+```
 
 ---
 

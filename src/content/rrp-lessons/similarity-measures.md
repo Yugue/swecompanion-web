@@ -1,118 +1,52 @@
 ## Similarity and co-occurrence
 
-**Every neighbourhood method comes down to one question: what counts as "similar"?** That choice is the model. Get it wrong and your "related items" widget shows the same three bestsellers on every page.
+A **similarity measure** turns representations into a numeric comparison. **Co-occurrence** is shared participation in a stated observation unit, such as users consuming both items during a month.
 
----
+Different measures reward different relationships. No normalization removes every bias in the log.
 
-## 1. The raw signal, and why it fails
+## 1. Raw overlap and relative overlap differ
 
-The obvious measure is co-occurrence - how many people engaged with both items:
+Suppose 1,000 users form the reference population:
 
-```text
-count(A and B)  = 14,000
-count(A and C)  =    180
-```
+| Item | Users consuming it | Users also consuming A |
+|---|---|---|
+| A | 100 | 100 |
+| B | 400 | 20 |
+| C | 20 | 10 |
 
-So A is more similar to B? Not necessarily. If B is the single most popular item in the catalogue, then B co-occurs with *everything*:
+Raw overlap prefers B: 20 versus 10. C shares half its audience with A; B shares only one twentieth. Relative association can therefore tell a different story from absolute reach.
 
-```text
-count(B) = 8,000,000        B appears with every item, always
-count(C) =    12,000        C appearing with A 180 times may be far more meaningful
-```
+## 2. Three common measures
 
-Raw counts measure popularity, not similarity. This is the classic bug behind "every product page recommends the same bestseller".
-
-### Rule of thumb
-
-> Any similarity built on raw counts will rank popular items first. Normalize, always.
-
----
-
-## 2. Normalizing
-
-**Cosine similarity** divides out the overall magnitude, so a heavy item does not automatically look similar to everything:
+For binary user-incidence vectors:
 
 \[
-\text{cosine}(A, B) = \frac{\text{count}(A \text{ and } B)}{\sqrt{\text{count}(A)}\,\sqrt{\text{count}(B)}}
+\operatorname{cosine}(A,B)=\frac{n_{AB}}{\sqrt{n_A n_B}},\qquad
+\operatorname{Jaccard}(A,B)=\frac{n_{AB}}{n_A+n_B-n_{AB}}
 \]
 
-**Jaccard** divides the overlap by the union - how much of everything touching either item touches both:
+**Cosine similarity** compares vector direction. Its overlap-count form above assumes binary coordinates; general vectors use a dot product divided by vector lengths.
+
+**Jaccard similarity** divides set intersection size by union size. Here cosine is 0.10 for A–B and about 0.224 for A–C.
+
+**Pointwise mutual information (PMI)** compares joint occurrence with what independence would predict:
 
 \[
-\text{Jaccard}(A, B) = \frac{|A \cap B|}{|A \cup B|}
+\operatorname{PMI}(A,B)=\log\frac{P(A,B)}{P(A)P(B)}
 \]
 
-**Pointwise mutual information (PMI)** compares observed co-occurrence with what you would expect by chance:
+Use one consistent population and window for these probabilities. Positive PMI means more shared occurrence than the independence reference, not proof of useful recommendations.
 
-\[
-\text{PMI}(A,B) = \log \frac{P(A, B)}{P(A)\,P(B)}
-\]
+## 3. Small overlaps need caution
 
-### Common issue
+Two items consumed by the same single user can have cosine 1. Their apparent perfect similarity has little support.
 
-PMI is the sharpest at surfacing genuinely surprising pairs, and the noisiest for rare items - so it is usually damped or floored by a minimum count.
+**Shrinkage** reduces reliance on small samples. One heuristic multiplies a similarity by \(n_{AB}/(n_{AB}+\alpha)\). With \(\alpha=10\), one shared user retains 1/11 of its score; 100 retain 100/110. Tune this choice against the intended task.
 
----
+Minimum-support rules and smoothing can help too, but can reduce discovery of rare useful pairs.
 
-## 3. A numerical comparison
+## 4. Match the measure to the use
 
-Let 100 users engage with A, 400 with B, and 20 with C. Suppose 20 users engage with both A and B, while 10 engage with A and C.
+Raw counts can be useful when total demand matters. Normalized association can reveal smaller related audiences. PMI can emphasize surprising rare pairs and therefore needs careful support checks.
 
-Raw overlap prefers B: 20 versus 10. Cosine gives `20 / √(100 × 400) = 0.10` for B and `10 / √(100 × 20) ≈ 0.224` for C. Normalization reveals that C overlaps much more strongly relative to its audience size.
-
----
-
-## 4. Picking one
-
-| Situation | Reach for |
-|---|---|
-| General "related items" | cosine on the interaction vectors |
-| Sets, with no strength of preference | Jaccard |
-| You want surprising, non-obvious pairs | PMI, with a minimum-count floor |
-| Heavy popularity skew | PMI, or cosine with extra popularity damping |
-
-### Rule of thumb
-
-None of these is subtle. The mistake is skipping the normalization step, not choosing the wrong formula.
-
----
-
-## 5. Small samples need less confidence
-
-Two obscure items touched by the same single user can have perfect cosine similarity. That is not strong evidence of a reliable recommendation.
-
-Require a minimum overlap or **shrink** the score toward zero when support is small. For example, multiply similarity by `overlap / (overlap + 10)`: one shared user retains only 1/11 of the score, while 100 retain 100/110. The constant is a validation choice, not a universal setting.
-
----
-
-## 6. Similarity inherits every bias in the log
-
-```text
-the system showed A and B together on the same page
-        ↓
-people engaged with both because both were on screen
-        ↓
-A and B look similar
-        ↓
-the system shows A and B together even more
-```
-
-That is a **feedback loop** disguised as a similarity score: frequently displayed pairs collect more interactions and then appear even more similar. It is a common reason "related items" lists stop changing.
-
-Practical guards: a minimum interaction count before an item may enter a similarity list, a cap on how often any single item may appear across lists, and periodic recomputation from a window rather than from all history.
-
-**Beyond co-occurrence.** A model can also learn an **embedding**, a short numeric vector for each item. Embeddings handle sparsity better because two items can end up close even if no person engaged with both, as long as their interaction patterns are similar.
-
-That is the step from counting to learning, and it is the point of the rest of this chapter.
-
----
-
-## What matters most
-
-- **The similarity measure is the model.** Everything about a neighbourhood method follows from it.
-- **Raw co-occurrence counts measure popularity,** which is the classic cause of "the same bestsellers everywhere".
-- **Cosine, Jaccard, and PMI are all ways of dividing out popularity;** PMI surfaces the most surprising pairs and is the noisiest on rare items.
-- **Similarity inherits the logs' biases,** including items that only look related because they were shown together.
-- **Guard with minimum counts, per-item caps, and recomputation from a recent window.**
-
-Next topic is **Matrix factorization**.
+Evaluate candidate quality and coverage, not just visually appealing neighbors. All measures inherit exposure and eligibility patterns: items displayed together often can look associated because the system repeatedly provided that opportunity.

@@ -25,14 +25,15 @@ export const DEFAULT_ML_DOMAIN_PATH = DEEP_LEARNING_PATH;
 /** The domains a candidate can pre-select. `href` is set only for domains that have a guide;
  * the rest render as non-interactive chips. */
 export const ML_DOMAINS: { name: string; href?: string }[] = [
-  { name: "Agentic AI Development", href: AGENTIC_AI_PATH },
-  { name: "Applied Machine Learning → Basics of ML", href: APPLIED_ML_PATH },
-  { name: "Recommendations / Ranking / Predictions (RRP)", href: RRP_PATH },
-  { name: "Computer Vision (CV) / Image Processing", href: CV_PATH },
-  { name: "Natural Language Processing / Understanding (NLP / NLU)" },
-  { name: "Speech / Audio" },
   { name: "Deep Learning / Neural Networks", href: DEEP_LEARNING_PATH },
+  { name: "Computer Vision (CV) / Image Processing", href: CV_PATH },
+  { name: "Applied Machine Learning → Basics of ML", href: APPLIED_ML_PATH },
+  { name: "Natural Language Processing / Understanding (NLP / NLU)" },
+  { name: "Generative AI" },
+  { name: "Recommendations / Ranking / Predictions (RRP)", href: RRP_PATH },
+  { name: "Agentic AI Development", href: AGENTIC_AI_PATH },
+  { name: "Large Language Models (LLM)" },
+  { name: "Speech / Audio" },
   { name: "Reinforcement Learning" },
   { name: "Distributed Machine Learning" },
-  { name: "Generative AI → Large Language Models (LLM)" },
 ];

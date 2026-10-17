@@ -2,13 +2,15 @@
 
 ## 1. Reuse a local detector
 
-Convolution applies the **same learned stencil** across an image.
+A **convolutional neural network (CNN)** learns local filters and reuses them across image positions. A **convolution layer** slides each small weight grid (**kernel**) over the input to produce responses.
 
-Example: kernel [−1,0,1] gives 8 on [2,2,10] and zero on [2,2,2].
+```cv-visual
+convolution
+```
 
 > Learn a local pattern once, then look for it everywhere.
 
-Neural-network “convolution” typically uses cross-correlation.
+Neural-network “convolution” typically uses **cross-correlation**: apply the kernel directly, rather than flipping it as mathematical convolution does.
 
 ## 2. Space and channels
 
@@ -28,7 +30,7 @@ One RGB output channel combines all three color channels.
 [B,3,H,W] → shared filters → [B,32,H',W']
 ```
 
-The 32 channels are **32 learned measurements**, not separate images.
+A **feature map** is the spatial grid of responses to a learned filter. The 32 output channels are **32 learned measurements**, not separate photographs.
 
 Early layers measure local appearance; later layers combine it. Activations between layers make the hierarchy nonlinear.
 
@@ -39,11 +41,11 @@ Early layers measure local appearance; later layers combine it. Activations betw
 
 Detection needs locations to move with objects. Classification often aggregates spatial features.
 
-Stride, padding, and borders complicate exact equivariance.
+**Stride** is the spacing between filter positions; **padding** adds border values. They and finite image borders complicate exact equivariance.
 
 ## 5. Parameters and computation
 
-With bias, a K × K layer has:
+For kernel width K, input channels \(C_{\mathrm{in}}\), and output channels \(C_{\mathrm{out}}\), a standard convolution layer with bias has:
 
 \[
 K^2C_{\mathrm{in}}C_{\mathrm{out}}+C_{\mathrm{out}}
@@ -51,7 +53,7 @@ K^2C_{\mathrm{in}}C_{\mathrm{out}}+C_{\mathrm{out}}
 
 Example: 3 × 3, three input channels, 32 outputs → **896 parameters**.
 
-Work per image is approximately \(H_oW_oK^2C_{\mathrm{in}}C_{\mathrm{out}}\).
+For output height/width \(H_o,W_o\), work per image is approximately \(H_oW_oK^2C_{\mathrm{in}}C_{\mathrm{out}}\).
 
 Double H/W → roughly 4× spatial work, unchanged parameter count.
 
@@ -64,7 +66,7 @@ Double H/W → roughly 4× spatial work, unchanged parameter count.
 | Depthwise | Space separately per channel |
 | Pointwise 1 × 1 | Channels at one location |
 
-Depthwise + pointwise, multiplier one, uses \(K^2C_{\mathrm{in}}+C_{\mathrm{in}}C_{\mathrm{out}}\) weights without biases.
+A **depthwise-separable convolution** factors spatial filtering and channel mixing into depthwise then pointwise operations. With one spatial filter per input channel (multiplier one), it uses \(K^2C_{\mathrm{in}}+C_{\mathrm{in}}C_{\mathrm{out}}\) weights without biases.
 
 For 3 × 3, 32 → 64 channels: **2,336** versus **18,432** standard weights.
 

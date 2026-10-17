@@ -16,7 +16,7 @@ At a boundary, neighbors may belong to different surfaces.
 
 ## 2. Convolution and correlation
 
-For image I and kernel K:
+A **kernel** is a small grid of weights moved across the image. For image I and kernel K:
 
 \[
 (I*K)(x,y)=\sum_{u,v}K(u,v)I(x-u,y-v)
@@ -33,14 +33,14 @@ Padding supplies missing border values. Zero padding can darken borders.
 
 | Filter | Useful for | Main cost |
 |---|---|---|
-| Gaussian | Widespread fluctuations | Blurred edges |
-| Median | Isolated extreme pixels | Lost thin structures |
-| Bilateral | Smoothing while respecting intensity boundaries | More computation |
-| Sharpening | Emphasizing detail | Stronger noise / halos |
+| Gaussian: center-weighted average with bell-shaped spatial weights | Widespread fluctuations | Blurred edges |
+| Median: neighborhood's middle sorted value | Isolated extreme pixels | Lost thin structures |
+| Bilateral: weight by spatial distance and intensity similarity | Smooth within similar-intensity regions | More computation |
+| Sharpening: boost rapid changes | Emphasize detail | Stronger noise / halos |
 
 Example: [10,10,250,10,10] has **mean 58**, but **median 10**. Median rejects the isolated spike.
 
-Larger Gaussian sigma means broader smoothing.
+Gaussian **sigma** is the spatial standard deviation controlling the weight spread; larger sigma means broader smoothing.
 
 ## 4. Frequency intuition
 
@@ -55,7 +55,7 @@ For ideal Gaussians, repeated smoothing adds their variances.
 
 ## 5. Sharpen by adding a residual
 
-Unsharp masking adds back the difference from a blurred image:
+**Unsharp masking** is a sharpening method that adds a scaled **residual**, the difference between the original and blurred image:
 
 \[
 I_{\mathrm{sharp}}=I+\alpha(I-G(I))
@@ -69,6 +69,8 @@ The residual also contains noise. Larger alpha can create halos.
 
 ## 6. Restoration is an inverse problem
 
+An **inverse problem** estimates a hidden cause from its observed effect. Here, estimate a clean image from its blurred, noisy observation:
+
 \[
 Y=K*X+N
 \]
@@ -77,7 +79,7 @@ Y is observed, X clean, K blur, N noise.
 
 Deblurring tries to estimate X. Boosting frequencies suppressed by blur also boosts noise.
 
-**Regularization** supplies assumptions to stabilize the estimate. Learned priors can produce plausible detail that was not actually present.
+**Regularization** adds constraints or penalties to favor stable plausible solutions. A **prior** is an assumption about likely clean images; learned priors acquire those patterns from data. Learned priors can produce plausible detail that was not actually present.
 
 ## 7. Minimal filtering example
 

@@ -175,6 +175,10 @@ A basic PyTorch version:
 mlp = nn.Sequential(nn.Linear(128, 256), nn.ReLU(), nn.Linear(256, 10))
 ```
 
+```dl-visual
+mlp-forward
+```
+
 ---
 
 # 5. What the hidden layer is actually doing

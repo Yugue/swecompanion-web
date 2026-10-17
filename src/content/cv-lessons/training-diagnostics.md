@@ -2,6 +2,8 @@
 
 ## 1. Find the limiting component
 
+**Training diagnostics** are checks that locate why a model is not learning or transferring as intended.
+
 Low quality can come from capture, labels, wiring, optimization, generalization, or serving.
 
 State a hypothesis and run the smallest experiment that can distinguish it. A larger model only addresses some causes.
@@ -10,13 +12,13 @@ State a hypothesis and run the smallest experiment that can distinguish it. A la
 
 Inspect input, transformed target, output shape, loss arguments, gradients, and restored prediction.
 
-Check ranges, class IDs, box conventions, valid mask pixels, and loss reduction.
+**Loss reduction** combines per-example/pixel errors into a scalar, usually a sum or mean; it affects gradient scale. Check it alongside ranges, class IDs, box conventions, and valid mask pixels.
 
 A decreasing loss can still optimize the wrong targets.
 
 ## 3. Overfit a tiny clean subset
 
-Disable unnecessary randomness and fit a few trusted examples.
+The **tiny-subset overfit check** asks whether the pipeline can fit a few trusted training examples almost perfectly. Disable unnecessary randomness and test those examples.
 
 ```text
 cannot fit → inspect pipeline, objective, gradients, learning rate
@@ -40,11 +42,11 @@ Curves suggest hypotheses; they do not prove causes.
 
 ## 5. Run controlled ablations
 
-Change one conceptual variable under the same split and evaluation.
+A **controlled ablation** compares systems differing in one conceptual component, such as removing augmentation. Keep the split and evaluation fixed.
 
 For example, compare frozen versus fine-tuned backbones with the same resolution and labels. Changing backbone, resolution, and augmentation together hides the cause of improvement.
 
-Use repeated seeds when variation matters. Estimate uncertainty at the independent source unit. Keep final test data out of selection.
+A **random seed** initializes pseudorandom choices such as parameter initialization and sample order. Use multiple seeds when run-to-run variation matters. Estimate uncertainty at the independent source unit. Keep final test data out of selection.
 
 ## 6. Tune likely causes first
 

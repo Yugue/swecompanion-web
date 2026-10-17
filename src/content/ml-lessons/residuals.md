@@ -28,6 +28,10 @@ y = x + block(x)
 
 The \(x\) path is called the **skip / shortcut / residual connection**.
 
+```dl-visual
+residual
+```
+
 ---
 
 ## 2. Why this makes deep networks easier to train

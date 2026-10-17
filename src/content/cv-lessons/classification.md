@@ -2,6 +2,8 @@
 
 ## 1. Match output to labels
 
+**Image classification** assigns category labels or properties to an image as a whole.
+
 - **Binary:** one yes/no property.
 - **Multiclass:** one exclusive category.
 - **Multilabel:** several coexisting tags.
@@ -18,13 +20,15 @@ Lowering a binary threshold generally catches more positives and admits more fal
 
 Example: threshold 0.8 → 0.4 flags more candidate defects.
 
-Argmax selects an exclusive class; an abstain option handles uncertainty. Multilabel tasks can use different thresholds per label.
+**Argmax** chooses the index of the largest score. An **abstain option** returns no decision when evidence is insufficient. Multilabel tasks can use different thresholds per label.
 
-Ranking scores need not be calibrated probabilities.
+**Ranking** orders examples by score. **Calibration** means a probability agrees with observed frequencies: about 80% of predictions scored 0.8 should be correct under the evaluated conditions. Good ranking does not guarantee calibration.
 
 ## 3. Precision and recall
 
-TP=correct alert, FP=false alarm, FN=miss, TN=correct rejection.
+**True positive (TP):** correct alert. **False positive (FP):** false alarm. **False negative (FN):** missed positive. **True negative (TN):** correct rejection.
+
+**Precision** P is the fraction of alerts correct; **recall** R is the fraction of actual positives caught. **F1** is their harmonic mean:
 
 \[
 P=\frac{TP}{TP+FP},\qquad
@@ -54,12 +58,14 @@ Translate percentages into actual workload.
 
 | Curve | Axes |
 |---|---|
-| ROC | Recall versus false-positive rate |
-| PR | Precision versus recall |
+| ROC (Receiver Operating Characteristic) | Vertical: recall; horizontal: false-positive rate FP/(FP+TN) |
+| PR (Precision–Recall) | Vertical: precision; horizontal: recall |
 
 Low prevalence can turn a small false-positive rate into many alarms. Precision changes with prevalence.
 
-Select thresholds on validation; test the selected decision independently. AUC alone can hide an unacceptable operating point.
+An **operating point** is the decision threshold and resulting error rates. **AUC** is area under a specified curve; it summarizes many thresholds and can hide an unacceptable operating point.
+
+Select thresholds on validation; test the selected decision independently.
 
 ## 6. Multiclass/multilabel evaluation
 

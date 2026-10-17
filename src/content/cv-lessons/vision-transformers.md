@@ -2,10 +2,10 @@
 
 ## 1. Turn an image into tokens
 
-A **Vision Transformer (ViT)** embeds image patches, adds positions, and processes the tokens with Transformer blocks.
+A **Vision Transformer (ViT)** is an image model that uses attention-based Transformer blocks to process **patches**, small rectangular image regions. It turns each patch into a feature vector (**token**) and supplies position information.
 
-```text
-image → patches → embeddings + positions → Transformer → task head
+```cv-visual
+patch-tokens
 ```
 
 A convolution with kernel and stride equal to patch size can implement the patch projection.
@@ -18,11 +18,13 @@ For image height \(H\), width \(W\), and patch width \(P\) dividing both:
 N=\frac{H}{P}\frac{W}{P}
 \]
 
-A \(224\times224\) image with \(16\times16\) patches has \(14^2=196\) tokens. A class token adds one.
+A \(224\times224\) image with \(16\times16\) patches has \(14^2=196\) tokens. A **class token** is an extra learned vector that gathers image information through attention; its final representation can feed a classifier. Including it adds one token.
 
 Halving patch width gives four times as many patches and roughly **sixteen times** as many dense attention pairs.
 
 ## 3. CNN and ViT priors
+
+An **inductive bias** is a structural assumption that makes some patterns easier to learn. Here, “prior” means architectural bias, such as local connectivity or shared weights.
 
 | Property | Typical CNN | Basic global ViT |
 |---|---|---|
@@ -45,7 +47,7 @@ These choices reduce cost and supply multiscale features, while changing context
 
 ## 5. Change resolution or task
 
-A new resolution changes the patch grid. Learned absolute position embeddings may need interpolation that respects grid shape and aspect ratio.
+A new resolution changes the patch grid. **Learned absolute position embeddings** are trainable vectors tied to particular grid locations; they may need interpolation that respects grid shape and aspect ratio.
 
 Classification can pool tokens. Detection and segmentation need spatial outputs, often at multiple scales.
 
@@ -55,7 +57,7 @@ A sub-patch object can affect the embedding, but coarse tokenization can make fi
 
 Dense attention-pair work grows roughly with \(N^2\); projections and feed-forward layers have different costs.
 
-Low parameter count does not imply low activation memory or latency. Measure throughput, tail latency, and memory at the actual input shapes on target hardware.
+Low parameter count does not imply low activation memory or latency. Measure **throughput** (images processed per second), **tail latency** (slow-request completion times), and memory at the actual input shapes on target hardware.
 
 ## 7. Compare under fixed constraints
 
