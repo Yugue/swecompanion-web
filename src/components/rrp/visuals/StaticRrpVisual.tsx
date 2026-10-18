@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { rrpVisuals, type RrpVisualId } from "@/lib/rrpVisuals";
-import { annBucket, annCenters, annExample, annItems, annQuery, cosine, dcg, dot, explorationExamples, ipsEstimate, ipsRows, itemFactors, mergedSources, metricLists, positionWeight, rerankExamples, rerankUtility, servingBudget, sourceLists, userFactors, vectorItems, vectorQuery, wilson } from "@/lib/rrpVisualMath";
+import { clickOperatingPoint, clickThresholdExample, annBucket, annCenters, annExample, annItems, annQuery, cosine, dcg, dot, explorationExamples, ipsEstimate, ipsRows, itemFactors, mergedSources, metricLists, positionWeight, rerankExamples, rerankUtility, servingBudget, sourceLists, userFactors, vectorItems, vectorQuery, wilson } from "@/lib/rrpVisualMath";
 
 const blue = "#2563eb", orange = "#b45309", teal = "#0f766e", red = "#c2414c";
 const ink = "var(--color-text, #202124)", muted = "var(--color-text-muted, #5f6368)";
@@ -23,6 +23,34 @@ function Canvas({ id, height = 320, children }: { id: RrpVisualId; height?: numb
 }
 function Matrix({ x, y, values, cell = 36, selected, color = blue }: { x: number; y: number; values: (number | string | null)[][]; cell?: number; selected?: (row: number, col: number) => boolean; color?: string }) {
   return <g>{values.map((row, r) => row.map((v, c) => <g key={`${r}:${c}`}><rect x={x + c * cell} y={y + r * cell} width={cell - 1} height={cell - 1} rx="3" fill={selected?.(r, c) ? color : surface} fillOpacity={selected?.(r, c) ? 0.14 : 1} stroke={selected?.(r, c) ? color : border} /><Text x={x + (c + 0.5) * cell} y={y + (r + 0.65) * cell} size={14}>{v === null ? "?" : v}</Text></g>))}</g>;
+}
+
+function PredictionMetrics() {
+  const point = clickOperatingPoint();
+  const panels = [
+    { x: 55, title: "ROC view", xlabel: "False-positive rate", ylabel: "Recall (TPR)", px: point.fpr, py: point.tpr, color: blue },
+    { x: 370, title: "Precision–recall view", xlabel: "Recall", ylabel: "Precision", px: point.tpr, py: point.precision, color: orange },
+  ];
+  return <Canvas id="prediction-metrics" height={370}>
+    {panels.map(panel => <g key={panel.title}>
+      <Text x={panel.x + 110} y={24} bold>{panel.title}</Text>
+      <Text x={panel.x} y={47} size={11} anchor="start">{panel.ylabel}</Text>
+      <path d={`M${panel.x},55 V235 H${panel.x + 220}`} fill="none" stroke={border} />
+      {[0, 0.5, 1].map(value => <g key={value}>
+        <Text x={panel.x + value * 220} y={256} size={11}>{value}</Text>
+        <Text x={panel.x - 12} y={239 - value * 180} size={11} anchor="end">{value}</Text>
+      </g>)}
+      <Text x={panel.x + 110} y={282} size={12}>{panel.xlabel}</Text>
+      <path d={`M${panel.x},${235 - panel.py * 180} H${panel.x + panel.px * 220} V235`} fill="none" stroke={panel.color} strokeDasharray="4 4" />
+      <circle cx={panel.x + panel.px * 220} cy={235 - panel.py * 180} r="5" fill={panel.color} />
+    </g>)}
+    <Text x={88} y={82} size={12} anchor="start" color={blue}>1% FPR</Text>
+    <Text x={88} y={103} size={12} anchor="start" color={blue}>80% recall</Text>
+    <Text x={440} y={104} size={12} anchor="start" color={orange}>80% recall</Text>
+    <Text x={440} y={125} size={12} anchor="start" color={orange}>44.7% precision</Text>
+    <Text x={320} y={321} size={12}>{`TP ${clickThresholdExample.tp} · FP ${clickThresholdExample.fp} · FN ${clickThresholdExample.fn} · TN ${clickThresholdExample.tn.toLocaleString("en-US")}`}</Text>
+    <Text x={320} y={351} size={13} color={teal} bold>Precision = 80 / (80 + 99) ≈ 44.7%</Text>
+  </Canvas>;
 }
 
 function RankingFunnel() {
@@ -226,6 +254,7 @@ function ExplorationUncertainty() {
 
 export function StaticRrpVisual({ id }: { id: RrpVisualId }) {
   switch (id) {
+    case "prediction-metrics": return <PredictionMetrics />;
     case "ranking-funnel": return <RankingFunnel />;
     case "interaction-matrix": return <InteractionMatrix />;
     case "ranking-discount": return <RankingDiscount />;

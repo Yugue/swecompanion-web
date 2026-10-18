@@ -1,43 +1,58 @@
 ## When the score has to be a real probability
 
-**Calibration** means predicted probabilities match observed event frequencies on a relevant population. Among many predictions near 0.2, about 20% should have the event.
+## 1. Give the number a trustworthy scale
 
-Ranking and probability meaning are different properties.
+**Calibration** means predicted probabilities match observed frequencies in the relevant population. Among many predictions near 0.2, about 20% should have the event.
 
-## 1. Order survives some score changes
+> Ranking needs the ruler's order; probability decisions also need correct units.
 
-Multiplying all positive scores by two preserves their order. A ranking metric using that same order stays unchanged, even if the numbers no longer represent probabilities correctly.
+## 2. Order and probability meaning differ
 
-This does not prove the original ordering was perfect. Nor does every transformation preserve order: squaring negative scores, for example, can reverse comparisons.
+Multiplying every score by two preserves order. Ranking metrics stay unchanged, even when the numbers cease to be valid probabilities.
 
-## 2. Check frequencies, not only the average
+That says nothing about whether the original ordering was perfect.
+
+## 3. Inspect score bands
+
+A **reliability diagram** compares mean predicted probability with observed event frequency within bins.
 
 ```rrp-visual
 calibration
 ```
 
-A **reliability diagram** compares mean predicted probability with observed positive frequency within bins. Report counts and uncertainty; a globally correct average can hide errors by score band or surface.
+Show bin counts and uncertainty. An accurate overall mean can hide large errors in separate score bands.
 
-Log loss and **Brier score**, mean squared probability error, evaluate probability predictions but mix calibration with other aspects of prediction quality. Binned calibration summaries also depend on binning and sample size.
+**Brier score** is mean squared probability error. Like log loss, it measures more than calibration alone.
 
-## 3. Correct a known sampling shift carefully
+## 4. Correct one known sampling change
 
-Suppose all clicks are retained, while each non-click is independently retained with probability \(w\). If \(p_s\) accurately estimates the sampled-data probability, then:
+Retain all clicks and each non-click independently with probability \(w\). Then:
 
 \[
-p_{population}=\frac{w p_s}{1-p_s+w p_s}
+p=\frac{w p_s}{1-p_s+w p_s}
 \]
 
-A real click rate of 1% becomes about 9.17% when retaining one tenth of non-clicks. Substituting \(w=0.1\) reverses that sampling change.
+\(p_s\): correctly estimated sampled-data click probability; \(p\): population probability; \(w\): non-click retention probability.
 
-This formula assumes the stated sampling process. Feature-dependent sampling needs corresponding conditional probabilities; arbitrary class weighting or model error is not automatically fixed by this one expression.
+At 1% population CTR and \(w=0.1\), sampled CTR is about **9.17%**. The formula restores 1% under the stated assumptions.
 
-## 4. Use and maintain probability meaning
+## 5. Fit a held-out mapping
 
-For an expected event value, a calibrated event probability can be multiplied by its correctly defined value. Auction payments and spending also depend on the actual auction and pacing rules; doubling a click estimate does not universally double the amount charged.
+A **calibrator** maps scores to probability estimates.
 
-Fit a **calibrator**, a mapping from scores to probabilities, using held-out or out-of-fold predictions. Sigmoid calibration uses a simple S-shaped mapping; isotonic calibration fits a flexible monotonic one.
+- **Sigmoid calibration:** fit an S-shaped mapping.
+- **Isotonic calibration:** fit a flexible monotonic mapping.
 
-Respect time and groups in calibration data, evaluate independently, and recheck after retraining or population changes. A pure top-k ordering may not need calibration; expected-value calculations and probability reporting do.
+Fit using held-out predictions; evaluate on separate representative evidence. Binning and sparse data can obscure errors.
 
-> **Mental image:** the ranking uses the order of marks on a ruler. Probability decisions also need the ruler's units to be correct.
+## 6. Recheck where probability is consumed
+
+Expected-value ranking, reporting, or budgeting may rely on probability meaning. A pure top-\(k\) order may not.
+
+Recheck after model or population changes. The sampling correction is not a universal repair for arbitrary weighting or model error.
+
+## 7. Interview reasoning
+
+**Question:** NDCG is unchanged but expected-value decisions worsen. How?
+
+**Answer:** Scores can keep their order while losing probability calibration, changing calculations that depend on their numeric values.

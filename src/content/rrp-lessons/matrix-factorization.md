@@ -1,45 +1,87 @@
 ## Matrix factorization
 
-**Matrix factorization** represents users and items with short learned vectors. Their dot products approximate an interaction or rating matrix under a chosen training objective.
+## 1. Share a compact structure
 
-The **latent factors** are learned coordinates, rather than observed attributes supplied by the dataset.
+**Matrix factorization** models user–item evidence using learned vectors. **Latent factors** are their learned coordinates, rather than supplied attributes such as price.
 
-## 1. A large matrix, two vector tables
+One user row and one item row produce a score without separately learning every pair.
+
+## 2. Look up two rows
 
 ```rrp-visual
 matrix-factorization
 ```
 
-For user vector \(p_u\) and item vector \(q_i\), a common score is:
+## 3. Add baseline tendencies
 
 \[
 s(u,i)=p_u^\top q_i+b_u+b_i+\mu
 \]
 
-The dot product models compatibility. \(b_u\), \(b_i\), and \(\mu\) are user, item, and global offsets. For ratings they can capture generous raters and generally high-rated items.
+\(u,i\): user/item; \(p_u,q_i\): vectors; \(b_u,b_i\): their offsets; \(\mu\): global offset; \(s\): score.
 
-With \(p_u=[1,2]\), \(q_i=[2,1]\), and zero offsets, the score is \(1\times2+2\times1=4\). It is not automatically four stars or a probability; meaning comes from the objective and any output transformation.
+Offsets capture tendencies such as generous ratings. With [1,2], [2,1], and zero offsets, the score is **4**; the objective determines its meaning.
 
-## 2. Training decides what is approximated
+## 4. Give an observed error a cost
 
-For observed ratings, minimize prediction error over rated cells plus **regularization**, a penalty discouraging unstable or excessive fitted values. A missing rating is not a zero-star rating.
+For one rating, write the selected vectors as \(p,q\) and hold offsets at zero:
 
-For clicks or watches, missing cells have uncertain meaning. Confidence-weighted or sampled pairwise objectives define how unobserved entries affect fitting. The same vector architecture can therefore learn different score scales and relationships.
+\[
+e=p^\top q-y,\qquad
+L=\tfrac12e^2+\tfrac\lambda2(\|p\|^2+\|q\|^2)
+\]
 
-**Alternating least squares (ALS)** fixes item vectors while solving user vectors, then reverses the roles. Suitable squared-error objectives make each subproblem tractable. **Stochastic gradient descent (SGD)** updates parameters from sampled observations or comparisons. Neither choice is universally restricted to one feedback type.
+\(y\): observed rating; \(e\): prediction error; \(L\): loss; \(\lambda\ge0\): **regularization** strength, penalizing vector magnitude; \(\|\cdot\|\): vector length.
 
-## 3. Compactness has a cost
+Train over observed ratings. A missing rating is not zero stars.
 
-With one million users, 100,000 items, and 32 coordinates per vector, the two tables contain 35.2 million numbers, before offsets and training state.
+## 5. Turn sensitivity into an update
 
-Real interaction logs are usually stored sparsely rather than allocating every missing matrix cell. Factorization adds shared structure for prediction; it is not simply a requirement to replace a physically stored dense matrix.
+A **gradient** measures loss sensitivity to each parameter. **Stochastic gradient descent (SGD)** updates using sampled examples:
 
-Larger vectors add capacity, memory, and evidence requirements for rare entities. Choose their size and penalty using validation.
+\[
+\nabla_pL=e q+\lambda p,\quad \nabla_qL=e p+\lambda q
+\]
 
-## 4. Understand the limits
+\[
+p'=p-\eta\nabla_pL,\qquad q'=q-\eta\nabla_qL
+\]
 
-Plain identifier-only factorization has limited evidence for new IDs and no direct input for a changing query or arbitrary user–item feature. Side-feature models and separate retrieval sources can help.
+\(\nabla\): gradient; \(\eta>0\): learning rate; primes: updated vectors. Compute both gradients from the old vectors. Smaller steps may help; oversized steps can increase loss.
 
-Individual latent axes are not uniquely named concepts: rotating both tables together can preserve dot products. Interpreting an axis as “action movies” is a hypothesis requiring evidence, not a built-in explanation.
+## 6. Work one step
 
-> **Mental image:** each user and item receives coordinates on a learned compatibility map. The loss decides which observations that map should explain.
+Let \(p=[1,0]\), \(q=[0,1]\), \(y=1\), \(\eta=0.1\), and \(\lambda=0\). Score 0 gives error −1.
+
+| Quantity | Before | After |
+|---|---|---|
+| User vector | [1,0] | [1,0.1] |
+| Item vector | [0,1] | [0.1,1] |
+| Score | 0 | 0.2 |
+| Data loss | 0.5 | 0.32 |
+
+## 7. See regularization change that step
+
+At \(\lambda=0.2\), the same update gives **[0.98,0.1]** and **[0.1,0.98]**. Existing coordinates shrink while the error still encourages compatibility.
+
+More regularization can stabilize sparse estimates; too much can underfit. Compare validation quality, not vector size alone.
+
+## 8. Solve one side with ALS
+
+**Alternating least squares (ALS)** fixes item vectors, solves user vectors, then reverses the roles.
+
+In a one-coordinate, zero-offset example, fixed item values 1 and 2 have ratings 2 and 3. Without regularization, minimize \(\tfrac12[(p-2)^2+(2p-3)^2]\). Its derivative is \(5p-8\), so the best user value is **1.6**.
+
+Each fixed-side problem is least squares. Alternating these solutions does not guarantee the globally best joint fit.
+
+## 9. Capacity and interpretation
+
+With \(U\) users, \(I\) items, and \(d\) coordinates, storage has \((U+I)d\) vector numbers. Larger \(d\) adds capacity and cost.
+
+Rotating both tables together can preserve dot products: axes need not correspond to named genres. The next chapter handles implicit-feedback objectives.
+
+## 10. Interview reasoning
+
+**Question:** Can you label each latent coordinate with a genre?
+
+**Answer:** Only with additional evidence. Several coordinate systems can express the same scores, so the objective does not assign an intrinsic human meaning to each axis.

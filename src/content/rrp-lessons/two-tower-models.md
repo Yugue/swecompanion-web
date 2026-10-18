@@ -1,50 +1,78 @@
 ## Two-tower retrieval
 
-A **two-tower model** separately encodes a request and an item into compatible vectors, then combines them with a cheap score such as a dot product.
+## 1. Prepare the two sides independently
 
-The separation allows item-side work to happen ahead of the request.
+A **two-tower model** separately encodes a request and an item, then combines their vectors with a cheap score. Item-side computation can happen ahead of the request.
 
-## 1. Encode items once, requests as needed
+## 2. Follow the two paths
 
 ```rrp-visual
 two-tower
 ```
 
 \[
-u=f(\text{user, history, query, context}),\qquad
-v_i=g(\text{item features}),\qquad s_i=u^\top v_i
+u=f(x),\qquad v_i=g(z_i),\qquad s_i=u^\top v_i
 \]
 
-An item encoder independent of the current request can compute and store each \(v_i\). A request computes \(u\) once, then searches those stored vectors.
+\(x\): user/query/history/context; \(z_i\): item inputs; \(f,g\): encoders; \(u,v_i\): output vectors; \(s_i\): score.
 
-The request tower may include a query or anonymous session; it need not depend on a logged-in user ID. Item vectors must be refreshed when required inputs change, such as dynamic metadata.
+Compute \(u\) once and search stored \(v_i\) values.
 
-## 2. Independence limits direct inputs, not all interaction
+## 3. Understand the independence constraint
 
-A user tower can encode a preferred price range and an item tower its price. Their dot product can model compatibility.
+Separate vectors can encode preferred price and item price, then model compatibility.
 
-An arbitrary lookup of “how many times this specific user watched this specific candidate” cannot be a direct input to the independently computed item vector or single request vector. A joint ranker can consume that candidate-specific feature after retrieval.
+An arbitrary lookup of “this user's views of this exact candidate” cannot directly enter either independently computed vector. A later joint ranker can use it.
 
-The tradeoff is restricted scoring structure in exchange for efficient reuse. Richer interaction models can also be used for small pools; they do not provide the same simple catalogue-wide precomputation.
+## 4. Train competing scores
 
-## 3. Train using observed and contrasting items
-
-A sampled contrastive objective raises the positive item's score relative to sampled alternatives:
+A **contrastive objective** raises an observed item's score relative to alternatives. One sampled-softmax loss is:
 
 \[
-\ell=-\log\frac{\exp(s_{positive}/\tau)}{\sum_{j\in S}\exp(s_j/\tau)}
+a_j=\frac{\exp(s_j/\tau)}{\sum_{k\in S}\exp(s_k/\tau)},\qquad
+\ell=-\log a_+
 \]
 
-\(S\) contains the positive and sampled competitors. **Temperature** \(\tau>0\) controls the scale inside this softmax, changing probability concentration and training gradients.
+\(S\): positive plus sampled alternatives; \(j,k\): item indices; \(s_j\): score; \(a_j\): **softmax** share, normalized exponential score; \(a_+\): positive share; \(\ell\): loss.
 
-The sampling distribution changes what is learned. If the intended objective approximates a full-catalogue softmax, an appropriate sampling correction may be needed. Not every contrastive objective uses the same correction.
+**Temperature** \(\tau>0\) controls concentration; smaller values sharpen differences.
 
-Scores are retrieval compatibility, not automatically production click probabilities. Hold out later interactions and evaluate against realistic eligible competition.
+## 5. Send error through both towers
 
-## 4. Publish a compatible bundle
+\[
+\frac{\partial\ell}{\partial s_j}=\frac{a_j-y_j}{\tau}
+\]
 
-Deploy request tower, item tower, preprocessing, score convention, and index as compatible versions. Comparing a newly trained request vector with unrelated old item coordinates can silently break retrieval.
+\(y_j\) is 1 for the positive and 0 for an alternative. The positive receives an upward score push; alternatives receive downward pushes.
 
-A feature-based item tower can encode a new listing without retraining. Making it retrievable still requires index insertion and eligibility checks. Measure that publication delay separately from model-training cadence.
+**Backpropagation** applies the chain rule to carry these sensitivities through the dot product and into encoder parameters. Shared parameters couple the resulting score changes.
 
-> **Mental image:** two independently prepared keys fit through one shared compatibility test. Their shared coordinate convention makes precomputation useful.
+## 6. Work one lookup-vector step
+
+For a toy model whose parameters are vector-table entries, use one positive and one negative, \(\tau=1\), and learning rate 0.1:
+
+| Parameter | Before | After |
+|---|---|---|
+| Request u | [1,0] | [1,0.1] |
+| Positive vector | [0,1] | [0.05,1] |
+| Negative vector | [0,−1] | [−0.05,−1] |
+
+Initially both shares are 0.5. The request gradient is [0,−1]; the item gradients are [−0.5,0] and [0.5,0]. Updated scores are **0.15/−0.15**; loss falls **0.693 → 0.554**.
+
+## 7. Keep the objective and sampling aligned
+
+The next chapter explains contrast selection and objective-specific corrections. Sampled softmax shares are not production click probabilities.
+
+More complex encoders update their weights through the output-vector derivatives; they need not reproduce the toy table's changes.
+
+## 8. Publish compatible coordinates
+
+Version encoders, preprocessing, scoring, and item index together. A new request encoder can fail against unrelated old item coordinates even when dimensions match.
+
+Refresh stored vectors when required inputs or model versions change.
+
+## 9. Interview reasoning
+
+**Question:** What makes two towers efficient, and what expressiveness is lost?
+
+**Answer:** Reusable item vectors and one request encoding permit cheap indexed scoring. Arbitrary joint candidate inputs require another scoring path.

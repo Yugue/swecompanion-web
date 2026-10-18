@@ -1,39 +1,47 @@
 ## Fairness, policy, and what not to show
 
-**Eligibility policy** determines which items may be shown. **Fairness objectives** specify how quality, opportunity, or exposure should be assessed across people or providers.
+## 1. Define two different responsibilities
 
-They are related but not interchangeable: a list can meet eligibility rules while distributing opportunities poorly under a chosen fairness objective.
+**Eligibility policy** specifies what may be shown. A **fairness objective** specifies how quality or opportunity should be compared across users or providers.
 
-## 1. Define the comparison
+An eligible list can still distribute opportunity poorly under the chosen objective.
 
-| Perspective | Example question | Evidence to report |
-|---|---|---|
-| User side | Do relevant user groups receive useful results? | Group quality, counts, uncertainty |
-| Provider side | Who receives eligible exposure? | Impression shares, new-provider access |
-| Opportunity | Are similarly qualified items treated comparably? | Defined relevance reference and exposure |
+## 2. Choose the comparison explicitly
 
-Equal exposure, exposure proportional to a chosen relevance measure, and new-provider opportunity are different objectives. Select the appropriate one for the product instead of treating one formula as universally fair.
+| Perspective | Question |
+|---|---|
+| User quality | Do relevant user groups receive useful results? |
+| Provider opportunity | Which eligible providers receive exposure? |
+| Comparable items | Are similarly qualified items treated comparably? |
 
-Historical labels can reflect prior exposure. Removing a sensitive input alone does not remove correlated proxies or guarantee equal outcomes.
+Equal exposure, relevance-proportional exposure, and new-provider opportunity are different goals. No single formula satisfies every interpretation.
 
-## 2. Enforce hard rules as hard rules
+## 3. Inspect the evidence behind “merit”
 
-A disallowed item should not remain selectable with a finite penalty that a large relevance score can outweigh.
+Historical labels inherit earlier exposure opportunities. A score trained on those labels can favor incumbents.
 
-Apply eligibility checks early where supported and recheck the final response, including cached slates. Log policy version, removal reason, and required metadata status. Define the valid fallback when a required check cannot be completed.
+Removing a sensitive input does not remove correlated inputs or guarantee equal outcomes. Compare appropriate eligible groups with counts and uncertainty.
 
-Soft variety or provider targets can use penalties, quotas, or other explicit selection rules. Document their priority and what happens when the requested list is infeasible.
+## 4. Enforce hard conditions
 
-## 3. Separate observed patterns from conclusions
+A disallowed item must be excluded, not left selectable with a finite penalty that relevance can outweigh.
 
-A concentrated catalogue is a signal to investigate, not proof of unfairness. Items can differ in availability, demand, and purpose.
+Apply supported checks during retrieval and validate the final response, including cached lists. Log policy version and removal reason.
 
-Compare appropriate eligible groups, inspect position-adjusted opportunities where supported, and include sample size and uncertainty. A tiny group can have an unstable rate; an apparently merit-based score can inherit incumbency from biased historical labels.
+## 5. Decide what happens when conditions conflict
 
-A change that improves one fairness criterion can worsen another. Report the chosen tradeoff and affected groups rather than claiming every definition can be satisfied together.
+A provider-variety target can be soft; an availability requirement may be hard. Define priority, infeasibility handling, and a valid fallback.
 
-## 4. Keep policy context explicit
+If required metadata is unavailable, follow the product's explicit rule rather than letting a score decide policy implicitly.
 
-Content eligibility and decision requirements depend on the actual surface, users, product, and applicable rules. Identify the responsible policy definitions and owners rather than deriving them from a general recommendation score.
+## 6. Audit the whole opportunity path
 
-Evaluate both candidate retrieval and final display. A final-list audit alone may miss groups excluded before ranking, while a retrieval audit alone may miss unequal placement or later filtering.
+Check eligible inventory, retrieval inclusion, final selection, and placement. A final-list-only audit misses groups excluded earlier.
+
+Concentration is a reason to investigate; it is not by itself proof of unfairness. Availability and task demand also matter.
+
+## 7. Interview reasoning
+
+**Question:** Why recheck policy on a cached recommendation list?
+
+**Answer:** Availability or policy status may have changed since caching. A previously valid selection is not evidence of current eligibility.

@@ -1,39 +1,52 @@
 ## Characteristic failure modes
 
-A **failure mode** is a recurring way a system misses its intended behavior. Treat a symptom as a starting hypothesis, then locate the mechanism before choosing a fix.
+## 1. Turn a symptom into a test
 
-## 1. Trace one affected request
+A **failure mode** is a recurring way the system misses its intended behavior. “The feed feels repetitive” names a symptom, not its cause.
+
+> Trace a missing parcel through its handoffs before replacing the delivery truck.
+
+## 2. Preserve one affected request
+
+Retain intermediate item IDs, inputs, versions, removal reasons, and fallback use.
 
 ```text
-valid inputs? → eligible inventory? → candidate pool? → scores? → final list? → display?
+inputs → eligible pool → retrieved IDs → scores → final list → rendered items
 ```
 
-Retain versions, intermediate item IDs, removal reasons, feature values, and fallback use. A useful item can disappear at several different transitions.
+Inspect the actual display, not only the server's intended response.
 
-## 2. Match symptoms to discriminating checks
+## 3. Choose a discriminating check
 
-| Symptom | Plausible causes | Check first |
-|---|---|---|
-| Same items everywhere | Demand concentration, raw-count dominance, merge or cache bug | Exposure by source, user, and context |
-| New items invisible | Unsupported IDs, missing index entry, filters, little exposure | Publication-to-index and stage membership |
-| Good offline score, weak live result | Bias, metric mismatch, uncertainty, skew | Evaluation protocol and served inputs |
-| Candidate ordering looks good, discovery falls | Retrieval source failure or narrowed inventory | Candidate recall and source counts |
-| Sudden score or click change | Data incident, layout change, population change | Input health, versions, instrumentation |
+| Symptom | First useful distinction |
+|---|---|
+| New items invisible | Missing from index or removed later? |
+| Same items everywhere | Genuine demand or shared-cache/merge error? |
+| Good offline, weak live | Evaluation mismatch or served-input mismatch? |
+| Sudden click drop | Real outcome change or missing events? |
 
-None of these symptoms uniquely identifies a cause. Popularity or narrow lists can be appropriate for some tasks.
+Each check should separate competing explanations.
 
-## 3. Distinguish quality problems from measurement problems
+## 4. Read counts before rates
 
-A click drop may reflect missing outcome events. An improved next-item metric may reflect easier sampled negatives. A flat new-item rate may hide a changed denominator or growing inventory.
+A stable new-item click rate can hide a rapidly growing inventory denominator. Fewer clicks can reflect fewer recorded impressions or a broken collector.
 
-Compare counts and definitions before interpreting rates. Inspect the actual displayed action rather than only the server's intended list. Grouped and temporal dependence affect uncertainty too.
+Verify definitions, volumes, and linkage before interpreting quality changes.
 
-For session complaints, check event freshness and how long recent intent persists. For repeated items, distinguish accidental duplicate IDs, legitimate continue-watching, and distinct items that are merely similar.
+## 5. Distinguish legitimate repetition
 
-## 4. Recover and test one hypothesis
+Repeated IDs can be an accidental merge bug. Familiar content can also be correct for resume-watching or replenishment.
 
-For an active incident, use the established valid fallback or compatible previous bundle and preserve request evidence. Avoid changing several model and data components at once unless recovery requires it.
+For similar but distinct items, inspect candidate variety and list-selection rules. For stale session intent, inspect history freshness and truncation.
 
-Reproduce the failure on those requests. Test the proposed fix against the affected stage, broader quality, hard eligibility, and latency. A repaired index should restore candidate discovery; it need not require a new ranker.
+## 6. Recover, then isolate the repair
 
-> **Mental image:** diagnose a missing parcel by tracing each handoff. Rebuilding the delivery truck cannot fix a parcel never admitted to the depot.
+Use a valid fallback or compatible previous bundle during an incident. Preserve evidence.
+
+Reproduce the failure and change the implicated component. Check the affected stage, broader quality, eligibility, and latency after repair.
+
+## 7. Interview reasoning
+
+**Question:** Recorded clicks fall suddenly while rendered recommendations appear unchanged. What do you check?
+
+**Answer:** Verify impression and outcome collection, event linkage, and arrival delays before concluding the recommendations became worse.

@@ -1,45 +1,56 @@
 ## Deciding what to predict
 
-**Task framing** specifies the decision, training unit, predicted quantity, and time at which information becomes available. It makes labels and evaluation reproducible.
+## 1. Turn a goal into a target
 
-“Improve the feed” is a goal. “Predict whether this displayed video is watched for at least 30 seconds within this session” is a model target.
+**Task framing** specifies the decision, training example, predicted quantity, and information cutoff.
 
-## 1. Write a target contract
+“Improve the feed” is a goal. “Predict useful viewing after this display” is a candidate target.
+
+## 2. Write a small target contract
 
 | Field | Example |
 |---|---|
-| Action | Select six eligible videos for a home-feed request |
-| Training unit | One displayed user–video impression |
-| Inputs | User, video, and context available before selection |
-| Target | Watch at least 30 seconds within 30 minutes of display |
-| Completion | After the observation window and accepted event delay |
+| Unit | One displayed user–video impression |
+| Inputs | Information available before selection |
+| Label | At least 30 seconds watched within 30 minutes |
+| Completion | Window closed, accepted event delay elapsed |
 
-A label that is not yet complete is **censored** or pending under the chosen observation process; do not automatically call it negative.
+A **censored** example has an incompletely observed outcome. Pending examples are not automatically negatives.
 
-Specify whether the target is a probability, an expected amount, or only a relative score. Those outputs support different downstream calculations.
+## 3. Name the output's meaning
 
-## 2. Conditioning changes the question
+- **Probability:** chance of an event.
+- **Expected value:** average amount, such as watch seconds.
+- **Ranking score:** a number used to compare candidates.
 
-“Purchase per impression” differs from “purchase given a click.” If a recorded purchase requires a click, with consistent attribution and windows:
+Only the first two claim particular outcome units.
+
+## 4. Conditioning changes the question
+
+If purchase requires a click under consistent attribution and windows:
 
 \[
-P(\text{purchase}\mid x)=P(\text{click}\mid x)P(\text{purchase}\mid\text{click},x)
+P(buy\mid x)=P(click\mid x)P(buy\mid click,x)
 \]
 
-Here \(x\) is the decision context. At click probability 0.2 and conditional purchase probability 0.3, the per-impression purchase probability is 0.06.
+\(P\) means probability; \(x\) is the available decision context. The second factor asks about purchases among clicked impressions.
 
-Sorting by 0.3 alone ignores whether a user will click at all. The factorization does not apply to purchases through a separate route unless the event definition includes that route appropriately.
+Example: 0.2 × 0.3 = **0.06 purchase probability per impression**. Sorting by 0.3 alone ignores the chance of clicking.
 
-## 3. Choose a target that represents the cost
+## 5. Compare the proxy's blind spots
 
-Raw watch time can favor longer videos. Completion fraction can favor short ones. A thresholded “watched 30 seconds” target ignores additional useful viewing after 30 seconds.
+Watch seconds can favor longer videos; completion fraction can favor short ones. A 30-second threshold ignores additional viewing beyond 30 seconds.
 
-Compare these proxies against the user outcome you intend to improve, with negative signals such as unwanted recommendations. There is no universally best proxy.
+Choose using the intended user outcome, not convenience alone.
 
-A delayed target can be the only training target if mature historical examples provide enough evidence. Delay limits recency of complete labels; it does not prevent using today's available features in today's predictions.
+## 6. Respect the decision boundary
 
-## 4. Match examples and comparisons to the action
+A **request group** contains candidates competing for one decision. Preserve it when comparing candidates.
 
-A pointwise click model can use impression rows. Pairwise or listwise ranking also needs the **request group**: candidates competing for the same decision.
+**Leakage** uses information unavailable at prediction time: tomorrow's purchase cannot be an input to today's recommendation.
 
-For historical examples, reconstruct eligible inventory and feature values as known then. Using a later purchase as an input or an end-of-day click count for a morning request is **leakage**—unavailable future information entering training.
+## 7. Interview reasoning
+
+**Question:** Why can a strong post-click purchase model choose a weak feed?
+
+**Answer:** It conditions on clicking. Feed selection also needs the probability of reaching that condition and the intended per-display outcome.

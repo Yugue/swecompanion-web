@@ -1,45 +1,51 @@
 ## Re-ranking the final list
 
-**Re-ranking** selects or adjusts a final list using candidate scores, relationships among items, and constraints. It addresses properties of the selected set that an independent per-item score may miss.
+## 1. Assemble a useful set
 
-A joint slate model can also learn list interactions; a separate greedy re-ranker is one practical approach, not a mathematical requirement for every system.
+Re-ranking applies relationships and constraints to final selection. Six individually strong items can be repetitive together.
 
-## 1. Separate eligibility from preferences
+> Good ingredients do not automatically make a good meal.
 
-Remove disallowed or unavailable candidates using **hard rules**. Relevance, variety, or freshness can then influence choices within the eligible set.
+## 2. Separate rules from preferences
 
-If two retrieval sources return the same item, merge their provenance rather than displaying accidental duplicates. Distinct but near-identical items may require a separate similarity or creator rule.
+Hard eligibility rules remove disallowed items. Soft preferences trade relevance, freshness, or redundancy within the eligible set.
 
-## 2. Penalize redundancy with already selected items
+Exact duplicate IDs and distinct but near-identical items require different treatment.
 
-A common greedy rule, related to **maximal marginal relevance**, chooses the next candidate using:
+## 3. Penalize overlap with selected items
+
+A greedy rule related to **maximal marginal relevance (MMR)** chooses by incremental relevance and redundancy:
 
 \[
-U(i\mid S)=relevance(i)-\beta\max_{j\in S}similarity(i,j)
+U(i\mid S)=r(i)-\beta\max_{j\in S}sim(i,j)
 \]
 
-\(S\) is the selected set and \(\beta\) controls the redundancy penalty. Define the initial choice when \(S\) is empty.
+\(i\): candidate; \(S\): selected set; \(j\): selected item; \(r\): relevance score; \(sim\): similarity; \(\beta\ge0\): penalty strength; \(U\): selection utility.
+
+Start with the highest relevance when \(S\) is empty. Larger \(\beta\) favors less redundant candidates, depending on score scales.
+
+## 4. Watch the next choice change
 
 ```rrp-visual
 re-ranking
 ```
 
-If A is already selected, candidate B with relevance 0.9 and similarity 0.95 scores 0.615 at \(\beta=0.3\). Candidate C with relevance 0.8 and similarity 0.2 scores 0.74, so C is selected next.
+After A, the lower-relevance C can win because it adds more distinct content. Update the penalty as the selected set grows.
 
-The penalty's meaning depends on the scales and similarity measure. It can lower the original relevance score while improving actual satisfaction; variety need not reduce product value.
+This greedy method is practical, not guaranteed optimal. A joint slate model is another way to express list interactions.
 
-## 3. Handle conflicting constraints explicitly
+## 5. Detect impossible constraints
 
-A six-slot list with at most one item per creator needs six eligible creators. If only four are available, retrieve more, relax a documented soft target, or return fewer items.
+Six slots with at most one item per creator require six eligible creators. If only four exist, retrieve more, relax a documented soft target, or return fewer items.
 
-A high score cannot override hard eligibility. Revalidate cached and selected items against current requirements before display, and log removal reasons and infeasible requests.
+A finite relevance bonus cannot override a hard rule.
 
-A minimum fresh-item share is a selection rule. Whether it provides useful exploration depends on which uncertain items receive exposure and what evidence is logged.
+## 6. Evaluate the complete list
 
-## 4. Evaluate the whole policy
+Compare on the same candidate pool, then measure product effects. More variety can help or hurt depending on the surface; the beyond-accuracy chapter defines the relevant metrics.
 
-Measure list similarity, useful variety, creator coverage, user outcomes, and cost. Compare against the same candidate pool to isolate the list-selection change.
+## 7. Interview reasoning
 
-Then test product effects with an appropriate experiment. Six unrelated items can be diverse and unhelpful; repeated familiar items can be appropriate for replenishment or continue-watching.
+**Question:** Why can sorting individual relevance scores produce a weak page?
 
-> **Mental image:** a set of individually good ingredients is not automatically a good meal. Selection must account for what is already on the plate.
+**Answer:** Independent scores may omit redundancy and other relationships within the selected list. Final selection must account for what is already present.

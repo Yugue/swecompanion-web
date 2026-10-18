@@ -1,43 +1,51 @@
 ## Offline evaluation and its limits
 
-**Offline evaluation** tests a model or policy using existing data without deploying it to make the live decisions being assessed. Its interpretation depends on how examples, labels, and candidate sets were collected.
+## 1. Test recorded evidence
 
-Recommendation logs usually contain outcomes selected by an earlier serving policy.
+**Offline evaluation** assesses a model or policy using existing data rather than deploying the decisions being tested.
 
-## 1. Match the claimed deployment setting
+Its meaning depends on which examples, outcomes, and candidates were recorded.
+
+## 2. Match the future decision
 
 ```rrp-visual
 temporal-evaluation
 ```
 
-For future recommendations, train on earlier available evidence and evaluate later decisions. Reconstruct inventory, features, and label availability at each historical cutoff.
+For future recommendations, fit on earlier available data and assess later requests. Reconstruct historical inventory and inputs.
 
-Use separate development and final evaluation periods. Account for unfinished outcomes or overlapping windows. Holding out entire users answers a new-user question; it does not automatically match predictions for returning users.
+Keep a final period outside development choices; allow labels to mature. Holding out entire users instead answers a new-user question.
 
-## 2. State which stage is being tested
+## 3. Name the layer under test
 
-| Evaluation | What it measures | Important limit |
+| Test | Measures | Does not establish |
 |---|---|---|
-| Reorder a fixed candidate pool | Ordering within that pool | Does not test missing candidates |
-| Retrieve from eligible inventory | Recovery of reference positives | Unobserved relevant items lack labels |
-| Score recorded impressions | Predictions under logged exposure | Does not directly measure a new display policy |
+| Reorder a fixed pool | Ordering within it | Recovery of absent items |
+| Retrieve from inventory | Recovery of reference positives | Every unseen preference |
+| Score logged impressions | Prediction under recorded exposure | Value of a new display policy |
 
-A positive among 99 easy sampled distractors is a different task from a million-item catalogue. Keep candidate construction identical across candidates and report the difference.
+## 4. Fix the competition
 
-A held-out click is evidence about a shown item. Treating an unshown item as irrelevant can penalize useful discoveries. Conversely, a high score on recorded positives can reward agreement with the old policy.
+A positive among 99 easy distractors is not the same task as a million-item catalogue.
 
-## 3. Report paired evidence and slices
+Keep candidate construction identical across compared models. State eligibility, labels, cutoff, and aggregation rather than reporting a metric alone.
 
-Compare systems on the same evaluation units. Define metric cutoff, gain, denominator, tie handling, and aggregation. A user with 100 requests otherwise contributes much more than one with a single request.
+## 5. Estimate uncertainty at the right unit
 
-A **bootstrap** repeatedly resamples units to estimate variability. Resample users or appropriate blocks when requests are dependent; independent row resampling can understate uncertainty.
+A **bootstrap** repeatedly resamples evaluation units to estimate variability.
 
-Report a credible baseline and cold-user, new-item, surface, and other important slices with counts. Inspect failure cases as well as aggregate scores.
+Resample users or suitable time blocks when requests are dependent. Treating their rows as independent can understate uncertainty.
 
-## 4. Treat policy-value claims separately
+Compare paired differences on the same units and inspect important slices with counts.
 
-An offline improvement may fail to transfer because of exposure bias, a changed population, serving mismatches, a small uncertain gain, or a metric that does not represent the product goal.
+## 6. Limit the conclusion
 
-**Off-policy evaluation** uses additional assumptions and action probabilities to estimate a different policy's outcomes. A suitable randomized experiment provides another form of evidence about deployed effects.
+A held-out click supplies evidence for an exposed item. An unshown item has no logged outcome; assigning it irrelevance can penalize useful discovery.
 
-> **Mental image:** an offline test replays recorded evidence. It cannot directly reveal the outcome of an item choice that was never observed.
+Off-policy evaluation and online experiments address different policy-effect questions in the following chapters.
+
+## 7. Interview reasoning
+
+**Question:** Why can better offline NDCG fail to improve the product?
+
+**Answer:** The test may miss new exposure effects, use unsuitable labels or candidates, or differ from serving. Trace those assumptions before choosing a larger model.

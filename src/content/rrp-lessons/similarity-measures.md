@@ -1,52 +1,62 @@
 ## Similarity and co-occurrence
 
-A **similarity measure** turns representations into a numeric comparison. **Co-occurrence** is shared participation in a stated observation unit, such as users consuming both items during a month.
+## 1. Choose what “related” means
 
-Different measures reward different relationships. No normalization removes every bias in the log.
+A **similarity measure** assigns a numeric comparison to two representations. Shared reach and unusually strong association answer different questions.
 
-## 1. Raw overlap and relative overlap differ
+## 2. Start with counts
 
-Suppose 1,000 users form the reference population:
+Among 1,000 users:
 
-| Item | Users consuming it | Users also consuming A |
+| Item | Users | Shared users with A |
 |---|---|---|
 | A | 100 | 100 |
 | B | 400 | 20 |
 | C | 20 | 10 |
 
-Raw overlap prefers B: 20 versus 10. C shares half its audience with A; B shares only one twentieth. Relative association can therefore tell a different story from absolute reach.
+Raw overlap favors B. Yet C shares half its audience with A, while B shares one twentieth.
 
-## 2. Three common measures
+## 3. Normalize in two different ways
 
 For binary user-incidence vectors:
 
 \[
-\operatorname{cosine}(A,B)=\frac{n_{AB}}{\sqrt{n_A n_B}},\qquad
-\operatorname{Jaccard}(A,B)=\frac{n_{AB}}{n_A+n_B-n_{AB}}
+cosine(A,B)=\frac{n_{AB}}{\sqrt{n_A n_B}},\qquad
+Jaccard(A,B)=\frac{n_{AB}}{n_A+n_B-n_{AB}}
 \]
 
-**Cosine similarity** compares vector direction. Its overlap-count form above assumes binary coordinates; general vectors use a dot product divided by vector lengths.
+\(n_A,n_B\): audience counts; \(n_{AB}\): shared audience.
 
-**Jaccard similarity** divides set intersection size by union size. Here cosine is 0.10 for A–B and about 0.224 for A–C.
+**Cosine** compares direction; **Jaccard** divides intersection by union. Here cosine is **0.10 for A–B**, about **0.224 for A–C**.
 
-**Pointwise mutual information (PMI)** compares joint occurrence with what independence would predict:
+## 4. Compare with independence
+
+**Pointwise mutual information (PMI)** measures association relative to independent occurrence:
 
 \[
-\operatorname{PMI}(A,B)=\log\frac{P(A,B)}{P(A)P(B)}
+PMI(A,B)=\log\frac{P(A,B)}{P(A)P(B)}
 \]
 
-Use one consistent population and window for these probabilities. Positive PMI means more shared occurrence than the independence reference, not proof of useful recommendations.
+\(P(A,B)\): shared-user probability; \(P(A),P(B)\): individual probabilities within the same population and window.
 
-## 3. Small overlaps need caution
+Positive PMI means more overlap than independence predicts. Rare coincidences can score highly.
 
-Two items consumed by the same single user can have cosine 1. Their apparent perfect similarity has little support.
+## 5. Check support before trusting a score
 
-**Shrinkage** reduces reliance on small samples. One heuristic multiplies a similarity by \(n_{AB}/(n_{AB}+\alpha)\). With \(\alpha=10\), one shared user retains 1/11 of its score; 100 retain 100/110. Tune this choice against the intended task.
+Two items sharing one sole user have cosine 1, with almost no evidence.
 
-Minimum-support rules and smoothing can help too, but can reduce discovery of rare useful pairs.
+**Shrinkage** pulls weakly supported estimates toward a reference. One heuristic multiplies similarity by \(n_{AB}/(n_{AB}+\alpha)\), where \(\alpha>0\) controls shrinkage strength.
 
-## 4. Match the measure to the use
+At \(\alpha=10\), one shared user retains 1/11 of the score; 100 retain 100/110.
 
-Raw counts can be useful when total demand matters. Normalized association can reveal smaller related audiences. PMI can emphasize surprising rare pairs and therefore needs careful support checks.
+## 6. Validate the recommendation use
 
-Evaluate candidate quality and coverage, not just visually appealing neighbors. All measures inherit exposure and eligibility patterns: items displayed together often can look associated because the system repeatedly provided that opportunity.
+Normalize to address the relationship you want, then evaluate candidate quality and coverage. No formula automatically removes exposure bias.
+
+Minimum-support rules improve stability but can suppress useful rare pairs.
+
+## 7. Interview reasoning
+
+**Question:** Why do the same bestsellers appear beside every item?
+
+**Answer:** Raw counts may reward reach rather than specific association. Compare normalized scores and support, then measure whether the resulting recommendations improve.

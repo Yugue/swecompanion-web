@@ -1,42 +1,52 @@
 ## Features for ranking
 
-**Ranking features** describe candidates and their relevance to a particular request. The most useful family depends on the task; explicit crosses are one way to represent relationships, not the only source of personalization.
+## 1. Describe the candidate in this request
 
-## 1. Four feature families
+**Ranking features** are inputs used to score a candidate. They can describe the user, item, current context, or their relationship.
 
-| Family | Example | Information supplied |
-|---|---|---|
-| User | Language, subscriptions, long-run interests | Who is asking |
-| Item | Category, creator, duration, availability | What is being considered |
-| Context | Query, device, surface, time | The current decision |
-| Cross | User–creator watch count, price compatibility | A candidate-specific relationship |
+## 2. Separate four families
 
-A model can learn interactions between separate user and item inputs. A joint ranker additionally permits arbitrary candidate-specific lookups that an independently computed two-tower representation cannot directly consume.
+| Family | Example |
+|---|---|
+| User | Language, subscriptions |
+| Item | Category, creator, duration |
+| Context | Query, device, time |
+| Cross | User–creator watch count |
 
-## 2. Use rates with their support
+A **feature cross** represents a combination or relationship between inputs. It can be explicitly computed or learned by the model.
 
-One click from one impression gives raw CTR 100%, but very little evidence. A **smoothed rate** blends observations with a reference:
+## 3. Use joint information where it fits
+
+A ranker can fetch a candidate-specific user–creator count. This is the joint input excluded by the independent precomputation path in two-tower retrieval.
+
+Keep expensive lookups for the smaller pool where their measured value justifies them.
+
+## 4. Stabilize sparse rates
+
+A **smoothed rate** blends observed counts with a reference:
 
 \[
-\hat p=\frac{clicks+\alpha p_0}{impressions+\alpha}
+\hat p=\frac{c+\alpha p_0}{n+\alpha}
 \]
 
-With reference \(p_0=0.05\), strength \(\alpha=20\), and one click from one impression, the value is \(2/21\approx9.5\%\).
+\(c\): clicks; \(n\): impressions; \(p_0\): reference CTR; \(\alpha>0\): reference strength; \(\hat p\): estimate.
 
-Include counts as well. A 10% rate from ten exposures is less established than one from ten thousand. Fit reference statistics from allowed historical data and avoid including the target outcome in its own features.
+At \(c=n=1\), \(p_0=0.05\), \(\alpha=20\), the result is **2/21 ≈ 9.5%**, rather than raw 100%.
 
-## 3. Choose windows and availability deliberately
+## 5. Keep support and time scope
 
-Recent category actions can reveal a changing intent; longer histories can stabilize sparse evidence. Compare several windows rather than assuming recency always wins.
+Include counts: 10% from ten impressions differs from 10% from ten thousand.
 
-For a 14:00 decision, a 14:20 purchase can become a label but cannot enter its inputs. Historical aggregates must use events already available at 14:00, including arrival delays.
+Recent actions may reveal intent; longer windows stabilize evidence. Fit windows and reference statistics without including an example's own later outcome.
 
-Observed final position predicts clicks, but is determined by the selection process. A model using position to estimate display-conditioned behavior needs a deliberate serving convention and validation; copying the old output position into a candidate's intrinsic relevance input is a shortcut.
+## 6. Make each feature earn its dependency
 
-## 4. Make each feature earn its dependency
+Use ablations to compare quality with and without a feature. Measure missing-value behavior, fetch latency, and update needs.
 
-An **ablation** tests a component by comparing a suitable procedure with and without it. Evaluate repeatable quality gains, key slices, retrieval or fetch latency, missing behavior, and freshness requirements.
+The features-and-freshness chapter explains consistent historical reconstruction and live computation.
 
-Log values or versioned snapshots used during serving and compare them with historical reconstruction. Shared definitions help prevent **train/serve skew**, a mismatch between training and live feature computation.
+## 7. Interview reasoning
 
-Keep a costly feature when its measured value justifies that cost, rather than because its name sounds personalized.
+**Question:** A creator has one click from one display. Should its 100% CTR dominate?
+
+**Answer:** No. Supply support counts and a validated smoothing method so one observation does not appear as strong evidence of a perfect rate.

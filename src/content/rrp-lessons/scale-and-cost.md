@@ -1,43 +1,55 @@
 ## Scale and cost
 
-**Capacity planning** estimates storage and computation from the work the system must perform. Separate raw arithmetic from measured hardware throughput and operational headroom.
+## 1. Multiply demand by work
 
-## 1. Count scores and CPU work
+**Capacity planning** estimates the resources needed for expected demand. Begin with counts, then benchmark the deployed workload.
+
+## 2. Count scores
 
 \[
-\text{scores/second}=\text{requests/second}\times\text{candidates/request}
+S=Q C
 \]
 
-At 10,000 requests per second and 500 candidates, ranking requires five million scores per second.
+\(Q\): requests per second; \(C\): candidates scored per request; \(S\): scores per second.
 
-If each score uses 100 microseconds of CPU time, that is 500 CPU-seconds per second—about 500 fully utilized cores for scoring alone. This assumes the per-score CPU estimate applies at the actual batch size; accelerator batching and communication can change the model.
+At 10,000 requests/second and 500 candidates, \(S\) is **five million scores/second**.
 
-Cutting candidates to 250 halves this component's work. Caching 40% of the remaining requests would reduce it to about 150 CPU-seconds per second. Neither change guarantees the same quality or freshness.
+## 3. Convert CPU work carefully
 
-## 2. Count peak memory, not just vector bytes
+At 100 microseconds of CPU time per score, scoring consumes **500 CPU-seconds per second**—about 500 fully occupied cores, before headroom.
 
-Ten million items × 128 coordinates × four bytes per float32 value = 5.12 GB in decimal units, about 4.77 GiB.
+This is CPU work, not request wall-clock latency. Actual batching, accelerators, and communication can change measured cost.
 
-Add index metadata, IDs, model tables, caches, replicas, and temporary copies during refresh. Training may also need gradients and optimizer state.
+Halving candidates and caching 40% of remaining requests reduces this example to **150 CPU-seconds/second**, with quality and freshness tradeoffs.
 
-Keeping both old and new indexes for a switch can increase peak memory substantially. A model that fits on disk can still exceed memory during construction or rollout.
+## 4. Budget peak memory
 
-## 3. Choose a cost lever with its quality cost
+Ten million vectors × 128 coordinates × four bytes = **5.12 GB**, about **4.77 GiB**.
 
-| Lever | Work reduced | Tradeoff to measure |
+GB uses billions of bytes; GiB uses powers of 1,024. Add index metadata, replicas, caches, and training state.
+
+Coexisting old and new indexes can make rollout memory exceed steady-state memory.
+
+## 5. Choose a measured cost lever
+
+| Lever | Cost reduced | Risk |
 |---|---|---|
-| Smaller candidate pool | Features and scoring | Lost useful candidates |
-| Cached or precomputed results | Repeated request computation | Staleness and reduced responsiveness |
-| Smaller vectors or model | Storage and score work | Representation quality |
-| Quantization | Bytes and sometimes arithmetic | Changed score or search accuracy |
-| Hashing or rare-ID sharing | Embedding table entries | Collisions or lost entity detail |
+| Smaller pool | Feature and scoring work | Lost useful candidates |
+| Caching | Repeated computation | Staleness |
+| Smaller vectors/model | Memory and computation | Reduced capacity |
+| Quantization | Numeric storage precision | Changed scores/search |
+| Shared or hashed IDs | Table entries | Lost distinctions or collisions |
 
-**Quantization** reduces numeric precision. **Distillation** trains a cheaper model to reproduce useful behavior from another model. Both require actual quality and speed measurements.
+**Hashing** maps IDs into a fixed set of slots; distinct IDs can collide. **Distillation** trains a cheaper model from another model's behavior.
 
-## 4. Profile the deployed workload
+## 6. Benchmark the bottleneck
 
-Feature fetches, hot shards, network traffic, queueing, and index maintenance can dominate a system whose arithmetic model looks cheap.
+Measure throughput and tail latency with realistic batches, popular-item concentration, cache misses, and failures.
 
-Measure throughput and tail latency with realistic candidate batches, popularity distributions, cache misses, and failures. Include retraining and rebuild costs, then leave headroom for peaks and recovery.
+Feature access, queueing, and index maintenance may dominate raw arithmetic. Reserve headroom for peaks and recovery.
 
-> **Mental image:** multiply demand by work per decision, then account for where that work really runs. A throughput estimate is a budget, not a benchmark.
+## 7. Interview reasoning
+
+**Question:** Does fitting vector bytes in memory prove the deployment fits?
+
+**Answer:** No. Include index structures, replicas, temporary build copies, and old/new coexistence, then measure peak usage.

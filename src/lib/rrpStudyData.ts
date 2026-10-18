@@ -207,11 +207,11 @@ export const rrpParts: RrpPart[] = [
         id: "matrix-factorization",
         title: "Matrix factorization",
         summary:
-          "Matrix factorization learns user and item vectors whose dot products model interactions under a chosen loss.",
+          "Matrix factorization learns compact user and item vectors by fitting observed evidence under a chosen objective.",
         keyPoints: [
-          "Offsets capture baseline tendencies; the objective determines score meaning.",
-          "Regularization and vector size govern shared capacity and rare-entity stability.",
-          "Latent axes are not uniquely named concepts, and plain ID models need cold-start and context extensions.",
+          "Dot products and offsets produce scores whose meaning comes from the training target.",
+          "Worked gradient and ALS steps show how vectors change; regularization and dimension control capacity.",
+          "Latent axes are not uniquely named concepts, and missing ratings are not zero ratings.",
         ],
         interviewPrompt:
           "What do the learned factors mean, and what would you tell a product manager who asks to see them?",
@@ -221,11 +221,11 @@ export const rrpParts: RrpPart[] = [
         id: "implicit-mf-and-bpr",
         title: "Factorization for implicit feedback",
         summary:
-          "Implicit-feedback objectives define how observed actions and uncertain missing entries influence vector scores.",
+          "Implicit-feedback objectives define how observed actions and uncertain missing entries influence vector learning.",
         keyPoints: [
-          "Weighted reconstruction uses targets and confidence weights that encode modelling assumptions.",
-          "BPR rewards positive score gaps; correctly ordered pairs still have nonzero loss.",
-          "Sampling changes the comparisons, and sampled unknowns are not verified dislikes.",
+          "Weighted reconstruction uses explicit target and confidence assumptions.",
+          "BPR score gradients push preferred items up and alternatives down, even for correctly ordered pairs.",
+          "Sampling defines the comparisons; shared model parameters couple the actual score changes.",
         ],
         interviewPrompt:
           "You have clicks and no ratings. Explain how you build a training objective, and what 'negative' means.",
@@ -288,11 +288,11 @@ export const rrpParts: RrpPart[] = [
         id: "two-tower-models",
         title: "Two-tower retrieval",
         summary:
-          "Two-tower retrieval computes request and item vectors independently so item representations can be reused.",
+          "Two-tower retrieval learns compatible request and item vectors while allowing item-side computation to be reused.",
         keyPoints: [
-          "A cheap shared score enables indexed search over precomputed item vectors.",
-          "Separate inputs still model compatibility, but cannot directly consume arbitrary candidate-specific lookups.",
-          "Sampling, vector freshness, and compatible model/index versions are part of the procedure.",
+          "Independent encoders enable indexed search but restrict direct joint candidate inputs.",
+          "A worked softmax update follows positive and negative gradients into both vector tables.",
+          "Sampling and compatible encoder/index versions are part of the learned retrieval procedure.",
         ],
         interviewPrompt:
           "Why can an independently computed two-tower score not directly consume an arbitrary user–candidate lookup? Where would you use it?",
@@ -353,27 +353,27 @@ export const rrpParts: RrpPart[] = [
     topics: [
       {
         id: "ctr-prediction",
-        title: "Click-through rate prediction",
+        title: "Predicting clicks and numeric outcomes",
         summary:
-          "CTR prediction estimates click probability under a defined context and display process.",
+          "Predict click probabilities or numeric outcomes with a matching loss, then evaluate separation, probability quality, and request ordering.",
         keyPoints: [
-          "Use completed impression-level labels and appropriate historical inputs.",
-          "Evaluate log loss, calibration, ranking quality, and policy effects as distinct questions.",
-          "Exposure, placement, and class sampling affect what the recorded probabilities mean.",
+          "Sparse clicks require meaningful precision/recall and false-positive analysis; accuracy alone can mislead.",
+          "Overall ROC-AUC can improve while within-request NDCG falls.",
+          "Squared and absolute error favor different numeric estimates; match the output to its decision use.",
         ],
         interviewPrompt:
           "Your CTR model is excellent offline and flat online. Give the two most likely explanations.",
-        code: "rows = impressions;  label = did this impression get clicked?",
+        code: "click → probability + log loss; duration/value → numeric estimate + task-matched error",
       },
       {
         id: "learning-to-rank",
         title: "Learning to rank",
         summary:
-          "Pointwise, pairwise, and listwise objectives compare candidates at different training units.",
+          "Pointwise, pairwise, and listwise objectives train on different units; their effects must be checked against the intended metric.",
         keyPoints: [
-          "A strong pointwise model can rank well; objective families are not a guaranteed quality ladder.",
-          "Pairwise gaps remove common offsets but do not remove exposure or position bias.",
-          "Preserve request groups and add probability estimation or calibration when downstream use requires it.",
+          "A worked listwise loss compares normalized relevance targets with competing score shares.",
+          "Equal pair accuracy can produce different NDCG because the positions of errors matter.",
+          "Keep request groups, reference evidence, and downstream probability needs explicit.",
         ],
         interviewPrompt:
           "Compare pointwise and pairwise training when ordering and probability estimates both matter.",
@@ -395,17 +395,17 @@ export const rrpParts: RrpPart[] = [
       },
       {
         id: "deep-ranking-architectures",
-        title: "Deep ranking models",
+        title: "Choosing a ranking model",
         summary:
-          "Neural rankers combine learned representations and nonlinear computation when their measured benefit justifies the cost.",
+          "Compare linear, gradient-boosted tree, and neural rankers using feature interactions, evidence, and serving constraints.",
         keyPoints: [
-          "Embedding tables handle categorical representations but need rare-ID and unknown-ID strategies.",
-          "MLPs, wide-and-deep branches, and cross layers express different interaction structures.",
-          "Candidate attention adds joint history context at per-candidate cost; profile the complete path.",
+          "Linear scores need appropriate crosses for nonadditive relationships.",
+          "Boosted trees fit successive loss-gradient corrections; neural models learn representations and nonlinear combinations.",
+          "Use comparable data and candidates, then measure quality, calibration, memory, and full serving cost.",
         ],
         interviewPrompt:
           "When would you not replace a gradient-boosted ranker with a neural one?",
-        code: "compare representation, interaction capacity, quality, and serving cost on the same task",
+        code: "same target + evidence → compare linear / boosted trees / neural rankers",
       },
       {
         id: "sequence-modeling",
@@ -413,9 +413,9 @@ export const rrpParts: RrpPart[] = [
         summary:
           "Sequence models use ordered past events to represent evolving intent alongside longer-term evidence.",
         keyPoints: [
-          "Exclude unavailable future and target events; distinguish padding masks from causal masks.",
-          "Pooling, recurrence, self-attention, and candidate attention trade information against reusable computation.",
-          "Validate freshness, history length, anonymous traffic, and the balance of recent and stable signals.",
+          "Preserve order and availability; distinguish padding masks from causal masks.",
+          "Self-attention combines history context; candidate-conditioned attention changes the summary for each candidate.",
+          "Validate freshness, history length, and the balance of reusable long-term and recent signals.",
         ],
         interviewPrompt:
           "A user who normally watches cooking videos just watched three car reviews. What should the model do?",
@@ -510,7 +510,7 @@ export const rrpParts: RrpPart[] = [
         keyPoints: [
           "IPS weights rewards by target action probability divided by logging propensity.",
           "Correct action granularity, support, comparable contexts, and outcome assumptions are essential.",
-          "Clipping, self-normalization, and doubly robust estimation change statistical properties without creating missing evidence.",
+          "Clipping and self-normalization change variance and bias; neither creates missing support.",
         ],
         interviewPrompt:
           "What must the serving system log today for counterfactual evaluation to be possible next quarter?",

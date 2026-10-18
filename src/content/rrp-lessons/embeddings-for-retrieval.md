@@ -1,51 +1,70 @@
 ## Embeddings
 
-An **embedding** is a numeric vector representing an entity or input. Retrieval compares user or request vectors with item vectors using a learned compatibility measure.
+## 1. Give an entity learned coordinates
 
-“Close” means useful under a particular representation and objective; it does not automatically mean similar in every human sense.
+An **embedding** is a numeric vector representing an entity or input. A retrieval model compares request and item vectors under a chosen score rule.
 
-## 1. Where a vector comes from
+> The map has a purpose and a ruler. Changing either changes the nearest destinations.
 
-| Method | Representation | New-item implication |
-|---|---|---|
-| Identifier lookup | A learned vector for each known ID | Needs a defined unknown-ID strategy |
-| Feature encoder | Computes a vector from attributes | Can encode new items with supported features |
-| Pretrained encoder | Reuses a representation learned elsewhere | Requires checking relevance to this task |
+## 2. Produce the representation
 
-An **encoder** maps inputs to vectors. An **embedding table** stores vectors accessed by identifier. A model can combine both.
+| Route | Mechanism |
+|---|---|
+| Embedding table | Store one learned vector per known ID |
+| Feature encoder | Compute a vector from attributes |
+| Pretrained encoder | Reuse coordinates learned on another task |
 
-Being encodable does not mean immediately searchable: the item must also be admitted to a compatible, sufficiently fresh index.
+The cold-start chapter explains why these routes differ for unseen IDs.
 
-## 2. The comparison rule matters
+## 3. Compare direction and length
 
 ```rrp-visual
 embedding-geometry
 ```
 
-For vectors \(u,v\):
+For request \(u\) and item \(v\):
 
 \[
-\text{dot}=u^\top v,\qquad
-\text{cosine}=\frac{u^\top v}{\lVert u\rVert\lVert v\rVert},\qquad
-\text{distance}=\lVert u-v\rVert
+cosine(u,v)=\frac{u^\top v}{\|u\|\|v\|},\qquad distance(u,v)=\|u-v\|
 \]
 
-The **norm** \(\lVert v\rVert\) is vector length. Dot product includes length; cosine compares direction. For unit-length vectors, squared Euclidean distance equals \(2-2\,u^\top v\), so those orderings agree after reversing distance.
+\(\|\cdot\|\) is the **norm**, or vector length; distance here is Euclidean straight-line distance. Dot product was introduced in content-based filtering.
 
-Zero-length vectors need a defined handling rule for cosine. Normalizing vectors changes a model that was trained to use their lengths; it is not automatically a harmless serving optimization.
+Cosine removes length; dot product retains it. Define behavior for zero-length vectors.
 
-## 3. The objective shapes the map
+## 4. Normalization can change the answer
 
-Vectors trained from clicks can encode click attractiveness and historical exposure. Text-trained vectors can favor similar descriptions while missing complementary purchase behavior.
+**Normalization to unit length** divides a nonzero vector by its norm.
 
-An item–item similarity space and a user–item compatibility space are not interchangeable just because both contain 128 numbers. Independently trained encoders may use incompatible coordinates.
+For unit vectors:
 
-Evaluate exact retrieval using the intended vectors and comparison rule before tuning an approximate index. Poor exact matches point to representation, objective, or data issues; poor approximation of good exact matches points to search issues.
+\[
+\|u-v\|^2=2-2u^\top v
+\]
 
-## 4. Account for size and updates
+Thus maximizing dot product agrees with minimizing distance. Without unit lengths, those rankings can differ.
 
-Vector dimension controls capacity and per-item storage. Ten million 128-dimensional float32 vectors require 5.12 billion bytes before index metadata and replication.
+For a tensor of row vectors in PyTorch:
 
-Version encoders, preprocessing, normalization, and index contents together. Inspect common, rare, and new-item neighborhoods, then confirm quality with a realistic retrieval benchmark rather than relying on an attractive two-dimensional projection.
+```python
+import torch.nn.functional as F
+unit_vectors = F.normalize(vectors, dim=-1)
+```
 
-> **Mental image:** an embedding map has a purpose and a ruler. Changing either changes which destinations appear nearby.
+Changing a length-dependent score this way needs validation.
+
+## 5. Train the right relationship
+
+Description similarity, co-purchase compatibility, and click attraction are different objectives. Equal vector dimensions do not make independently learned spaces interchangeable.
+
+Inspect nearest neighbors, then evaluate with the intended retrieval task.
+
+## 6. Separate representation from search
+
+First evaluate exact search with the intended vectors. Poor exact matches suggest representation or objective issues; poor approximation of good exact matches suggests an index issue.
+
+## 7. Interview reasoning
+
+**Question:** Why can cosine and dot product select different items?
+
+**Answer:** Dot product includes vector lengths. Cosine compares direction after removing length, which can reverse the preferred candidate.

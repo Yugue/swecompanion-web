@@ -1,40 +1,50 @@
 ## Choosing negatives
 
-**Negative sampling** chooses training contrasts instead of comparing every positive with every possible item. The chosen pool and sampling probabilities shape the learning problem.
+## 1. Choose the practice opponents
 
-An unobserved item can be a useful contrast without being a confirmed negative preference.
+**Negative sampling** selects training contrasts instead of comparing each positive with every catalogue item.
 
-## 1. Different sources ask different questions
+> Winning against weak opponents does not establish performance against the real field.
 
-| Source | How it is chosen | Main consideration |
+## 2. Compare the sources
+
+| Source | Selection | Risk |
 |---|---|---|
-| Random catalogue item | Sample from an eligible reference pool | Broad coverage; some comparisons are easy |
-| In-batch item | Reuse positives from other rows in the batch | Efficient, but reflects the batch's item frequencies |
-| Hard negative | Choose a high-scoring or plausibly relevant alternative | Informative competition; greater false-negative risk |
-| Exposed non-click | Use a displayed item without a click | Evidence depends on examination and outcome definition |
+| Random | Sample eligible catalogue items | Many easy comparisons |
+| In-batch | Reuse other rows' positives | Follows batch frequencies |
+| Hard negative | Choose a high-scoring alternative | May be useful but unobserved |
+| Exposed non-click | Use a displayed unclicked item | Meaning depends on examination |
 
-For a watched pasta video, an engine-repair contrast may test broad topic separation. Another pasta video may test a finer distinction—or be an equally good item the user never encountered.
+A **false negative** is an item treated as negative despite being a plausible positive.
 
-## 2. Make in-batch comparisons correctly
+## 3. See the difference in one query
 
-A batch of \(B\) paired requests and positive items can produce a \(B\times B\) score matrix. Each request's matched item is a positive; other columns are nominal contrasts.
+For a watched pasta video, engine repair tests broad separation. Another pasta video tests a finer distinction—or is an equally good unseen choice.
 
-Those contrasts need no extra item-encoding pass, but the score matrix still costs computation and memory. Repeated items or known positives can create contradictory comparisons. Deduplicate or mask them according to the objective.
+Harder competition can improve discrimination but also add contradictory labels.
 
-Batch construction matters: grouping by time, geography, or user can change the negative distribution substantially.
+## 4. Reuse a batch carefully
 
-## 3. Distinguish the objective from a correction
+With \(B\) request–positive pairs, score every request against the batch's \(B\) items: a \(B\times B\) matrix.
 
-Sampled training need not equal full-catalogue likelihood training. A **logit** is a score fed into a softmax probability calculation. Under some sampled-softmax constructions, adjusted logits use a term based on \(-\log Q(i)\), where \(Q\) is the item sampling probability.
+Matched entries are positives; other entries are nominal contrasts. Repeated items and known positives need objective-appropriate masking or deduplication.
 
-The exact correction depends on the sampling scheme, inclusion counts, and treatment of positives. It is not a universal recipe that removes popularity or exposure bias.
+Item encodings are reused, but matrix computation still costs work.
 
-If negatives are deliberately sampled more often from difficult regions, decide whether that changes the intended task weighting or requires correction for the target objective.
+## 5. Correct only for a stated objective
 
-## 4. Test realistic competition
+A **logit** is a score supplied to softmax. Some sampled-softmax schemes adjust it using \(-\log Q(i)\), where \(Q(i)\) is item \(i\)'s sampling probability.
 
-Mix sources when they address demonstrated weaknesses. Refresh mined negatives as the model changes, and inspect plausible false negatives rather than assuming the highest-scoring unclicked item is wrong.
+The correction depends on the exact sampling scheme and desired objective. It is not a general popularity-bias remedy.
 
-Keep evaluation candidates fixed across models. One positive among 99 easy distractors can yield a much easier recall task than retrieval from a million eligible items. Report full-catalogue evaluation where feasible or document the pool and its limitations.
+## 6. Test realistic competition
 
-> **Mental image:** negatives are the practice opponents. Winning against weak opponents does not establish performance against the real field.
+Keep evaluation candidates fixed across models. One positive among 99 easy distractors is a different task from retrieval over a million eligible items.
+
+Refresh mined hard negatives as the model changes and inspect false negatives.
+
+## 7. Interview reasoning
+
+**Question:** Why can harder negatives make a model worse?
+
+**Answer:** High-scoring alternatives may be real interests rather than errors. Sampling can also change the training objective or overemphasize an unrepresentative competition set.

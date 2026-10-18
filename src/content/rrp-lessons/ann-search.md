@@ -1,45 +1,54 @@
 ## Approximate nearest-neighbor search
 
-**Approximate nearest-neighbor (ANN) search** uses an index to retrieve vectors similar to a query with less work than an exhaustive scan. It trades search fidelity against latency, memory, and update cost.
+## 1. Search less of the map
 
-First check whether exact search already meets the budget; hardware, batching, catalogue size, and vector dimension matter.
+**Approximate nearest-neighbor (ANN) search** uses an index to find similar vectors without exhaustively comparing every vector. It trades search fidelity for computation, memory, and update cost.
 
-## 1. Skip most vectors using an index
+Check whether exact search already meets the budget.
 
-**Partition indexes**, such as inverted-file indexes, group vectors and search selected groups near the query.
+## 2. Search selected partitions
+
+A **partition index** groups vectors, then searches promising groups near the query.
 
 ```rrp-visual
 ann-partitions
 ```
 
-Searching one nearby bucket can omit an even closer vector across its boundary. Searching more buckets often improves fidelity at extra cost.
+The closest item can sit across a boundary. Searching more groups can recover it at extra cost.
 
-**Graph indexes**, such as hierarchical navigable small-world graphs (HNSW), link vectors and explore promising neighbors. Search breadth controls a different work–fidelity tradeoff. No index family is universally fastest or cheapest.
+## 3. Follow a graph instead
 
-## 2. Measure the right recall
+A **graph index** links neighboring vectors and explores promising links. **HNSW**—hierarchical navigable small-world graphs—uses a layered search graph.
 
-For identical vectors, similarity, eligibility, and cutoff:
+Greater search breadth examines more possibilities. Compare index families on the actual workload rather than assuming one is always fastest.
+
+## 4. Measure index fidelity
 
 \[
-\operatorname{ANNRecall@k}=\frac{|A_k\cap E_k|}{k}
+ANNRecall@k=\frac{|A_k\cap E_k|}{k}
 \]
 
-\(A_k\) is the approximate result set and \(E_k\) the exact result set. Define tie handling and requests with fewer than \(k\) eligible items.
+\(A_k\): approximate result set; \(E_k\): exact top-\(k\) set under the same score and eligibility; \(|\cdot|\): set size; \(k\): cutoff.
 
-This is **index fidelity**, not relevance recall. An exact top-100 list can itself be poor recommendations. Measure both index agreement and the useful quality of the full system, including rare and new items.
+Agreement with exact search is **index fidelity**, not recommendation relevance. Define ties and cases with fewer than \(k\) eligible items.
 
-## 3. Compression adds another approximation
+## 5. Compress with another tradeoff
 
-**Scalar quantization** stores coordinates at reduced precision. **Product quantization** encodes vector subparts using learned codebooks. Both reduce storage but can change similarity estimates.
+- **Scalar quantization:** store coordinates at lower precision.
+- **Product quantization:** encode vector subparts with learned codebooks.
 
-A system may search compressed representations and rescore a larger shortlist using original vectors. Exact rescoring cannot recover omitted candidates.
+A **codebook** stores representative subvectors. Compression saves memory but can change similarity estimates.
 
-Benchmark total memory, latency under load, and quality. For ten million 128-dimensional float32 vectors, raw storage alone is 5.12 GB in decimal units; index links, codebooks, IDs, and replicas add more.
+Rescoring found candidates with original vectors cannot recover omitted ones.
 
-## 4. Freshness and filtering belong in the design
+## 6. Include updates and filtering
 
-A new vector is searchable only after an index insertion or publication step. Some indexes support frequent updates; others favor rebuilds. Deleted or unavailable items also need timely treatment.
+Benchmark insertions, deletions, memory, and latency under load. Filtering after search may leave too few eligible candidates.
 
-Filtering only after search can leave too few candidates. Use supported filters, partitions, or over-retrieval, and evaluate against the exact eligible reference set. Recheck hard availability and policy conditions before display.
+Use the same eligible reference set when measuring exact-versus-approximate agreement.
 
-> **Mental image:** an index is a search shortcut through the map. It can miss a good destination even when the map itself represents it correctly.
+## 7. Interview reasoning
+
+**Question:** Exact retrieval is good; ANN retrieval misses useful items. Retrain first?
+
+**Answer:** First inspect search breadth, partitions, filtering, and compression. Good exact results suggest the representation already contains the useful neighbors.

@@ -1,41 +1,47 @@
 ## What retrieval has to do
 
-**Retrieval**, or candidate generation, finds a manageable pool of eligible items for later scoring and selection. Its goal is useful coverage within a latency and compute budget.
+## 1. Pack the ranker's work tray
 
-A later ranker can change candidate order. It cannot choose an item absent from that pool.
+Retrieval supplies a bounded pool for the expensive ranker. Its practical question is: **which useful eligible items fit within the candidate budget?**
 
-## 1. Define recall against an explicit reference
+The funnel chapter introduced the stages; here we evaluate the retrieval handoff.
 
-If a request has five reference-relevant items and retrieval finds four in 500 candidates, recall@500 is 4/5 = 80%.
+## 2. State the budget
 
-For a next-item benchmark with one held-out watched item, the per-request value is 1 or 0. That measures recovery of the recorded item, not recall of every item the user would have enjoyed.
+Specify catalogue size, maximum returned candidates, request latency, and downstream scoring cost.
 
-Track relevant slices: new items, niche interests, language, surface, and history length. Average recall can hide a source that fails to admit fresh inventory.
+For example, “return up to 500 eligible videos” is a constraint to test, not a universally correct setting.
 
-## 2. Use computation that fits the stage
+## 3. Recover reference positives
 
-| Source | Ahead of the request | During the request |
+Five reference-relevant items exist; retrieval returns four in 500 candidates. Recall@500 is **4/5 = 80%**.
+
+With one held-out next item, each request scores either a hit or miss. This does not measure every unknown item the user might enjoy.
+
+## 4. Decide what can be reused
+
+| Source | Ahead of request | During request |
 |---|---|---|
-| Item-neighbor lists | Compute item relationships | Look up neighbors of history items |
-| Vector retrieval | Compute item vectors and build an index | Encode the request and search |
-| Contextual popularity | Update eligible lists by segment | Select the matching list |
+| Item neighbors | Build neighbor lists | Look up history neighbors |
+| Vector search | Compute item vectors and index | Encode request and search |
+| Contextual popularity | Refresh segment lists | Fetch matching list |
 
-Precomputation moves work; it does not remove it. Index builds, updates, memory, and version compatibility remain part of the cost.
+Precomputation moves work; updates and memory still cost resources.
 
-A time budget divided by catalogue size is not a measured per-item runtime: indexed retrieval avoids inspecting every item in the first place.
+## 5. Count after filtering
 
-## 3. Measure the pool after filtering
+Returning 500 items and removing 450 unavailable ones leaves only **50** candidates.
 
-**Eligibility** means an item is allowed and available for this request. A system retrieving 500 items but removing 450 unavailable ones leaves only 50 candidates.
+Use supported search filters or deliberate over-retrieval, then measure the eligible pool. Useless candidates also consume the cap, so candidate quality matters alongside recall.
 
-Use supported filters, partitions, or deliberate over-retrieval, then validate the final eligible set. Recheck hard requirements before display because stock and policy metadata can change after indexing.
+## 6. Test the marginal candidates
 
-Precision is not irrelevant. With a fixed candidate cap, useless entries crowd out useful ones and increase ranking work. Retrieval balances recall, candidate quality, coverage, and cost rather than maximizing one number without limits.
+Compare 200, 500, and 1,000 candidates on identical requests. Measure added useful coverage, final-list quality, feature-fetch work, and end-to-end latency.
 
-## 4. Tune the handoff empirically
+Inspect new items and niche interests separately; an average can hide a missing group.
 
-Compare candidate budgets on the same requests. Record held-out-positive recall, final-list quality, downstream feature cost, and end-to-end latency.
+## 7. Interview reasoning
 
-When a useful item is missing, ask whether it was eligible, represented, indexed, and searched before blaming the embedding model. When it is present but never selected, inspect its features and scores downstream.
+**Question:** Why can high recall@500 coexist with poor serving results?
 
-> **Mental image:** retrieval packs the ranker's work tray. A larger tray helps only when its extra contents justify the time needed to inspect them.
+**Answer:** The reference labels may be narrow, filtering may shrink the pool, or extra candidates may add cost without useful final selections. Inspect the actual handoff.

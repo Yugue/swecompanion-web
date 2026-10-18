@@ -1,44 +1,53 @@
 ## Factorization machines
 
-A **factorization machine (FM)** learns interactions between input features using shared latent vectors. A standard second-order FM includes individual feature effects and pairwise effects.
+## 1. Let one feature change another's effect
 
-It extends user–item factorization to representations containing fields such as device, category, creator, or query.
+An **interaction** means one input's effect depends on another. A **factorization machine (FM)** models pairwise interactions through shared feature vectors.
 
-## 1. Why individual weights are insufficient
+For example, cooking interest may matter differently for cooking and motorsport candidates.
 
-A linear score can learn that mobile traffic clicks more and cooking items attract clicks. Without an interaction, it cannot separately express an extra effect for the combination of mobile and cooking.
+## 2. Start beyond a linear score
 
-An **interaction** means one feature's effect depends on another. Adding a separate weight for every possible user–category pair can require a huge table with little evidence per entry.
+Individual weights can capture “mobile users click more” and “cooking items attract clicks.” An interaction captures an extra mobile-and-cooking effect.
 
-## 2. Share a vector per feature
+A separate weight for every possible pair is costly and poorly supported for rare pairs.
+
+## 3. Share vectors across pairs
+
+A second-order FM uses:
 
 \[
 s(x)=w_0+\sum_iw_ix_i+\sum_{i<j}\langle v_i,v_j\rangle x_ix_j
 \]
 
-\(x_i\) is an encoded input feature, \(w_i\) its individual weight, and \(v_i\) its learned interaction vector. A **one-hot feature** is 1 for the active category and 0 for other categories.
+\(x\): input vector; \(i,j\): feature indices; \(w_0\): intercept; \(w_i\): individual weight; \(v_i\): feature vector; \(s\): score. Angle brackets mean dot product.
 
-If Ann's feature has vector [1, 2] and a cooking feature has [3, −1], their dot product is 1. When both indicators are 1, that pair contributes 1, in addition to the individual terms and other active pairs.
+The last sum counts each feature pair once.
 
-An unseen pair can receive an estimate because each vector was learned through other pairs. That sharing can help generalization, but does not guarantee a reliable estimate for rare features.
+## 4. See one contribution
 
-## 3. Why the pair term remains practical
+A **one-hot indicator** is 1 for an active category and 0 otherwise.
 
-For latent coordinate \(f\):
+Ann's active indicator has vector [1,2]; cooking's has [3,−1]. Their pair contributes **1** when both indicators are active, alongside individual and other pair terms.
 
-\[
-\sum_{i<j}\langle v_i,v_j\rangle x_ix_j
-=\frac12\sum_f\left[\left(\sum_iv_{if}x_i\right)^2-\sum_iv_{if}^2x_i^2\right]
-\]
+## 5. Generalize to an unseen pair
 
-The square contains both pair directions and self-products. Subtracting self-products and dividing by two leaves each distinct pair once.
+Ann's vector can learn from other categories; cooking's from other users. Their dot product supplies an estimate even without this exact pair appearing before.
 
-With \(m\) active features and \(d\) latent coordinates, this form requires roughly \(O(md)\) computation rather than explicitly enumerating every pair's dot product.
+Rare features can still have unreliable vectors.
 
-## 4. Relationship to other models
+## 6. Avoid enumerating every pair
 
-With only an active user ID and item ID, the interaction term is their vector dot product: the familiar matrix-factorization structure. Additional features add shared interactions rather than arriving “for free”: they increase fitting, representation, and serving work.
+For each latent coordinate, square the summed active contributions, subtract their self-squares, and halve. This leaves each distinct pair once.
 
-A raw FM score needs a suitable loss and output transformation for its task. A second-order FM does not directly represent arbitrary three-way interactions. Field-aware variants or deeper models change that capacity and cost.
+With \(m\) active features and \(d\) coordinates, work is roughly \(O(md)\), instead of explicitly computing every pair dot product.
 
-Scale numeric inputs appropriately, regularize rare-feature vectors, and define unseen-category behavior. Compare against a linear model with explicit crosses and the same honest evaluation protocol.
+## 7. Know the model boundary
+
+A second-order FM does not directly express arbitrary three-way interactions. Its raw score needs a task-appropriate loss and output transformation.
+
+## 8. Interview reasoning
+
+**Question:** How can an FM score an unseen user–category pair?
+
+**Answer:** It shares each feature's vector across other observed pairs. That gives a transferable estimate, whose reliability still depends on supporting data.

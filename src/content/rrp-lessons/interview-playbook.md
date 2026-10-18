@@ -1,36 +1,48 @@
 ## Answering RRP questions
 
-A clear explanation defines the concept, names its stage, demonstrates the mechanism with numbers, and states its limits. Clarify an ambiguous surface or constraint; answer direct definition questions directly.
+## 1. Start with the requested concept
 
-## 1. Use a compact answer structure
+Use the same compact structure throughout this guide:
 
 ```text
-define → locate the stage → work an example → state the tradeoff
+define → explain the mechanism → work an example → state the tradeoff
 ```
 
-For a design question, first establish the action, row, target, timing, and constraints. A label window influences data maturity, but does not by itself determine the entire retraining schedule or metric.
+Clarify an ambiguous design goal. Answer a direct definition question directly.
 
-## 2. A complete example: two-tower retrieval
+## 2. Name the decision and stage
 
-> “A two-tower model computes a request vector and an item vector separately, then scores their compatibility with a cheap operation such as a dot product. Because the item encoder is independent of the current request, we can precompute item vectors and search an index. With request vector [1, 2] and item vector [2, 1], the score is 4. That is compatibility, not automatically a click probability. The restriction makes arbitrary candidate-specific lookups difficult, so I would use a later joint ranker if those features add enough value.”
-
-This answers the architecture's purpose, calculation, and practical tradeoff without listing unrelated models.
-
-## 3. Explain measured improvements precisely
-
-| Loose claim | More informative statement |
+| Question | Establish first |
 |---|---|
-| “Recall is 0.31.” | “Recall@100 is 0.31 versus 0.29 on the same eligible requests, with this reference-positive definition.” |
-| “It is calibrated.” | “Predicted rates agree with observed frequencies on the evaluated bands and slices, within uncertainty.” |
-| “New items need retraining.” | “Check whether this feature-based encoder can represent them and whether the index includes them.” |
-| “A/B testing always randomizes users.” | “Choose an experimental unit that matches carryover and interference.” |
+| System design | Surface, action, target, timing, constraints |
+| Retrieval | Eligible pool, reference positives, budget |
+| Ranking | Competing group and score meaning |
+| Diagnosis | Affected handoff and observed evidence |
 
-A score gain alone is not proof that personalization caused product value. State what changed between systems and what evaluation supports.
+## 3. Keep the main distinctions straight
 
-## 4. Answer follow-ups with evidence
+- Unknown interaction ≠ confirmed dislike.
+- Compatibility score ≠ calibrated probability.
+- Index fidelity ≠ relevance recall.
+- Offline ranking gain ≠ demonstrated product gain.
+- Feature refresh ≠ parameter retraining.
 
-For ten times the traffic, recompute scores and feature work, then identify a measured bottleneck and one intervention with its quality cost.
+Use the earlier chapters for mechanisms rather than adding an architecture catalogue.
 
-For offline gains without live gains, separate biased labels, candidate differences, uncertainty, metric mismatch, and serving behavior. Choose checks that distinguish them rather than proposing every architecture again.
+## 4. State results reproducibly
 
-When uncertain, name the known mechanism, the assumption, and the evidence that would resolve the gap. Stop when the concept is covered and use the follow-up to choose the next level of detail.
+“Recall@100 is 0.31 versus 0.29 on the same eligible requests” is more useful than “recall improved.”
+
+Add reference labels, aggregation, uncertainty, and the serving-cost change relevant to the decision.
+
+## 5. Choose one informative follow-up
+
+For missing new items, trace the route to display. For live regressions, compare served evidence with the evaluated procedure.
+
+Offer a check that separates hypotheses, not an unprioritized list of possible models.
+
+## 6. Interview reasoning
+
+**Question:** A system is called “better personalized” because offline NDCG rises. What should you ask?
+
+**Answer:** Ask what changed, which requests and labels were evaluated, whether candidates and eligibility matched, and what evidence supports greater user value. The metric alone does not establish that claim.

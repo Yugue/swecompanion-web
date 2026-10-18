@@ -1,37 +1,49 @@
 ## Online testing
 
-An **A/B test** randomly assigns experimental units to a control policy and a candidate policy, then compares outcomes. It tests the effect of using those policies under the experiment's conditions.
+## 1. Randomize the policy being used
 
-The randomization and measurement design matter as much as the ranker being compared.
+An **A/B test** randomly assigns experimental units to control and candidate policies, then compares outcomes.
 
-## 1. Choose a unit that fits the effect
+It measures deployed effects under the experiment's conditions.
 
-Sticky user assignment is often useful when recommendations influence later sessions or habits. Request assignment can suit short-lived effects when carryover and interference are negligible; it is not universally invalid.
+## 2. Choose a unit matching the effect
 
-Shared stock, creator responses, or marketplace congestion can make one unit's treatment affect others. Cluster assignment or time-block **switchback tests** can address some settings, but need their own controls for time and carryover.
+Use persistent user assignment when recommendations influence later sessions. Request assignment can work for short-lived effects with negligible carryover.
 
-Analyze uncertainty at a level compatible with the assignment and outcome dependence. Millions of impressions do not mean millions of independent users.
+**Carryover** means an earlier treatment affects later observations. **Interference** means one unit's treatment affects another, as with shared stock or creator responses.
 
-## 2. Define the decision before reading results
+## 3. Handle shared environments deliberately
 
-Specify a primary outcome, guardrails, target population, denominator, measurement window, and exclusions.
+Cluster assignment groups related units. A **switchback test** alternates treatment across time blocks.
 
-**Minimum detectable effect** is the effect size the experiment is designed to detect. **Power** is its probability of detecting that effect under the planned assumptions. Required duration also depends on traffic, variance, usage cycles, and outcome maturity.
+These designs can address some interference settings, but need controls for time trends and carryover. Count independent assignment units, not just impressions.
 
-Choose a fixed analysis horizon or a valid sequential procedure. Repeated ordinary significance tests with opportunistic stopping inflate false positives.
+## 4. Plan the decision in advance
 
-## 3. Interpret effects and diagnostics
+Define the primary outcome, denominator, guardrails, population, exclusions, and outcome window.
 
-If control CTR is 4.0% and treatment is 4.2%, the increase is 0.2 percentage points or 5% relative.
+**Minimum detectable effect** is the effect size the design aims to detect. **Power** is the probability of detecting it under the planned assumptions.
 
-Read the interval and practical value alongside that estimate. An interval spanning a meaningful loss and gain is inconclusive. Check critical slices without selecting only favorable ones.
+Duration depends on traffic, variability, usage cycles, and label maturity.
 
-**Sample ratio mismatch** means observed assignment counts differ unexpectedly from the intended allocation. Investigate routing, exclusions, instrumentation, and missing outcomes before interpreting the treatment effect.
+## 5. Use a valid stopping rule
 
-Novelty or learning effects can change results over time. They are hypotheses to investigate, not an automatic explanation for every early lift.
+Choose a fixed analysis horizon or a suitable sequential procedure.
 
-## 4. Know what other experiments answer
+Repeated ordinary significance checks followed by opportunistic stopping increase false positives. An early promising number is not a stopping rule.
 
-**Interleaving** combines two rankers' outputs into one displayed list under a defined mixing rule and attributes feedback to the contributors. It can efficiently compare ranking preferences, but does not directly estimate the retention or revenue effect of deploying either whole policy.
+## 6. Read effects and diagnostics
 
-Longer holdouts may address cumulative effects when the product question requires them. Neither a fixed number of weeks nor an offline metric establishes that duration is sufficient.
+CTR moving from 4.0% to 4.2% is **0.2 percentage points**, or **5% relative**. Read uncertainty and practical value alongside the estimate.
+
+**Sample ratio mismatch** is an unexpected departure from planned assignment proportions. Investigate routing, missing outcomes, and exclusions before trusting results.
+
+## 7. Know what interleaving answers
+
+**Interleaving** mixes two rankers' outputs into one list and attributes feedback under a mixing rule. It compares ranking preferences, not the full retention or revenue effect of deploying either policy.
+
+## 8. Interview reasoning
+
+**Question:** Why might request randomization mismeasure a habit-changing feed?
+
+**Answer:** Earlier recommendations can influence later requests assigned to the other policy. Persistent assignment or another justified design must account for that carryover.

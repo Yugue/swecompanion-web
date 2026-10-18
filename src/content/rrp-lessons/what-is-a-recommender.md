@@ -1,46 +1,53 @@
 ## What a recommender actually does
 
-A **recommendation system** selects items likely to be useful for a person in a particular context. **Ranking** orders candidates; **personalization** adapts the selection or order using information about the user or session.
+## 1. Choose a useful window into the catalogue
 
-A video service may choose six videos from millions. A useful prediction score helps make that choice, but the product receives a list, not just a number.
+A **recommendation system** selects items for a person and context. A video service might choose six videos from millions.
 
-## 1. Start with the surface
+> Think of a shop window: the selection matters more than assigning every product a number.
 
-A **surface** is the place where recommendations appear.
+## 2. Prediction, ranking, personalization
 
-| Surface | Decision | Example success criterion |
-|---|---|---|
-| Home feed | What to discover | Satisfied viewing or useful discovery |
-| Search | What answers this query | Relevant results near the top |
-| Up next | What follows this item | A useful continuation |
-| Notification | Whether to interrupt at all | Useful opens without unwanted interruptions |
+| Concept | Job |
+|---|---|
+| Prediction | Estimate an outcome, such as clicking |
+| Ranking | Order candidate items |
+| Personalization | Adapt choices using user or session information |
 
-The same item can be suitable for a feed and unsuitable for a notification. Different surfaces have different error costs and constraints.
+A popular-items list recommends without necessarily personalizing.
 
-## 2. Predictions support a policy
+## 3. Define the surface
 
-A **policy** maps the available context to an action, possibly at random. Here the action might be an ordered list.
+A **surface** is where recommendations appear: home feed, search, up-next, or notifications.
+
+A useful video may suit a feed but not justify interrupting someone with a notification. The surface changes the decision and its error costs.
+
+## 4. Scores support a policy
+
+A **policy** maps available context to an action, possibly at random. The action can be a single item or an ordered list, called a **slate**.
 
 ```text
-inputs → predicted outcomes → eligible-item selection and ordering → displayed list
+context → predicted outcomes → list selection → display
 ```
 
-Predicted click probability, expected watch time, or a relevance score can inform selection. Scores need not be probabilities unless their downstream use requires that meaning.
+A score can express compatibility without being a probability.
 
-A star-rating predictor can also help recommendations. Its rating error alone does not establish that it chooses a good top-six list.
+## 5. Separate three kinds of success
 
-## 3. Measure three different things
+- **Prediction:** did estimates match recorded outcomes?
+- **List:** were useful items placed well?
+- **Product:** did deploying this policy help users?
 
-- **Prediction quality:** do estimated outcomes match observations?
-- **List quality:** are useful items in good positions, with appropriate variety?
-- **Product outcome:** does using the policy help users and meet the product's goals?
+Lower rating error does not establish a better top-six list.
 
-For example, a higher click rate can come with more disappointed viewers. Define success and counter-signals before optimizing a convenient proxy.
+## 6. Choose an outcome users value
 
-## 4. The system influences its evidence
+A tempting thumbnail can increase clicks while disappointing viewers. Measure useful viewing and unwanted recommendations alongside clicks.
 
-You usually observe outcomes only after exposure. If a video was never displayed, its missing click is not a demonstrated rejection.
+The system's displayed choices determine much of the evidence it later learns from. The feedback chapters explain that mechanism.
 
-Past placement affects which observations reach training. This creates **exposure bias**—unequal opportunities to observe item outcomes—and can create **feedback loops**, where future recommendations reinforce past exposure.
+## 7. Interview reasoning
 
-> **Mental image:** a recommender is a shop window that learns from its own visitors. What it puts in the window changes what it can learn about next.
+**Question:** Why is predicting ratings different from choosing six videos?
+
+**Answer:** Rating prediction evaluates individual estimates. Selection must also decide which candidates enter the list, their order, and how the whole list serves the current request.

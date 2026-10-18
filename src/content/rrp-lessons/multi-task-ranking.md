@@ -1,48 +1,58 @@
 ## Multiple objectives
 
-**Multi-task learning** fits several predicted outcomes using shared or partly shared representations. **Multi-objective selection** combines predicted outcomes or constraints to choose what to show.
+## 1. Predict several outcomes, choose one policy
 
-Sharing a model and choosing a product tradeoff are different decisions.
+**Multi-task learning** trains several predictions using shared or partly shared representations. **Multi-objective selection** combines outcomes or constraints to choose actions.
 
-## 1. Give every head a defined target
+Sharing training and choosing a product tradeoff are separate decisions.
 
-A **head** is an output component predicting one task, such as a click probability, expected watch time, or complaint probability.
+## 2. Give each output a target
+
+A **head** is a model component predicting one task, such as clicking, watch duration, or hiding.
 
 ```rrp-visual
 multi-task-heads
 ```
 
-Define the unit and conditioning for each output. If watch time is zero without a click, then:
+Define units, conditioning, and outcome windows for every head.
+
+## 3. Convert conditional watch into per-display value
+
+If watch is zero without a click:
 
 \[
 E[watch\mid x]=P(click\mid x)E[watch\mid click,x]
 \]
 
-A 0.2 click probability and 60 seconds conditional expected watch give 12 seconds per impression. The identity requires the stated event relationship and consistent measurement windows.
+\(x\): context; \(P\): probability; \(E\): expected value. The second expectation is watch duration among clicked impressions.
 
-## 2. Do not invent unavailable labels
+Probability 0.20 × conditional 60 seconds = **12 expected seconds per impression**. The identity requires consistent event definitions and windows.
 
-For “watch duration given a click,” an unclicked impression has no observed conditional watch outcome. Mask that task's loss for unavailable labels, or deliberately define and model unconditional watch time per impression.
+## 4. Do not invent conditional labels
 
-A loss mask prevents treating missing labels as observations. It does not by itself remove selection bias in a task trained only on clicked items.
+An unclicked impression supplies no observed “watch given click” outcome.
 
-Shared representations can help sparse tasks, but tasks can also compete for capacity. Compare each task with a suitable single-task reference and inspect its own quality and calibration.
+A **loss mask** excludes examples without an available label for that task. It prevents fictitious labels but does not automatically remove selection bias among clicked items.
 
-## 3. Training and serving weights do different jobs
+Alternatively, deliberately model unconditional watch per impression.
 
-```text
-training weights → how task losses update shared parameters
-serving weights  → how predicted outcomes influence item selection
-```
+## 5. Separate the two weight sets
 
-A candidate score might combine expected useful watch seconds with a cost for predicted complaints. Seconds and probabilities have different units; serving weights should define the intended conversion or utility.
+| Weights | Control |
+|---|---|
+| Training | How task losses update shared parameters |
+| Serving | How predicted outcomes influence selection |
 
-Calibrated probabilities are useful when the score claims expected value. Arbitrary latent scores from unrelated tasks do not acquire comparable meaning merely by adding them.
+Combining seconds and complaint probabilities requires an explicit utility conversion.
 
-## 4. Keep objectives and constraints explicit
+## 6. Check sharing and constraints
 
-A convenient proxy can diverge from satisfaction. Optimizing clicks can encourage misleading presentation in some settings; it does not guarantee clickbait or declining retention in every product.
+Shared representations can help sparse tasks or create competition for capacity. Compare each head against a suitable single-task reference.
 
-A **guardrail** is a predefined acceptable limit, such as complaint rate or latency. Hard eligibility conditions cannot be traded away with a weighted quality score.
+A **guardrail** is a predefined acceptable limit, such as complaint rate. Hard eligibility cannot be traded away by another task's score.
 
-Evaluate the selected policy through an appropriate experiment, with primary outcomes and guardrails agreed in advance. A multi-head architecture alone does not establish a better product tradeoff.
+## 7. Interview reasoning
+
+**Question:** Why not use serving utility weights as training loss weights automatically?
+
+**Answer:** Loss scale and parameter learning differ from the units and tradeoffs of selecting items. Tune and validate those roles separately.

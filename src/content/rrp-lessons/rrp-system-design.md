@@ -1,44 +1,48 @@
 ## A ranking system design answer
 
-A **recommendation system design** connects a product decision to data, retrieval, ranking, evaluation, and operation. Explain why each component is needed for this surface rather than presenting a fixed architecture menu.
+## 1. Start with one concrete decision
 
-## 1. Frame the home-feed decision
+Design a video home feed returning **six eligible items**. Define useful viewing, complaint limits, freshness, traffic, and latency.
 
-For a video app, suppose the response contains six eligible items. Define useful viewing, complaint limits, freshness needs, and a measured serving budget.
+This chapter combines earlier mechanisms into one design; architecture follows the requirements.
 
-One training row can be one displayed impression, with click and useful-watch labels completed under stated windows. Log request and impression IDs, available inputs, placement, versions, and actual selection probabilities when the policy supports that evaluation.
+## 2. Specify the evidence
 
-“Watched 30 seconds” is a proxy, not a complete definition of satisfaction. Keep a current-system and contextual-popularity baseline.
+Use one displayed impression per training row, with stable outcome linkage and completed label windows.
 
-## 2. Choose candidates and scores
+Preserve decision-time inputs, placement, versions, and action probabilities where the intended evaluation requires them. Compare with the existing policy and contextual popularity.
 
-Retrieve an illustrative 800 candidates from a feature-based vector index, item neighbors, history or subscriptions, and fresh inventory. Merge eligible IDs, retain all source tags, and give sources deadlines.
+## 3. Retrieve a bounded pool
 
-Use a candidate count justified by recall, final quality, and downstream cost. A feature-based tower can represent new uploads, but only index publication and successful retrieval make them candidates.
+Suppose an evaluated budget permits **800 candidates**. Combine vector search, item neighbors, subscriptions, and fresh inventory as justified by marginal coverage.
 
-Start ranking with an appropriate simple model. Add joint features or sequence modelling for demonstrated weaknesses. Define whether watch predictions are conditional on clicking or unconditional per impression before combining them with other outcomes.
+Deduplicate IDs, retain source tags, enforce eligibility, and bound source deadlines. New uploads need both representation and timely index publication.
 
-Re-rank for the intended list properties. Hard eligibility is mandatory; soft creator or category targets need explicit priorities and an infeasibility policy.
+## 4. Rank and assemble
 
-## 3. Evaluate the claim being made
+Start with an appropriate simple ranker. Add joint features or session modeling for measured weaknesses.
+
+Define whether watch estimates are per impression or conditional on clicking. Apply final eligibility and the intended creator/redundancy rules when selecting six items.
+
+## 5. Evaluate each claim
 
 | Layer | Evidence |
 |---|---|
-| Retrieval | Reference-positive recall and cold-item coverage |
-| Ranking | Fixed-protocol list metrics and probability quality where used |
-| List selection | Duplication, useful variety, constraints |
-| Product policy | Suitable experiment with primary outcomes and guardrails |
+| Retrieval | Reference-positive recall and cold slices |
+| Ranking | Fixed-protocol ordering and required probability quality |
+| List | Duplication, useful variety, constraints |
+| Policy | Product experiment with primary outcome and guardrails |
 
-Use deployment-matched time and group restrictions, historical input availability, realistic candidates, and uncertainty. Logged clicks inherit exposure and placement; correction needs identified assumptions, not just a “debiasing” label.
+Use later data, realistic competition, and uncertainty. Logged relevance alone cannot establish every deployed policy effect.
 
-If longer-term effects matter, use an experiment long enough and appropriately designed to measure them.
+## 6. Budget and recover
 
-## 4. Explain cost and the expected failure
+At 10,000 requests/second, 800 candidates imply **eight million scores/second**. Profile feature access, batching, and model work.
 
-At 10,000 requests per second, 800 candidates imply eight million scores per second. Profile features, batching, network access, and model work before choosing the cost intervention.
+Version compatible components; keep eligibility-aware fallbacks and rollback. For invisible new creators, monitor publication, retrieval, and display separately.
 
-Version compatible towers, vectors, index, transforms, calibrator, and policy. Keep eligibility-aware fallbacks and a rollback path.
+## 7. Interview reasoning
 
-For “new creators receive no exposure,” monitor publication-to-index delay, retrieval membership, and final selection separately. The fix differs for absent vectors, stale indexes, filtering, and inadequate exploration.
+**Question:** What changes if request volume grows tenfold?
 
-> **Mental image:** every stage needs an input contract, a reason to exist, a measurement, and a recovery path.
+**Answer:** Recompute score and feature demand, locate the measured bottleneck, and compare caching, candidate caps, batching, or model changes with their quality costs.

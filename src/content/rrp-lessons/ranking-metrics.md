@@ -1,45 +1,59 @@
 ## How a ranked list is scored
 
-A **ranking metric** evaluates which relevant items appear and where. Define **relevance** first: a human judgment, a held-out click, and a purchase label represent different evidence.
+## 1. Decide what counts as relevant
 
-Top-\(k\) metrics examine only the first \(k\) results. Choose cutoffs that match visible slots or realistic scrolling depth, and report them explicitly.
+A **ranking metric** measures which relevant items appear and where. **Relevance** is the chosen reference evidence: judgments, held-out clicks, or purchases.
 
-## 1. Count which items made the list
+Top-\(k\) means the first \(k\) returned items. Match \(k\) to the surface.
 
-\[
-\operatorname{Precision@k}=\frac{\text{relevant items in top }k}{k},\qquad
-\operatorname{Recall@k}=\frac{\text{relevant items in top }k}{\text{reference relevant items}}
-\]
-
-With three relevant items in six slots and ten reference positives, precision@6 is 0.5 and recall@6 is 0.3.
-
-The recall denominator is a reference set you actually define, not everything a user might have liked. With one held-out positive, per-request recall@100 is simply 1 if it is retrieved and 0 otherwise.
-
-## 2. Reward relevant items nearer the top
-
-**Discounted cumulative gain (DCG)** weights relevance by position:
+## 2. Count relevant results
 
 \[
-\operatorname{DCG@k}=\sum_{r=1}^{k}\frac{g(rel_r)}{\log_2(r+1)},\qquad
-\operatorname{NDCG@k}=\frac{\operatorname{DCG@k}}{\operatorname{IDCG@k}}
+Precision@k=\frac{h}{k},\qquad Recall@k=\frac{h}{R}
 \]
 
-\(g\) is the chosen gain function; common choices are relevance itself or \(2^{rel}-1\). **Ideal DCG (IDCG)** is the best gain obtainable from the evaluation's reference relevance set at that cutoff—not merely the best reordering of the returned items.
+\(h\): relevant items returned in the first \(k\); \(R\): total relevant items in the reference set.
+
+Three hits in six slots, from ten reference positives: **precision 0.5, recall 0.3**.
+
+Recall cannot count unknown items the user might have liked.
+
+## 3. Reward earlier placement
+
+**Discounted cumulative gain (DCG)** adds relevance gains with smaller weights at later ranks:
+
+\[
+DCG@k=\sum_{r=1}^{k}\frac{g(rel_r)}{\log_2(r+1)}
+\]
+
+\(r\): rank; \(rel_r\): relevance label there; \(g\): gain function, such as \(rel\) or \(2^{rel}-1\). Larger gains matter more; later ranks contribute less.
+
+## 4. Normalize against an ideal list
+
+**Normalized DCG (NDCG)** divides DCG by **ideal DCG (IDCG)**, the best possible DCG from the reference labels at that cutoff:
+
+\[
+NDCG@k=DCG@k/IDCG@k
+\]
 
 ```rrp-visual
 ranking-discount
 ```
 
-**Normalized DCG (NDCG)** equals 1 for an ideal list under those labels. If the reference set has no positive gain, the denominator is zero; specify whether to skip the request or report a conventional zero.
+The ideal list scores 1. Define a convention when IDCG is zero.
 
-## 3. First useful result: reciprocal rank
+## 5. When only the first hit matters
 
-**Reciprocal rank** is \(1/r\) for the first relevant result at rank \(r\), or zero if none appears within the evaluated scope. **Mean reciprocal rank (MRR)** averages that value across requests.
+**Reciprocal rank** is \(1/r_*\), where \(r_*\) is the first relevant rank; use zero if no hit appears. **Mean reciprocal rank (MRR)** averages across requests.
 
-A first relevant result at rank 3 contributes 1/3. MRR suits tasks where finding one good answer is central; it ignores useful results after the first.
+A first hit at rank 3 contributes 1/3. Later useful results do not change it.
 
-## 4. Make comparisons reproducible
+## 6. Keep comparisons reproducible
 
-Keep candidate construction, reference labels, gain convention, cutoff, eligibility, and aggregation fixed. Sampled distractors can make a task much easier than full-catalogue retrieval.
+Fix labels, candidate construction, gains, cutoff, and request/user weighting. A test with easy sampled distractors differs from full-catalogue retrieval.
 
-State whether requests or users receive equal weight. Report uncertainty and important new-user, new-item, and surface slices. Better NDCG under logged labels is evidence about that evaluation, not proof of improved satisfaction or retention.
+## 7. Interview reasoning
+
+**Question:** Precision@4 is unchanged while NDCG@4 rises. What happened?
+
+**Answer:** The hit count stayed fixed, but useful items moved to positions with greater discounted gain.

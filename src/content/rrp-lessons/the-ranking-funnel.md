@@ -1,45 +1,53 @@
 ## The retrieval and ranking funnel
 
-A **retrieval and ranking funnel** reduces a large catalogue in stages, spending more computation on the candidates that remain.
+## 1. Spend more work on fewer items
 
-**Retrieval**, or candidate generation, finds a manageable pool. **Ranking** scores and orders that pool. **Re-ranking** selects a final list while considering relationships, constraints, and the other selected items.
-
-## 1. Why stages help
+A **retrieval and ranking funnel** narrows a catalogue in stages. Each smaller pool can receive more expensive computation.
 
 ```rrp-visual
 ranking-funnel
 ```
 
-The counts are illustrative. An index can retrieve candidates without evaluating an expensive joint user–item model against every catalogue entry. Ranking can then use richer features on a smaller batch.
+## 2. Give each stage one job
 
-A small catalogue with cheap scoring may not need a separate retrieval stage. Choose the architecture by measured cost and quality, not a fixed catalogue-size rule.
+| Stage | Job |
+|---|---|
+| Retrieval / candidate generation | Find a manageable pool |
+| Ranking | Score and order that pool |
+| Re-ranking | Select a final list using list relationships and constraints |
 
-## 2. Each stage needs its own evidence
+Ranking can use richer user–item information because it handles hundreds of candidates rather than millions.
 
-| Stage | Main question | Useful measurements |
-|---|---|---|
-| Retrieval | Did useful, eligible items enter the pool? | Held-out-positive recall, coverage, latency |
-| Ranking | Are useful candidates ordered well? | Ranking metrics, probability quality where needed |
-| Re-ranking | Does the final list work as a list? | Duplicates, variety, constraint satisfaction, outcomes |
+## 3. Check eligibility
 
-**Eligibility** means allowed and available for this request: for example, in stock and available in the user's region. Apply checks early where practical and recheck hard requirements before display.
+**Eligibility** means allowed and available for this request: in stock, in region, and permitted on this surface.
 
-## 3. Retrieval limits what ranking can recover
+Filter early where possible. Recheck hard requirements before display if availability can change during the request.
 
-If a relevant item is absent from a request's candidate set, reordering that set cannot bring it back. If it is present but scored poorly, adding another retrieval source may not solve the problem.
-
-Trace a known useful item through the stages:
+## 4. Find the missing handoff
 
 ```text
-eligible? → retrieved? → features available? → ranked well? → selected? → displayed?
+eligible → retrieved → scored → selected → displayed
 ```
 
-Log stage membership and removal reasons. A selected item that never rendered is not an observed impression.
+If a useful video never enters the pool, sorting that pool cannot recover it. If it enters but scores poorly, investigate ranking instead.
 
-## 4. Candidate count is a quality–cost choice
+A selected tile that never renders has not produced an observed impression.
 
-Compare, for example, 200, 500, and 1,000 candidates on the same requests. Measure added useful coverage, ranking quality, feature-fetch cost, and end-to-end tail latency.
+## 5. Measure stages separately
 
-More candidates give ranking more options but also more work. They can change competition and list selection, so quality is not guaranteed to improve on every measured dataset.
+Retrieval needs useful coverage; ranking needs good ordering; final selection needs a coherent eligible list.
 
-> **Mental image:** search the library shelves first, examine a shortlist carefully, then assemble a coherent reading list. A great final comparison cannot recover a book never shortlisted.
+Also record stage counts and removal reasons. One end-to-end score cannot locate where a candidate disappeared.
+
+## 6. Choose the pool size empirically
+
+Compare 200, 500, and 1,000 candidates on the same requests. Measure final-list quality and total serving cost.
+
+More candidates add options and work. A small catalogue with cheap scoring may need no separate retrieval stage.
+
+## 7. Interview reasoning
+
+**Question:** A better ranker produces no product gain. What do you inspect first?
+
+**Answer:** Trace useful items through the handoffs. Missing candidates suggest retrieval limits; retrieved items with poor scores suggest ranking or feature problems.

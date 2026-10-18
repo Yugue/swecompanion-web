@@ -1,48 +1,56 @@
 ## Implicit feedback and its biases
 
-**Implicit feedback** is behavioral evidence such as clicks, viewing, purchases, or hides. **Explicit feedback** directly asks for an evaluation, such as a rating or thumbs-up.
+## 1. Behavior is evidence about preference
 
-Neither is a complete or automatically honest measurement of preference. People who rate are self-selected; people who click can be responding to a misleading title.
+**Implicit feedback** is behavior such as clicking, watching, or purchasing. **Explicit feedback** directly states an evaluation, such as a rating or thumbs-down.
 
-## 1. Name what the signal actually measures
+Neither gives a complete account of what a person wants.
 
-| Signal | Evidence it supplies | Important limit |
+## 2. Choose the meaning of each signal
+
+| Signal | What it records | Possible mismatch |
 |---|---|---|
-| Click | An item attracted a click after exposure | Can reflect curiosity or presentation |
-| Watch duration | How long viewing continued | Depends on duration, autoplay, and stopping behavior |
-| Purchase | A transaction occurred | Availability, price, and returns matter |
-| Hide or complaint | An explicit negative action | Rare and selected by who reports |
+| Click | Opening an item | Curiosity or misleading presentation |
+| Watch duration | Time spent viewing | Autoplay or item length |
+| Purchase | A transaction | Later return or regret |
+| Complaint | A reported problem | Only some users report |
 
-A deeper event is not universally a better target. Choose evidence that fits the product's intended benefit and measurement window.
+A deeper event is not automatically a better target.
 
-## 2. Non-click is a mixture of explanations
+## 3. Non-clicks mix different situations
 
-Imagine 1,000 displayed tiles. Suppose 300 were examined and 30 clicked:
+Suppose 1,000 displayed tiles contain:
 
 ```text
-700 not examined
-270 examined, no click
- 30 clicked
+700 not examined + 270 examined without clicking + 30 clicked
 ```
 
-An impression-and-click log records 970 non-clicks. Without additional evidence, it cannot separate the first two groups. Even examination without a click can reflect timing or competing choices rather than dislike.
+The log has 970 non-clicks. Click records alone cannot separate the first two groups.
 
-A non-click can still be a valid negative for “click under this display policy.” Interpreting it as intrinsic item irrelevance requires stronger assumptions.
+A non-click can label “no click under this display” without proving intrinsic irrelevance.
 
-## 3. Separate the biases
+## 4. Distinguish the biases
 
-- **Exposure bias:** the serving policy determines which user–item outcomes are observable.
-- **Position bias:** placement changes attention and clicking, even for the same item.
-- **Popularity bias:** counts and learned decisions can favor frequently exposed items.
+- **Exposure bias:** selection controls which outcomes can be observed.
+- **Position bias:** placement changes examination or clicking.
+- **Popularity bias:** data or decisions favor already popular items.
 
-These can coexist. Correcting one does not automatically identify unseen preferences or remove the others.
+These mechanisms can coexist. Their dedicated chapters examine correction and feedback.
 
-## 4. Improve evidence and evaluation
+## 5. Use a proxy deliberately
 
-Log displays, positions, viewability when measurable, outcomes, and the policy version. Track satisfaction-related counter-signals alongside the main target.
+A **proxy** is a measurable substitute for the outcome you care about. Clicks can proxy interest, while useful viewing and complaints test where that substitute fails.
 
-Controlled **exploration** varies eligible recommendations to collect evidence about uncertain alternatives. Suitable experiments can also help estimate placement effects. Record the actual randomization probabilities if later evaluation needs them.
+Write down the mismatch before choosing the training label.
 
-Train on a precisely defined proxy and state where it can diverge from the desired outcome. For example: “We predict clicks, but validate useful viewing and complaints because a tempting thumbnail may disappoint after opening.”
+## 6. Collect evidence that can test it
 
-> **Mental image:** behavior is a trace of both interest and opportunity. Read the trace together with how the opportunity was created.
+Log displays, placements, outcomes, and serving-policy versions. Randomized comparisons can help separate preference from presentation.
+
+> Read behavior together with the opportunity that produced it.
+
+## 7. Interview reasoning
+
+**Question:** A thumbnail change increases clicks. Has recommendation quality improved?
+
+**Answer:** It increased opening behavior. Check subsequent useful viewing, dissatisfaction, and a suitable experiment before claiming greater user benefit.

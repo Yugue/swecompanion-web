@@ -1,43 +1,48 @@
 ## Connecting the model to the business
 
-A **business objective** states the outcome the recommendation policy should improve. A **proxy** is a more convenient measured signal used in its place, such as clicks for useful discovery.
+## 1. Name the intended benefit
 
-A proxy can be helpful without being identical to the intended benefit.
+A **business objective** states the outcome a policy should improve. For a discovery feed, that might be useful viewing per user rather than more clicks on each tile.
 
-## 1. Write a metric contract
+The earlier proxy and target chapters explain how model labels relate to that benefit.
 
-| Field | Example for a discovery feed |
+## 2. Write a metric contract
+
+| Field | Example |
 |---|---|
-| Population | Eligible active users in the experiment |
-| Primary outcome | Useful viewing per assigned user over a week |
-| Measurement | Defined completion or satisfaction criteria |
-| Guardrails | Complaint, latency, and inventory-access limits |
-| Evaluation horizon | Enough time for the specified outcomes and effects |
+| Population | Eligible users assigned to the test |
+| Primary outcome | Useful viewing per assigned user |
+| Window | One week after assignment |
+| Guardrails | Complaints and latency |
 
-Define numerator, denominator, window, exclusions, and missing outcomes. “More purchases” per impression, active user, or assigned user can reward different behavior.
+Specify numerator, denominator, exclusions, and missing outcomes before seeing results.
 
-**Guardrails** are predefined limits used alongside the primary outcome. Decide whether a measure is a hard limit or a weighted tradeoff before seeing a favorable result.
+## 3. Denominators change incentives
 
-## 2. Inspect how a proxy can diverge
+Purchases per impression, active user, and assigned user answer different questions.
 
-Click optimization can favor attractive but disappointing presentation. Watch-time optimization can favor long content. Purchase optimization can favor discounts with poor margins or later returns.
+A policy that reduces visits might improve purchases per remaining visit while harming total value per assigned user. Choose a denominator matching the intervention's purpose.
 
-These are possible mechanisms, not guaranteed outcomes of every optimizer. Measure the counter-signals relevant to the product instead of assuming the proxy is either perfect or useless.
+## 4. Choose the value being predicted
 
-A better predicted risk or click probability also does not prove that acting on it improves the intended outcome. Predictions and interventions answer different questions.
+Revenue, margin, and retained value after returns differ. Define which value a purchase-probability model will multiply.
 
-## 3. Define utility before blending outputs
+Watch seconds and complaint probabilities also need an explicit utility conversion before blending, as established in multi-task ranking.
 
-Expected click value, watch seconds, and complaint probability have different units. A combined score needs explicit conversions, costs, or experimentally justified tradeoffs.
+## 5. Include affected participants
 
-For per-impression expected purchase value, specify the purchase probability's conditioning, attribution, and value definition. Revenue, margin, and retained value after returns are different targets.
+A marketplace serves buyers, sellers, and the platform. Better short-term clicks can coexist with weaker new-seller opportunity.
 
-Long-horizon outcomes can be used for training when mature evidence exists. Their delay affects responsiveness and measurement cost; it does not make them universally impossible to optimize.
+State whose benefit or cost is measured and which limits are hard requirements. One aggregate can hide a material tradeoff.
 
-## 4. Include all affected participants
+## 6. Match measurement time to the claim
 
-A marketplace serves buyers, sellers, and the platform. Exposure concentration may benefit some users or reflect genuine demand while making discovery difficult for new providers.
+Short-term lift does not establish improved retention. Delayed outcomes can still be trained on mature historical evidence, but their delay affects update and experiment speed.
 
-Measure provider opportunity, eligible inventory coverage, user value, and the intended business outcome. State whose cost is being traded and which requirement cannot be overridden by a score.
+Use a test suited to the intended cumulative effect and interference.
 
-Use an experiment suited to interference, outcome delay, and cumulative effects. A higher short-term proxy alone is not a complete launch criterion.
+## 7. Interview reasoning
+
+**Question:** Engagement rises 5% while seller variety falls 20%. Launch?
+
+**Answer:** Apply the declared outcome contract and guardrails, inspect affected groups and uncertainty, and test whether the short-term gain represents the intended value.

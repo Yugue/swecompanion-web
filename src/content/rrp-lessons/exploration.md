@@ -1,48 +1,56 @@
 ## Exploration
 
-**Exploration** deliberately varies eligible actions to gather information about uncertain alternatives. **Exploitation** chooses what currently appears best for the defined outcome.
+## 1. Buy information about alternatives
 
-The tradeoff is immediate utility versus information that can improve later decisions.
+**Exploration** was introduced as deliberate variation to gather evidence. **Exploitation** chooses the currently best estimated action.
 
-## 1. A lower estimate can still deserve investigation
+The tradeoff is immediate utility versus information useful for later choices.
+
+## 2. Inspect uncertainty, not just the estimate
 
 ```rrp-visual
 exploration-uncertainty
 ```
 
-Item A has 2,500 clicks from 50,000 impressions; B has three from 100. Their observed rates are 5% and 3%, but B is far less precisely estimated.
+A **Wilson interval** gives a range estimating an event rate from independent click/no-click trials. Its confidence level describes the interval procedure’s approximate coverage across repeated samples.
 
-The figure's intervals assume independent click/no-click trials (Bernoulli observations). Unequal audiences or positions can make these rates incomparable; uncertainty bars do not themselves remove exposure bias.
+The wider interval for the less-shown item does not prove it is better; unequal audiences or positions can still bias the comparison.
 
-## 2. Three ways to allocate exploration
+## 3. Compare allocation methods
 
-| Method | Mechanism | Main requirement |
-|---|---|---|
-| Epsilon-greedy | Mix a greedy action with a randomized choice | Define the eligible exploration distribution |
-| Upper-confidence method | Add a justified uncertainty bonus to an estimate | Credible assumptions and uncertainty model |
-| Thompson sampling | Sample a plausible reward model and choose its preferred action | A suitable posterior or approximation |
+| Method | Mechanism |
+|---|---|
+| Epsilon-greedy | Mix the best estimate with randomized choices |
+| Upper-confidence method | Add a justified uncertainty bonus |
+| Thompson sampling | Sample a plausible reward model, then choose its best action |
 
-A **contextual bandit** chooses actions using context and observes reward for chosen actions. Unlike a general long-horizon reinforcement learner, its usual formulation does not model actions changing future states.
+**Thompson sampling** uses a posterior distribution, an updated uncertainty distribution after observations, or an approximation to it.
 
-Some products need more than immediate bandit reward: recommendations can affect later interests or supplier behavior.
+## 4. Use context when it is informative
 
-## 3. Log the actual mixture probability
+A **contextual bandit** chooses using context and observes reward for the chosen action. Its usual formulation does not model actions changing future states.
 
-Suppose two eligible items A and B exist, A is the unique greedy choice, and 10% of decisions choose uniformly at random:
+Long-term interest changes or provider responses can require a broader treatment than immediate bandit reward.
+
+## 5. Log the final mixture probability
+
+A is uniquely best; 10% of decisions choose uniformly between A and B:
 
 ```text
 P(A) = 0.90 + 0.10/2 = 0.95
 P(B) =        0.10/2 = 0.05
 ```
 
-The exploration budget of 0.10 is neither item's final action probability. Log the actual policy probability after filtering, mixture rules, and tie handling.
+The 10% budget is neither action's final selection probability. Filtering and ties also affect that probability.
 
-For complex slate policies or posterior sampling, obtaining the required exact probabilities may be harder. Plan the evaluation and logging design together.
+## 6. Measure the purchase of information
 
-## 4. Measure information and cost
+Explore within the allowed set and exposure limits. Track evidence collected, later useful discovery, and outcome cost.
 
-Explore only within the allowed action set and stated exposure limits. Relevant contexts can produce more useful evidence than arbitrary audiences, but can also restrict the overlap available for later policy evaluation.
+Low placement can reduce disruption but also examination. A fresh-item slot alone is not proof of an informative experiment.
 
-A lower slot may reduce disruption and also reduce examination, slowing learning. Track evidence collected, subsequent useful discovery, satisfied engagement, and complaints, not exploration CTR alone.
+## 7. Interview reasoning
 
-> **Mental image:** exploration purchases a measurement. Choose where the measurement is informative and what short-term cost is acceptable.
+**Question:** Why not log 0.10 as B's propensity in this example?
+
+**Answer:** B receives only half the exploration branch and none of the greedy branch. Its actual action probability is 0.05.

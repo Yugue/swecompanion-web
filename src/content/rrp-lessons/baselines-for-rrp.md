@@ -1,45 +1,52 @@
 ## Baselines worth beating
 
-A **baseline** is a reference method evaluated under the same conditions as a candidate. In recommendation, simple popularity, history, and co-occurrence rules can be strong references.
+## 1. Measure what complexity buys
 
-## 1. Build a useful comparison ladder
+A **baseline** is a reference method tested under the same conditions as a proposed system.
 
-| Reference | Mechanism | Limitation to test |
+> Compare the next rung of the ladder, not only the height above the floor.
+
+## 2. Start with useful simple rules
+
+| Baseline | Mechanism | Limitation |
 |---|---|---|
-| Popularity | Most engaged-with eligible items | Counts reflect exposure and age |
-| Contextual popularity | Popular within a region, query, or category | Small segments can be noisy |
-| Recency | Recently published eligible items | New does not imply useful |
-| Personal history | Continue watching or buy again | Wrong for some discovery tasks |
-| Item co-occurrence | Items consumed alongside recent history | Sparse overlaps and popularity effects |
+| Popularity | Most engaged-with eligible items | Exposure and age affect counts |
+| Contextual popularity | Popular within a region or category | Small groups are noisy |
+| Recency | Newest items | New need not mean useful |
+| Personal history | Resume or replenish | May not support discovery |
 
-The current production system is another important baseline, even if it is complex. It is the process a new candidate must improve or replace.
+The current production policy is another essential reference.
 
-## 2. Read the gain with its costs
+## 3. Add a stronger comparison
 
-Suppose the same evaluation gives:
+**Co-occurrence** is shared consumption within a stated unit, such as a user or session. It can suggest items often used with a recent history item.
+
+History plus co-occurrence may beat popularity before any learned retrieval model is added.
+
+## 4. Read the gain correctly
 
 ```text
-popularity-in-context       recall@100 = 0.24
-history plus co-occurrence              = 0.29
-learned retrieval                      = 0.31
+contextual popularity       recall@100 = 0.24
+history + co-occurrence                   0.29
+learned retrieval                        0.31
 ```
 
-The learned candidate gains 0.02, or two percentage points, over the stronger simple reference. Whether that matters depends on uncertainty, traffic, useful discoveries, latency, and maintenance.
+The learned model gains **two percentage points** over the stronger simple method. Comparing only with 0.24 exaggerates the added value.
 
-A small gain does not automatically mean weak personalization or a broken model. The baseline may already be good, the labels incomplete, or the improvement valuable only in specific slices.
+## 5. Hold the test conditions fixed
 
-## 3. Keep the comparison fair
+Use the same requests, eligibility, cutoff, duplicate rules, and label window.
 
-Use the same eligible inventory, request set, list length, duplicate rules, and outcome window. Build popularity from events available before the evaluation decision, not tomorrow's clicks.
+Build popularity using evidence available before each test decision. Tomorrow's clicks would leak future information into the reference.
 
-If a baseline uses only known items while a candidate can introduce new ones, report that coverage difference explicitly. Missing labels for discoveries make a logged metric incomplete evidence about their value.
+## 6. Include operational value
 
-For uncertain comparisons, inspect paired per-user or per-request differences with a method that respects dependence. A score improvement alone does not establish the causal benefit of personalization; the systems may differ in several ways.
+Check uncertainty, important user groups, latency, and maintenance. A small reliable gain can matter at scale.
 
-## 4. Keep a reference available in operation
+A cached reference can also serve during an outage, with current eligibility checks and an expiration rule.
 
-A cached popularity or curated list can provide a fallback when a learned system is unavailable. It still needs current eligibility checks and an expiration policy.
+## 7. Interview reasoning
 
-Monitor the reference and candidate under comparable traffic. A sudden relative regression can suggest broken data or serving behavior, but is a diagnostic cue rather than proof of one cause.
+**Question:** Is a two-point recall gain worth deploying?
 
-> **Mental image:** each rung shows what added complexity buys over a credible alternative. Measure the next rung, not just the height above the floor.
+**Answer:** Compare against the strongest relevant baseline, estimate uncertainty, and weigh useful outcomes against serving and maintenance costs. The size alone cannot decide.

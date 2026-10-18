@@ -1,47 +1,97 @@
-## Deep ranking models
+## Choosing a ranking model
 
-A **neural ranker** uses learned representations and neural computation to score candidates. It can combine large categorical inputs, dense measurements, text, images, and histories.
+## 1. Match capacity to the decision
 
-Its complexity needs a demonstrated benefit over a suitable simple baseline.
+Linear models, trees, and neural rankers can score the same candidates. Choose using useful feature relationships, evidence volume, and serving constraints.
 
-## 1. Convert sparse categories into vectors
+Start with a credible simple reference.
 
-An **embedding table** maps category IDs to short learned vectors. A **multilayer perceptron (MLP)** is a sequence of learned weighted transformations and nonlinear activations.
+## 2. Understand the linear baseline
+
+A **logistic model** converts a weighted feature sum to click probability:
+
+\[
+s=b+w^\top x,\qquad p=\sigma(s)
+\]
+
+\(x\): features; \(w\): weights; \(b\): intercept; \(s\): raw score or logit; \(p\): probability estimate; \(\sigma\): sigmoid, taught with BPR.
+
+Without crosses, each feature changes the logit additively. For numeric outcomes, a linear regression model can use the weighted sum directly.
+
+## 3. See when an interaction matters
+
+Let user-interest flag \(c\) and candidate-topic flag \(t\) mean travel=0, cooking=1:
+
+| c | t | Desired match score |
+|---|---|---|
+| 0 | 0 | High |
+| 0 | 1 | Low |
+| 1 | 0 | Low |
+| 1 | 1 | High |
+
+An additive score cannot put both matches above both mismatches. A match indicator or a \(ct\) cross alongside the main effects can express it.
+
+A depth-two tree can split on interest, then topic; a neural model can learn nonlinear combinations. An ensemble of single-split trees alone remains additive in these raw flags.
+
+## 4. Make a tree's branches explicit
+
+A **decision tree** asks feature-based questions and stores a prediction at each terminal **leaf**. Successive splits let one feature's effect depend on another.
+
+Depth adds interaction capacity but also fitting and serving cost. Trees do not automatically learn useful representations for every rare ID.
+
+## 5. Fit successive corrections with boosting
+
+**Gradient-boosted decision trees (GBDTs)** add trees that fit negative loss gradients:
+
+\[
+F_M(x)=F_0+\eta\sum_{m=1}^{M}h_m(x)
+\]
+
+\(F_0\): initial constant score; \(h_m\): tree \(m\)'s output; \(M\): tree count; \(\eta>0\): learning rate; \(F_M\): ensemble score; \(x\): input features.
+
+For half-squared error, the negative gradient is the **residual**, actual minus predicted outcome. Other losses supply different corrections; click models can apply sigmoid to the final logit.
+
+## 6. Work two correction steps
+
+For one numeric target 1, begin at 0.5. Suppose each new tree fits this example's remaining residual and \(\eta=0.2\):
 
 ```text
-IDs → embedding lookups ─┐
-                        ├→ combined features → MLP → score or outcome heads
-numeric / content inputs┘
+0.50 + 0.2 × 0.50 = 0.60
+0.60 + 0.2 × 0.40 = 0.68
 ```
 
-A table for 100 million IDs with 64 float32 coordinates requires 25.6 GB in decimal units before other model parameters, replication, and training state.
+The second tree responds to the updated model. This is a squared-error illustration, not a universal raw-residual rule for classification or ranking losses.
 
-Unknown and rare IDs need fallback representations, regularization, or feature-based alternatives. A larger table does not create reliable evidence for each rare entity.
+## 7. Learn representations with a neural ranker
 
-## 2. Three ways to model interactions
+A **multilayer perceptron (MLP)** stacks weighted transformations and nonlinear activations. **Nonlinear** means its combinations need not reduce to one weighted input sum.
 
-| Approach | Mechanism | What to compare |
+```text
+ID vectors + numeric/content inputs → MLP → prediction outputs
+```
+
+Embedding tables or feature encoders supply representations. Sharing them can help related entities, but rare IDs still need evidence and fallback handling.
+
+## 8. Compare the same task
+
+| Family | Useful starting case | Main dependency or cost |
 |---|---|---|
-| Ordinary MLP | Learns nonlinear combinations through hidden layers | Useful capacity versus fitting and serving cost |
-| Wide-and-deep | Combines a linear crossed-feature branch with a neural branch | Whether explicit repeated patterns add value |
-| Cross network | Constructs feature interactions through designed cross layers | Added interaction structure versus extra work |
+| Linear / logistic | Clear engineered features; cheap baseline | Explicit useful crosses |
+| GBDT | Tabular features with conditional interactions | Feature representation, tree depth/count |
+| Neural | Learned ID/content/history representations | Data, vector memory, optimization and inference |
 
-A **cross layer** explicitly combines input coordinates to represent interactions. Its exact form determines which combinations and ranks are possible. A second-order factorization machine offers another structured baseline.
+These are starting hypotheses, not guaranteed winners. Trees can consume pretrained vectors; neural models are not required merely because IDs appear.
 
-These designs need not be stacked into every model. Compare one architectural hypothesis at a time.
+## 9. Measure the full serving path
 
-## 3. Candidate-specific attention changes the cost
+Hold data, labels, candidates, and features comparable. Measure ordering, probability quality when needed, cold slices, memory, and latency.
 
-**Attention** forms a weighted combination of input representations. A candidate-conditioned history module uses the candidate to choose which past actions receive more weight.
+**Float32** uses four bytes per coordinate: 100 million IDs × 64 coordinates = **25.6 GB** before replicas or training state. Feature access can dominate model arithmetic.
 
-A cooking candidate can emphasize cooking history; a car candidate can emphasize car reviews. This permits different summaries for different candidates, but requires additional work per candidate.
+The next chapter develops request history and candidate-specific summaries.
 
-A request-only history summary can instead be computed once and reused. The tradeoff is computation reuse versus candidate-specific expressiveness.
+## 10. Interview reasoning
 
-## 4. Evaluate the full serving path
+**Question:** Why might shrinking the MLP barely change request latency?
 
-Use an appropriate linear, tree, or simpler neural baseline with the same evaluation data. Compare ranking quality, calibration if consumed, cold slices, memory, throughput, and end-to-end latency.
-
-Trees can use engineered crosses or pretrained vectors; neural models are not automatically required whenever IDs appear. Choose by evidence, representation needs, and operating constraints.
-
-Batch scoring can reduce overhead. Feature retrieval and embedding access may dominate computation, so profile them alongside the network rather than assuming a smaller MLP solves the bottleneck.
+**Answer:** Communication, feature reads, vector lookups, or queueing may dominate. Profile the complete path before changing network size.

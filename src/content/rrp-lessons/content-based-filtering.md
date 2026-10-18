@@ -1,46 +1,53 @@
 ## Content-based filtering
 
-**Content-based filtering** recommends using item attributes and a user's expressed or observed interests. It can compare descriptions without needing other users to have consumed the same items.
+## 1. Match descriptions to interests
 
-## 1. Build a profile from item features
+**Content-based filtering** recommends using item attributes and a user's stated or observed interests. It does not require other users to have consumed the same items.
 
-Represent items as numeric **feature vectors**. A simple user profile averages vectors from previously liked items, optionally weighting recency or action strength.
+> Describe the interests, then look for matching descriptions.
 
-Suppose two liked items have [cooking=1, travel=0] and one has [0, 1]:
+## 2. Turn attributes into vectors
+
+A **feature vector** is a numeric list describing an item: category indicators, duration, or measurements extracted from text and images.
+
+A **pretrained model** supplies representations learned from another dataset. Check whether its similarity matches this recommendation task.
+
+## 3. Build a simple interest profile
+
+Average the vectors of liked items. Two cooking items [1,0] and one travel item [0,1] give:
 
 \[
-p_u=\tfrac13([1,0]+[1,0]+[0,1])=[2/3,1/3]
+p_u=([1,0]+[1,0]+[0,1])/3=[2/3,1/3]
 \]
 
-A **dot product** multiplies matching coordinates and adds them. A cooking candidate [1, 0] scores 2/3; a travel candidate [0, 1] scores 1/3.
+\(p_u\) is user \(u\)'s profile; the coordinates here mean cooking and travel.
 
-These are compatibility scores, not click probabilities. The example also assumes comparable feature scales and that these attributes capture useful similarity.
+## 4. Score a candidate
 
-## 2. Choose what describes an item
+A **dot product** multiplies matching coordinates and sums:
 
-| Representation | Example information |
-|---|---|
-| Structured attributes | Category, brand, language, duration |
-| Text representation | Words or learned features from title and description |
-| Image or audio representation | Features from an appropriate pretrained model |
-| Related metadata | Creator, seller, series, availability |
+\[
+s(u,i)=p_u^\top v_i=\sum_{f=1}^{d}p_{uf}v_{if}
+\]
 
-A **pretrained model** supplies features learned from another dataset. Validate whether its notion of similarity fits this task: visually similar covers need not imply similar content quality.
+\(v_i\): item \(i\)'s vector; \(d\): coordinate count; \(f\): coordinate index; \(s\): compatibility score.
 
-A new item can be represented once its features are available. It still needs a route into the eligible candidate set and, for indexed retrieval, timely index insertion.
+Cooking [1,0] scores **2/3**; travel [0,1] scores **1/3**. These are not click probabilities.
 
-## 3. Avoid collapsing several interests into one average
+## 5. Preserve several interests
 
-A user interested in cooking and motorsport need not want an item midway between those topics. Keep multiple profiles or retrieve neighbors of separate recent items, then merge and remove duplicates.
+One average can blur cooking and motorsport into an unhelpful middle. Keep separate interest profiles or retrieve from individual history items, then merge.
 
-Averaging and recency weighting are modelling choices. Test them on later requests and on users with several interests rather than assuming the newest action always dominates.
+Recency weights change which interests dominate; test them rather than assuming newest always wins.
 
-## 4. Know what evidence is missing
+## 6. Know what attributes miss
 
-Attribute similarity can over-specialize or miss complementary relationships. Printer ink may complement a printer without having a similar description. Behavioral co-purchase evidence can supply that relationship.
+Similar descriptions need not mean similar usefulness. Ink complements a printer without resembling it; behavioral evidence may capture that relationship better.
 
-Content-based systems can also inherit popularity and presentation bias through their training signals or profile weights. They are not automatically immune because the final score compares attributes.
+Use content-based methods when attributes are informative, especially for new inventory. Measure relevance and variety.
 
-Use content-based retrieval as a baseline or source when features are informative, especially for new inventory. Measure relevance, variety, cold-item coverage, and serving cost.
+## 7. Interview reasoning
 
-> **Mental image:** build a description of the user's interests, then look for items whose descriptions match. The description is useful only for the aspects it actually captures.
+**Question:** Why might a content model recommend another printer instead of ink?
+
+**Answer:** It learned attribute similarity. Complementary purchasing is a different relationship, better supported by suitable purchase behavior or explicit compatibility features.

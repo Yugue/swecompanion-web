@@ -1,46 +1,88 @@
 ## Factorization for implicit feedback
 
-**Implicit-feedback factorization** learns vector scores from behavior rather than explicit ratings. Its objective must specify what to do with observed interactions and uncertain missing entries.
+## 1. Decide what blank cells mean
 
-A sampled unobserved item is a training contrast, not a verified dislike.
+**Implicit-feedback factorization** fits vectors from behavior instead of ratings. Its objective specifies how observed actions and uncertain missing entries affect learning.
 
-## 1. Confidence-weighted reconstruction
+A sampled unknown item is a contrast, not a verified dislike.
 
-A common approach sets a binary preference target \(p_{ui}\): 1 for an observed interaction and 0 otherwise. It minimizes:
+## 2. Weighted reconstruction
+
+One approach minimizes:
 
 \[
 L=\sum_{u,i}c_{ui}(p_{ui}-v_u^\top v_i)^2+\lambda R(v)
 \]
 
-\(c_{ui}\) weights each cell, \(R\) penalizes vector complexity, and \(\lambda\) controls that penalty. Unobserved cells often receive low weight; interaction counts can increase the weight on observed cells.
+\(L\): total loss; \(u,i\): user/item; \(p_{ui}\): target, often 1 for interaction and 0 otherwise; \(c_{ui}\): confidence weight; \(v\): vectors; \(R\): regularization penalty; \(\lambda\): its strength.
 
-“Confidence” here is a chosen weight, not a validated probability that the label is true. Low-weight zeros remain a modelling assumption about missing data.
+Larger weights make those cells' errors matter more.
 
-For target 0 and score 0.8, weight 1 contributes 0.64. For target 1 and score 0.8, weight 10 contributes 0.4. The weights determine the balance of these pressures.
+## 3. Confidence is a modeling choice
 
-## 2. Pairwise ordering with BPR
+Target 0, score 0.8, weight 1 contributes **0.64**. Target 1, score 0.8, weight 10 contributes **0.4**.
 
-**Bayesian Personalized Ranking (BPR)** uses an observed item \(i\) and sampled unobserved item \(j\) for user \(u\). Its pairwise loss is:
+“Confidence” is not a measured probability that a target is true. Low-weight missing zeros still encode an assumption.
+
+## 4. Compare observed and sampled items
+
+**Bayesian Personalized Ranking (BPR)** encourages an observed item to outscore a sampled unobserved alternative:
 
 \[
-\ell=-\log\sigma(s(u,i)-s(u,j)),\qquad
+\ell=-\log\sigma(\Delta),\quad
+\Delta=s_+-s_-,\quad
 \sigma(z)=\frac{1}{1+e^{-z}}
 \]
 
-**Sigmoid** maps a score gap to a value between 0 and 1. A gap of +1 gives loss about 0.313; a gap of −1 gives about 1.313.
+\(s_+,s_-\): preferred/alternative scores; \(\Delta\): gap; \(\ell\): pair loss. **Sigmoid** \(\sigma\) maps a real input \(z\) to (0,1).
 
-Even a correctly ordered pair has nonzero loss and can receive an update. Regularization and other pairs help determine how large gaps should become. Neither individual score is thereby a click probability.
+Gap +1 costs about **0.313**; −1 costs **1.313**.
 
-## 3. Sampling defines which comparisons matter
+## 5. Follow the two score gradients
 
-Uniform negatives cover the catalogue; popularity-based negatives emphasize frequently observed competitors; hard negatives challenge the current model with high-scoring alternatives.
+\[
+w=\sigma(-\Delta),\qquad
+\frac{\partial\ell}{\partial s_+}=-w,\quad
+\frac{\partial\ell}{\partial s_-}=w
+\]
 
-A **false negative** is an item treated as negative despite being a plausible positive. Remove known positives where appropriate, but recognize that unobserved preferences remain uncertain. Harder is not automatically better.
+\(w\) is the positive gradient magnitude. Gradient descent pushes the preferred score up and the alternative down.
 
-Sampling changes the optimization target unless an appropriate objective-specific correction is used. It is not inherently a popularity-bias cure.
+Even a correctly ordered finite gap has nonzero pressure; larger positive gaps receive less.
 
-## 4. Compare procedures, not labels
+## 6. Work a score-level update
 
-Confidence-weighted ALS uses structure in squared reconstruction objectives. BPR typically uses sampled comparisons and gradient updates. Both need validation, regularization, and realistic candidate evaluation.
+Treat the two scores as independently adjustable in this toy step. Starting at 0/0 with learning rate 0.1 gives:
 
-If training contains only positive targets with no contrast or other informative structure, many high scores can satisfy it. If every blank is treated as a definite rejection, the procedure overstates what was observed. Choose and test the assumption between those extremes.
+| Quantity | Before | After |
+|---|---|---|
+| Preferred score | 0 | 0.05 |
+| Alternative score | 0 | −0.05 |
+| Gap | 0 | 0.1 |
+| Pair loss | 0.693 | 0.644 |
+
+A real model updates shared parameters through these gradients; coupled scores need not change by these exact amounts.
+
+## 7. Implement the existing loss
+
+For paired score arrays (PyTorch tensors):
+
+```python
+import torch.nn.functional as F
+gap = positive_scores - negative_scores
+loss = F.softplus(-gap).mean()
+```
+
+Softplus computes the same smooth gap loss. Regularization constrains parameter growth; individual scores are not click probabilities.
+
+## 8. Choose the comparison distribution
+
+Uniform, popularity-based, and hard-negative sampling teach different comparisons. The negative-sampling chapter compares those choices and corrections.
+
+Evaluate the full procedure against realistic eligible competition.
+
+## 9. Interview reasoning
+
+**Question:** Does BPR stop updating a correctly ordered pair?
+
+**Answer:** No. Its smooth loss still rewards a larger positive gap; correct order alone does not make the loss or gradient zero.

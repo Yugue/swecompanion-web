@@ -1,41 +1,49 @@
 ## Blending several retrieval sources
 
-**Multi-source retrieval** combines candidates from different generators, such as vector search, item neighbors, history, and fresh inventory. The purpose is complementary useful coverage within a shared budget.
+## 1. Search for different kinds of usefulness
 
-More sources do not automatically mean more distinct or better candidates.
+**Multi-source retrieval** combines generators such as vector search, item neighbors, history, and fresh inventory.
 
-## 1. Merge candidates and keep their origins
+Its value is complementary coverage, not the number of generators.
+
+## 2. Merge IDs and preserve origins
+
+**Deduplication** combines repeated item IDs. **Provenance** records every source that produced each item.
 
 ```rrp-visual
 source-union
 ```
 
-**Deduplication** merges repeated item IDs. **Provenance** records every source that produced an item, not merely the first source to return it.
+Overlapping candidates retain all their source tags. Those tags make source contributions and failures inspectable.
 
-If vector search returns [A, B, C] and a history source returns [B, D], their union is [A, B, C, D]. Item B retains both tags. Those tags help debug source failures and analyze contributions.
+## 3. Do not compare incompatible scores
 
-## 2. Do not let score units decide the merge
+Cosine 0.8, co-occurrence 200, and popularity 50,000 are different units.
 
-A cosine similarity of 0.8, a co-occurrence count of 200, and a popularity count of 50,000 are not directly comparable.
+Use explicit per-source budgets or a validated common merge score. Source quotas reserve slots but can waste them when results add little useful coverage.
 
-Use an explicit merge strategy: per-source budgets, a learned or validated common score, or another defined selection rule. Quotas can preserve different sources but may waste slots if their candidates add little value.
+## 4. Count the actual union
 
-Measure the pool after duplicates and eligibility filters. Three sources each returning 100 items might still produce only 120 distinct eligible candidates.
+Three sources returning 100 items each might yield only 120 distinct eligible candidates.
 
-## 3. Measure marginal value
+Measure after duplicate removal and eligibility checks. Requested source counts are not the number of candidates available to rank.
 
-An **ablation** removes one component while holding a suitable comparison protocol fixed. Evaluate each source's contribution to held-out-positive recall, cold-item coverage, final-list quality, latency, and cost.
+## 5. Test marginal value
 
-High overlap is a reason to investigate redundancy, not proof one source is useless: it may provide lower latency or a failure backup. A source that never reaches the final list may have poor candidates, insufficient budget, or a ranker that cannot use its unfamiliar inventory.
+An **ablation** compares a procedure with and without one component.
 
-Use controlled tests when changing the mixture affects exposure and training data.
+Remove one source and measure reference-positive recall, new-item coverage, final-list quality, latency, and cost under comparable conditions.
 
-## 4. Bound partial failures
+Heavy overlap can still provide a useful backup; it is not proof of zero value.
 
-Independent sources can often run in parallel. Give each a deadline and merge the successful results, with a defined fallback if the union is empty or too small.
+## 6. Bound partial failures
 
-Log requested and returned counts, timeouts, removal reasons, versions, and which items were eventually displayed. Candidate provenance alone does not establish which source caused engagement or what would happen without it.
+Independent sources can run in parallel with individual deadlines. Merge successful responses and define a fallback for an insufficient union.
 
-Hard eligibility constraints apply across all sources. Sponsored or promoted inventory needs explicit placement and policy treatment rather than an accidental advantage from raw score scale.
+Log source counts, removals, timeouts, and eventual displays. Provenance alone does not establish which source caused engagement.
 
-> **Mental image:** several scouts search for different reasons an item may be useful. Merge their finds without losing the notes about where each came from.
+## 7. Interview reasoning
+
+**Question:** A new source adds 100 results but almost no candidates. Why?
+
+**Answer:** Its IDs may overlap existing results or fail eligibility. Inspect the deduplicated eligible union before concluding the ranker ignored its contribution.

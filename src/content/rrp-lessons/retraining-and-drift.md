@@ -1,41 +1,49 @@
 ## Retraining and drift
 
-**Retraining** fits updated parameters. **Drift** is a change in data or in the relationship between inputs and outcomes. **Refreshing** features or catalogue indexes is a separate operation that may not require retraining.
+## 1. Match the response to the cause
 
-Choose the response from the cause rather than treating every quality drop as a retraining request.
+**Retraining** fits updated model parameters. **Drift** is a change in data or the input–outcome relationship.
 
-## 1. Different components age differently
+Feature refresh and index publication update different components; neither necessarily requires new parameters.
 
-| Change | Possible response |
+## 2. Diagnose which component aged
+
+| Change | Candidate response |
 |---|---|
-| Newly published item with supported features | Encode and insert into the current compatible index |
-| Recent session actions arrive | Update the history feature or request representation |
-| Existing behavior changes | Evaluate fitting on newer representative evidence |
-| Score meaning changes | Recheck calibration and decision policy |
-| Feature counter stops updating | Repair the data path |
+| New feature-supported item | Encode and insert into compatible index |
+| New session action | Refresh history |
+| Changed behavior | Evaluate newer training evidence |
+| Changed score scale | Recheck calibration and selection |
+| Frozen feature counter | Repair the data path |
 
-A feature-based item encoder can represent new inventory with fixed weights. An identifier-only representation may need new fitted evidence or a fallback. Neither issue is identical to index-publication delay.
+## 3. Rule out an incident
 
-## 2. Diagnose the evidence path first
+Check feature ages, nulls, joins, source timeouts, fallback traffic, and index versions.
 
-Check missing values, feature ages, row counts, joins, source timeouts, fallback traffic, and index versions. A broken pipeline is an incident, not evidence that interests changed.
+A broken pipeline can resemble changed interests. Retraining on corrupted inputs does not fix the broken dependency.
 
-Then examine traffic mix, catalogue composition, layout changes, labels, and outcome rates. A changed click rate can reflect placement or instrumentation as well as preferences.
+## 4. Check whether drift affects the task
 
-Input drift does not always cause quality loss. A changed input–outcome relationship may need new outcome evidence; repeatedly fitting unchanged old data cannot teach that new relationship.
+A different traffic mix need not reduce quality. A changed relationship between inputs and outcomes may require new labels.
 
-## 3. Choose data recency and cadence together
+Compare serving health separately from later engagement or satisfaction evidence. Repeatedly fitting unchanged old data cannot teach a newly changed relationship.
 
-A short training window adapts quickly but can remove useful evidence for rare users and items. A longer window stabilizes some estimates while preserving obsolete behavior.
+## 5. Choose the training window
 
-Compare windows and recency weights on later data and cold slices. Include label maturity, compute cost, and rollout time when choosing a schedule. There is no universal daily or weekly cadence for all components.
+Short windows adapt quickly but lose evidence for rare users and items. Long windows stabilize estimates but retain obsolete behavior.
 
-Monitor immediate serving health separately from delayed satisfaction, purchase, or retention outcomes.
+Compare windows and recency weights on later requests and cold slices. Include label maturity, compute, and rollout delay in the cadence.
 
-## 4. Promote a compatible, validated bundle
+## 6. Promote a complete compatible update
 
-New encoders can change coordinate conventions. Validate the request encoder, item vectors, preprocessing, normalization, and index together before switching traffic.
+Check encoders, item vectors, preprocessing, index, calibration, and decision rules together.
 
-Check later-period quality, calibration where consumed, important slices, and serving constraints. Reassess thresholds and blend weights rather than automatically copying them from an unrelated score scale.
+A **rollout gate** is a predeclared requirement an update must pass before receiving more traffic. Retain the previous compatible bundle for rollback.
 
-Use a controlled rollout with explicit health and quality gates and a previous compatible bundle for rollback. Completing training is not the same as demonstrating a useful update.
+There is no universal daily retraining rule.
+
+## 7. Interview reasoning
+
+**Question:** Input distributions changed but later-period quality is stable. Retrain immediately?
+
+**Answer:** A distribution shift alone does not establish damage. Check serving health and outcome evidence, then compare a candidate update against the current model.

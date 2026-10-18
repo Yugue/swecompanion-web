@@ -1,47 +1,66 @@
 ## Modelling the user's recent behavior
 
-**Sequence modelling** uses ordered past events to represent a user's evolving behavior. Recent actions can reveal current intent, while longer histories provide more stable evidence.
+## 1. Preserve the progression
 
-Neither should automatically replace the other.
-
-## 1. Order and time can change interpretation
+**Sequence modeling** uses ordered past events to represent behavior. The same items can mean different things in a different order:
 
 ```text
-laptop → case → charger       an accessory-shopping sequence
-charger → case → laptop       similar items, different progression
+laptop → case → charger
+charger → case → laptop
 ```
 
-A bag or simple average of the same item vectors loses that order. Include positions, timestamps, or time gaps when they are relevant to the prediction.
+> Long-term taste is the bookshelf; recent actions are the books currently open.
 
-A burst of dishwasher-repair viewing can be useful evidence for today's session. It does not establish a permanent change from cooking interests to appliance repair.
+## 2. Choose an order-aware summary
 
-## 2. Stop history at the decision
+**Attention** forms a weighted combination of input representations. **Self-attention** lets history entries attend to other entries in that history.
+
+| Method | What it retains |
+|---|---|
+| Ordinary pooling | Average content, usually not order |
+| Recurrent model | A state updated event by event |
+| Self-attention | Relationships among history entries |
+
+A **recurrent model** carries information through a sequentially updated state.
+
+Include position or time information when order matters.
+
+## 3. Read history for this candidate
+
+**Candidate-conditioned attention** uses the candidate to choose history weights. A cooking candidate can emphasize cooking events; a car candidate can emphasize car reviews.
+
+A request-only summary can be reused. Candidate-conditioned summaries add joint context but require work per candidate. Attention weights alone do not prove which event caused an action.
+
+## 4. Stop at the decision
 
 ```rrp-visual
 sequence-history
 ```
 
-For a target recommendation at 14:00, use events available before that decision. Do not include the target action or a later event in its own history.
+The later target action may supply a label; it cannot appear in that decision's input history.
 
-**Padding** fills variable-length sequences to a common shape. A **padding mask** excludes those filler entries. A **causal mask** excludes future entries when learning multiple next-event predictions in one sequence.
+## 5. Distinguish the masks
 
-For one decision using only its already-observed history, a bidirectional encoder over that past history can be valid. A causal mask is not mandatory solely because the application involves time.
+**Padding** fills variable-length histories to a common shape. A **padding mask** excludes filler entries.
 
-## 3. Different summaries trade information and reuse
+A **causal mask** prevents earlier predictions from using later sequence entries when training multiple next-event predictions together.
 
-| Method | Mechanism | Tradeoff |
-|---|---|---|
-| Pooling | Average or weighted sum | Cheap; ordinary pooling loses order |
-| Recurrent model | Updates a state event by event | Order-aware, sequential updates |
-| History self-attention | Lets history entries interact | Needs order/time information when order matters |
-| Candidate attention | Weights history for a specific candidate | More joint context, more per-candidate work |
+These masks solve different problems.
 
-Attention weights alone do not establish why a user acted or which past event caused the next action.
+## 6. Past-only input can be bidirectional
 
-## 4. Validate freshness and coverage
+A **bidirectional encoder** lets entries use context from both directions within its input.
 
-A session representation updated nightly cannot use today's latest actions. Measure event arrival delay, history truncation, session boundaries, and missing-history behavior.
+If that entire input predates one decision, this can be valid. Causal masking is required by the prediction setup, not simply by the presence of timestamps.
 
-Compare long-term-only, session-only, and combined procedures on later requests, including anonymous and new users. More history may supply useful context or stale noise; tune its scope with realistic latency and data availability.
+## 7. Measure usable recency
 
-> **Mental image:** a long-term profile is the bookshelf; recent actions are the books currently open. The current task determines which evidence deserves attention.
+A nightly summary misses today's actions. Compare long-term-only, session-only, and combined inputs on later requests.
+
+Check arrival delay, truncation, and missing-history behavior. Extra history can add context or stale noise.
+
+## 8. Interview reasoning
+
+**Question:** Is bidirectional attention always leakage in recommendations?
+
+**Answer:** No. It can summarize an entirely observed past history. Leakage occurs when a prediction uses information unavailable at its decision time.

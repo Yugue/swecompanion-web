@@ -40,3 +40,59 @@ export function wilson(successes: number, count: number, z = 1.96): Point {
 }
 export const explorationExamples = [{ id: "A", clicks: 2500, impressions: 50000 }, { id: "B", clicks: 3, impressions: 100 }];
 export const correctDownsampling = (sampled: number, negativeRetention: number) => negativeRetention * sampled / (1 - sampled + negativeRetention * sampled);
+
+// Worked training and evaluation examples used by the RRP lessons.
+export function mfObjective(user: Point, item: Point, target: number, penalty = 0) {
+  return 0.5 * (dot(user, item) - target) ** 2 + 0.5 * penalty * (dot(user, user) + dot(item, item));
+}
+export function mfUpdate(user: Point, item: Point, target: number, rate: number, penalty = 0) {
+  const error = dot(user, item) - target;
+  const userGradient: Point = [error * item[0] + penalty * user[0], error * item[1] + penalty * user[1]];
+  const itemGradient: Point = [error * user[0] + penalty * item[0], error * user[1] + penalty * item[1]];
+  return {
+    user: user.map((v, i) => v - rate * userGradient[i]) as [number, number],
+    item: item.map((v, i) => v - rate * itemGradient[i]) as [number, number],
+    userGradient, itemGradient,
+  };
+}
+export function softmax(scores: number[], temperature = 1) {
+  const max = Math.max(...scores);
+  const weights = scores.map(score => Math.exp((score - max) / temperature));
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  return weights.map(weight => weight / total);
+}
+export const towerTrainingExample: { query: Point; items: Point[]; rate: number } = { query: [1, 0], items: [[0, 1], [0, -1]], rate: 0.1 };
+export function contrastiveLoss(query: Point, items: Point[], positive = 0, temperature = 1) {
+  return -Math.log(softmax(items.map(item => dot(query, item)), temperature)[positive]);
+}
+export function towerUpdate(query: Point, items: Point[], rate: number, positive = 0, temperature = 1) {
+  const shares = softmax(items.map(item => dot(query, item)), temperature);
+  const scoreGradients = shares.map((share, i) => (share - Number(i === positive)) / temperature);
+  const queryGradient: Point = [0, 1].map(coordinate => items.reduce((sum, item, i) => sum + scoreGradients[i] * item[coordinate], 0)) as [number, number];
+  const itemGradients: Point[] = scoreGradients.map(gradient => [gradient * query[0], gradient * query[1]]);
+  return {
+    query: query.map((v, i) => v - rate * queryGradient[i]) as [number, number],
+    items: items.map((item, i) => item.map((v, c) => v - rate * itemGradients[i][c]) as [number, number]),
+    shares, queryGradient, itemGradients,
+  };
+}
+export const listwiseTrainingExample = { scores: [0.8, 0.7, 0.3], targets: [0.5, 0, 0.5] };
+export const clickThresholdExample = { tp: 80, fp: 99, fn: 20, tn: 9801 };
+export function clickOperatingPoint() {
+  const { tp, fp, fn, tn } = clickThresholdExample;
+  return { tpr: tp / (tp + fn), fpr: fp / (fp + tn), precision: tp / (tp + fp), prevalence: (tp + fn) / (tp + fn + fp + tn) };
+}
+export const requestScoreExamples = [
+  { positive: [0.2, 0.8], negative: [0.1, 0.1] },
+  { positive: [0.5, 0.9], negative: [0.4, 0.2] },
+  { positive: [0.8, 0.7], negative: [0.7, 0.75] },
+];
+export function pairAuc(positives: number[], negatives: number[]) {
+  return positives.reduce((sum, positive) => sum + negatives.reduce((count, negative) => count + (positive > negative ? 1 : positive === negative ? 0.5 : 0), 0), 0) / (positives.length * negatives.length);
+}
+export const regressionOutcomes = [0, 0, 9];
+export function constantRegressionErrors(prediction: number) {
+  const mse = regressionOutcomes.reduce((sum, actual) => sum + (prediction - actual) ** 2, 0) / regressionOutcomes.length;
+  const mae = regressionOutcomes.reduce((sum, actual) => sum + Math.abs(prediction - actual), 0) / regressionOutcomes.length;
+  return { mse, mae, rmse: Math.sqrt(mse) };
+}

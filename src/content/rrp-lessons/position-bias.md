@@ -1,45 +1,55 @@
 ## Position bias
 
-**Position bias** means an item's placement changes the chance it is examined or clicked, beyond the item's underlying appeal. A click is therefore evidence about both the item and its presentation.
+## 1. Placement changes opportunity
 
-Raw CTR at different ranks does not identify this effect: the old policy deliberately placed different items at different ranks.
+Position bias means placement changes examination or clicking beyond an item's appeal. High-ranked items may get more attention simply because they are easier to see.
 
-## 1. A simple examination model
+> More applause under a brighter spotlight does not alone prove a better performance.
+
+## 2. Separate examination from attractiveness
+
+A toy **examination model** assumes clicks require examination:
+
+\[
+P(click\mid x,i,r)=e(r,x)a(i,x)
+\]
+
+\(P\): probability; \(x\): context; \(i\): item; \(r\): rank; \(e\): examination probability; \(a\): click probability given examination, assumed rank-independent here.
+
+The multiplication depends on those assumptions.
+
+## 3. Hold attractiveness fixed
 
 ```rrp-visual
 position-examination
 ```
 
-Under a particular model, clicking requires examination and attractiveness after examination:
+An unchanged item can receive different CTR because the chance of examination changed.
 
-\[
-P(click\mid x,i,r)=e(r,x)\,a(i,x)
-\]
+Raw rank CTR cannot identify the components: the old ranker intentionally placed different items at different ranks.
 
-\(e\) is examination probability for rank \(r\) and context \(x\); \(a\) is conditional click attractiveness, assumed independent of rank in this model.
+## 4. Create comparable placement evidence
 
-If \(a=0.1\), examination 0.8 at rank 1 gives CTR 0.08. Examination 0.4 at rank 5 gives CTR 0.04 for the same attractiveness.
+Randomized swaps compare items and audiences under different placements. Other sources of rank variation or fitted click models need justified assumptions about selection.
 
-This illustrates an assumption, not an examination estimate inferred from those two click rates alone.
+Device, layout, and scrolling can change the effect. “Position” is more than a row number.
 
-## 2. Identify placement effects with suitable evidence
+## 5. Interpret a relative correction
 
-Randomized swaps can compare similar items and audiences under different placements. Natural rank variation or joint click models may also help, but require assumptions about confounding and identifiability.
+Suppose rank 5 gets half rank 1's examination. Dividing rank-5 CTR by 0.5 puts it on a reference-position scale.
 
-Often evidence identifies only relative examination, such as rank 5 receiving half the examination of rank 1. Dividing CTR by that relative multiplier puts it on a reference-position scale; it does not automatically recover absolute preference probability.
+It does not automatically recover an absolute preference probability.
 
-Measure layout and device differences. “Position” can include scrolling, image size, and grid location, not just a vertical rank number.
+Small examination estimates also create large inverse weights and unstable learning.
 
-## 3. Corrections have limits
+## 6. Recognize model failures
 
-Bias-aware learning can weight observed evidence using an appropriate examination model. A model trained with observed position can also score candidates at a common reference position, if its assumptions support that use.
+Trust in high-ranked results and competition for attention can violate the simple examination model.
 
-Neither turns every unclicked low-rank item into a definite negative preference. Small examination estimates also produce large inverse weights and unstable results; clipping changes the bias–variance tradeoff.
+Examination is also different from **selection propensity**, the serving policy's probability of choosing an action. The next chapter uses that probability.
 
-## 4. Distinguish other mechanisms
+## 7. Interview reasoning
 
-Users may trust high-ranked items more, and one result can change attention to others. These effects violate the simple examination-times-attractiveness model.
+**Question:** Why not divide by observed CTR at each rank to remove bias?
 
-Examination probability is also distinct from **selection propensity**: the probability that the serving policy chose an action. Correcting visibility and evaluating a different policy are related but different problems.
-
-> **Mental image:** placement controls the spotlight. More applause under a brighter spotlight does not, by itself, prove a better performance.
+**Answer:** Rank CTR mixes placement with the items and audiences assigned there. Correcting examination needs evidence or assumptions that separate those effects.

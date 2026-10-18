@@ -1,45 +1,49 @@
 ## Features, freshness, and skew
 
-**Feature freshness** describes how current a value is when used. **Train/serve skew** is a mismatch between how values or transformations are produced for training and live decisions.
+## 1. Ask what was on the model's desk
 
-A recent-looking timestamp does not guarantee that all recent events were included.
+**Feature freshness** describes how current an input is when used. **Train/serve skew** is a mismatch between training and live feature computation.
 
-## 1. Separate three update rhythms
+> An event has a date it happened and a date it reached the desk.
 
-| Rhythm | Example | Appropriate when |
-|---|---|---|
-| Batch | Long-run category interests | Slow-changing evidence is sufficient |
-| Near real time | Session actions or recent item demand | Recent events add measured value |
-| Request time | Query, current device, current candidate context | Information is specific to this decision |
+## 2. Choose an update rhythm
 
-Faster updates add operational cost and can amplify noise. Validate the quality benefit rather than assuming the fastest feature is always the most valuable.
+| Rhythm | Example |
+|---|---|
+| Batch | Long-run category interests |
+| Near real time | Session actions or recent demand |
+| Request time | Current query and device |
 
-Define both the window and its endpoint. “Clicks in ten minutes before the last nightly job” differs from “clicks in the ten minutes before this request.”
+Faster updates add cost and can add noise. Use the rhythm justified by predictive value.
 
-## 2. Event time is not availability time
+## 3. Respect availability, not just event time
 
 ```rrp-visual
 feature-availability
 ```
 
-A click at 13:59 arriving at 14:02 was unavailable for the 14:00 prediction. A historical reconstruction that includes it leaks information, despite its earlier event timestamp.
+The click happened before the decision but arrived after it. A later reconstruction must not sneak it into the earlier prediction.
 
-A **point-in-time join** retrieves the feature version available at the decision time. It must respect arrival and publication delays as well as when underlying events occurred.
+## 4. Reconstruct the available version
 
-A **watermark** describes a streaming pipeline's estimate of event-time progress. It helps manage windows and late arrivals; it is not a guarantee that no later event can appear.
+A **point-in-time join** selects the feature version available at a historical decision. Respect arrival and publication delays as well as event timestamps.
 
-## 3. Preserve the serving definition
+A **watermark** estimates a streaming pipeline's event-time progress. It helps manage late events; it does not guarantee none will arrive later.
 
-Different timezones, deduplication, units, null rules, and window boundaries can turn similarly named features into different values.
+## 5. Share the feature definition
 
-Log values as served or sufficient versioned references, share transformation definitions, and replay representative requests to compare reconstruction. Floating-point comparisons may require documented tolerances.
+“Recent clicks” must specify window, endpoint, timezone, deduplication, units, and missing-value rules.
 
-Logging helps preserve original inputs. Later schema, preprocessing, or representation changes can still introduce skew, so it does not remove every future failure.
+Compare logged serving values or versioned references with historical replay. Identical feature names do not guarantee identical computations.
 
-## 4. Make stale and missing behavior explicit
+## 6. Distinguish zero, stale, and missing
 
-Zero recent clicks differs from a failed counter lookup. Define acceptable ages, missing-value representation, and fallback behavior per feature. Train and test the model with the fallback states it must handle.
+Zero clicks differs from a failed lookup. Set maximum accepted age, missing indicators, and fallback behavior for each dependency.
 
-Monitor arrival delay, publication delay, feature age, null rate, coverage, timeout rate, and useful distribution changes. These signals distinguish a slow data path from a genuine shift in behavior.
+Monitor arrival delay, feature age, nulls, coverage, and timeouts. Train and evaluate the fallback states the model will actually receive.
 
-> **Mental image:** each feature has both a date on the event and a date it reached the model's desk. Historical predictions can use only what had reached the desk.
+## 7. Interview reasoning
+
+**Question:** Is a 13:59 event always valid for a 14:00 feature?
+
+**Answer:** No. It must have arrived and been published by 14:00. Its occurrence timestamp alone does not establish availability.

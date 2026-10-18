@@ -1,43 +1,74 @@
 ## Learning to rank
 
-**Learning to rank** fits scores or selection rules for ordering candidates. Pointwise, pairwise, and listwise objectives differ in the training unit they compare.
+## 1. Learn an ordering
 
-## 1. Three views of the same request
+**Learning to rank** fits scores or selection rules for ordering candidates. Objectives differ in which training unit they compare.
+
+## 2. Compare three families
+
+| Family | Unit | Mechanism |
+|---|---|---|
+| Pointwise | Candidate | Predict its outcome or relevance |
+| Pairwise | Two candidates | Encourage the preferred score to be higher |
+| Listwise | Request list | Fit competing scores jointly |
+
+These families are not a guaranteed quality ladder.
+
+## 3. See one request three ways
 
 ```rrp-visual
 ranking-objectives
 ```
 
-- **Pointwise:** predict an outcome or relevance grade for each candidate, then sort scores.
-- **Pairwise:** encourage a preferred candidate to score above another in the same comparison context.
-- **Listwise:** use a loss defined over a request's candidate list, often as a surrogate for desired list quality.
+BPR, already taught, is one pairwise objective. Here A/C are relevant and B is not, while the scores place B above C.
 
-These are objective families, not a universal quality ladder. A well-specified pointwise probability model can provide a strong ranking.
+## 4. Define a concrete listwise loss
 
-## 2. Pairwise loss still reacts to correct pairs
-
-For preferred item \(i\), alternative \(j\), and scores \(s_i,s_j\), a common loss is:
+A **surrogate loss** is an optimizable substitute for the desired metric. One listwise surrogate uses normalized relevance targets:
 
 \[
-\ell=\log(1+e^{-(s_i-s_j)})
+\ell=-\sum_{i=1}^{m}q_i\log a_i,\qquad a_i=softmax(s)_i
 \]
 
-A gap of +1 costs about 0.313; −1 costs about 1.313. The loss decreases as the preferred item moves farther ahead. Correctly ordered pairs still have nonzero loss and gradients.
+\(m\): request's candidate count; \(s\): scores; \(a_i\): predicted share; \(q_i\ge0\): target share summing to 1; \(\ell\): loss. Softmax was introduced in two-tower retrieval.
 
-A common score offset cancels in the difference. That does not remove position, exposure, or audience biases in how the preferences were observed.
+For scores \(s=[0.8,0.7,0.3]\) and binary A/C relevance, choose \(q=[0.5,0,0.5]\). This is one specified surrogate, not every listwise objective.
 
-## 3. Keep the intended group and metric
+## 5. See where the gradient pushes
 
-A **query group** contains candidates competing for one request. Comparing a clicked pasta video from a cooking query with an unclicked motorbike result from another query creates a different task.
+| Item | Share: predicted → target | Score push |
+|---|---|---|
+| A | 0.398 → 0.5 | Up |
+| B | 0.360 → 0 | Down |
+| C | 0.242 → 0.5 | Up more |
 
-Raw sorting metrics change discontinuously as scores move. Listwise methods can use differentiable probability losses or other surrogates. Some pairwise gradient methods weight swaps by their effect on NDCG; metric weighting is not exclusive to listwise learning.
+The score gradient is \(a_i-q_i\); loss is about **1.171**. C needs more probability mass than A. This loss is not itself NDCG.
 
-For graded relevance, define the gain function and reference set. For click labels, account for how examination affected the observed comparison. A clicked item and an unexamined one do not supply certain relevance order.
+## 6. Pair counts can miss important positions
 
-## 4. Choose by what the score must do
+With two relevant items among four, consider:
 
-A pure pairwise score has no automatic probability interpretation. If downstream logic uses expected value, add and validate a probability-estimation or calibration stage; it need not require discarding every ranking objective.
+| Relevant ranks | Correct positive–negative pairs | NDCG@4 |
+|---|---|---|
+| 1 and 4 | 2 of 4 | 0.877 |
+| 2 and 3 | 2 of 4 | 0.693 |
 
-Evaluate the complete procedure with the same candidate pool, important slices, and serving budget. A better ordering of a fixed shortlist does not establish better full-catalogue discovery.
+Use binary linear gains and the same reference set. Equal pair accuracy can hide different placement quality. Some pairwise methods weight swaps by NDCG impact.
 
-> **Mental image:** pointwise grades each answer, pairwise compares two answers, and listwise judges a whole submitted set. The quality of the evidence still matters in all three.
+## 7. Preserve the intended evidence
+
+Keep candidates competing for the same request together. Across-query comparisons create a different task.
+
+Clicked versus unexamined is not certain relevance order. Objectives do not repair biased labels automatically.
+
+## 8. Check the score's downstream use
+
+Pure ordering scores have no automatic probability meaning. Expected-value decisions need validated probabilities or calibration.
+
+Evaluate the whole procedure with the same candidate pool and serving budget.
+
+## 9. Interview reasoning
+
+**Question:** Must listwise training beat a pointwise click model?
+
+**Answer:** No. Label quality, candidate protocol, model capacity, and the downstream score use matter. Compare complete procedures under the same conditions.

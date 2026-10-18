@@ -1,45 +1,50 @@
 ## Users, items, and the interaction table
 
-An **interaction log** records who did what to which item, when, and in what context. An **impression** records a display opportunity; an **engagement event** records an action such as a click, watch, or purchase.
+## 1. Record events before summarizing them
 
-Keep those events separate so missing engagement can be interpreted correctly.
+An **interaction log** records who did what to which item and when. An **impression** is a display opportunity; an **engagement** is an action such as a click or purchase.
 
-## 1. One display is one event
+## 2. Repeated displays are separate examples
 
-| Impression ID | User | Item | Display time | Click within 30 minutes |
-|---|---|---|---|---|
-| r1 | Ann | A | 09:00 | 0 |
-| r2 | Ann | A | 18:00 | 1 |
-| r3 | Ben | B | 18:05 | 0 |
+| Impression | User / item | Display | Clicked |
+|---|---|---|---|
+| r1 | Ann / A | 09:00 | 0 |
+| r2 | Ann / A | 18:00 | 1 |
 
-Ann's two displays create two examples. They are not contradictory labels for one permanent user–item preference.
+The labels describe two opportunities, not contradictory permanent opinions about A.
 
-A **viewability event** can additionally record whether a tile entered the visible screen. Displayed, viewable, and examined by a person are related but different observations.
+## 3. A matrix compresses the log
 
-## 2. A matrix is a summary of the log
-
-An **interaction matrix** places users in rows and items in columns. A cell summarizes events for a user–item pair under a chosen period and definition.
+An **interaction matrix** puts users in rows and items in columns. Each cell summarizes their events over a defined period.
 
 ```rrp-visual
 interaction-matrix
 ```
 
-Large catalogues often make this matrix sparse: most user–item combinations have no events. The exact sparsity depends on the product and time window.
+**Sparse** means most pairs have no recorded events. Unknown exposure and displayed non-clicks must remain distinguishable.
 
-A blank could mean never displayed, unavailable, missing instrumentation, or no recorded action. Even an observed non-click does not prove dislike. Retain exposure evidence rather than collapsing every unknown into a negative label.
+> The log is a film; the matrix is a compressed snapshot.
 
-## 3. Join outcomes deliberately
+## 4. Display does not establish attention
 
-Attach outcomes using stable impression or event keys. Define the label's **observation window**, such as click within 30 minutes. Wait for that window and the accepted arrival delay before assigning a completed negative.
+A **viewability event** records whether a tile entered the visible screen. A displayed or viewable tile may still go unnoticed.
 
-**Event time** is when an action happened; **arrival time** is when the pipeline received it. A delayed click can otherwise be silently labelled a non-click.
+Keep the display, visibility, and engagement records separate when those observations are available.
 
-If several displays precede one purchase, define **attribution**: which exposure, if any, receives the recorded outcome. Attribution is a labelling convention, not proof that the exposure caused the purchase.
+## 5. Join an outcome to an opportunity
 
-## 4. Keep context and side information
+An **observation window** defines when an outcome counts, such as a click within 30 minutes. Stable impression IDs connect the records.
 
-User, item, and context tables provide attributes such as language, item category, query, device, and session history. Use only values available at the decision time.
+For several displays followed by one purchase, **attribution** specifies which display receives credit. That convention does not prove causation.
 
-These attributes also help with **cold start**: making recommendations for users or items with little interaction evidence.
+## 6. Preserve timing and context
 
-> **Mental image:** the event log is the film; the user–item matrix is one compressed snapshot. Do not expect the snapshot to retain every exposure and timing detail.
+**Event time** is when an action happened; **arrival time** is when the pipeline received it.
+
+Store query, device, and other relevant context. Finalize a non-click label only after its observation window and accepted arrival delay.
+
+## 7. Interview reasoning
+
+**Question:** Why keep impression IDs if user and item IDs already exist?
+
+**Answer:** The same pair can appear repeatedly under different conditions. An impression ID identifies the opportunity to which a time-bounded outcome belongs.

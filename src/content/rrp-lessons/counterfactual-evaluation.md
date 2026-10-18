@@ -1,43 +1,53 @@
 ## Estimating what a new policy would have done
 
-**Off-policy evaluation** estimates a target policy's outcome using decisions logged by another policy. A **policy** assigns action probabilities given context; an action can be an item choice or an ordered slate.
+## 1. Ask about another policy
 
-The counterfactual question is what would happen under the target policy, not merely whether its scores resemble the log.
+**Off-policy evaluation** estimates a target policy's outcomes using decisions logged by a different policy.
 
-## 1. Reweight observed decisions
+It asks what the new selection rule would achieve, rather than how closely its scores resemble old labels.
 
-**Inverse propensity scoring (IPS)** gives observations more weight when the target policy would choose them more often than the logging policy did:
+## 2. Reweight observed rewards
+
+**Inverse propensity scoring (IPS)** weights an action more when the target would choose it more often:
 
 \[
 \hat V(\pi)=\frac1n\sum_{t=1}^{n}\frac{\pi(a_t\mid x_t)}{\mu(a_t\mid x_t)}r_t
 \]
 
-\(x_t\) is context, \(a_t\) the logged action, \(r_t\) its reward, \(\mu\) the logging policy, and \(\pi\) the target. The denominator is the action's **propensity**, its selection probability under the logger.
+\(n\): logged decisions; \(t\): decision index; \(x_t\): context; \(a_t\): action; \(r_t\): reward; \(\mu\): logging probabilities; \(\pi\): target probabilities; \(\hat V\): estimated target value.
+
+The denominator is selection propensity, not an item's predicted CTR.
+
+## 3. Work one finite sample
 
 ```rrp-visual
 ips-support
 ```
 
-A weight or individual contribution above 1 is not a predicted probability. The estimator itself can fall outside the reward's range in a finite sample.
+Weights can exceed 1. The estimate can even fall outside the reward range in a finite sample; it is not a predicted event probability.
 
-## 2. Check support and the action definition
+## 4. Require support
 
-**Support**, or overlap, requires nonzero logging probability wherever the target puts probability, for relevant contexts. A deterministic logger cannot provide IPS evidence for actions it never chose in those contexts.
+**Support**, or overlap, requires positive logging probability wherever the target can choose, for the relevant contexts.
 
-Use known or justified estimated action probabilities, comparable context populations, correctly measured rewards, and the required outcome-stability and assignment assumptions. A relevance score is not a selection propensity.
+A logger that never chose C cannot supply ordinary IPS evidence for a target choosing C there.
 
-An item's marginal inclusion probability is not automatically the probability of an ordered slate. If items interact, evaluating whole-list reward needs a compatible slate treatment or explicit simplifying assumptions.
+Accurate action probabilities, comparable contexts, and stable reward definitions are also required. Hidden assignment differences can invalidate the comparison.
 
-## 3. Inspect variance and alternatives
+## 5. Define the action precisely
 
-Rare logged actions can receive huge weights. Inspect their distribution, effective evidence, and uncertainty before trusting a mean.
+An item's inclusion probability is not an ordered slate's probability. List interactions require an appropriate slate treatment or explicit simplifications.
 
-**Clipped IPS** caps weights, trading bias for variance. **Self-normalized IPS** divides weighted rewards by the sum of weights and is generally biased in finite samples. Neither creates missing support.
+Log the probability of the actual action being evaluated.
 
-A **doubly robust estimator** combines a reward-model prediction with a propensity-weighted correction of its observed errors. Under suitable conditions it remains consistent if either the reward model or the propensity model is correct, but still requires the relevant support and outcome assumptions.
+## 6. Inspect unstable weights
 
-## 4. Build the evidence before needing it
+**Clipped IPS** caps weights, trading bias for variance. **Self-normalized IPS** divides weighted rewards by total weights and is generally biased in finite samples.
 
-Log context, eligible action definition, chosen action, actual selection probability, reward timing, and policy version. Randomized exploration can supply useful coverage when designed for the policies to be evaluated.
+Neither creates missing support. Use uncertainty estimates and inspect rare large contributions.
 
-Use off-policy estimates to screen and compare policies within the evidence's scope. They can answer some evaluation questions without a new experiment; they are not a universal substitute for live evidence or long-run effects.
+## 7. Interview reasoning
+
+**Question:** Can a reward model invent the missing observations needed for IPS?
+
+**Answer:** It can supply model-based extrapolation, but it does not create logged overlap. State the additional assumptions rather than claiming unsupported IPS evidence.

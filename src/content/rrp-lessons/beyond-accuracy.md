@@ -1,38 +1,46 @@
 ## Diversity, novelty, and coverage
 
-Recommendation quality includes properties beyond independent item relevance. Define the property and its scope before choosing a metric.
+## 1. Ask more than “is each item relevant?”
 
-## 1. Four distinct questions
+A list can contain individually useful items while repeating one topic. Quality also depends on relationships within the list and opportunities across the catalogue.
 
-| Property | Question | Example measure |
+## 2. Distinguish four properties
+
+| Property | Meaning | Example measure |
 |---|---|---|
-| Diversity | How different are items within a list? | Pairwise dissimilarity, distinct creators |
-| Novelty | How unfamiliar are items to this user or population? | Previously unseen share, popularity-based surprise |
-| Coverage | How much eligible inventory receives exposure? | Distinct exposed items / eligible items |
-| Serendipity | Is an item useful and unexpectedly relevant? | Relevance plus a defined unexpectedness reference |
+| Diversity | Difference within a list | Distinct creators |
+| Novelty | Unfamiliarity to a user/population | Previously unseen share |
+| Coverage | Breadth of exposed inventory | Distinct exposed / eligible items |
+| Serendipity | Useful, unexpectedly relevant discovery | Relevance plus a stated unexpectedness reference |
 
-Six unrelated items can be diverse and useless. A familiar repeat purchase can be valuable despite low novelty. These metrics complement the task's intended benefit rather than replace it.
+These properties are not interchangeable.
 
-## 2. State windows and denominators
+## 3. Make the scope visible
 
-If 40,000 of ten million eligible listings receive an impression during a week, item coverage is 0.4%.
+> Diversity describes a basket; novelty relates it to the shopper; coverage describes how much of the shop reaches baskets.
 
-That does not reveal provider coverage: one seller may own many listings. Track distinct providers separately and exclude unavailable inventory according to a stated eligibility definition.
+An anonymous session's missing history does not prove every item is new to the person.
 
-An “unseen item” metric depends on available history. An anonymous session with no earlier log does not establish that every displayed item is new to the person.
+## 4. Count a coverage example
 
-## 3. Make the product tradeoff explicit
+If 40,000 of ten million eligible items receive an impression in a week, item coverage is **0.4%**.
 
-A redundancy penalty can reduce the original relevance-score sum while improving user value. Diversity is not guaranteed to reduce engagement, increase retention, or benefit every surface.
+Specify the week and eligible denominator. Provider coverage is different because one provider can own many items.
 
-Use experiments and appropriate time windows to measure effects. A discovery feed, exact-match search, and continue-watching list can require different variety.
+## 5. Preserve usefulness
 
-A metric can be a weighted objective, a target, or a guardrail depending on the product contract. Document which it is rather than assuming every diversity measure must be a hard constraint.
+Six unrelated items can be diverse and unhelpful. Familiar items can be right for resume-watching or replenishment.
 
-## 4. Inspect who receives the benefit
+A lower redundancy-adjusted score sum does not imply lower user value. Choose metrics appropriate to the surface and measure the actual tradeoff.
 
-Measure variety per user and exposure across item and provider groups, with counts and uncertainty. A higher catalogue-wide coverage number can still leave particular users with repetitive lists or particular providers without useful exposure.
+## 6. Inspect the distribution of benefits
 
-Useful discovery may require changes in retrieval, scoring, list selection, or exploration. For example, a re-ranker cannot select a new item that no source retrieves.
+Catalogue-wide coverage can rise while some users still receive repetitive pages or new providers receive no useful exposure.
 
-> **Mental image:** diversity describes one basket, novelty its contents relative to the shopper, and coverage how much of the shop reaches any basket.
+Report per-user and provider-group results with counts. Retrieval must admit candidates before list selection can improve their opportunity.
+
+## 7. Interview reasoning
+
+**Question:** Coverage rose. Does that prove every user's list became more diverse?
+
+**Answer:** No. Coverage aggregates exposure across inventory; diversity describes each list. Inspect both at their intended scopes.
