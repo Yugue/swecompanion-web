@@ -1,46 +1,50 @@
 ## Regression, classification, ranking, and clustering
 
-A **task type** describes the output you need. Choose it from the decision the output will support.
+## 1. Choose the answer's shape
 
-## 1. Four output shapes
+A **task type** specifies what the model should produce. Begin with the decision it supports.
 
-| Task | What it produces | Example |
+| Task | Output | Example |
 |---|---|---|
-| Regression | A numeric estimate | Delivery will take 34 minutes |
-| Classification | A category or class probabilities | Transaction is fraudulent or legitimate |
-| Ranking | An ordering of candidates | Customers ordered by churn risk |
-| Clustering | Groups based on similarity | Customers grouped by shopping behavior |
+| Regression | Numeric estimate | 34 delivery minutes |
+| Classification | Category or class probabilities | Fraud risk |
+| Ranking | Ordered candidates | Top customers to review |
+| Clustering | Similarity-based groups | Shopping segments |
 
-A numeric class code does not make a task regression: predicting “category 3” still means choosing a category, not estimating a quantity.
+A numeric category code still denotes a class, not a quantity.
 
-## 2. Three kinds of classification
+## 2. Classification has several forms
 
-- **Binary:** exactly two classes, such as spam and not spam.
-- **Multiclass:** exactly one of several classes, such as cat, dog, or bird.
-- **Multilabel:** several labels can be true together, such as politics and economics for one article.
+- **Binary:** two possible classes, such as spam or legitimate.
+- **Multiclass:** one of several mutually exclusive classes.
+- **Multilabel:** several labels can be true simultaneously.
 
-**Softmax** converts class scores into probabilities summing to one; it suits mutually exclusive classes. Independent **sigmoids** convert each score into its own probability and are a common multilabel choice.
+An article can concern politics and economics together.
 
-An article can be 80% likely to concern politics and 70% likely to concern economics. Those probabilities describe separate events and need not sum to one.
+## 3. Match probabilities to the events
 
-## 3. One business problem, different tasks
+**Softmax** converts scores into probabilities summing to one; it suits mutually exclusive classes. A **sigmoid** converts one score into a probability between zero and one; independent sigmoids commonly support multilabel outputs.
 
-For customer churn:
+Politics risk 0.8 and economics risk 0.7 need not sum to one because they describe separate events.
 
-| Decision | Framing | Useful evaluation |
-|---|---|---|
-| Estimate probability of churn within 30 days | Binary classification | Probability accuracy and error costs |
-| Call the 500 highest-risk customers | Ranking | How many eventual churners enter that queue |
-| Estimate when churn will occur | Time-to-event modelling | Time-sensitive predictions with incomplete outcomes |
+## 4. Reframe the same problem
 
-A customer who has not churned yet supplies a lower bound on survival time. This is **censoring**; treating it as an ordinary known regression target is misleading.
+| Churn decision | Suitable framing |
+|---|---|
+| Estimate inactivity within 30 days | Binary classification |
+| Call the 500 highest-risk customers | Ranking |
+| Estimate when inactivity begins | Time-to-event modelling |
 
-A classifier's scores can also create a ranking. Ranking quality measures order; **calibration** asks whether a stated probability matches event frequency. A good order does not guarantee good probabilities.
+**Censoring** means an outcome time is only partly known. A still-active customer supplies a lower bound on time to churn, not a known ordinary regression target.
 
-## 4. Match evaluation to the task
+## 5. Evaluate the requested output
 
-Regression cares about error size. Classification cares about the types of mistakes and, when used, probability quality. Ranking cares especially about the top of the list. Clustering needs geometry, stability, reference labels where available, and downstream usefulness.
+**Recall@500** is the fraction of all positives captured in the first 500 positions. **Calibration** asks whether predicted probabilities match event frequencies.
 
-For a queue of 500, **recall@500** means the fraction of all actual positives found in those 500 places. It does not tell you whether calling those customers prevents churn; that needs evidence about the intervention.
+Good ordering need not imply accurate probabilities. Finding high-risk customers also does not establish that contacting them changes their behavior.
 
-> **Mental image:** choose the answer's shape first: a ruler, a set of category boxes, a sorted queue, or groups on a map.
+## 6. Interview reasoning
+
+**Question:** A team can call only 500 customers. Is classification accuracy enough?
+
+**Answer:** Inspect the top-500 queue and its useful outcomes. Whole-population accuracy can hide poor ordering at the action budget.

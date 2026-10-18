@@ -1,41 +1,43 @@
 ## Comparing models honestly
 
-**Model comparison** asks whether one complete learning procedure performs better than another under the same intended use. A measured score is an estimate from finite data, not an exact property of a model.
+## 1. Compare the same jobs
 
-## 1. Compare paired outcomes
+**Model comparison** evaluates complete learning procedures on shared held-out examples, metrics, and constraints. Each candidate may use suitable preprocessing fitted within training.
 
-Evaluate candidates on the same held-out examples or folds, using the same metric and constraints. Each model may need its own appropriate preprocessing, fitted within training data.
+A score is an estimate from finite data.
 
-| Fold | Model A | Model B | B − A |
-|---|---|---|---|
-| 1 | 0.84 | 0.85 | +0.01 |
-| 2 | 0.88 | 0.89 | +0.01 |
-| 3 | 0.80 | 0.81 | +0.01 |
+## 2. Inspect paired differences
 
-Fold difficulty makes both scores move, but the paired differences are consistent. Comparing only each model's separate standard deviation misses that relationship.
+| Fold | A / B | Difference |
+|---|---|---|
+| 1 | 0.84 / 0.85 | +0.01 |
+| 2 | 0.88 / 0.89 | +0.01 |
+| 3 | 0.80 / 0.81 | +0.01 |
 
-Fold scores share training data and are not independent observations. Their standard deviation is not automatically a confidence interval, nor a universal cutoff for declaring a difference real.
+Both scores move with fold difficulty; their differences remain stable. Separate score spreads miss this pairing.
 
-## 2. Quantify uncertainty at the right unit
+## 3. Resample at the right unit
 
-A **paired bootstrap** resamples evaluation units with replacement, keeping both models' predictions together, then recomputes their metric difference.
+A **paired bootstrap** samples evaluation units with replacement, retaining both models' predictions together, then recomputes the metric difference.
 
-If independent units are patients, resample patients rather than individual scans. For time-dependent observations, use an appropriate block or temporal method. A row-wise bootstrap assumes independence that may not exist.
+Resample patients when scans within a patient are dependent. Use suitable time blocks for temporal dependence. Row-wise resampling assumes row independence.
 
-An interval including zero indicates uncertainty about the direction of improvement under that method. An interval excluding zero still says nothing by itself about practical value.
+An interval including zero indicates uncertainty about improvement under that method; excluding zero does not establish practical value.
 
-Training randomness and dataset sampling are separate sources of variation. Repeat fits when training variability matters.
+## 4. Account for development choices
 
-## 3. Account for selection
+Fold scores share training data, so their standard deviation is not automatically a confidence interval or significance cutoff.
 
-Trying many variants and keeping the highest validation score selects partly for favorable noise. Use a fresh final holdout or nested cross-validation to assess the chosen procedure.
+Repeat fits if training randomness matters. Use the independent final assessment established in cross-validation after selecting among candidates; the winning validation score can include favorable noise.
 
-Freeze the primary metric and important slices before final evaluation. If you keep changing the candidate after examining test results, that set has become development data.
+## 5. Compare decisions and costs
 
-## 4. Measure product value and cost
+Measure important slices, memory, latency, reliability, and maintenance alongside quality. A small dependable gain can matter at scale.
 
-Compare latency, memory, training cost, slice performance, reliability, and maintenance alongside prediction quality. A small quality gain can be worthwhile at huge scale; a larger one can still miss the product's constraints.
+An **A/B test** randomly assigns eligible experimental units to policies and compares outcomes. Choose the unit and protective metrics to fit the product; offline prediction improvement does not establish the effect of acting differently.
 
-Offline data measures prediction quality under the recorded process. An **A/B test** randomly assigns an eligible experimental unit to a current or candidate policy and measures outcomes. Use a randomization unit and guardrails appropriate to the product; request-level randomization can be valid for some settings and invalid for others.
+## 6. Interview reasoning
 
-> **Mental image:** run two tools on the same jobs, compare the paired results, then ask whether the difference matters enough to change the workflow.
+**Question:** B's gain is smaller than each model's fold standard deviation. Must it be noise?
+
+**Answer:** No. Inspect paired differences and dependence-aware uncertainty. Shared fold difficulty can make individual scores fluctuate much more than their difference.

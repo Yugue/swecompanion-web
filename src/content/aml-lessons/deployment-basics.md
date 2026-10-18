@@ -1,44 +1,52 @@
 ## Serving a model: batch, online, and train/serve skew
 
-**Model serving** applies a fitted model to product inputs and delivers predictions. The right serving mode depends on when inputs arrive, when decisions happen, and how fresh predictions must be.
+## 1. Deliver the prediction when needed
 
-## 1. Three serving modes
+**Model serving** applies a fitted pipeline to product inputs. Choose its timing from freshness and decision requirements.
 
-| Mode | Flow | Example |
+| Mode | Mechanism | Example |
 |---|---|---|
-| Batch | Scheduled job → stored predictions → lookup | Weekly retention queue |
-| Online | Request → features → model → response | Checkout fraud decision |
-| Streaming | Event → updated features or prediction → downstream consumer | Continuous equipment monitoring |
+| Batch | Scheduled computation, stored outputs | Weekly retention queue |
+| Online | Request triggers feature retrieval and prediction | Checkout fraud check |
+| Streaming | Events update features or predictions | Equipment monitoring |
 
-Batch simplifies repeated computation, but stored predictions become stale. It still has lookup latency. Online includes features and inference in the request budget; its inputs can also be stale if upstream data is delayed.
+## 2. Budget freshness and latency
 
-A hybrid can precompute expensive history features and combine them with request-time information. Choose from the actual freshness requirement rather than assuming every product needs immediate recomputation.
+Batch outputs can become stale and still require a lookup. Online inputs can also be stale when upstream events arrive late.
 
-## 2. Train/serve skew means different inputs
+A hybrid precomputes expensive history and combines it with request features. Use the simplest mode that meets the actual requirement.
 
-**Train/serve skew** is a mismatch between how inputs or transformations are produced during training and serving.
+## 3. Detect train/serve skew
+
+**Train/serve skew** is a mismatch between training and live input construction:
 
 ```text
-training:  30-day spend, UTC boundary, missing value → 0
-serving:   30-day spend, local boundary, missing value → median
+training → 30-day spend, UTC windows, missing filled with zero
+serving  → 30-day spend, local windows, missing filled with median
 ```
 
-Both paths run successfully while supplying different values. Other causes include backfilled history, changed category mappings, units, rounding, and feature arrival delays.
+Both paths can run successfully while producing different predictions. Share definitions and stored transforms; compare logged live vectors with historical reconstruction.
 
-Share definitions and stored transformations. Compare replayed requests or logged live feature vectors with historical reconstruction, using explicit tolerances for floating-point values. A feature store can help coordinate definitions, but it does not automatically guarantee correctness.
+## 4. Ship a complete version
 
-## 3. Deploy a complete version
+Version model, preprocessing, feature definitions, expected input schema, and decision policy together. Test compatibility and retain a usable previous version.
 
-A prediction artifact includes the model, imputer, scaler, encoder, feature definitions, and expected schema. Record the decision threshold or policy too. Test their compatibility and keep a previous usable version.
+A missing encoder or changed unit can break an otherwise valid model.
 
-A **shadow deployment** scores live requests without letting the new score drive the decision. It can reveal compatibility and latency problems; it does not directly measure the causal effect of using the new policy and still consumes resources.
+## 5. Observe before expanding
 
-A **canary rollout** exposes a limited portion of eligible traffic before expanding. Define health checks, quality checks when labels arrive, and rollback conditions.
+A **shadow deployment** computes live predictions without using them for decisions. It checks compatibility and latency, but cannot measure the effect of the new policy.
 
-## 4. Plan missing and slow inputs
+A **canary rollout** exposes limited eligible traffic before expansion. Define health checks, delayed quality checks, and rollback conditions.
 
-For each dependency, define an acceptable cached age, a supported missing-value path, or a simpler fallback. Test these paths with real timeout and failure scenarios.
+## 6. Support dependency failures
 
-Fallback behavior is a product choice: allowing, blocking, deferring, or requesting review have different consequences. A fallback model must be trained and evaluated for the inputs it will actually receive.
+Specify acceptable cached age, a trained missing-input path, or a validated fallback. Test actual timeouts.
 
-> **Mental image:** shipping a model means shipping the entire measuring and decision instrument, including its calibration settings and backup path.
+Blocking, allowing, deferring, and requesting review have different costs. A fallback model must be evaluated with the inputs it will really receive.
+
+## 7. Interview reasoning
+
+**Question:** Offline and live features have identical names. Is that sufficient?
+
+**Answer:** No. Compare values, units, timing, category mappings, and missing-value behavior. Matching names can hide different computations.

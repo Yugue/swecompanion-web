@@ -1,51 +1,48 @@
 ## Error analysis and slice-based evaluation
 
-**Error analysis** inspects mistakes to identify causes and choose the next improvement. A **slice** is a meaningful subset of examples, such as a region, device type, or customer tier.
+## 1. Turn mistakes into hypotheses
 
-An average tells you overall performance. It can hide a specific failure with a clear fix.
+**Error analysis** inspects failures to choose improvements. A **slice** is a meaningful subset, such as a region, device type, or customer tier.
 
-## 1. Inspect examples as well as scores
+> Replace “try a bigger model” with a testable explanation of the errors.
 
-Sample false positives and false negatives. For regression, inspect large errors, systematic over- or underpredictions, and some ordinary cases for comparison.
+## 2. Sample actual cases
 
-| Possible cause | Example | Useful next step |
+Inspect false alarms, missed positives, large numeric errors, and ordinary cases for comparison.
+
+| Suspected cause | Evidence to seek |
+|---|---|
+| Label problem | Incorrect or incomplete recorded outcome |
+| Pipeline bug | Units, joins, or encoding disagree |
+| Missing coverage | Failed cases differ from training examples |
+| Missing signal | Relevant available information is absent |
+| Model restriction | Useful relationship cannot be represented |
+
+Disagreement with a label is a reason to investigate, not proof of unavoidable noise.
+
+## 3. Keep the denominator visible
+
+| Slice | Frauds found / actual | Recall |
 |---|---|---|
-| Label error | A legitimate purchase labelled fraud | Audit the label source |
-| Pipeline error | Cents treated as dollars | Fix the transform and rerun evaluation |
-| Missing coverage | New merchants absent from training | Collect representative examples |
-| Missing information | Input omits a relevant event | Test an available feature |
-| Model limitation | A useful interaction is not represented | Test features or capacity |
-| Ambiguity | Available inputs do not distinguish outcomes | Improve evidence or design a fallback |
+| Established merchants | 360 / 400 | 90% |
+| New merchants | 10 / 20 | 50% |
 
-A person disagreeing with a label is a reason to investigate, not proof of irreducible noise. Error causes can overlap.
+Overall recall is \(370/420\approx88.1\%\). It hides the weaker new-merchant result, which also has only 20 positives and substantial uncertainty.
 
-## 2. Keep the denominator visible
+## 4. Prioritize a measurable fix
 
-Suppose a fraud evaluation gives:
+Rank hypotheses by affected volume, error cost, fixability, and effort.
 
-| Slice | Actual frauds | Found | Recall |
-|---|---|---|---|
-| Established merchants | 400 | 360 | 90% |
-| New merchants | 20 | 10 | 50% |
+For missing merchant history, test an available category aggregate and compare recall at the same review budget. A known parsing bug may offer a clearer gain than added capacity.
 
-Overall recall is \(370/420\approx88.1\%\). It hides the weaker new-merchant result. That result is also based on only 20 positives, so report uncertainty and collect more evidence before drawing a broad conclusion.
+## 5. Confirm the pattern transfers
 
-Slice by time, geography, tenure, data quality, and groups relevant to potential harms. Searching hundreds of slices can produce accidental extremes; predefine critical ones and confirm newly discovered patterns.
+Predefine critical slices and confirm newly discovered ones; searching hundreds can expose accidental extremes. Keep existing important groups as regression checks.
 
-## 3. Prioritize a testable fix
+Check who bears false alarms and misses. Removing a sensitive input cannot guarantee equal outcomes because other features may act as substitutes. Repeated tuning against the same errors also consumes their independence.
 
-Estimate affected volume, error cost, likely fixability, and engineering effort. A parsing bug affecting 30% of costly misses may be a better first intervention than a new model affecting 2%.
+## 6. Interview reasoning
 
-Then state a hypothesis:
+**Question:** Overall quality improves while a small group's recall falls. What evidence is needed?
 
-> “New merchants lack usable history. Add an available merchant-category aggregate and check recall at the same review budget.”
-
-Keep important existing slices as regression checks and use validation for iteration. Repeatedly tuning against a fixed error set also fits that set; preserve independent evaluation.
-
-## 4. Connect score bands to actions carefully
-
-High scores may support automatic action, middle scores review, and low scores a fallback. Validate error costs and calibration before treating a score band as safe.
-
-Removing a sensitive attribute does not guarantee equal outcomes: other features can act as proxies. Examine who bears false alarms and missed positives, with counts and uncertainty rather than a single fairness label.
-
-> **Mental image:** turn a pile of mistakes into a small set of hypotheses, each with evidence and a measurable next experiment.
+**Answer:** Examine its counts, uncertainty, error consequences, and representative examples. Confirm the regression and test a targeted fix before choosing whether to deploy.

@@ -1,56 +1,55 @@
 ## Feature engineering
 
-**Feature engineering** creates useful model inputs from raw observations and domain knowledge. It makes a relationship easier for the chosen model to express.
+## 1. Expose a useful relationship
 
-## 1. Ask a more informative question of the data
+**Feature engineering** constructs model inputs from raw observations. A good feature makes a relevant relationship easier to learn.
 
-| Operation | Example | What it reveals |
-|---|---|---|
-| Aggregate | Orders in the past seven days | Recent activity |
-| Rate | Failed logins / attempts | Failure intensity |
-| Difference | Price minus category median | Relative position |
-| Recency | Hours since last successful login | Time since an event |
-| Interaction | New-account indicator × amount | A combined condition |
+| Feature | Question answered |
+|---|---|
+| Seven-day order count | How active recently? |
+| Failures / attempts | How often does an attempt fail? |
+| Hours since login | How stale is activity? |
+| New-account indicator × amount | Does amount behave differently for new accounts? |
 
-Fifty failed logins out of 52 attempts differs from fifty out of 5,000. Keep the attempt count too: a rate based on two observations is less reliable than one based on two thousand.
+The last is an **interaction**: one feature changes another's effect.
 
-**Smoothing** pulls unreliable rates toward a reference value. For example, with global failure rate \(p_0\) and strength \(\alpha\):
+## 2. Keep rate denominators
 
-\[
-\text{smoothed rate}=\frac{\text{failures}+\alpha p_0}{\text{attempts}+\alpha}
-\]
+Fifty failures out of 52 attempts differs from fifty out of 5,000. Keep the attempt count: 1/2 and 1,000/2,000 have different reliability.
 
-## 2. Make time windows comparable
+**Smoothing** pulls a noisy estimate toward a reference. Target encoding develops the weighted-average mechanism; the same idea can stabilize low-count rates.
 
-Use windows ending at the prediction time, with only events already available then:
+## 3. Align time windows and units
 
 ```text
-purchases_1d          recent activity
-purchases_30d / 30    typical daily activity over a longer window
+orders_1d        = recent daily activity
+orders_30d / 30  = longer-window daily average
 ```
 
-Their ratio can indicate a burst, but handle a zero or tiny denominator explicitly. Compare rates in matching units: an hourly count divided by a daily count is not a meaningful “18× hourly burst” without conversion.
+Their ratio can reveal a burst. Define behavior for zero or tiny denominators, and include only events available at prediction time.
 
-## 3. Represent cycles as cycles
-
-Hour 23 and hour 0 are adjacent in a day, despite being far apart as integers.
+## 4. Put cycles on a circle
 
 ```aml-visual
 cyclic-features
 ```
 
+For hour \(h\in\{0,\ldots,23\}\):
+
 \[
 x_{\sin}=\sin(2\pi h/24),\qquad x_{\cos}=\cos(2\pi h/24)
 \]
 
-Together, these two coordinates locate the hour on a circle. A linear model can use them to express a smooth daily cycle. More complex daily patterns may need additional frequencies, bins, or another model.
+These two features locate the hour on a daily cycle. Both coordinates distinguish positions; hours 23 and 0 become neighbors. More complex patterns may need additional frequencies or bins.
 
-## 4. Match transforms to the model
+## 5. Match the representation to the model
 
-For nonnegative amounts, \(\log(1+x)\) compresses large values. Transforming an input does not automatically make the target loss robust; those are separate choices.
+For nonnegative amount \(a\), \(\log(1+a)\) compresses large values. It changes the input, not the target loss.
 
-A linear model using only age and amount cannot express their interaction. Adding their product makes that interaction available while remaining linear in the fitted coefficients. Trees can express interactions through nested splits.
+A linear model needs an explicit product feature to express that interaction. A tree can express one through nested tests. Keep features that improve validation enough to justify their live data dependencies.
 
-Evaluate each added feature on validation data. It also creates a dependency: it must be reproducible, available, and affordable at serving time.
+## 6. Interview reasoning
 
-> **Mental image:** features are different lenses on the same events. Keep a lens when it exposes useful structure, rather than merely creating another column.
+**Question:** Why might integer hour 0–23 be a poor distance feature?
+
+**Answer:** It separates adjacent hours 23 and 0. Sine and cosine preserve their cyclic neighborhood while allowing a smooth daily pattern.

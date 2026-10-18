@@ -1,49 +1,46 @@
 ## Choosing a model under real constraints
 
-**Model selection** chooses a complete prediction procedure that meets the task's quality and operating requirements. Data type suggests candidates; measured evidence decides among them.
+## 1. Choose a complete procedure
 
-## 1. Start with credible candidates
+**Model selection** chooses a prediction pipeline that meets quality and operating requirements. Data type suggests candidates; measured evidence decides.
 
-| Data or need | Useful candidates to compare |
+> Choose tools for the material, then test them under the job's constraints.
+
+## 2. Build a short candidate list
+
+| Data | Credible starting comparison |
 |---|---|
-| Tabular features | Regularized linear model, random forest, boosted trees |
-| Sparse text | Word-frequency features with a linear classifier; pretrained representations |
-| Images or audio | Suitable pretrained feature model with a simple head or fine-tuning |
-| Time series | Last-value or seasonal baseline; lag features; suitable sequence models |
-| Small labelled sample | Simple regularized models; transfer from relevant pretrained representations |
+| Tabular features | Regularized linear model versus tree ensemble |
+| Sparse text | Word-frequency features with a linear classifier |
+| Images or audio | Relevant pretrained features with a fitted output model |
+| Time series | Last-value or seasonal reference versus lag-feature model |
 
-**Transfer learning** reuses information learned on another dataset or task. It helps when that information is relevant; a pretrained model can also transfer the wrong assumptions.
+**Transfer learning** reuses information learned on another dataset or task. Relevant pretraining can help a small labelled dataset; irrelevant pretraining can transfer poor assumptions.
 
-There is no universal row-count threshold at which one family becomes best. Signal, dimensionality, noise, pretraining, and tuning budget all matter.
+## 3. Make constraints measurable
 
-## 2. Make constraints measurable
+Specify required quality, important slices, memory, training cost, and end-to-end latency.
 
-Define acceptable quality, important slices, memory, training time, and end-to-end latency. **p99 latency** is the time within which 99% of measured requests complete; it exposes a slow tail hidden by the mean.
+**p99 latency** is the time within which 99% of measured requests finish. It exposes slow requests hidden by the mean.
 
-A 20 ms prediction budget might be spent as follows:
+## 4. Profile the full path
 
-| Stage | Illustrative time |
-|---|---|
-| Feature retrieval | 8 ms |
-| Preprocessing | 2 ms |
-| Model computation | 3 ms |
-| Other overhead | 4 ms |
-| Total | 17 ms |
+An illustrative 20 ms budget:
 
-Profile the full path. Shrinking a 3 ms model will not solve a 40 ms feature lookup. Also test throughput, cold starts, and failure behavior under realistic load.
+```text
+features 8 ms + preprocessing 2 ms + model 3 ms + overhead 4 ms = 17 ms
+```
 
-## 3. Compare complete pipelines
+Reducing model computation cannot repair a 40 ms feature lookup. Test load, throughput, and dependency failures too.
 
-For 50,000 tabular rows with a tight latency budget, start with a regularized linear model and a tree ensemble. Use the same validation examples and decision metric, while giving each appropriate preprocessing.
+## 5. Defend the measured tradeoff
 
-If the ensemble improves useful quality enough and meets operating constraints, it may justify its complexity. If gains are uncertain or too small to matter, the simpler candidate is easier to justify.
+For 50,000 tabular rows, compare a linear pipeline and a tree ensemble on shared held-out cases with appropriate preprocessing.
 
-Interpretability requirements must be stated concretely: global transparency, local explanations, monotonic effects, or auditable rules are different needs. A post-hoc attribution does not automatically satisfy every explanation requirement.
+Require concrete explanations: readable global rules and local attributions are different needs. Prefer the candidate whose useful gain justifies its cost; there is no universal dataset-size cutoff determining the winner.
 
-## 4. Defend the decision with evidence
+## 6. Interview reasoning
 
-A useful explanation names the chosen model, the measured benefit, the binding constraint, and the fallback:
+**Question:** A larger model gains slightly but requires expensive live features. What decides?
 
-> “The linear pipeline meets our latency budget and performs similarly on the key slices. The boosted candidate has an uncertain gain and needs two expensive features. I would keep it as an experiment and deploy the simpler pipeline.”
-
-> **Mental image:** shortlist tools that fit the material, then test them under the actual job's constraints.
+**Answer:** Assess the gain's uncertainty, important slices, and complete serving cost. Choose it only if the benefit meets the actual constraints and justifies the dependency.

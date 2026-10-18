@@ -1,45 +1,49 @@
 ## Baselines and when not to use ML
 
-A **baseline** is a reference method evaluated under the same conditions as a candidate model. It tells you whether the model adds useful value.
+## 1. Establish a reference
 
-“99.2% accurate” sounds strong until the positive rate is 0.8%: predicting every case negative also achieves 99.2% accuracy.
+A **baseline** is a reference method evaluated under the same conditions as the proposed model.
 
-## 1. Use three reference points
+> A score needs a meaningful starting point.
 
-| Baseline | Example | What it tests |
-|---|---|---|
-| Trivial predictor | Majority class; training mean or median | Does the model beat a minimal reference? |
-| Current system | Fraud rules; analyst queue; vendor score | Does it improve what people already use? |
-| Simple fitted model | Regularized linear or logistic model | Is added complexity worthwhile? |
+## 2. Use three levels
 
-For squared error, a constant training mean is a natural reference; for absolute error, use the training median. A time forecast should also face a last-value or seasonal reference.
+| Reference | Example |
+|---|---|
+| Trivial predictor | Majority class; training mean or median |
+| Current process | Existing rules or analyst queue |
+| Simple fitted model | Regularized linear or logistic model |
 
-Learn baseline values using training data. Compare candidates on the same validation examples and metrics.
+Use a mean reference for squared error and a median for absolute error. Forecasts should also face last-value or seasonal references.
 
-## 2. A worked comparison
+## 3. Expose a misleading headline
 
-Suppose a review team handles 100 cases daily:
+At 0.8% positives, predicting everything negative gives 99.2% accuracy and zero recall.
 
-| Method | Actual frauds found among 100 reviews |
+A candidate with 99.2% accuracy has not established useful improvement. Compare the errors and the action budget.
+
+## 4. Compare at equal capacity
+
+A team can review 100 cases daily:
+
+| Method | Frauds found in 100 reviews |
 |---|---|
 | Existing rules | 24 |
 | Logistic model | 37 |
 | Boosted trees | 39 |
 
-The logistic model finds 13 more frauds at the same review budget. The extra two from boosting may be useful, but check uncertainty, fraud value, latency, and maintenance cost before deciding.
+The logistic model adds 13 detections over rules. Boosting adds two more; assess uncertainty, fraud value, and operating cost before choosing it.
 
-A small score difference is not automatically noise. Its reliability depends on sample size, dependence, and how the comparison was selected.
+## 5. Decide whether complexity pays
 
-## 3. When a rule may be enough
+Learn baseline values from training data; compare on shared evaluation examples.
 
-If the requirement is exactly “flag transactions above $10,000 from accounts less than one day old,” implement and measure that rule. A model is useful only if another learnable pattern improves the outcome.
+Keep rules when they meet the requirement and added modelling does not justify its cost. Keep a useful baseline available as a regression check or supported fallback.
 
-Other reasons to postpone ML include unavailable labels, no credible evaluation, or operating costs that exceed the expected benefit. A rule also needs monitoring: its assumptions can become stale as the world changes.
+Failure to beat a trivial reference warrants investigation. Weak available signal can also be the explanation.
 
-## 4. Keep the baseline available
+## 6. Interview reasoning
 
-A reference can expose regressions after a pipeline change and provide a fallback when a model cannot serve. It need not be the simplest possible method; the existing strong system is often the most important comparison.
+**Question:** A complex model beats the majority class. Is that enough?
 
-Failing to beat a trivial baseline is a reason to investigate labels, signal, fitting, and evaluation. It does not prove a bug: the available features may contain little predictive information.
-
-> **Mental image:** a model's score is a height measurement. The baseline supplies the ground it stands on.
+**Answer:** Compare it with the current process and a credible simple model at the same decision constraints. A trivial reference alone sets too low a bar.

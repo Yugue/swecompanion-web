@@ -1,48 +1,47 @@
 ## Parameters, hyperparameters, and capacity
 
-**Parameters** are the fitted values that determine a model's predictions. **Hyperparameters** control how the model or learning procedure is configured.
+## 1. Fitted parts and chosen settings
 
-For a decision tree, training chooses split thresholds and leaf predictions. You choose settings such as maximum depth.
+**Parameters** are values fitted from training data. **Hyperparameters** configure the model or learning procedure.
 
-## 1. Which is which?
+For a decision tree, training learns its questions and predictions; maximum depth limits how many questions it may ask.
 
-| Model | Fitted state | Hyperparameters |
+## 2. Concrete examples
+
+| Procedure | Fitted state | Chosen setting |
 |---|---|---|
-| Linear regression | Coefficients and intercept | Penalty type and strength |
-| Decision tree | Split features, thresholds, leaf values | Maximum depth, minimum leaf size |
-| Random forest | Fitted trees | Tree count, feature sampling |
-| k-nearest neighbors | Stored training examples and any search index | Neighbor count, distance, weighting |
-| k-means clustering | Cluster centers | Cluster count, initialization, restarts |
+| Linear model | Coefficients and intercept | Penalty strength |
+| Tree | Split thresholds and leaf predictions | Maximum depth |
+| Nearest neighbors | Stored examples | Neighbor count |
+| k-means | Group centers | Group count |
 
-```python
-model = DecisionTreeClassifier(max_depth=4)  # choose configuration
-model.fit(X_train, y_train)                 # learn splits and leaf values
-```
+Stored training data can be fitted state even without a compact weight vector.
 
-A fitted model includes more than a vector of weights. Nearest-neighbor methods retain the dataset itself.
+## 3. Capacity controls expressiveness
 
-## 2. Capacity: what patterns can it express?
+**Capacity** is the range of patterns a model can represent. A deeper tree can express more interacting conditions.
 
-**Capacity** is the range and complexity of patterns a model can represent. A depth-one tree asks one question; a deeper tree can express many interacting rules.
+**Regularization** discourages unstable complexity through restrictions or penalties. More capacity can capture signal or sample-specific noise; validation distinguishes them.
 
-**Regularization** restricts or penalizes a fit to discourage unstable complexity. Higher capacity can fit useful detail and sample-specific noise. It does not guarantee better validation performance. Training error often falls as capacity increases when models are nested and fitted well, but actual training algorithms need not follow a perfectly monotonic curve.
+A random seed changes randomness without necessarily changing capacity. Hyperparameter and capacity are different ideas.
 
-Not every hyperparameter changes capacity: a random seed changes randomness; a search-index setting may mainly change prediction speed.
-
-## 3. Use different data for fitting and choosing
+## 4. Read a validation result
 
 ```text
-training data   → fit parameters
-validation data → compare configurations
-final test data → evaluate the selected procedure
+depth 4:   training accuracy 0.88   validation 0.84
+depth 20:  training accuracy 1.00   validation 0.79
 ```
 
-Suppose depth 4 scores 0.84 on validation and depth 20 scores 0.79, despite perfect training accuracy. Validation favors depth 4 because its predictions transfer better.
+Depth 4 transfers better in this comparison. Perfect training fit does not justify the larger setting.
 
-Trying hundreds of configurations can also fit noise in validation. Keep a final test set or use an outer evaluation loop that the search never sees.
+## 5. Include preprocessing choices
 
-## 4. Preprocessing is part of the configuration
+Choosing median filling is configuration; the median computed from training rows is fitted state.
 
-Choosing median imputation versus another strategy is a hyperparameter choice. The actual median learned from training data is fitted state. **Early stopping**, which chooses when to stop iterative training using validation performance, is another data-informed choice.
+**Early stopping** chooses when to stop iterative fitting from validation performance. It is another data-informed choice. Repeated configuration searches can also fit validation noise, so reserve independent final evaluation.
 
-> **Mental image:** hyperparameters choose the tool and its settings; training adjusts its fitted parts. Validation checks the whole tool.
+## 6. Interview reasoning
+
+**Question:** Is a scaler's mean a hyperparameter?
+
+**Answer:** It is fitted state learned from training data. Choosing standardization instead of another transform is a configuration decision.

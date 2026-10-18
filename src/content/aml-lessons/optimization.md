@@ -1,51 +1,59 @@
 ## Optimization: closed form, gradient descent, and SGD
 
-**Optimization** finds parameter values that reduce a training objective. The objective says what counts as a good fit; the optimizer says how to search for it.
+## 1. Separate the goal from the search
 
-## 1. Direct least-squares solutions
+**Optimization** searches for parameter values that reduce a training objective. The objective states what to minimize; the optimizer specifies how to move.
 
-Ordinary least squares has direct linear-algebra solutions. The familiar equation
+## 2. Solve least squares directly
+
+For feature matrix \(X\) with an intercept column and target vector \(y\):
 
 \[
 \hat w=(X^\top X)^{-1}X^\top y
 \]
 
-requires full column rank. In practice, QR or singular-value decomposition avoids explicitly inverting \(X^\top X\) and is more numerically stable. Rank-deficient problems can still have least-squares solutions, although coefficients may not be unique.
+\(\hat w\) contains fitted coefficients. This expression requires full column rank: no column is an exact linear combination of the others.
 
-Dense direct methods can require roughly \(O(nd^2+d^3)\) work for \(n\) rows and \(d\) features. Actual cost depends on shape, sparsity, and solver.
+Practical solvers use QR or **singular-value decomposition (SVD)**, matrix factorizations that avoid explicit inversion. SVD also supports a **pseudoinverse**, giving a least-squares solution when coefficients are not unique.
 
-## 2. Gradient descent takes repeated steps
+## 3. Move downhill iteratively
 
-The **gradient** is a vector of local derivatives: it points toward the steepest local increase in the objective. Gradient descent moves in the opposite direction:
+The **gradient** \(\nabla L(w)\) collects local loss derivatives with respect to weights \(w\):
 
 \[
 w\leftarrow w-\eta\nabla L(w)
 \]
 
+\(L\) is the objective and \(\eta>0\) the learning rate. Subtracting the gradient follows the steepest local decrease.
+
 ```aml-visual
 gradient-descent
 ```
 
-For \(L(w)=(w-3)^2\), at \(w=1\) the derivative is −4. A learning rate \(\eta=0.1\) gives \(w=1-0.1(-4)=1.4\), closer to the minimum at 3.
+## 4. Calculate one step
 
-The **learning rate** controls step size. Too large can overshoot; too small can progress slowly. An increasing loss can also signal a bug, numerical instability, or ordinary stochastic variation.
+For \(L(w)=(w-3)^2\), the derivative at \(w=1\) is −4. Rate 0.1 gives \(w=1.4\); loss falls from 4 to 2.56.
 
-## 3. How much data supplies one step?
+Too large a step can overshoot; too small can progress slowly. Scaling can reduce zigzagging caused by badly stretched objectives.
 
-| Method | Gradient estimate |
+## 5. Choose the work per update
+
+| Method | Gradient uses |
 |---|---|
-| Full-batch gradient descent | All training examples |
+| Full-batch descent | All examples |
 | Stochastic gradient descent (SGD) | One sampled example |
 | Mini-batch descent | A sampled group |
 
-Mini-batches reduce per-step work at the cost of noise. Full-dataset loss need not decrease after every stochastic update. Shuffling, step size, stopping, and representative sampling matter.
+Sampled updates are cheaper and noisier; full-data loss need not fall after each one. They suit large or streaming data where a direct solve is costly.
 
-Scaling often improves the conditioning of linear-model optimization: a less elongated objective requires less zigzagging. It is useful, not a universal guarantee of fast convergence.
+## 6. Check convergence assumptions
 
-## 4. Convexity and other solvers
+A **convex objective** has no nonglobal local minima. It may still lack a unique finite minimizer. Least squares and logistic log loss are convex in weights; k-means is not.
 
-A **convex objective** has no nonglobal local minima. It may have multiple global minimizers, or no finite attained minimum. Appropriate solver conditions still matter.
+**Coordinate descent** updates one coefficient at a time. **Quasi-Newton methods** approximate curvature. Match the solver to the objective and check convergence.
 
-Linear regression with squared error and logistic regression with log loss are convex in their weights. k-means is nonconvex; different starts can reach different solutions. Trees instead use discrete, greedy split search.
+## 7. Interview reasoning
 
-**Coordinate descent** updates one coefficient at a time; **quasi-Newton methods** use curvature approximations. Choose a solver suitable for the objective and data, then check convergence rather than inferring it from the model name.
+**Question:** Why use mini-batches when the full gradient is available?
+
+**Answer:** Each update costs less and can start making progress without processing every row. Measure total convergence time and accept controlled update noise.

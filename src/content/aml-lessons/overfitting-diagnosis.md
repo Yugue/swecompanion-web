@@ -1,51 +1,45 @@
 ## Diagnosing overfitting and underfitting
 
-**Underfitting** means the fitted model fails to capture useful patterns. **Overfitting** means it captures training-specific details that do not transfer to new examples.
+## 1. Diagnose transfer, not just training fit
 
-Train and validation performance provide clues; they do not identify the cause by themselves.
+**Underfitting** misses useful relationships. **Overfitting** learns sample-specific details that fail to transfer.
 
-## 1. Start with comparable errors
+Compare the same error definition across train and validation, using consistent preprocessing.
 
-| Training error | Validation error | Investigate |
-|---|---|---|
-| High | High | Weak features, limited capacity, excessive regularization, failed fitting, or noise |
-| Low | Much higher | Overfitting, dataset shift, pipeline mismatch, or unreliable evaluation |
-| Low | Low | A successful fit, or an overly easy or leaky evaluation |
+## 2. Treat gaps as clues
 
-“High” is relative to a baseline, the task, and the error costs. A 55% accuracy model on a balanced task may contain little signal; it does not automatically prove a bug.
+| Train / validation error | Investigate |
+|---|---|
+| High / high | Weak inputs, restricted model, failed fitting, noise |
+| Low / much higher | Overfitting, shift, pipeline mismatch |
+| Low / low | Good transfer, or an overly easy evaluation |
 
-Compute metrics using the same definitions and preprocessing. Avoid comparing training accuracy with validation log loss.
+“High” depends on baselines and task costs. The bias-variance lesson explains why these are clues rather than direct measurements of bias or variance.
 
-## 2. Separate three kinds of curves
+## 3. Read a learning curve
 
-**Learning curves** vary training-set size while keeping the evaluation protocol comparable.
-
-If validation keeps improving as data grows, more representative data may help. If both curves plateau at poor performance, investigate features, model restrictions, optimization, and noise. A plateau over a limited range is evidence, not proof that more data can never help.
-
-A **validation curve** varies one hyperparameter. For example, validation accuracy might peak at tree depth 8 even while training accuracy continues increasing.
-
-An **iteration curve** tracks training steps for one fit. Falling training loss with rising validation loss suggests that later steps are fitting less transferable detail. Early stopping retains a checkpoint chosen from validation performance.
+A **learning curve** varies training-set size with a comparable evaluation protocol.
 
 ```aml-visual
 learning-curves
 ```
 
-## 3. Rule out competing explanations
+Continued validation improvement supports trying more representative data. A poor plateau suggests checking features, capacity, fitting, and labels; it does not prove more data can never help.
 
-Before increasing regularization, check:
+## 4. Distinguish other curves
 
-- Does validation represent the deployment population and time period?
-- Are features computed identically across splits?
-- Are labels aligned with rows and fully observed?
-- Does the result vary greatly across suitable resamples?
-- Are apparent errors actually label problems?
+A **validation curve** varies one hyperparameter, such as depth. An **iteration curve** follows steps within one fit.
 
-Group leakage often inflates validation scores; a shifted validation population can instead make them worse. Both undermine a simplistic gap diagnosis.
+Falling training loss with rising validation loss suggests later steps fit less transferable detail. Early stopping retains a validation-chosen checkpoint.
 
-## 4. Make a targeted next experiment
+## 5. Test the suspected cause
 
-For an overly restricted fit, try better features, adequate training, or more useful capacity. For sample sensitivity, try regularization, averaging, or more representative data.
+Check population match, feature consistency, label alignment, and incomplete outcomes before prescribing regularization.
 
-A flexible model fitted to a small subset is a useful pipeline check: can it fit that subset well? Failure suggests inspecting capacity, regularization, duplicate inputs with conflicting targets, labels, and code. A constrained linear model is not expected to memorize arbitrary labels, even with only 100 rows.
+Try fitting a flexible model to a small subset as a pipeline check. Failure may expose fitting or label problems, but a constrained linear model cannot memorize arbitrary outcomes, and identical inputs with conflicting labels remain inseparable.
 
-> **Mental image:** use curves as diagnostic readings. Test the suspected cause before prescribing the fix.
+## 6. Interview reasoning
+
+**Question:** Validation loss rises after iteration 20 while training loss falls. What next?
+
+**Answer:** Test a checkpoint near the validation minimum and stronger restrictions. Also rule out inconsistent preprocessing or evaluation noise before assuming overfitting is the only cause.

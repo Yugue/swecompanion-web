@@ -1,54 +1,49 @@
 ## Cross-validation
 
-**Cross-validation (CV)** repeatedly fits a learning procedure on one portion of data and evaluates it on a held-out portion. It lets several examples serve in the validation role across different fits.
+## 1. Evaluate repeated held-out fits
 
-## 1. Rotate the held-out fold
+**Cross-validation (CV)** divides development data into **folds**, or subsets, and repeatedly evaluates on data excluded from that fit.
+
+In five-fold CV, each fit trains on four folds and validates on the remaining one.
+
+## 2. Picture the rotation
 
 ```aml-visual
 cross-validation
 ```
 
-In five-fold CV, fit five models, each on four folds, and score on the remaining fold. The **fold** is one subset in that rotation.
+Keep the final test set outside this development rotation. CV evaluates a learning procedure; it does not produce one universally best fitted model.
 
-```python
-cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
-scores = cross_val_score(pipe, X_dev, y_dev, cv=cv, scoring="roc_auc")
-```
+## 3. Choose the fold design
 
-The example uses **ROC-AUC**, which measures how often positives outrank negatives. Here `X_dev` contains development data; an independent final test set remains outside this process. The mean summarizes performance across held-out folds. Fold spread shows variation across those folds, not a ready-made confidence interval.
-
-## 2. Choose folds that match the claim
-
-| Evaluation target | Fold construction |
+| Intended claim | Suitable design |
 |---|---|
-| New independent rows | K-fold, often shuffled |
-| Class balance in independent classification data | Stratified folds |
-| New patients, users, or devices | Grouped folds |
+| Independent new rows | Shuffled folds |
+| Preserve class ratios in independent data | Stratified folds |
+| New patients or devices | Grouped folds |
 | Future periods | Forward-time folds |
 
-**Stratification** preserves approximate class ratios. **Grouping** keeps an entity wholly on one side of a split. Neither automatically enforces the other or respects time.
+Follow the availability and label-window rules from the split lesson. Ordinary rotation is unsuitable when it violates chronology or entity separation.
 
-For a historical forward-time fit, include only labels available at its training cutoff. A gap or removal of overlapping label windows may be necessary. Sort by time and define the intended evaluation windows explicitly.
-
-## 3. Refit preprocessing each time
-
-The unit being evaluated is the complete procedure:
+## 4. Rebuild every fitted step
 
 ```text
-fold's training rows → fit imputer / encoder / scaler / selector → fit model
-fold's held-out rows → apply stored transformations             → score
+training fold → fit transformations → fit model
+held-out fold → apply those fitted transformations → evaluate
 ```
 
-A pipeline organizes this refitting. Target encoding and resampling require suitable fold-aware implementations too; not every operation fits an ordinary scikit-learn transformation pipeline.
+Selecting columns from all labels before CV leaks information. Target encoders and resampling need fold-aware implementations too.
 
-Selecting columns from all labels before CV invalidates the evaluation, even if the classifier itself only sees training folds.
+## 5. Separate tuning from assessment
 
-## 4. Tuning and final evaluation
+**Nested CV** uses an inner loop to choose settings and an outer held-out loop to evaluate that search procedure.
 
-Choosing the best configuration using CV also selects partly for favorable score noise. Its winning CV score can be optimistic.
+Alternatively, choose settings with development CV and assess once on a reserved test set. Refit the chosen procedure on designated development data before that final assessment.
 
-Use an untouched test set after choosing, or **nested CV**: an inner loop tunes and an outer held-out loop evaluates the whole tuning procedure. Refit the chosen configuration on the designated development data before final testing or deployment.
+Fold spread describes variation across folds; overlapping training sets mean it is not automatically a confidence interval. The model-comparison lesson develops paired uncertainty.
 
-Compare candidates on the same folds and inspect paired differences. A difference smaller than fold standard deviation is not automatically meaningless; shared fold difficulty and dependence matter.
+## 6. Interview reasoning
 
-> **Mental image:** rotate which exercise is held out, rebuilding the entire learner each time. Keep the final exam outside the rotation.
+**Question:** Why must a scaler be refitted inside each fold?
+
+**Answer:** Held-out rows must not influence fitted statistics. Reusing a scaler fitted to all rows evaluates a procedure that already saw part of its evaluation data.

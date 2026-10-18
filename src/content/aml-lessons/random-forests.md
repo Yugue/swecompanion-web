@@ -1,50 +1,47 @@
 ## Bagging and random forests
 
-**Bagging**, short for bootstrap aggregating, fits models on resampled training data and combines their predictions. A **random forest** applies this idea to trees and randomly restricts candidate features at each split.
+## 1. Average models fitted to different samples
 
-## 1. Average different trees
+**Bagging**, or bootstrap aggregating, combines models fitted to resampled data. A **random forest** bags trees and randomly restricts candidate features at each split.
+
+An **ensemble** is a collection of models whose outputs are combined.
+
+## 2. Build the trees independently
 
 ```aml-visual
 ensemble-methods
 ```
 
-A **bootstrap sample** draws rows with replacement. Drawing \(n\) times from \(n\) rows includes about 63.2% of distinct rows for large \(n\), some repeatedly.
+A **bootstrap sample** draws rows with replacement. Drawing \(n\) times from \(n\) rows includes about 63.2% of distinct rows for large \(n\).
 
-A forest averages tree probabilities for classification or numeric predictions for regression. Variation can cancel when trees make different errors.
+A forest averages numeric predictions or class probabilities. Its trees can train independently.
 
-## 2. Why sample features too?
+## 3. Reduce shared mistakes
 
-If one feature dominates, every bootstrapped tree may use it first and make similar errors. Considering a random subset of features at each node encourages different trees.
+If one strong feature starts every tree, the trees may make similar errors. Feature subsampling encourages different fits.
 
-For \(B\) equally variable predictions with variance \(\sigma^2\) and equal pairwise correlation \(\rho\):
+For \(B\) predictions with equal variance \(\sigma^2\) and pairwise correlation \(\rho\):
 
 \[
 \operatorname{Var}(\bar f)=\rho\sigma^2+\frac{1-\rho}{B}\sigma^2
 \]
 
-More trees shrink the second term; correlated errors remain in the first. This explains the value of diversity, though real trees need not have equal variances or correlations.
+\(\bar f\) is their mean prediction. More trees reduce the second term; shared variation remains. Real trees need not satisfy equal-variance assumptions exactly.
 
-Feature subsampling can weaken individual trees while improving the combined prediction. Its net effect needs validation.
+## 4. Use out-of-bag predictions
 
-## 3. Out-of-bag evaluation
+**Out-of-bag (OOB)** rows were not sampled for a particular tree. Predict each row using only its OOB trees for an internal estimate.
 
-**Out-of-bag (OOB)** rows are those not selected for a particular tree. Predict each training row using only trees that did not sample it to obtain an internal performance estimate.
+OOB works for suitable independent rows. It does not enforce unseen-patient or future-period evaluation, and repeated tuning against it can select lucky results.
 
-```python
-RandomForestClassifier(
-    n_estimators=300, max_features="sqrt",
-    min_samples_leaf=5, oob_score=True, random_state=0,
-)
-```
+## 5. Weigh stability against size
 
-OOB evaluation is useful for independent rows. It does not enforce new-patient or forward-time evaluation, and tuning repeatedly against it can make the selected score optimistic.
+Tune leaf size and feature sampling as well as tree count. Extra trees increase memory and serving work; a finite validation score need not improve with every addition.
 
-## 4. Practical tradeoffs
+Forests are usually more stable than one deep tree. Correlated errors, poor inputs, and miscalibrated probabilities can remain.
 
-Tune feature sampling and leaf size as well as sufficient tree count. Adding trees often stabilizes performance, but a finite validation score need not improve monotonically and extra trees increase memory and serving work.
+## 6. Interview reasoning
 
-Trees can train independently, allowing parallelism. A forest is usually more stable than one deep tree, but is harder to read as a single rule set. It still needs representative data, honest splits, and probability calibration checks.
+**Question:** Why sample features if bootstrap sampling already changes the data?
 
-**Boosting**, shown alongside bagging, builds corrections sequentially instead of averaging independently fitted trees. That difference—not a guaranteed winner—explains their different tuning and training behavior.
-
-> **Mental image:** ask several imperfect observers. Averaging helps most when they do not all make the same mistake.
+**Answer:** Row resampling can still produce trees dominated by the same feature. Feature sampling reduces correlated errors, improving the value of averaging.

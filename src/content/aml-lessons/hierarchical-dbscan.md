@@ -1,55 +1,58 @@
 ## Hierarchical clustering and DBSCAN
 
-**Hierarchical clustering** builds nested groups. **DBSCAN**, short for Density-Based Spatial Clustering of Applications with Noise, connects dense neighborhoods and can leave isolated observations unassigned.
+## 1. Choose a notion of grouping
 
-They answer different questions about structure.
+**Hierarchical clustering** builds nested groups. **DBSCAN**, Density-Based Spatial Clustering of Applications with Noise, connects dense neighborhoods and can leave points unassigned.
 
-## 1. Hierarchical clustering: keep the merge history
+One describes a merge hierarchy; the other describes density connectivity.
 
-**Agglomerative clustering** starts with one group per example and repeatedly merges the closest groups. A **dendrogram** draws those merges and their heights.
+## 2. Build a hierarchy
+
+**Agglomerative clustering** starts with one group per example and repeatedly merges the closest groups. A **dendrogram** draws the merge history; cutting at a height produces a partition.
 
 ```aml-visual
 dendrogram
 ```
 
-Cutting the tree at a height gives a partition. A full hierarchy lets you inspect several resolutions; a fitted implementation may stop before constructing the entire tree.
+## 3. Define closeness between groups
 
-The **linkage** rule defines closeness between groups:
+**Linkage** is the merge criterion:
 
-| Linkage | Merge criterion |
+| Rule | Group distance or merge cost |
 |---|---|
-| Single | Smallest pairwise distance |
-| Complete | Largest pairwise distance |
+| Single | Closest pair |
+| Complete | Farthest pair |
 | Average | Mean pairwise distance |
-| Ward | Smallest increase in within-group squared deviation |
+| Ward | Increase in within-group squared deviation |
 
-Single linkage can connect groups through a thin bridge. Ward favors compact groups and uses Euclidean geometry. Large pairwise distance structures can require quadratic memory, so check feasibility as row count grows.
+Single linkage can bridge groups through a thin chain. Ward uses Euclidean geometry and favors compact groups. Large pairwise structures can require quadratic memory.
 
-## 2. DBSCAN: connect dense neighborhoods
+## 4. Define a dense neighborhood
+
+DBSCAN uses radius **eps** and minimum count **min_samples**. With scikit-learn's convention, count the point itself.
 
 ```aml-visual
 dbscan-neighborhood
 ```
 
-Two settings define density:
+- **Core point:** enough examples within its radius.
+- **Border point:** near a core point, but not core itself.
+- **Noise point:** neither core nor border.
 
-- **eps:** the neighborhood radius under the chosen distance.
-- **min_samples:** the minimum neighborhood count for a **core point**, including the point itself in scikit-learn.
+## 5. Expand through core points
 
-A **border point** is near a core point but lacks enough neighbors to be core. A **noise point** is neither. Density-connected core points form clusters; nearby border points join them. A border point does not extend a chain by itself.
+Chains of neighboring core points build clusters; attached border points join them. Border points do not extend a chain by themselves.
 
-```python
-DBSCAN(eps=0.3, min_samples=5).fit(X_scaled)
-```
+The cluster count emerges from density settings. Noise is commonly labelled −1 rather than assigned to a cluster.
 
-The output can contain several cluster IDs plus −1 for noise. The number of groups emerges from the density settings instead of a supplied \(k\).
+## 6. Match distance to the data
 
-## 3. Choose by expected structure
+A single radius struggles with strongly varying density. Irrelevant dimensions can make neighborhoods uninformative.
 
-Use a hierarchy when nested groupings or several resolutions are useful. Use DBSCAN when connected density, irregular shapes, and an explicit noise category match the goal.
+For GPS data, choose an appropriate geographic distance and units. Treating longitude and latitude as ordinary Cartesian coordinates everywhere distorts neighborhoods.
 
-A single DBSCAN radius struggles with strongly varying density. **HDBSCAN**, a hierarchical density method, explores multiple density levels; it can help but does not remove every density or representation problem.
+## 7. Interview reasoning
 
-All distance-based choices depend on units and the metric. For geographic coordinates, use an appropriate geographic distance rather than treating longitude and latitude as ordinary Cartesian measurements everywhere. In high dimensions, check that neighborhoods still express meaningful similarity.
+**Question:** Can a chain of sparse border points join two DBSCAN clusters?
 
-> **Mental image:** a dendrogram is a family tree of merges. DBSCAN is a map of crowded neighborhoods connected through crowded points.
+**Answer:** Border points alone cannot extend connectivity. Expansion requires a chain of core neighborhoods; this is why the core/border distinction matters.

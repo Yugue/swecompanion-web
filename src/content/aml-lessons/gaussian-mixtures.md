@@ -1,56 +1,54 @@
 ## Gaussian mixture models
 
-A **Gaussian mixture model (GMM)** represents a data distribution as a weighted combination of Gaussian components. Each component has a center and a spread; a point can partly belong to several components.
+## 1. Explain a cloud with overlapping components
 
-## 1. Add distributions instead of drawing hard regions
+A **Gaussian mixture model (GMM)** combines several Gaussian densities. A **Gaussian** is bell-shaped in one dimension and elliptical in several dimensions.
+
+Each component has a center, spread, and weight. Membership can remain uncertain.
+
+## 2. Add weighted densities
 
 \[
 p(x)=\sum_{j=1}^{K}\pi_j\mathcal N(x\mid\mu_j,\Sigma_j),\qquad \sum_j\pi_j=1
 \]
 
-\(\pi_j\) is a nonnegative component weight, \(\mu_j\) its mean, and \(\Sigma_j\) its **covariance**, describing spread and relationships between feature directions. A Gaussian is a bell-shaped density in one dimension and an elliptical density in several dimensions.
+\(x\) is an observation; \(K\) the component count; \(\pi_j\ge0\) its weight; \(\mu_j\) its mean; \(\Sigma_j\) its **covariance**, describing spread and directional relationships. \(\mathcal N\) denotes Gaussian density.
+
+A density's height is not a point probability; probabilities integrate over regions.
 
 ```aml-visual
 gaussian-mixture
 ```
 
-A **density** is not an individual point's probability. Probabilities come from integrating density over a region.
+## 3. Calculate soft membership
 
-## 2. Soft membership is conditional on the model
-
-A **responsibility** is a component's share of the density at a point:
+A **responsibility** is a component's conditional share at an observation:
 
 \[
-\gamma_{ij}=\frac{\pi_j\mathcal N(x_i\mid\mu_j,\Sigma_j)}{\sum_l\pi_l\mathcal N(x_i\mid\mu_l,\Sigma_l)}
+\gamma_{ij}=\frac{\pi_j\mathcal N(x_i\mid\mu_j,\Sigma_j)}{p(x_i)}
 \]
 
-A result [0.5, 0.5] means the two fitted components are equally plausible sources of that point. It does not establish two equally likely real-world customer identities.
+\(\gamma_{ij}\) measures component \(j\)'s share for example \(i\). Values [0.5, 0.5] mean equally plausible fitted sources, not established real-world identities. A hard label hides that uncertainty.
 
-Hard labels choose the largest responsibility and hide this ambiguity.
+## 4. Fit with alternating steps
 
-## 3. Expectation-maximization fits the components
-
-**Expectation-maximization (EM)** alternates two steps:
+**Expectation-maximization (EM)** alternates:
 
 ```text
-E-step: compute responsibilities from current components
-M-step: update weights, means, and covariances using those responsibilities
+E-step → compute responsibilities from current components
+M-step → update weights, means, and spreads using those responsibilities
 ```
 
-Exact EM updates do not decrease likelihood, but do not guarantee a global optimum. Try suitable initialization and restarts. Covariance regularization helps prevent a component collapsing onto one observation with vanishing spread.
+For example, a component mean becomes the responsibility-weighted average of observations. **Likelihood** measures how well a distribution accounts for the data. Exact EM updates do not decrease it, but can reach a local optimum.
 
-**Likelihood** measures how well the fitted distribution accounts for the observed data.
+## 5. Control flexibility
 
-## 4. Choose flexibility and component count
+Spherical covariance gives round components; diagonal gives axis-aligned spreads; full covariance allows rotation. For \(d\) features, full covariance needs \(d(d+1)/2\) values per component.
 
-Spherical covariance allows round components. Diagonal covariance allows axis-aligned spreads. Full covariance allows rotated ellipses but needs \(d(d+1)/2\) covariance parameters per component in \(d\) dimensions.
+Use restarts and covariance regularization to avoid poor starts or collapse onto one observation. **Akaike information criterion (AIC)** and **Bayesian information criterion (BIC)** compare likelihood with parameter-count penalties; lower is preferred under each criterion. Held-out likelihood and usefulness offer separate evidence.
 
-```python
-GaussianMixture(n_components=2, covariance_type="full", n_init=5)
-```
+## 6. Interview reasoning
 
-The **Bayesian information criterion (BIC)** and **Akaike information criterion (AIC)** compare fit with a parameter-count penalty; lower is preferred under the criterion. Held-out likelihood and downstream usefulness provide other evidence. None proves components are natural semantic groups.
+**Question:** Why prefer soft assignments for overlapping groups?
 
-k-means is closely related to a small-variance limit with equal spherical components and hard assignments. Ordinary soft GMM fitting is not simply identical to k-means.
-
-> **Mental image:** overlapping transparent hills explain the cloud. Responsibilities say how much each hill contributes at one location.
+**Answer:** They expose model-based ambiguity that a single cluster ID hides. They still depend on the fitted distribution and do not prove natural group identities.

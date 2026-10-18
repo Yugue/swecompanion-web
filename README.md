@@ -33,15 +33,23 @@ for its figure and numerical checks; add `--export` after building to check the 
 
 The Applied ML → Basics of ML guide has 46 chapters across seven Parts. Its concise
 definitions, worked examples, and selective figures live in `src/content/aml-lessons`.
+Use 6–12 short sequential sections: intuition, mechanism, essential math with defined
+variables, helpful visuals, practical use, limitations, and a closing reasoning question
+with a brief answer. Define concepts at first use. Teach shared mechanisms in one main
+location and apply them later; keep the final revision free of new prerequisites.
+Retain the interview-ready overview and keep operation examples to 1–5 lines.
 Use an `aml-visual` fence with an ID from `src/lib/amlVisuals.ts`; its SVG renderers
 live in `src/components/aml/visuals`. Run `npx tsx scripts/checkAmlGuide.ts` to check
 curriculum coverage, parsed tables and math, figure references, and numerical claims.
+It also checks section and paragraph length, closing prompts, and repeated prose.
 Add `--export` after building to verify all chapter pages, figures, links, and sitemap entries.
 The audit's technical references include scikit-learn's guidance on
 [calibration](https://scikit-learn.org/stable/modules/calibration.html),
 [cross-validation](https://scikit-learn.org/stable/modules/cross_validation.html),
 [preprocessing](https://scikit-learn.org/stable/modules/preprocessing.html), and
-[leakage prevention](https://scikit-learn.org/stable/common_pitfalls.html).
+[leakage prevention](https://scikit-learn.org/stable/common_pitfalls.html), plus
+[metric definitions](https://scikit-learn.org/stable/modules/model_evaluation.html)
+and [clustering](https://scikit-learn.org/stable/modules/clustering.html).
 
 The RRP guide has 45 chapters across seven Parts. Sources in `src/content/rrp-lessons`
 use 6–12 short numbered sections when appropriate: intuition, mechanism, essential

@@ -1,45 +1,47 @@
 ## Class imbalance
 
-**Class imbalance** means some target classes appear much less often than others. A 0.1% fraud rate supplies one positive example per thousand transactions.
+## 1. Count evidence, not just percentages
 
-Imbalance can make evaluation misleading and minority patterns hard to learn. It does not mean unweighted training always fails.
+**Class imbalance** means some target classes are much rarer than others. **Prevalence** is the positive fraction.
 
-## 1. Start with prevalence and the operating point
+At 0.1% prevalence, a billion examples contain a million positives; a thousand examples contain one. These have very different amounts of learning evidence.
 
-**Prevalence** is the positive fraction. At 0.1%, an all-negative predictor is 99.9% accurate and has zero recall.
+## 2. Choose useful evaluation
 
-Report the baseline, precision, recall, and actual counts at a useful threshold. Average precision summarizes ranking behavior, but the review team still needs to know what enters its queue.
+An all-negative predictor gets 99.9% accuracy here and finds no positives. Use the confusion-matrix and curve measures at the actual action budget.
 
-Distinguish rarity from sample count: 0.1% of one billion examples is one million positives; 0.1% of one thousand is one positive. The second problem has far less evidence.
+Unweighted training can still learn useful rare patterns. Rarity alone does not prescribe a training method.
 
-## 2. Try the decision threshold first
-
-A model can rank positives usefully while rarely predicting positive at the default threshold of 0.5. Lowering the cutoff may meet the decision's needs without changing training.
+## 3. Try the threshold first
 
 For 10,000 cases with 50 positives:
 
-| Threshold | TP | FP | Precision | Recall |
-|---|---|---|---|---|
-| Higher | 2 | 1 | 66.7% | 4% |
-| Lower | 35 | 65 | 35% | 70% |
+| Cutoff | TP / FP | Precision / recall |
+|---|---|---|
+| Higher | 2 / 1 | 66.7% / 4% |
+| Lower | 35 / 65 | 35% / 70% |
 
-These are illustrative operating points. Choose by error costs and capacity using validation data, then evaluate the chosen policy honestly.
+A lower cutoff may meet the objective without changing fitting. Choose from validation costs and capacity.
 
-## 3. Weights and resampling change fitting
+## 4. Change the fitting emphasis when needed
 
-- **Class weighting:** multiply selected classes' losses. No rows are removed, but the fitting objective changes.
-- **Random oversampling:** duplicate minority training examples. It adds emphasis, not independent information.
-- **Undersampling:** remove majority examples, reducing work while losing information.
-- **SMOTE (Synthetic Minority Over-sampling Technique):** interpolate between minority neighbors to create synthetic examples. These can be implausible for mixed categories, sparse spaces, or time-dependent data.
+| Method | Mechanism | Limitation |
+|---|---|---|
+| Class weighting | Multiply selected class losses | Changes the fitting objective |
+| Oversampling | Repeat minority rows | Adds no independent evidence |
+| Undersampling | Remove majority rows | Loses information |
+| SMOTE | Interpolate minority neighbors | Can create implausible examples |
 
-Perform resampling only within training folds. Never resample validation or test to make results look balanced. Preserve the population you need to evaluate, unless the evaluation explicitly estimates weighted target-population performance.
+**SMOTE** expands to Synthetic Minority Over-sampling Technique. Interpolation needs particular care with categories, sparse features, and temporal data.
 
-## 4. Preserve probability meaning and label quality
+## 5. Preserve the intended population
 
-Oversampling positives changes the apparent base rate; class weights can have a similar effect on probability estimates. Fit calibration on representative held-out predictions if probabilities are used directly. Analytic corrections require assumptions about the sampling process.
+Resample only within training folds. Keep evaluation representative of deployment.
 
-Check whether negatives include undetected positives. More weight on noisy labels can amplify their errors.
+Changed class proportions or weights can distort probability estimates; follow the calibration procedure when probabilities matter. More emphasis on incorrect minority labels can amplify their errors, so audit labels and coverage too.
 
-When positive patterns are poorly covered, consider better labelling, a high-recall first stage, or anomaly detection alongside supervised learning. Rarity alone does not determine the right method.
+## 6. Interview reasoning
 
-> **Mental image:** there are three controls: which errors you measure, where you act on scores, and what evidence training emphasizes. They solve different problems.
+**Question:** Does duplicating positives 50 times create 50 times more evidence?
+
+**Answer:** No. It changes their training influence, not their independent information. Evaluate whether that emphasis helps, and recheck probability meaning on representative data.

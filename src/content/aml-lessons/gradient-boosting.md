@@ -1,53 +1,51 @@
 ## Boosting and gradient-boosted trees
 
-**Gradient boosting** builds an additive model one correction at a time. Each new tree is trained to improve the loss of the current ensemble.
+## 1. Correct the current ensemble
 
-## 1. Start with a constant, then correct it
+**Boosting** builds an ensemble sequentially. **Gradient boosting** fits each new model to loss-reducing corrections for the current prediction.
 
-For squared-error regression, begin with the training target mean. The **residual** is actual minus current prediction.
+> Each edit responds to the draft currently on the page.
 
-| Example | Actual | Initial prediction | Residual | New tree prediction |
-|---|---|---|---|---|
-| A | 300 | 250 | +50 | +40 |
-| B | 200 | 250 | −50 | −40 |
-| C | 250 | 250 | 0 | 0 |
+## 2. Work one correction
 
-With learning rate \(\eta=0.1\), add one tenth of the tree's correction:
+Start squared-error regression at the training mean, 250:
 
-```text
-A: 250 + 0.1 × 40  = 254  → residual +46
-B: 250 + 0.1 × −40 = 246  → residual −46
-C: 250 + 0.1 × 0   = 250  → residual 0
-```
+| Case | Actual / current | Residual / tree correction |
+|---|---|---|
+| A | 300 / 250 | +50 / +40 |
+| B | 200 / 250 | −50 / −40 |
+| C | 250 / 250 | 0 / 0 |
 
-The next tree fits what remains wrong about the sum so far. It does not independently fit the original targets like a bagged tree.
+With learning rate 0.1, A becomes 254 and B becomes 246. Their remaining residuals are +46 and −46. The correction tree approximates the residuals; it need not match each one exactly.
 
-## 2. Why “gradient”?
+## 3. Explain the gradient
 
-For loss \(L(y,F)\), form targets from its negative derivative with respect to the current prediction:
+For loss \(\ell(y,F)\), iteration \(m\) uses targets:
 
 \[
-r_i^{(m)}=-\left.\frac{\partial L(y_i,F)}{\partial F}\right|_{F=F_{m-1}(x_i)},
-\qquad F_m(x)=F_{m-1}(x)+\eta h_m(x)
+r_i^{(m)}=-\left.\frac{\partial\ell(y_i,F)}{\partial F}\right|_{F=F_{m-1}(x_i)}
 \]
 
-For \(\tfrac12(y-F)^2\), that derivative gives the residual. Other losses give other correction targets. This lets boosting address classification, robust regression, and asymmetric costs. Some implementations also use curvature when estimating updates.
+\(x_i,y_i\) are one input and target; \(F_{m-1}\) is the current ensemble. These **negative gradients** point toward lower loss. For half-squared error, they equal residuals.
 
-## 3. Tune the correction size and complexity
+## 4. Add a small fitted step
 
-- **Learning rate:** shrinks each correction.
-- **Tree depth or leaf count:** controls which interactions each correction can express.
-- **Tree count:** controls how many corrections are added.
-- **Early stopping:** selects a stopping point using validation performance.
+\[
+F_m(x)=F_{m-1}(x)+\eta h_m(x)
+\]
 
-Smaller steps usually require more trees; neither more trees nor smaller steps guarantees better generalization. Trees are often shallow for regularization, but boosting does not mathematically require a specific depth.
+\(h_m\) is the new correction model; \(\eta>0\) shrinks its contribution. Smaller steps usually require more trees.
 
-Later corrections can fit noise. Validation must reflect groups and time where relevant, including the data used for early stopping.
+Later trees depend on earlier fits, unlike bagging. The ensemble diagram in the forest lesson contrasts these flows.
 
-## 4. When to try it
+## 5. Control useful complexity
 
-Boosted trees are a strong candidate for many tabular datasets with nonlinear relationships. Compare them with a simple baseline and measure serving cost. Named implementations include XGBoost, LightGBM, and CatBoost; their category handling, missing-value support, and regularization differ.
+Tune learning rate, tree size, and tree count together. Early stopping chooses the count from validation behavior; too many corrections can fit noise.
 
-Unlike an ordinary regression tree or a forest of leaf means, an additive boosted model is not universally bounded by the observed target range. It still generally lacks the natural trend extrapolation of a suitable linear model.
+Boosted trees are strong tabular candidates, but compare measured benefit and serving cost. Their additive predictions can exceed observed target ranges, yet they generally do not extrapolate trends naturally.
 
-> **Mental image:** revise a draft through small edits. Every edit responds to the draft currently on the page.
+## 6. Interview reasoning
+
+**Question:** Does every boosting tree predict the original target?
+
+**Answer:** No. It predicts a correction derived from the current ensemble's loss. Residual fitting is the squared-error special case.

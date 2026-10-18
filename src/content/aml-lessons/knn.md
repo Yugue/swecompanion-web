@@ -1,48 +1,43 @@
 ## k-Nearest Neighbors
 
-**k-nearest neighbors (k-NN)** predicts from the \(k\) training examples closest to a new input. Classification uses a vote or weighted vote; regression uses an average or weighted average.
+## 1. Let nearby examples answer
 
-It is a fitted model whose stored examples supply the prediction rule, rather than a compact learned weight vector.
+**k-nearest neighbors (k-NN)** predicts from the \(k\) closest stored training examples. Classification uses their votes; regression uses their target average. Distance weighting can give closer examples more influence.
 
-## 1. Look up the neighborhood
+> The stored dataset supplies the prediction rule.
+
+## 2. Work a local vote
 
 ```aml-visual
 nearest-neighbors
 ```
 
-If the three nearest examples have labels [positive, positive, negative], an unweighted classifier predicts positive. Its local positive fraction is 2/3; that fraction still needs calibration checks if treated as a probability.
+With three neighbors labelled [positive, positive, negative], equal voting predicts positive. The local fraction 2/3 is a probability estimate, not a calibration guarantee.
 
-```python
-pipe = Pipeline([
-    ("scale", StandardScaler()),
-    ("model", KNeighborsClassifier(n_neighbors=3)),
-])
-```
+## 3. Choose neighborhood size
 
-Scaling, the distance metric, and the features determine which examples count as neighbors. A geographically close customer is not necessarily behaviorally similar.
-
-## 2. What k changes
-
-| Setting | Behavior |
+| Setting | Effect |
 |---|---|
-| k = 1 | Follows local detail and individual label noise |
-| Larger k | Smoother predictions; may blend distinct regions |
-| k = all training rows, unweighted | Global class vote or target mean |
+| \(k=1\) | Captures fine detail and individual label noise |
+| Larger \(k\) | Smooths predictions; can blend distinct regions |
+| All rows, equal weights | Global vote or target mean |
 
-Tune \(k\) on validation data. Distance weighting gives closer examples more influence. Odd \(k\) avoids a simple vote tie for unweighted binary classification, but distance ties and other cases still need defined behavior.
+Tune the neighbor count on validation data. Odd counts avoid simple binary vote ties, but distance ties still need a rule.
 
-## 3. Distance is an assumption
+## 4. Choose meaningful geometry
 
-**Euclidean distance** measures straight-line separation. **Manhattan distance** sums absolute coordinate differences. **Cosine similarity** compares vector direction and is often useful for suitable text representations or embeddings.
+**Manhattan distance** sums absolute coordinate differences. **Cosine similarity** compares vector directions. Euclidean distance, developed in feature scaling, measures straight-line separation.
 
-None is universally best. Irrelevant features can dominate proximity. In high dimensions, distances may become less distinct; useful feature selection or learned representations can help when validated.
+The features and units decide what nearby means. Geographic proximity need not imply similar behavior. Irrelevant dimensions can obscure useful neighbors.
 
-A **learned representation** maps inputs to features trained for similarity or another task. Its quality often matters more than the neighbor-search algorithm.
+## 5. Account for lookup cost
 
-## 4. Where the cost goes
+Brute-force prediction costs roughly \(O(nd)\) for \(n\) stored examples with \(d\) features. Fitting also stores data and may build a search index.
 
-Brute-force prediction compares one query with \(n\) examples of \(d\) features: roughly \(O(nd)\) work. Fitting requires storing data and may build a search index; it is not free or constant-time overall.
+**Approximate nearest-neighbor search** trades some retrieval accuracy for speed. Check the resulting prediction quality as well as lookup latency.
 
-Tree-based exact indexes can help in suitable low-dimensional spaces. **Approximate nearest-neighbor search** trades some retrieval accuracy for speed at larger scale. Measure the resulting change in predictions as well as search speed.
+## 6. Interview reasoning
 
-Use k-NN when similarity is meaningful and storage and query costs fit the application. Large datasets with strict latency budgets require more than a simple brute-force lookup.
+**Question:** Why can adding an irrelevant feature worsen k-NN?
+
+**Answer:** Its numeric differences can change the nearest examples even though it carries no useful target information. Test feature selection, scaling, or a better representation.

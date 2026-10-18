@@ -1,46 +1,46 @@
 ## Anomaly detection
 
-**Anomaly detection** scores observations by how unusual they are relative to a reference dataset or model. Unusual does not necessarily mean fraudulent, dangerous, or incorrect.
+## 1. Score difference from a reference
 
-A legitimate car purchase can be unusual. A common fraud pattern can look ordinary. Those distinctions matter when acting on alerts.
+**Anomaly detection** scores how unusual an observation is relative to data or a fitted model.
 
-## 1. Outlier versus novelty detection
+A legitimate large purchase can be unusual; common fraud can look ordinary. Unusualness alone does not establish harm.
 
-| Setup | Training data | Goal |
-|---|---|---|
-| Outlier detection | May already contain unusual observations | Find observations that differ from the bulk |
-| Novelty detection | Intended to represent normal behavior | Identify unusual future observations |
+## 2. Define the reference setup
 
-The appropriate model and method calls depend on the estimator. This distinction is not a universal `fit_predict` versus `predict` rule.
+| Setup | Training reference |
+|---|---|
+| Outlier detection | May contain unusual observations already |
+| Novelty detection | Intended to represent normal behavior for future comparisons |
 
-Supervised classification uses known outcomes. It can outperform anomaly detection even with rare positives if those positives provide useful patterns; compare rather than choosing solely by class frequency.
+Estimator-specific behavior matters. If useful outcome labels exist, compare a supervised baseline even when positives are rare.
 
-## 2. Different models define “unusual” differently
+## 3. Understand what the score measures
 
-- **Isolation Forest:** repeated random feature splits tend to isolate separated points in fewer steps. The score summarizes isolation depth across trees.
-- **Local-neighbor methods:** compare neighborhood distances or density; isolated local points receive higher anomaly scores.
-- **One-class SVM:** fits a boundary around a reference distribution in a kernel-defined space.
-- **Density models:** flag low estimated density, under the model's assumptions.
-- **Reconstruction models:** compress and reconstruct inputs, flagging large reconstruction error. Some unusual inputs reconstruct well, so test this assumption.
+| Method | Unusual means |
+|---|---|
+| Isolation Forest | Random feature splits isolate a point in few steps |
+| Local-neighbor methods | Neighborhood is sparse relative to nearby neighborhoods |
+| One-class SVM | Outside a fitted reference boundary in kernel space |
+| Density model | Low estimated density |
+| Reconstruction model | Large error when compressing and rebuilding the input |
 
-```python
-IsolationForest(contamination=0.001, random_state=0).fit(X_train)
-```
+These are different assumptions. Some unusual inputs reconstruct well, and irrelevant dimensions can mislead distance-based methods.
 
-A model score is not automatically a probability of being anomalous. High dimensionality and irrelevant features can make each method's notion of unusual unreliable.
+## 4. Translate a cutoff into workload
 
-## 3. A flag fraction is not a false-alarm rate
+**Contamination** commonly sets a cutoff from an assumed anomaly proportion. It does not guarantee false-positive rate, precision, or future alert volume.
 
-**Contamination** commonly helps choose a cutoff from an assumed anomaly proportion. It does not guarantee the false-positive rate, precision, or future alert rate.
+Flagging 0.1% of ten million daily events creates 10,000 alerts. A 500-case team needs a capacity-aware policy or another filtering stage. Confirm which score direction means more anomalous.
 
-At 10 million events per day, flagging 0.1% creates 10,000 alerts. A team handling 500 needs a different policy, possibly a top-500 queue or a second-stage filter.
+## 5. Evaluate incomplete evidence
 
-Choose the operating policy from validation evidence, response cost, and capacity. Confirm the estimator's score direction before taking its largest values.
+Measure known-positive recall and reviewed-alert precision, acknowledging selection. Review some unflagged cases where feasible to investigate misses.
 
-## 4. Evaluate with incomplete labels
+Synthetic anomalies test specific mechanisms, not total real-world quality. New reviewed labels can support a supervised model, but the reviewed sample may be unrepresentative.
 
-Measure recall among known positives and precision from reviewed alerts, while acknowledging selection bias. Review samples outside the flagged set where feasible to investigate missed cases. Synthetic anomalies test specific mechanisms, not complete real-world quality.
+## 6. Interview reasoning
 
-A useful hybrid routes unusual cases to review, creates labels, and trains a supervised model on recurring patterns. Monitor label coverage: the cases you review are not a random sample of all events.
+**Question:** Does a contamination setting of 0.1% guarantee 0.1% false alarms?
 
-> **Mental image:** an anomaly detector is a spotlight on difference. A separate judgement decides which differences require action.
+**Answer:** No. It helps select a score cutoff under a reference distribution. False alarms require outcome labels; future traffic can also change the flag rate.

@@ -1,52 +1,48 @@
 ## Data leakage
 
-**Data leakage** occurs when training or model selection uses information that would be unavailable in the prediction or evaluation setting being claimed. It makes offline performance look better than the procedure can deliver.
+## 1. Reconstruct what was knowable
 
-## 1. Check the prediction timeline
+**Data leakage** occurs when fitting or selection uses information unavailable in the claimed prediction or evaluation setting. It can inflate offline results.
 
-For a churn score made on Monday:
+> Reconstruct the model's desk at prediction time.
 
-| Candidate feature | Valid? |
+## 2. Audit a historical feature
+
+For a Monday churn score:
+
+| Feature | Validity |
 |---|---|
-| Account age on Monday | Yes |
-| Sessions recorded in the preceding 30 days | Yes, if already available |
-| Cancellation reason recorded next month | No |
-| Lifetime support tickets computed today for an old snapshot | Only if restricted to what was known at that snapshot |
+| Account age on Monday | Available |
+| Prior sessions already recorded | Available |
+| Next month's cancellation reason | Future information |
+| Lifetime spend computed today | Must reconstruct Monday's value |
 
-The question is: **could this exact value have been produced at the claimed prediction time?** A value can have an old event timestamp but arrive or be corrected later.
+An old event timestamp is insufficient if the value arrived or was corrected later.
 
-A feature need not cause the outcome to be valid. Availability and evaluation design determine leakage, rather than whether the feature is causal.
+## 3. Audit the fitted transformations
 
-## 2. Preprocessing can leak too
+**Feature selection** chooses input columns, often using their association with labels. Selecting from all labels before evaluation can retain accidental correlations.
 
-```python
-# Leaks evaluation statistics into training:
-X_scaled = StandardScaler().fit_transform(X)
-X_train, X_test = train_test_split(X_scaled)
-
-# Fits the complete procedure on training rows only:
-pipe = Pipeline([
-    ("scale", StandardScaler()),
-    ("model", LogisticRegression()),
-])
+```text
+split first → fit preprocessing on training → transform held-out inputs
 ```
 
-**Feature selection**, which chooses columns using their relationship with the target, is especially risky outside the training fold. It can find accidental correlations even when no real signal exists.
+The split and cross-validation lessons describe pipeline fitting. A pipeline cannot repair an input already built from future events.
 
-Imputation, PCA, encoders, and resampling also need fold-specific fitting. A pipeline helps organize this; it cannot repair features already built from future events.
+## 4. Match the claimed population
 
-## 3. Respect the generalization target
+New-patient evaluation must keep one patient's records together. Future-event evaluation must respect chronology and historical label availability.
 
-If deployment must handle new patients, scans from the same patient on both sides inflate the estimate. Group by patient before splitting.
+Existing customers can appear across a forward-time split when deployment predicts their future activity. The problem is violating the claim, rather than repetition alone.
 
-If deployment predicts future transactions, evaluate on later periods and ensure training labels were available at the historical training cutoff.
+## 5. Investigate suspicious gains
 
-Repeated customers across a forward-time split can be appropriate when the product predicts for existing customers. Shared entities are a problem when they violate what the evaluation claims to measure.
+After a sudden score jump, inspect joins, timestamps, copies, target-derived columns, and split assignment. Remove suspect features and rebuild the evaluation as a diagnostic experiment.
 
-## 4. Investigate suspicious improvements
+For target encoding, check inner fold restrictions too. Excluding a row's label still leaks when future labels influence its input.
 
-A jump from 0.82 to 0.99 ranking quality is a cue to inspect feature timestamps, joins, duplicates, target-derived columns, and split construction. It is not proof of leakage.
+## 6. Interview reasoning
 
-Target encoding needs out-of-fold training values. For a temporal task, its inner folds must respect time too; excluding a row's own label is insufficient if tomorrow's labels remain visible.
+**Question:** Does a feature have to cause the outcome to be valid?
 
-> **Mental image:** reconstruct the model's desk at prediction time. Anything added to that desk later must stay out of the historical input.
+**Answer:** No. It must be available and evaluated honestly for the intended use. Causality matters when claiming that changing it would change the outcome.

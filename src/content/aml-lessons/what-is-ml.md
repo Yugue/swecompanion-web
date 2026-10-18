@@ -1,40 +1,50 @@
 ## What machine learning is
 
-**Machine learning (ML) fits a model from data so it can make useful predictions or find patterns in new examples.** A model is a function whose behavior is learned rather than fully specified by hand.
+## 1. Learn a rule from examples
 
-A spam filter can learn from messages marked “spam” or “not spam.” A handwritten filter instead applies rules such as “block this sender.” Both need evaluation when the messages change.
+**Machine learning (ML)** fits a **model**—a function learned from data—to predict outcomes or find patterns in new examples.
 
-## 1. Training and prediction are different steps
+A spam filter learns from messages marked spam or legitimate. A handwritten filter applies rules chosen by a person.
 
-```text
-training:    past messages + labels → learning algorithm → fitted model
-prediction:  new message + fitted model → spam probability
-```
+> Training adjusts the tool; prediction uses the adjusted tool.
 
-A **label** is the answer supplied for a training example. Not every learning problem has labels; finding groups of similar messages is another kind of ML.
-
-We often write a prediction as \(\hat y=f(x)\): \(x\) is the input, and \(\hat y\) is the model's output. The hat means “estimated.”
-
-**Generalization** means working on new examples, beyond the data used to fit the model. A lookup table can memorize training answers without generalizing.
-
-## 2. An output needs a use
-
-Models can output a number, a category, a probability, or a group. For a probability-based fraud system:
+## 2. Training and prediction
 
 ```text
-predicted fraud probability: 0.08
-policy: review if probability ≥ 0.05
-action: send the transaction to an analyst
+past messages + answers → training algorithm → fitted model
+new message + fitted model                  → spam probability
 ```
 
-The **threshold** is the cutoff that turns a score into an action. Its choice depends on error costs and review capacity.
+A **label** is a supplied training answer. Some ML methods instead find structure without labels.
 
-## 3. When is ML useful?
+## 3. Read the notation
 
-Use it when representative data contains a learnable pattern and explicit rules are difficult to maintain. Recognizing objects in photographs is a good example.
+\[
+\hat y=f(x)
+\]
 
-“Flag transactions above $10,000 from accounts less than one day old” is already a complete rule. Measure that rule before adding a model. A model might help with a broader question: “Which transactions are likely fraudulent?”
+\(x\) is an input, \(f\) the fitted model, and \(\hat y\) its prediction. The hat means estimated. Changing the input can change the output without retraining.
 
-ML also introduces costs: collecting data, measuring mistakes, serving predictions, and monitoring changes. Better offline accuracy is useful only if it improves the decision enough to justify those costs.
+## 4. Turn a prediction into an action
 
-> **Mental image:** training builds an adjustable tool from examples; evaluation checks whether that tool works on the next job.
+A **threshold** is a score cutoff used to choose an action:
+
+```text
+fraud probability = 0.08
+review threshold  = 0.05
+decision          = review
+```
+
+The model estimates risk; the threshold reflects review capacity and error costs.
+
+## 5. Generalize beyond the examples
+
+**Generalization** means useful performance on new examples. Memorizing every training answer does not establish it.
+
+Use ML when representative data contains patterns that are difficult to specify manually. If the requirement is already a complete rule, measure that rule first. Include data, serving, and maintenance costs when judging improvement.
+
+## 6. Interview reasoning
+
+**Question:** A filter memorizes all training messages perfectly. Is it useful?
+
+**Answer:** Test representative new messages. Perfect recall of old answers does not show that the learned pattern transfers or improves the decision.

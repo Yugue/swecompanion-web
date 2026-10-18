@@ -72,13 +72,14 @@ export default async function AppliedMlLessonPage({
           <LessonCompleteToggle topicId={topic.id} accent={part.color} track="aml" />
         </div>
 
-        <div
+        <section
+          aria-labelledby="interview-overview-title"
           className="mb-6 rounded-md border p-4"
           style={{ borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, transparent)" }}
         >
-          <p className="mb-2.5 text-xs font-extrabold tracking-wide text-[var(--accent)]">
+          <h2 id="interview-overview-title" className="mb-2.5 text-xs font-extrabold tracking-wide text-[var(--accent)]">
             INTERVIEW-READY OVERVIEW
-          </p>
+          </h2>
           <p className="mb-3 text-base leading-relaxed text-text">{topic.summary}</p>
           <ul className="mb-3 flex flex-col gap-1.5">
             {topic.keyPoints.map((point, i) => (
@@ -96,7 +97,7 @@ export default async function AppliedMlLessonPage({
           <p className="text-sm font-semibold leading-relaxed text-text">
             Interview probe: {topic.interviewPrompt}
           </p>
-        </div>
+        </section>
 
         <div className="mb-3 flex items-center gap-3">
           <div className="h-px flex-1 bg-outline/55" />
@@ -104,7 +105,10 @@ export default async function AppliedMlLessonPage({
           <div className="h-px flex-1 bg-outline/55" />
         </div>
 
-        <LessonView topicId={topic.id} track="aml" />
+        <article aria-label="Full lesson" className="[&_.katex-display]:text-text">
+          <h2 className="sr-only">Full lesson</h2>
+          <LessonView topicId={topic.id} track="aml" />
+        </article>
 
         {part.quizQuestionCount > 0 && (
           <QuizTeaser

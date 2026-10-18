@@ -1,58 +1,57 @@
 ## ROC-AUC, PR-AUC, and thresholds
 
-A **threshold curve** shows how a binary classifier's decisions change as its score cutoff moves. It separates ranking quality from the choice of a production operating point.
+## 1. Sweep the score cutoff
 
-## 1. Two views of the same score ordering
+A **threshold curve** shows decisions across score cutoffs. Each point represents one operating policy for the same fitted model.
 
-**Receiver operating characteristic (ROC)** plots true-positive rate against false-positive rate:
+Lowering the cutoff adds flags. Recall and false-positive count cannot decrease; precision can move either way.
+
+## 2. Compare two views
+
+**ROC**, the receiver operating characteristic, plots true-positive rate against false-positive rate:
 
 \[
-\text{TPR}=\frac{TP}{TP+FN},\qquad\text{FPR}=\frac{FP}{FP+TN}
+\text{TPR}=\frac{TP}{TP+FN},\qquad \text{FPR}=\frac{FP}{FP+TN}
 \]
 
-TPR is recall. FPR is the fraction of actual negatives incorrectly flagged.
+TP, FP, FN, TN are the confusion-matrix counts. TPR is recall; FPR is the flagged fraction of actual negatives.
 
-A **precision-recall (PR) curve** plots precision against recall. Precision is the fraction of flags that are actual positives.
+A **precision-recall (PR) curve** plots precision against recall.
 
 ```aml-visual
 threshold-curves
 ```
 
-Every point comes from a threshold on the same model. Lowering the cutoff can increase both TP and FP; it need not change precision monotonically.
+## 3. Define the summary area
 
-## 2. What the summary areas mean
+**ROC-AUC** is area under the ROC curve: positive-over-negative ordering probability, with half-credit for ties. An uninformative ordering has expected value 0.5.
 
-**ROC-AUC** is the area under the ROC curve. It equals the probability that a randomly chosen positive outranks a randomly chosen negative, counting ties as half. A noninformative ordering has expected AUC 0.5.
+**Average precision (AP)** weights precision by increases in recall. It differs from trapezoidal PR area, which uses different interpolation. State which calculation “PR-AUC” means.
 
-**Average precision (AP)** summarizes a PR curve by weighting precision at each increase in recall. Trapezoidal PR area uses different interpolation and can give a different number. Name the calculation rather than using “PR-AUC” ambiguously.
+## 4. Translate rates into workload
 
-```python
-roc_auc_score(y_true, scores)
-average_precision_score(y_true, scores)
-```
-
-A random ranking's population PR baseline is the positive rate; finite-sample AP need not equal it exactly. PR measures change with prevalence. ROC-AUC is unchanged by prevalence alone if class-conditional score distributions stay fixed; changing population difficulty can change it.
-
-## 3. Rare positives make counts matter
-
-With 1,000,000 negatives and 3,000 positives, a threshold giving 2,000 TP and 10,000 FP has:
+For 3,000 positives and 1,000,000 negatives, a threshold with 2,000 TP and 10,000 FP gives:
 
 ```text
-recall    = 2,000 / 3,000 ≈ 66.7%
-FPR       = 10,000 / 1,000,000 = 1%
-precision = 2,000 / 12,000 ≈ 16.7%
+recall    ≈ 66.7%
+FPR       = 1%
+precision ≈ 16.7%   → 12,000 total flags
 ```
 
-A small FPR can still overwhelm a review team. Report PR behavior, absolute counts, and performance in the relevant ROC region rather than dismissing ROC as incorrect.
+PR depends on positive prevalence. ROC-AUC stays unchanged by prevalence alone only when class-conditional score distributions remain fixed.
 
-## 4. Choose the operating point on validation data
+## 5. Choose a useful operating point
 
-Use expected error cost, a required precision or recall, or a fixed queue capacity. For constant false-positive and false-negative costs, one empirical objective is:
+Use validation costs, required recall, or queue capacity. With calibrated probability \(p\), false-positive cost \(C_{FP}\), false-negative cost \(C_{FN}\), and zero correct-decision costs, choose positive when:
 
 \[
-C_{FP}FP+C_{FN}FN
+p>\frac{C_{FP}}{C_{FP}+C_{FN}}
 \]
 
-If probabilities are calibrated and correct actions have zero cost, predict positive when \(p>C_{FP}/(C_{FP}+C_{FN})\). Different review costs, benefits, or capacity constraints require a different decision rule.
+Higher false-alarm cost raises the cutoff. Capacity limits or other action costs require a different policy.
 
-Check the chosen threshold after retraining and on new populations. A good overall AUC does not guarantee a useful operating point.
+## 6. Interview reasoning
+
+**Question:** Can a high AUC model overwhelm reviewers?
+
+**Answer:** Yes. Overall ordering quality does not guarantee a useful threshold. Inspect the relevant curve region, absolute flag counts, and performance at the available capacity.

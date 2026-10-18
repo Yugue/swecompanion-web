@@ -1,45 +1,51 @@
 ## Support vector machines
 
-A **support vector machine (SVM)** fits a class boundary using a margin: a corridor separating the boundary from nearby training points. A wider margin discourages fragile boundaries.
+## 1. Fit a separating corridor
 
-## 1. The corridor and its supports
+A **support vector machine (SVM)** fits a decision boundary while balancing a wide **margin**, or separation corridor, against training violations.
 
 ```aml-visual
 svm-margin
 ```
 
-For a linear score \(f(x)=w^\top x+b\), the boundary is \(f(x)=0\). The standard margin boundaries are \(f(x)=\pm1\), with total width \(2/\lVert w\rVert\).
+## 2. Identify the supports
 
-**Support vectors** are training examples with nonzero coefficients when the fitted boundary is written as a weighted combination of training examples. In a soft-margin SVM they include points on the margin and violating it, including misclassified points; they are not only correctly separated boundary points.
+For features \(x\), weights \(w\), and intercept \(b\), the linear score is \(f(x)=w^\top x+b\).
 
-## 2. Allow violations with a cost
+The boundary is score zero. Standard margin lines have scores −1 and +1; their total width is \(2/\lVert w\rVert\), where the norm is weight-vector length.
 
-Real classes often overlap. A **soft margin** permits violations while penalizing them:
+**Support vectors** are training examples with nonzero coefficients in the fitted example-based representation. Soft-margin supports can lie on or inside the margin, including misclassified points.
+
+## 3. Allow costly violations
+
+A **soft margin** allows examples inside the corridor or on the wrong side:
 
 \[
 \min_{w,b}\frac12\lVert w\rVert^2+C\sum_i\max(0,1-y_i f(x_i))
 \]
 
-Labels here are \(-1\) and \(+1\). The second term uses **hinge loss**. For a positive example, scores 2, 0.5, and −1 give losses 0, 0.5, and 2.
+\(i\) indexes examples; \(y_i\in\{-1,1\}\) is the class; \(C>0\) weights violations relative to the norm penalty.
 
-Smaller \(C\) places less emphasis on training violations relative to the weight penalty. Larger \(C\) penalizes violations more. It does not guarantee a particular validation result; tune it.
+The maximum term is **hinge loss**. For a positive, scores 2, 0.5, −1 cost 0, 0.5, 2. Smaller \(C\) tolerates violations more strongly.
 
-## 3. Kernels express nonlinear boundaries
+## 4. Bend the boundary with a kernel
 
-A **kernel** computes an inner product in an implicit feature space:
+A **kernel** computes a dot product in an implicit feature representation \(\phi\):
 
 \[
 K(x,x')=\phi(x)^\top\phi(x')
 \]
 
-The **radial basis function (RBF)** kernel uses \(\exp(-\gamma\lVert x-x'\rVert^2)\). Large \(\gamma\) gives each point a more local influence; small \(\gamma\) gives broader influence. Tune \(C\) and \(\gamma\) together, with appropriate scaling.
+Here \(x,x'\) are two inputs. A **radial basis function (RBF)** kernel is \(\exp(-\gamma\lVert x-x'\rVert^2)\). Larger \(\gamma>0\) makes influence more local. Tune it jointly with \(C\) after appropriate scaling.
 
-The kernel avoids explicitly constructing the richer feature vector. It does not avoid comparing examples, which can be expensive.
+## 5. Check cost and score meaning
 
-## 4. Choose by data and cost
+Kernel fitting can be expensive on many rows; serving cost depends on support-vector count. Linear solvers often suit large sparse inputs.
 
-Kernel SVM training can become expensive as row count grows, and serving depends on the number of support vectors. Linear solvers are often more suitable for large, sparse feature matrices.
+A decision score is not a probability. If probabilities matter, fit and assess a calibration mapping using held-out predictions.
 
-The decision score is not a probability. A kernel score is also not generally a geometric distance in the original input space. If probabilities are needed, fit a calibration mapping using held-out predictions.
+## 6. Interview reasoning
 
-> **Mental image:** place a corridor between classes, allow costly intrusions where necessary, and let kernels bend the separation through a different feature space.
+**Question:** Does increasing \(C\) guarantee better validation accuracy?
+
+**Answer:** No. It emphasizes training violations more, potentially fitting less transferable detail. Choose it with deployment-matched validation.

@@ -1,46 +1,54 @@
 ## Feature scaling and normalization
 
-**Feature scaling** changes numeric units so a model can compare or penalize features on a deliberate basis. It usually changes a column's scale rather than adding information.
+## 1. Units influence the model
 
-## 1. Units change distance
+**Feature scaling** changes numeric units. It affects distances, coefficient penalties, and optimization without adding information.
+
+**Euclidean distance** is straight-line separation:
+
+\[
+d(x,x')=\sqrt{\sum_j(x_j-x'_j)^2}
+\]
+
+\(x,x'\) are feature vectors; \(j\) indexes coordinates. Larger numeric differences contribute more.
+
+## 2. Watch a neighbor change
 
 ```aml-visual
 feature-scaling
 ```
 
-A $10,000 income difference contributes \(10{,}000^2\) to squared Euclidean distance. A ten-year tenure difference contributes only \(10^2\). Without rescaling, the neighborhood is driven almost entirely by dollars.
+Income measured in dollars can dominate tenure measured in years. Rescaling changes which difference matters most.
 
-**Euclidean distance** is straight-line distance: \(\sqrt{\sum_j(x_j-x'_j)^2}\). Scaling chooses how much each coordinate contributes.
-
-## 2. Three column transforms
+## 3. Choose column statistics
 
 | Transform | Formula | Effect |
 |---|---|---|
-| Standardization | \((x-\mu)/\sigma\) | Training mean 0 and variance 1 for a nonconstant column |
-| Min-max | \((x-x_{\min})/(x_{\max}-x_{\min})\) | Training range maps to [0, 1] |
-| Robust scaling | \((x-\text{median})/\text{IQR}\) | Uses median and interquartile range |
+| Standardization | \((x-\mu)/\sigma\) | Center and scale by standard deviation |
+| Min-max | \((x-a)/(b-a)\) | Map training range to [0, 1] |
+| Robust scaling | \((x-m)/\text{IQR}\) | Use less extreme-sensitive statistics |
 
-The **interquartile range (IQR)** is the 75th percentile minus the 25th. Robust scaling reduces the influence of extremes on the scaling statistics; it does not remove outliers.
+\(x\) is one value; \(\mu,\sigma\) are the training mean and standard deviation; \(a,b\) the training minimum and maximum; \(m\) the median. **IQR** is the 75th minus 25th percentile.
 
-Standardization does not make a skewed distribution Gaussian. New observations can fall outside a fitted min-max range. Constant columns need a zero-denominator convention, which standard library scalers handle.
+Constant columns need a zero-denominator convention.
 
-## 3. Which models care?
+## 4. Match scaling to the method
 
-Distance methods, kernel methods, coefficient penalties, and gradient-based fitting are often sensitive to scale. Scaling can improve optimization and make penalties more comparable across numeric features.
+Distance and kernel methods depend on geometry. Coefficient penalties depend on units: multiplying an input by 1,000 permits the same linear contribution with a coefficient 1,000 times smaller.
 
-For a linear prediction \(wx\), multiplying \(x\) by 1,000 allows the same contribution with a coefficient 1,000 times smaller. An L2 penalty on coefficient size therefore changes unless scale is accounted for.
+Ordinary threshold trees usually need no scaling because monotonic transforms preserve ordering.
 
-Ordinary axis-aligned trees generally need no scaling: a strictly monotonic transformation preserves split ordering. Numerical approximations and interpolation at thresholds can still introduce small differences.
-
-Choose feature scales from their meaning as well as convenience. Unit variance does not guarantee that every feature deserves equal influence.
-
-## 4. Fit once on training data
+## 5. Reuse the fitted transform
 
 ```python
 scaler = StandardScaler().fit(X_train)
 X_val_scaled = scaler.transform(X_val)
 ```
 
-Put the scaler inside the model pipeline so each cross-validation fold learns its own statistics. Serving uses the stored statistics too.
+**Row normalization** instead rescales each example vector, often to unit length. Standardization does not make data Gaussian; min-max scaling does not bound future values; robust scaling does not remove outliers.
 
-**Row normalization** is different: it scales each example vector, often to length one for direction-based similarity. A log transform is different again: it changes a feature's distribution shape.
+## 6. Interview reasoning
+
+**Question:** Why might changing dollars to thousands alter a regularized linear fit?
+
+**Answer:** It changes the coefficient size needed for the same prediction, hence its penalty. Use deliberate feature scales and tune the complete procedure.

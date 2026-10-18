@@ -1,47 +1,41 @@
 ## Hyperparameter search
 
-**Hyperparameter search** compares configurations of a learning procedure using validation performance. It is an experiment with a compute budget, a scoring rule, and a stopping point.
+## 1. Run a budgeted experiment
 
-## 1. Search the settings that express your hypothesis
+**Hyperparameter search** compares learning configurations using validation performance. Define the metric, constraints, and fit budget before searching.
 
-| Model | Useful initial search dimensions |
-|---|---|
-| Logistic regression | Regularization strength and type |
-| Random forest | Feature sampling and minimum leaf size |
-| Gradient boosting | Learning rate, tree complexity, stopping point |
-| RBF support vector machine | C and gamma together |
-| k-nearest neighbors | Neighbor count, distance, feature representation |
+Search settings tied to a hypothesis: tree leaf size for unstable local fits, or penalty strength for unstable coefficients.
 
-Preprocessing choices belong to the procedure too. Search them within training folds rather than choosing them from the final test result.
+## 2. Compare grids and random trials
 
-## 2. Grid versus random search
+**Grid search** tries every listed combination. Four settings with five choices each yield \(5^4=625\) configurations.
 
-**Grid search** tries every combination in a fixed menu. Four settings with five values each require \(5^4=625\) configurations before any cross-validation fits.
+**Random search** samples settings from specified ranges. It often covers more distinct useful values when only a few settings matter. A small grid still suits a short meaningful menu.
 
-**Random search** samples configurations from specified ranges. With a fixed budget, it often explores more distinct values of an important setting when other settings matter little. A small grid is still sensible for a short, meaningful menu.
+## 3. Search across scales
 
-For a positive scale parameter such as regularization strength, a logarithmic range gives comparable attention to orders of magnitude:
+Positive scale parameters often need a logarithmic range:
 
 ```text
 0.001, 0.01, 0.1, 1, 10, 100
 ```
 
-A uniform draw from 0.001 to 100 puts nearly all its probability above 1. Choose the sampling distribution intentionally.
+These give comparable attention to orders of magnitude. Uniform sampling from 0.001 to 100 puts almost all draws above 1.
 
-## 3. Spend expensive fits carefully
+## 4. Allocate expensive fits
 
-**Successive halving** starts many configurations with small resource budgets, then gives survivors more resources. It can discard slow starters, so the early ranking must be informative.
+**Successive halving** starts many configurations cheaply and gives survivors more resources. It can discard slow starters.
 
-**Bayesian optimization** models the relationship between settings and scores to choose promising or informative next trials. It adds overhead and does not guarantee a better result at every budget.
+**Bayesian optimization** models settings versus scores to choose promising or informative next trials. Its overhead may outweigh its benefit for cheap fits or small budgets.
 
-For 30 configurations with five-fold CV, plan for roughly 150 fits plus refitting. Log data version, folds, settings, score, runtime, and failures.
+## 5. Count runs and reserve assessment
 
-## 4. Evaluate the selected procedure honestly
+Thirty configurations with five-fold CV cost roughly 150 fits, plus a final refit. Thirty total fits permit only about six such configurations.
 
-Repeated search can overfit validation noise. Use a final untouched holdout or nested CV for the final performance estimate.
+Log data version, folds, settings, score, and runtime. Search complete pipelines; use the independent testing or nested-CV strategy already established. More trials also create more opportunities to select a lucky validation score.
 
-Use identical folds and the same deployment constraints across candidates. Model-specific preprocessing may differ legitimately; compare complete pipelines on the same held-out examples.
+## 6. Interview reasoning
 
-Do not declare a winner solely from one mean or from whether the difference exceeds fold standard deviation. Inspect paired differences and appropriate uncertainty, then ask whether the improvement is valuable enough to justify its cost.
+**Question:** You have six settings and only 30 total fits. How would you start?
 
-> **Mental image:** search is a controlled experiment, not a slot machine. A larger trial budget also increases the chance of selecting a lucky score.
+**Answer:** Narrow to influential settings and try a small randomized budget. Account for folds and refitting explicitly, then assess the selected procedure independently.

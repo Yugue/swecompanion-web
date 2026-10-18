@@ -1,50 +1,52 @@
 ## Interpretability and feature importance
 
-**Interpretability** concerns understanding how a model uses inputs to produce predictions. An explanation can describe the model overall or one particular prediction; those are different questions.
+## 1. State which explanation is needed
 
-## 1. Global versus local
+**Interpretability** concerns understanding how inputs produce model outputs. A **global** explanation describes overall behavior; a **local** explanation describes one prediction.
 
-| Question | Scope | Useful methods |
-|---|---|---|
-| Which inputs does the model rely on overall? | Global | Permutation importance; aggregate attributions |
-| How does its prediction change across a feature? | Global or individual | Partial dependence; individual effect curves |
-| Why this output for this example? | Local | Coefficients, decision path, feature attributions |
+A **post-hoc** method analyzes a fitted model rather than making its structure directly readable.
 
-A small tree or linear model can be inspected directly, although correlated inputs can still complicate interpretation. **Post-hoc methods** analyze an already fitted model rather than making the model itself transparent.
+## 2. Test reliance with permutation
 
-## 2. Permutation importance tests reliance
-
-**Permutation importance** shuffles one feature in held-out data and measures how much the chosen score worsens.
+**Permutation importance** shuffles one feature in held-out data and measures the score drop.
 
 ```python
 permutation_importance(model, X_val, y_val,
                        scoring="roc_auc", n_repeats=10, random_state=0)
 ```
 
-A large drop suggests the fitted model relies on that feature for this metric and dataset. Correlated inputs can substitute for one another, hiding individual importance; shuffling can also create implausible input combinations. Consider grouped permutations where justified.
+A large drop indicates reliance for that metric and population. Correlated inputs can substitute for each other; shuffling can create implausible combinations. Grouped permutations may be more appropriate.
 
-Tree impurity importance summarizes training split gains and can favor continuous or high-cardinality features. It is not a direct measure of held-out predictive value.
+## 3. Divide a prediction into contributions
 
-## 3. SHAP distributes a prediction across inputs
-
-**SHapley Additive exPlanations (SHAP)** uses a Shapley-value attribution framework to express an output relative to a reference:
+**SHapley Additive exPlanations (SHAP)** allocates an output relative to a reference by averaging each feature's added contribution across different feature subsets:
 
 \[
 f(x)=\phi_0+\sum_j\phi_j
 \]
 
+\(f(x)\) is the explained output; \(\phi_0\) the reference output; \(\phi_j\) feature \(j\)'s attribution.
+
 ```aml-visual
 feature-attributions
 ```
 
-The output scale matters. Contributions that add in log-odds cannot be added directly to probabilities. The reference dataset and the way missing features are represented affect attribution; different SHAP methods make different dependence assumptions, and some are approximations.
+The output scale, reference data, and treatment of missing features affect the allocation. Some methods approximate it; probability and log-odds contributions are not interchangeable.
 
-Additivity explains the model's output under that attribution setup. It does not establish which feature caused the outcome in reality.
+## 4. Inspect predicted effects
 
-## 4. Effects and causes are separate
+A **partial dependence plot (PDP)** varies a feature and averages model predictions. **Individual conditional expectation (ICE)** retains a separate curve per example.
 
-A **partial dependence plot (PDP)** averages predictions while varying a chosen feature. **Individual conditional expectation (ICE)** keeps a curve per example, exposing differences hidden by the average. Both can evaluate unrealistic feature combinations when inputs are correlated.
+ICE can expose differing effects hidden by an average. Both can evaluate unrealistic combinations when inputs are related.
 
-If support contacts predict churn, discouraging customers from contacting support is not thereby a valid intervention. A causal conclusion needs experimental evidence or a justified causal design.
+## 5. Separate reliance from causation
 
-> **Mental image:** an explanation is a map of the model's reasoning under stated assumptions. Check the map's scale, reference, and blind spots before using it to act.
+Tree impurity importance summarizes training split gains and can favor features with many split opportunities. It is different from held-out importance.
+
+If support contacts predict churn, discouraging contact is not thereby a valid retention action. Model explanations do not establish intervention effects; use experiments or a justified causal design.
+
+## 6. Interview reasoning
+
+**Question:** Does a small permutation score prove a feature is useless?
+
+**Answer:** No. Another correlated input may substitute for it. Inspect dependence, grouped tests, the metric, and the evaluated population.

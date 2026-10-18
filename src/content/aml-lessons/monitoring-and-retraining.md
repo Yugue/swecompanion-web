@@ -1,41 +1,47 @@
 ## Monitoring, drift, and retraining
 
-**Model monitoring** checks service health, input quality, predictions, and outcomes after deployment. **Drift** is a change in the data distribution or its relationship with the target. A deployed model may degrade; decline is not inevitable or automatically repaired by retraining.
+## 1. Observe the deployed system
 
-## 1. Observe what is available now and later
+**Model monitoring** checks service health, inputs, predictions, and outcomes. **Drift** means a distribution or input–outcome relationship changes.
 
-| Layer | Example signals | When available |
-|---|---|---|
-| Service and inputs | Latency, errors, missing rates, units, feature age | Immediately |
-| Predictions | Score distribution, flag rate, slice volumes | Immediately |
-| Outcomes | Precision, recall, calibration, business impact | After labels or outcomes arrive |
+A drift signal is evidence to investigate; it does not by itself prove prediction quality fell.
 
-If a feature's missing rate jumps from 2% to 31%, investigate before waiting a month for churn labels. A changing flag rate is a useful clue, not a diagnosis. A fixed top-500 queue may keep its count constant even while ranking quality deteriorates.
+## 2. Separate immediate and delayed signals
 
-## 2. Name the distribution change carefully
+| Available now | Available after outcomes |
+|---|---|
+| Errors, latency, feature age | Prediction quality |
+| Missing rates, units, ranges | Precision, recall, calibration |
+| Score and action distributions | Useful product outcomes |
 
-| Type | Formal meaning | Example |
-|---|---|---|
-| Covariate shift | P(x) changes while P(y given x) stays fixed | More customers from an already understood region |
-| Label shift | P(y) changes while P(x given y) stays fixed | Different class proportions under that assumption |
-| Concept drift | P(y given x) changes | The same behavior now indicates a different outcome |
+A missing rate rising from 2% to 31% warrants immediate inspection. A top-500 queue can retain its size while quality deteriorates.
 
-Real changes can mix these cases. Input drift alone does not prove quality loss. A well-specified model may remain accurate under some covariate shifts; loss of coverage is a different concern.
+## 3. Name the changed relationship
 
-Recalibration may help changed probability meaning. Concept drift generally requires recent outcome evidence. Retraining on unchanged old labels cannot teach a newly changed relationship.
+Let \(x\) denote inputs, \(y\) outcomes, and \(P\) their probability distributions:
 
-## 3. Investigate before triggering retraining
+| Change | Definition |
+|---|---|
+| Covariate shift | \(P(x)\) changes; \(P(y\mid x)\) stays fixed |
+| Label shift | \(P(y)\) changes; \(P(x\mid y)\) stays fixed |
+| Concept drift | \(P(y\mid x)\) changes |
 
-Compare recent and reference distributions using meaningful windows, effect sizes, and counts. Simple schema, range, missingness, and freshness checks often reveal pipeline faults.
+Real changes can mix these cases. More traffic from an already understood group need not require a new predictive relationship.
 
-Statistical tests or binned drift measures can add evidence, but universal alarm cutoffs are unreliable. Large samples make tiny changes statistically detectable; many monitored features create multiple-testing issues.
+## 4. Match the response to the cause
 
-Match the response to the cause: repair a broken join, improve coverage, adjust a validated policy, recalibrate, or retrain. Do not train on broken inputs merely because an alarm fired.
+A broken join needs repair. Lost coverage may need representative examples. Changed probability meaning may need recalibration. Changed outcome relationships need recent labelled evidence.
 
-## 4. Validate every update and watch feedback
+Compare meaningful windows and effect sizes. Huge samples can flag tiny changes; one universal statistical alarm cutoff is unreliable.
 
-Evaluate a candidate on a recent suitable holdout, important slices, calibration, and operating constraints. Recheck its threshold, roll out with monitoring, and keep rollback available. A retraining schedule is not a quality guarantee.
+## 5. Validate updates and feedback
 
-**Feedback loops** occur when decisions change the outcomes later observed. Blocked transactions may never reveal whether fraud would have occurred. Log decisions and label availability; an unobserved counterfactual outcome cannot simply be logged as ground truth. Appropriate experiments or evaluation designs may be needed.
+Assess candidates on recent suitable holdouts, slices, calibration, and serving constraints. Recheck the action policy and keep rollback available.
 
-> **Mental image:** immediate sensors report the instrument's condition; delayed outcomes report whether its predictions still help.
+A **feedback loop** occurs when decisions affect later observations. A blocked purchase may never reveal whether fraud would have occurred. Log actions and label availability; unobserved outcomes cannot simply become negative labels.
+
+## 6. Interview reasoning
+
+**Question:** Input drift fired an alarm. Should retraining start automatically?
+
+**Answer:** First identify the change and its consequences. Fix pipeline faults before training, and require evidence that a validated update improves the deployed decision.

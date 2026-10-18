@@ -1,46 +1,52 @@
 ## Choosing k and evaluating clusters
 
-**Clustering evaluation** asks whether a partition captures useful structure. Without reference labels, there is no ordinary target accuracy to compute—but geometry, stability, and downstream use still provide evidence.
+## 1. Seek several kinds of evidence
 
-## 1. Inertia rewards extra centers
+**Clustering evaluation** assesses geometry, repeatability, reference agreement, and usefulness. Without target labels, ordinary predictive accuracy is unavailable.
 
-For k-means, **inertia** is the sum of squared distances to assigned centers. Its best achievable value cannot increase as \(k\) grows; with one center per distinct observation it can reach zero.
+A stable partition can still reflect an irrelevant measurement scale.
 
-The **elbow method** looks for diminishing improvement, rather than minimizing inertia:
+## 2. Read an elbow cautiously
 
-| k | Illustrative inertia | Reduction from previous k |
-|---|---|---|
-| 2 | 900 | — |
-| 3 | 450 | 450 |
-| 4 | 400 | 50 |
-| 5 | 370 | 30 |
+The **elbow method** looks for diminishing inertia improvements as center count grows:
 
-Here 3 is a candidate, not a proven true cluster count. Real curves often have no clear elbow, and fitted local optima can disrupt the ideal monotonic pattern.
+| Centers | Inertia |
+|---|---|
+| 2 | 900 |
+| 3 | 450 |
+| 4 | 400 |
+| 5 | 370 |
 
-## 2. Silhouette measures separation
+Three is a candidate, not a proven true count. Optimal inertia cannot increase with more centers; fitted local optima can obscure that pattern.
 
-For a point, let \(a\) be its mean distance to other points in its own cluster. Let \(b\) be the smallest mean distance to points in any other cluster.
+## 3. Measure local separation
+
+**Silhouette** compares within-cluster closeness with the nearest alternative cluster:
 
 \[
 s=\frac{b-a}{\max(a,b)}
 \]
 
-With \(a=2\) and \(b=5\), silhouette is 0.6. Near 1 means strong separation under that metric, near 0 weak separation, and negative values suggest a closer alternative cluster.
+\(a\) is a point's mean distance to others in its cluster; \(b\) the smallest mean distance to any other cluster. At \(a=2,b=5\), \(s=0.6\).
 
-Inspect per-cluster scores and sizes, not only the mean. Silhouette favors certain compact, separated shapes and can undervalue useful nonconvex clusters. A singleton has a defined implementation convention rather than the ordinary within-cluster mean.
+Near 1 indicates separation, near zero overlap, and negative values a closer alternative. Singletons need an implementation convention.
 
-## 3. Check reproducibility without mistaking it for truth
+## 4. Check partition repeatability
 
-Refit on suitable resamples or later periods. Compare assignments for common observations, or evaluate both fitted rules on a common reference set when they support new-point assignment.
+Refit on suitable resamples or later periods; compare assignments for common examples.
 
-**Adjusted Rand index (ARI)** compares whether pairs of points are grouped together, correcting for chance. It is unchanged by renaming cluster IDs. One means identical partitions; values near zero indicate chance-level agreement under its reference model, and negative values are possible.
+**Adjusted Rand index (ARI)** compares pairwise grouping agreement while correcting for chance. It ignores cluster names: 1 means identical partitions, near zero chance-level agreement under its reference model; negative values are possible.
 
-Stable partitions can still be unhelpful—for example, stable groups caused by an irrelevant measurement scale.
+If external reference groups exist, ARI can compare against them too.
 
-## 4. Use independent reference and product evidence
+## 5. Verify what the groups enable
 
-If reference groups exist, ARI or other partition measures can compare against them. Raw cluster accuracy is misleading because IDs are arbitrary.
+Inspect sizes, representative examples, and feature distributions. Silhouette favors certain compact shapes and may undervalue useful irregular clusters.
 
-Profile groups with sizes, representative examples, and feature distributions. Ask whether the groups support a meaningful action or reveal a reproducible pattern. Validate any claimed campaign benefit experimentally rather than assuming distinct groups imply distinct treatment effects.
+Ask whether the groups support a meaningful action. Distinct customer segments do not establish different responses to a campaign; test that claimed benefit separately.
 
-> **Mental image:** geometry proposes a partition, resampling tests its repeatability, and the intended use decides whether it matters.
+## 6. Interview reasoning
+
+**Question:** Marketing wants the right number of segments. Can one metric decide?
+
+**Answer:** Use geometry to propose candidates, resampling to assess repeatability, and the intended action to judge usefulness. A single score does not establish a natural count.

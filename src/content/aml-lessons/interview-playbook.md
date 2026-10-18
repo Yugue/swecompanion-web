@@ -1,44 +1,46 @@
 ## Answering a Basics-of-ML interview question
 
-A clear technical answer gives a definition, explains the mechanism with an example, and states the limits. Adapt its depth to the interviewer's question rather than listing every related concept.
+## 1. Reuse the explanation pattern
 
-## 1. Use a compact explanation structure
+Consolidate the earlier lessons:
 
 ```text
 define → explain the mechanism → work an example → state the tradeoff
 ```
 
-Clarify an ambiguous task or constraint before committing to a design. For a straightforward definition question, answer it directly; a follow-up question should help the discussion rather than delay the explanation.
+Answer the named concept first. Clarify only the ambiguity that affects the answer, then let follow-up questions guide depth.
 
-Avoid changing subjects while clarifying. If asked about a loss function, explain the loss before moving into metrics or threshold policies.
+## 2. Frame one fraud case
 
-## 2. A complete example: log loss
+Suppose analysts can review 100 transactions daily. State the prediction time, available inputs, fraud-label window, review budget, and error costs.
 
-> “Log loss measures how much probability a classifier assigns to the observed class. For a positive example, it is −log(p). Predicting 0.9 costs about 0.105; predicting 0.1 costs about 2.303. It therefore penalizes a confident wrong prediction strongly. Logistic regression minimizes this objective to fit probabilities. I would still check calibration on held-out data; the loss alone does not guarantee a correct probability model.”
+Choose whether the output supports ranking, risk estimation, or automatic decisions. They need different evidence.
 
-This answer defines the concept, shows what it does numerically, connects it to fitting, and states a practical limit.
+## 3. Build a credible comparison
 
-A useful next clarification is whether the interviewer wants the gradient, multiclass extension, or comparison with another loss.
+Use the split that matches deployment and reconstruct historically available inputs. Compare existing rules with a simple fitted model.
 
-## 3. For a design question, lead with the decision
+If rules find 24 frauds and the model finds 37 in the same 100-review budget, the useful improvement is 13 additional detections. Assess uncertainty and relevant slices before claiming a dependable gain.
 
-For “build a fraud model,” establish:
+## 4. Explain one mechanism numerically
 
-1. The action: block, review, or rank cases for analysts.
-2. The example: one transaction at a stated prediction time.
-3. The label: confirmed fraud under a defined observation window.
-4. The constraints: false-alarm cost, missed-fraud cost, latency, and review capacity.
-5. The evaluation: deployment-matched split, current-system baseline, and decision-relevant metrics.
+For a positive case, log loss is \(-\log p\), where \(p\) is its predicted positive probability.
 
-Then discuss features, a simple model, error analysis, serving, and monitoring. State assumptions when the prompt does not provide enough detail.
+Probabilities 0.9 and 0.1 cost approximately 0.105 and 2.303. This explains the penalty for a confident mistake. Check held-out calibration if probabilities estimate monetary risk.
 
-## 4. Make claims precise
+## 5. Defend the next action
 
-| Weak claim | More useful statement |
+| Evidence | Reasoned next step |
 |---|---|
-| “Accuracy is bad.” | “At 0.1% prevalence, all-negative accuracy is 99.9% with zero recall.” |
-| “More data fixes overfitting.” | “The learning curve is improving with sample size, so more representative data is worth testing.” |
-| “This feature causes churn.” | “The model relies on this feature; causal impact needs separate evidence.” |
-| “B is better by 0.4%.” | “B improves the paired estimate by 0.4 percentage points; here is its uncertainty and operating cost.” |
+| Missing histories explain costly errors | Test an available history feature |
+| Training fit improves, validation worsens | Check overfitting and pipeline consistency |
+| Offline quality improves but features are too slow | Revisit the full serving path |
+| Live probabilities lose frequency meaning | Investigate drift and calibration |
 
-When uncertain, state the part you know, identify the assumption, and explain how you would verify it. Stop once the question is answered and let the follow-up guide the next level of detail.
+These apply earlier mechanisms; adding model names does not strengthen the argument.
+
+## 6. Interview reasoning
+
+**Question:** The candidate beats rules offline. What remains before broad deployment?
+
+**Answer:** Confirm independent evaluation, important slices, costs, and complete serving behavior. Roll out with a supported fallback and monitoring; measure the policy's effect where appropriate.

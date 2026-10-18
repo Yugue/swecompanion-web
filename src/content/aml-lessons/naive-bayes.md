@@ -1,56 +1,55 @@
 ## Naive Bayes
 
-**Naive Bayes** is a classifier that combines a class's prior probability with per-feature evidence, assuming features are conditionally independent given the class.
+## 1. Combine prior belief and feature evidence
 
-**Conditionally independent** means that, once the class is known, observing one feature is assumed not to change the probability of another.
+**Naive Bayes** classifies by assuming features are **conditionally independent**: once the class is known, one feature does not change another's probability.
 
-## 1. Prior × evidence
+That assumption lets it multiply simple per-feature estimates.
 
-Bayes' rule gives:
+## 2. Score each class
 
 \[
 P(y\mid x)\propto P(y)\prod_jP(x_j\mid y)
 \]
 
-The **prior** \(P(y)\) is the class probability before seeing the features. The product is the evidence under the independence assumption. Normalize the resulting class scores to obtain probabilities.
+\(y\) is a candidate class; \(x_j\) feature \(j\). The **prior** \(P(y)\) is class frequency before observing features. \(P(x_j\mid y)\) measures feature evidence within that class. Normalize class scores to obtain probabilities.
 
-For two binary word indicators:
+## 3. Work a tiny text example
+
+For a model containing only two binary word indicators:
 
 ```text
-P(spam) = 0.2      P(free|spam) = 0.5      P(money|spam) = 0.4
-P(legit) = 0.8     P(free|legit) = 0.05    P(money|legit) = 0.02
-
-spam score  = 0.2 × 0.5 × 0.4   = 0.04
-legit score = 0.8 × 0.05 × 0.02 = 0.0008
-normalized spam probability = 0.04 / 0.0408 ≈ 0.980
+spam:  0.2 prior × 0.5 for “free” × 0.4 for “money” = 0.0400
+legit: 0.8 prior × 0.05           × 0.02            = 0.0008
+spam probability = 0.0400 / 0.0408 ≈ 0.980
 ```
 
-This is a tiny model with only these two indicators. A full binary-word model includes evidence from absent indicators too.
+A full binary-word model also accounts for absent indicators.
 
-## 2. Choose a feature distribution
+## 4. Match the feature distribution
 
-| Variant | Representation | What it estimates |
-|---|---|---|
-| Multinomial | Nonnegative word counts | Word probabilities within each class |
-| Bernoulli | Binary presence/absence | Probability each indicator is present |
-| Gaussian | Continuous values | A mean and variance per feature and class |
+| Variant | Feature model |
+|---|---|
+| Multinomial | Nonnegative counts, such as word occurrences |
+| Bernoulli | Presence and absence indicators |
+| Gaussian | Per-class bell-shaped continuous features |
 
-The independence assumption can be inaccurate, yet class ordering may still be useful. Validate the predictions rather than assuming the approximation works.
+Different variants make different distribution assumptions.
 
-## 3. Smoothing avoids zero evidence
+## 5. Avoid zero and tiny products
 
-An unseen word would receive probability zero in an unsmoothed count model, wiping out the product. **Additive smoothing** adds a small pseudo-count:
+**Additive smoothing** adds pseudo-counts to word estimates:
 
 \[
 P(\text{word }j\mid y)=\frac{N_{jy}+\alpha}{N_y+\alpha V}
 \]
 
-Here \(N_{jy}\) counts that word in class \(y\), \(N_y\) counts all word occurrences in that class, and \(V\) is vocabulary size. \(\alpha=1\) is add-one smoothing.
+\(N_{jy}\) counts word \(j\) in class \(y\); \(N_y\) counts all word occurrences there; \(V\) is vocabulary size; \(\alpha>0\) controls smoothing. At \(\alpha=1\), this is add-one smoothing.
 
-Implementations sum log-probabilities to avoid underflow from multiplying many tiny numbers.
+Sum log-probabilities to avoid numerical underflow from tiny products.
 
-## 4. Fast baseline, cautious confidence
+## 6. Interview reasoning
 
-Naive Bayes is inexpensive and often useful for sparse text. Correlated features can count the same evidence repeatedly and produce overconfident probabilities. This is a common failure, not a mathematical inevitability of every dataset.
+**Question:** Why can this fast text baseline produce extreme confidence?
 
-If probabilities drive expected cost, check calibration on held-out data. Gaussian Naive Bayes can have curved boundaries when class variances differ; not all variants are linear classifiers.
+**Answer:** Correlated features can count the same evidence repeatedly under the independence assumption. Validate class quality and calibrate probabilities when decisions need them.

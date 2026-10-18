@@ -1,57 +1,56 @@
 ## Features, labels, and a training example
 
-A **training example** is one input the model learns from. **Features** describe that input; a **label** is the target to predict in supervised learning.
+## 1. Define one example
 
-For a delivery estimate made at checkout, one example is one order:
+A **training example** is one input used for learning. **Features** describe that input; the **label** is its supervised target.
 
-| Distance | Historical prep time | Open orders | Label: delivery time |
-|---|---|---|---|
-| 2.4 km | 11 min | 6 | 34 min |
-| 5.1 km | 26 min | 2 | 58 min |
+For a checkout delivery estimate, one example is one order:
 
-The first three columns are available at checkout. The final column becomes known after delivery.
+| Distance | Historical prep time | Delivery label |
+|---|---|---|
+| 2.4 km | 11 min | 34 min |
+| 5.1 km | 26 min | 58 min |
 
-## 1. State what one row means
+## 2. Arrange the table
 
-For tabular data, the **design matrix** \(X\) has one row per example and one column per feature:
+A **design matrix** stores examples as rows and numeric features as columns:
 
 \[
-X\in\mathbb{R}^{n\times d},\qquad y\in\mathbb{R}^{n}
+X\in\mathbb R^{n\times d},\qquad y\in\mathbb R^n
 \]
 
-Here \(n\) is the number of examples and \(d\) the number of numeric feature columns. This shape describes a single numeric target; images, sequences, and multiple targets need other shapes.
+\(X\) holds the features, \(y\) one numeric label per row, \(n\) the example count, and \(d\) the feature count. Multiple targets or image inputs need different shapes.
 
-“One row per user” and “one row per user per Monday” create different datasets. Name the unit before designing features or splits.
-
-## 2. Attach a prediction time
+## 3. Seal inputs at prediction time
 
 ```text
-past order history → checkout / prediction time t → delivery → label known
-                     ↑
-            every feature must be available here
+available history → checkout: predict → delivery → label becomes known
 ```
 
-An arriving request can supply features at \(t\); they need not exist strictly before it. A courier assigned after checkout is unavailable for this prediction, even if that courier is recorded in today's warehouse.
+A request may supply features at checkout. A courier assigned afterward is unavailable for that prediction.
 
-Using information unavailable at prediction time is **data leakage**. Reconstruct historical features as they were known then, including data arrival delays.
+**Data leakage** means using information unavailable in the claimed prediction or evaluation setting. Historical inputs must respect data arrival and correction times too.
 
-## 3. Define the label precisely
+## 4. Make the label reproducible
 
-For churn, replace “customer churned” with a reproducible definition:
+Replace “churn” with a specific outcome:
 
 ```text
-unit:       active subscriber scored on Monday
+unit:       active subscriber scored each Monday
 label:      no sessions in the next 30 days
-exclusion:  billing cancellations handled separately
-available:  after the full 30-day window and reporting delay
+known:      after 30 days plus reporting delay
 ```
 
-A subscriber observed for only ten days has an incomplete outcome, not an automatic negative label.
+Ten observed days cannot establish a negative 30-day label.
 
-## 4. Check availability in the product
+## 5. Check the product contract
 
-A valid feature must be available within the serving budget, using the same definition used during training. A nightly score can use different data sources from an instant checkout decision.
+“One row per user” differs from “one row per user per week.” The choice changes labels, dependence between rows, and evaluation.
 
-Labels can be incomplete or noisy. A click means “clicked after being shown,” not “would prefer this over every unseen alternative.”
+Every feature must also be available within the live decision's time budget. Today's warehouse contents do not establish historical availability.
 
-> **Mental image:** each row is a time capsule. Seal the input at prediction time; attach the outcome when it becomes observable.
+## 6. Interview reasoning
+
+**Question:** Can a checkout ETA model use the courier's eventual arrival time at the restaurant?
+
+**Answer:** No. That future event is unavailable at checkout. Use information known then, such as historical preparation estimates.

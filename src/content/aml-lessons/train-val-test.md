@@ -1,49 +1,55 @@
 ## Train, validation, and test splits
 
-A **data split** separates examples used for learning from examples used for evaluation. Train, validation, and test sets have different jobs.
+## 1. Separate three jobs
 
-## 1. Three roles
+A **data split** assigns different examples to fitting, development choices, and final evaluation.
+
+| Set | Role |
+|---|---|
+| Training | Fit model values and preprocessing statistics |
+| Validation | Choose features, settings, and action thresholds |
+| Test | Assess the fixed procedure |
+
+## 2. Picture the separation
 
 ```aml-visual
 data-splits
 ```
 
-- **Training:** fit parameters and preprocessing statistics.
-- **Validation:** choose features, model family, hyperparameters, and thresholds.
-- **Test:** estimate performance after those choices are fixed.
+The 60/20/20 proportions are illustrative. Choose sizes that leave enough important outcomes for evaluation.
 
-A 60/20/20 split is an example, not a requirement. Ensure evaluation has enough examples of important outcomes. With limited data, **cross-validation** rotates held-out folds through the validation role.
+**Cross-validation** rotates subsets through the validation role when one holdout would waste scarce data.
 
-Repeatedly changing the model after seeing test results makes that set part of development. A fresh evaluation is then needed for an independent final estimate.
+## 3. Match the deployment claim
 
-## 2. Make the split match deployment
-
-| What must the model handle? | Suitable evaluation |
+| Must handle | Split design |
 |---|---|
-| New independent examples from the same population | Random split |
-| Previously unseen patients or customers | Hold entire entities out |
-| Future transactions | Train on earlier data, evaluate later |
-| Both new entities and future periods | Enforce both restrictions |
+| New independent examples | Random |
+| Unseen patients or customers | Hold entire entities out |
+| Future events | Train earlier, evaluate later |
+| Unseen entities in the future | Enforce both restrictions |
 
-The same customer appearing in train and validation is not automatically leakage. It may match predicting that customer's future purchases. It is unsuitable for estimating performance on entirely new customers.
+**Stratification** preserves approximate class proportions. It cannot override group or time restrictions.
 
-For classification, **stratification** preserves approximate class proportions. It does not fix time or group leakage; those restrictions come first.
+## 4. Respect label delays
 
-## 3. Account for label availability
+Training on July 1 with 30-day churn labels cannot use complete labels for June 25 snapshots. Their outcomes have not matured.
 
-Imagine training a churn model on July 1 using a label that needs 30 days to mature. A June 25 snapshot has no complete label yet. Exclude it from that historical training run.
+A time split may need a gap or removal of overlapping outcome windows. Size it from actual availability and dependence, not a fixed percentage.
 
-A temporal evaluation may therefore need a gap or removal of overlapping outcome windows. Size that gap from label availability and dependence, rather than from an arbitrary percentage.
+## 5. Fit the whole procedure inside training
 
-New request features can still be used at prediction time even when recent labels are unavailable.
-
-## 4. Fit transformations inside training
+A **pipeline** bundles learned transformations with a model:
 
 ```python
-pipe.fit(X_train, y_train)  # learns imputation, scaling, and model values
+pipe.fit(X_train, y_train)
 scores = pipe.predict_proba(X_val)[:, 1]
 ```
 
-A **pipeline** bundles transformations with a model. During cross-validation, each fold must fit its own pipeline. Computing a mean, encoding, or feature selection using evaluation rows leaks information into the process being evaluated.
+Validation receives stored transformations. Repeated test-driven edits turn the test set into development data; a fresh assessment is then needed.
 
-> **Mental image:** training is practice, validation is rehearsal, and test is the final assessment. Rehearsing on the final questions changes what the assessment measures.
+## 6. Interview reasoning
+
+**Question:** Is the same customer appearing on both sides always leakage?
+
+**Answer:** It depends on the claim. It can match future predictions for existing customers, but cannot assess generalization to entirely unseen customers.

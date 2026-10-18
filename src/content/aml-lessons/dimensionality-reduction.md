@@ -1,55 +1,45 @@
 ## Dimensionality reduction and principal component analysis
 
-**Dimensionality reduction** represents examples using fewer features. **Feature selection** retains original columns; **feature extraction** constructs new combined coordinates.
+## 1. Keep fewer useful coordinates
 
-Removing redundant or noisy dimensions can improve speed and stability, but can also discard useful signal.
+**Dimensionality reduction** represents examples with fewer features. **Feature selection** retains original columns; **feature extraction** constructs new coordinates.
 
-## 1. Why more columns can hurt
+The **curse of dimensionality** describes difficulties such as sparse coverage and less distinctive distances as dimension grows. Its severity depends on the data's useful structure.
 
-Irrelevant coordinates add noise to distances and give flexible models more chances to fit accidental patterns. Under common high-dimensional distributions, near and far distances become less distinct.
+## 2. PCA follows the broad axes
 
-This is part of the **curse of dimensionality**: covering a high-dimensional space densely can require far more samples. The effect depends on the data's structure and useful dimensions; it is not a universal rule that each feature requires exponentially more training data.
-
-## 2. PCA finds high-variance directions
-
-**Principal component analysis (PCA)** finds perpendicular directions of maximum variance in centered data, then projects examples onto a selected subset.
+**Principal component analysis (PCA)** finds perpendicular directions of maximum variance in centered data, then projects onto selected directions.
 
 ```aml-visual
 pca-projection
 ```
 
-The first **principal component** follows the widest spread. The next captures the greatest remaining variance while perpendicular to the first.
+The first component follows the widest spread; later components capture remaining spread perpendicular to earlier ones.
 
-For centered data \(X_c\), with chosen component directions in \(V_k\):
+## 3. Read the projection
 
 \[
 Z=X_cV_k
 \]
 
-\(Z\) is the lower-dimensional representation. The **explained variance ratio** is the fraction of training variance captured by a component.
+\(X_c\) is the centered \(n\)-row, \(d\)-feature matrix. \(V_k\) contains \(k\) chosen directions as columns; \(Z\) has \(k\) coordinates per row. Smaller \(k\) compresses more and discards more variation.
 
-## 3. Variance is not predictive value
+An **explained variance ratio** measures the fraction of training variance a component retains.
 
-PCA ignores labels. A low-variance direction could separate fraud from legitimate behavior; discarding it would hurt the target task despite retaining 95% of input variance.
+## 4. Separate variance from prediction value
 
-Center inputs. Scale first when different feature units should contribute comparably; raw-unit variance can be intentional in other applications. Fit every step on training folds only.
+PCA ignores labels. A low-variance direction might separate fraud from legitimate behavior; retaining 95% of variance can still lose that signal.
 
-```python
-pipe = Pipeline([
-    ("scale", StandardScaler()),
-    ("pca", PCA(n_components=0.95)),
-    ("model", LogisticRegression()),
-])
-```
+Center inputs, and scale when units should contribute comparably. Validate the downstream task, not just retained variance.
 
-PCA usually reduces model input size, not the number of raw measurements needed: computing a component can still require every original column.
+## 5. Choose the right reduction
 
-## 4. Choose the remedy for the goal
+Use selection to retain identifiable measurements or remove expensive inputs. PCA combines inputs, so computing its components may still require every raw measurement.
 
-Use selection when original features must remain identifiable or expensive measurements should be removed. Label-based selection belongs inside cross-validation.
+**t-SNE** and **UMAP** are nonlinear methods often used to explore local neighborhoods in low-dimensional plots. Apparent global distances and cluster sizes need caution. UMAP can also transform new inputs when fitted and validated appropriately.
 
-Use PCA when correlated numeric measurements can be compressed and validation confirms the tradeoff.
+## 6. Interview reasoning
 
-**t-SNE** and **UMAP** are nonlinear methods often used for exploration. Nearby points in their plots can reveal local structure, but apparent cluster sizes and global distances need caution. UMAP can transform new points and can be used as a model feature step when fitted and validated properly; it is not restricted to visualization.
+**Question:** Why can PCA hurt accuracy while retaining nearly all variance?
 
-> **Mental image:** PCA rotates a stretched cloud, then keeps its broad axes. It preserves spread, not necessarily the answer to your prediction problem.
+**Answer:** Spread is unrelated to the label objective. The discarded narrow direction may contain the information needed to distinguish outcomes.

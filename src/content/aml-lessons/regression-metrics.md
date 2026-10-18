@@ -1,48 +1,49 @@
 ## Regression metrics
 
-A **regression metric** measures the error of numeric predictions. Define prediction error as \(e_i=\hat y_i-y_i\), in the target's units.
+## 1. Measure numeric misses
 
-## 1. Average size versus large misses
+A **regression metric** scores numeric predictions. Let \(y_i\) be the actual outcome, \(\hat y_i\) its prediction, and \(e_i=\hat y_i-y_i\) the error for example \(i\).
+
+## 2. MAE, MSE, and RMSE
+
+For \(n\) examples:
 
 \[
-\text{MAE}=\frac1n\sum_i|e_i|,\qquad
-\text{MSE}=\frac1n\sum_i e_i^2,\qquad
+\text{MAE}=\frac1n\sum_i|e_i|,\quad
+\text{MSE}=\frac1n\sum_i e_i^2,\quad
 \text{RMSE}=\sqrt{\text{MSE}}
 \]
 
-**Mean absolute error (MAE)** counts each extra unit equally. **Mean squared error (MSE)** amplifies large misses. **Root mean squared error (RMSE)** returns squared error to the original units.
+**Mean absolute error** counts error size linearly. **Mean squared error** emphasizes large misses. Its square root, **RMSE**, restores target units.
 
-For delivery errors of 1, 1, and 7 minutes:
+## 3. Work one example
 
-```text
-MAE  = (1 + 1 + 7) / 3 = 3 minutes
-RMSE = sqrt((1 + 1 + 49) / 3) ≈ 4.12 minutes
-```
+Errors [1, 1, 7] minutes give MAE 3 minutes and RMSE approximately 4.12 minutes.
 
-RMSE is at least MAE. A large gap indicates unequal error magnitudes; inspect the tail rather than assuming exactly how many bad cases caused it. MAE is less sensitive to extremes than MSE, but extreme errors still affect it.
+RMSE is at least MAE. A large gap signals uneven error magnitudes; inspect the largest errors to understand why.
 
-## 2. R² compares against a mean
+## 4. Compare with a constant reference
+
+**R-squared** compares squared error with predicting the evaluation targets' mean \(\bar y\):
 
 \[
 R^2=1-\frac{\sum_i(y_i-\hat y_i)^2}{\sum_i(y_i-\bar y)^2}
 \]
 
-Here \(\bar y\) is the mean of the targets in the set being evaluated. R² = 0 matches that constant reference; R² < 0 is worse. A constant target makes the denominator zero and needs a reporting convention.
+Zero matches that reference; negative is worse. Constant targets require a zero-denominator convention. Adding features can reduce held-out R-squared.
 
-Held-out R² can decrease when features are added. The familiar “R² never falls” statement applies to training R² for nested, unregularized least-squares models fitted optimally with an intercept.
+## 5. Choose units that match the decision
 
-R² does not tell you whether a five-minute error is acceptable. Report an error in target units too.
+| Metric | Meaning | Main limitation |
+|---|---|---|
+| MAPE | Mean of \(100\lvert e_i/y_i\rvert\) | Undefined at zero; small targets dominate |
+| WAPE | Total absolute error / total actual magnitude | Undefined when the total is zero |
+| RMSLE | RMSE after \(\log(1+y)\) transforms | Usually requires nonnegative values |
 
-## 3. Percentage and logarithmic errors
+**Residuals** are actual minus predicted. Plot them against predictions and time to find systematic misses. Asymmetric costs may require a percentile target; the loss-functions lesson develops that choice.
 
-**Mean absolute percentage error (MAPE)** averages \(100|e_i/y_i|\). It is undefined at zero and heavily weights small actual values. For positive actual values and nonnegative predictions, overprediction is unbounded while underprediction cannot exceed 100%. Percentage errors also need care with negative targets.
+## 6. Interview reasoning
 
-**Weighted absolute percentage error (WAPE)** divides total absolute error by total actual magnitude. It avoids per-row zero divisions, but fails when the total is zero and emphasizes large-volume cases.
+**Question:** Is a model with lower RMSE always preferable?
 
-**Root mean squared logarithmic error (RMSLE)** compares \(\log(1+\hat y)\) with \(\log(1+y)\). For nonnegative targets, it emphasizes relative differences at larger values. It is not automatically appropriate for every skewed target.
-
-## 4. Match the decision and inspect residuals
-
-A **residual** is actual minus predicted, \(y-\hat y\). Plot residuals against predictions and time: curves can indicate a missing relationship; widening spread can indicate changing error variance.
-
-If underestimating demand costs more than overestimating it, evaluate an asymmetric cost or **quantile loss**, which targets a chosen percentile. Mean error alone cannot represent that decision.
+**Answer:** Only if that metric matches the decision. Compare error units, costly tails, important groups, and asymmetric consequences too.

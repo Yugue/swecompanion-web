@@ -1,49 +1,43 @@
 ## k-Means clustering
 
-**k-means** divides examples into \(k\) groups by assigning each to its nearest center, then moving each center to the mean of its assigned examples. A center is called a **centroid**.
+## 1. Group around centers
 
-## 1. Assign, average, repeat
+**k-means** assigns examples to \(k\) centers, then moves each center to its assigned examples' mean. A center is a **centroid**.
+
+> Assign points to magnets, then move each magnet to the middle of its followers.
+
+## 2. Follow one iteration
 
 ```aml-visual
 kmeans-step
 ```
 
-For one-dimensional points [0, 2, 8, 10] and initial centers [0, 8], the assignments are [0, 2] and [8, 10]. Their means are 1 and 9. Reassign using those updated centers and repeat until a stopping condition is reached.
+For one-dimensional points [0, 2, 8, 10], initial centers [0, 8] collect [0, 2] and [8, 10]. Their means become 1 and 9. Reassign and repeat.
 
-The objective, called **inertia**, is within-cluster squared distance:
+## 3. Define what improves
+
+**Inertia** is summed squared distance to assigned centers:
 
 \[
 J=\sum_{j=1}^{k}\sum_{x_i\in C_j}\lVert x_i-\mu_j\rVert^2
 \]
 
-\(C_j\) is a cluster and \(\mu_j\) its center. Standard exact assignment and mean updates do not increase this objective. Implementations also need rules for empty clusters and finite tolerances.
+\(x_i\) is example \(i\); \(C_j\) cluster \(j\); \(\mu_j\) its center. Exact assignment and mean updates cannot increase \(J\), but need not find its global minimum.
 
-## 2. Initialization can change the result
+## 4. Choose starts and geometry
 
-The objective is nonconvex, so different initial centers can produce different final clusters. The algorithm does not promise the global best partition.
+**k-means++** spreads initial centers through distance-weighted sampling. **Restarts** repeat fitting and retain the lowest-inertia result.
 
-**k-means++** spreads initial centers using distance-weighted sampling. Multiple **restarts** fit from several starts and retain the smallest inertia.
+Nearest-center regions have straight boundaries in Euclidean feature space. This geometry favors compact groups; it can split elongated groups or mishandle a ring around another cluster. Scaling and outliers change the result.
 
-```python
-KMeans(n_clusters=2, init="k-means++", n_init=10, random_state=0)
-```
+## 5. Evaluate the use and cost
 
-This specifies two clusters; the algorithm does not discover the intended count by itself.
+Supply \(k\); fitting does not discover the intended count. The cluster-evaluation lesson develops that choice. IDs are arbitrary: group 2 is not twice group 1.
 
-## 3. Geometry determines what it can find
+One assignment pass costs roughly \(O(nkd)\) for \(n\) examples and \(d\) features. **Mini-batch k-means** updates from subsets to reduce work, trading some fit quality for speed. New points use the stored centers.
 
-Each cluster is a region nearest to its center. Boundaries between centers are straight in the chosen Euclidean feature space; the regions form a **Voronoi partition**.
+## 6. Interview reasoning
 
-k-means often fits compact, similarly spread groups well. It can split elongated or unequal-density groups poorly and cannot represent a ring surrounding another cluster as one ordinary center-based region.
+**Question:** Does lower training inertia prove a better segmentation?
 
-Scale features when units should contribute comparably. Extreme observations can pull means strongly. Reducing irrelevant dimensions may help, but validate what the representation preserves.
-
-## 4. Evaluate usefulness and cost
-
-Increasing \(k\) cannot increase the globally optimal inertia; a higher \(k\) is not automatically a better segmentation. Check geometry, stability across resampling, and whether the groups serve a real purpose.
-
-An ordinary assignment step costs roughly \(O(nkd)\) for \(n\) examples and \(d\) features. **Mini-batch k-means** updates from subsets to reduce work; measure its quality tradeoff.
-
-For new examples, use the stored centers to assign a group. Cluster IDs have no intrinsic order: cluster 2 is not “twice” cluster 1.
-
-> **Mental image:** place magnets, let each point choose its closest magnet, then move each magnet to the middle of its followers.
+**Answer:** No. Extra centers can lower inertia without adding useful groups. Check geometry, repeatability, and whether the segmentation supports its intended use.

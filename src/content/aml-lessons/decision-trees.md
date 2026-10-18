@@ -1,56 +1,53 @@
 ## Decision trees
 
-A **decision tree** predicts by routing an example through feature tests to a **leaf**, a terminal group with a stored prediction.
+## 1. Route an example through questions
 
-## 1. Questions divide the input space
+A **decision tree** tests features until an example reaches a **leaf**, a terminal region storing a prediction.
 
 ```aml-visual
 decision-tree
 ```
 
-The same tree can be read as rules or as regions in feature space. Nested tests express an **interaction**: amount matters differently for new and older accounts.
+Nested tests express interactions: account age can matter only after amount exceeds a threshold.
 
-For classification, a leaf can predict its class proportions. For ordinary squared-error regression, it predicts its training targets' mean.
+## 2. Store a prediction in each leaf
 
-## 2. How training chooses a split
+Classification leaves can store class proportions. Ordinary squared-error regression leaves store their training targets' mean.
 
-A common training procedure tries candidate feature thresholds and chooses the largest weighted reduction in **impurity**, a measure of class mixture.
+All inputs reaching the same leaf receive the same stored prediction.
 
-For class proportions \(p_c\), **Gini impurity** is:
+## 3. Score a candidate split
+
+**Impurity** measures class mixture. **Gini impurity** is:
 
 \[
 I=1-\sum_c p_c^2
 \]
 
-A balanced binary node has impurity 0.5; a node containing only one class has impurity 0. The gain is:
+\(p_c\) is class \(c\)'s proportion in a node. A balanced binary node has impurity 0.5; a pure node has zero.
 
-\[
-\Delta I=I_{parent}-\sum_{child}\frac{n_{child}}{n_{parent}}I_{child}
-\]
+**Split gain** subtracts the child-size-weighted impurity from the parent impurity. Two equal children with proportions 90/10 and 10/90 each have Gini 0.18, giving gain 0.32.
 
-A split making two equally sized children with class proportions 90/10 and 10/90 reduces Gini from 0.5 to 0.18: gain 0.32.
+## 4. Limit fragile regions
 
-This is **greedy** fitting: improve the current split rather than search every possible complete tree. Different criteria, such as entropy or squared-error reduction, can choose different splits.
+Training is usually **greedy**: choose the best current split rather than the best complete tree.
 
-## 3. Control small, unreliable leaves
-
-A deep tree may isolate individual training examples, including noise. It cannot always reach zero error—for example, identical inputs with conflicting labels cannot be separated.
-
-| Control | What it limits |
+| Control | Restriction |
 |---|---|
-| `max_depth` | Number of successive questions |
-| `min_samples_leaf` | Smallest permitted leaf |
-| `max_leaf_nodes` | Total leaf count |
-| Pruning | Retains a smaller subtree using a complexity penalty |
+| Maximum depth | Successive questions |
+| Minimum leaf size | Evidence required per leaf |
+| Pruning | Retain a smaller subtree using a complexity penalty |
 
-Tune these on validation data. Small changes to training rows can change early splits and the predictions below them; this sample sensitivity motivates ensembles.
+A deep tree can memorize noise. Identical inputs with conflicting labels still cannot be separated.
 
-## 4. Strengths and limits
+## 5. Use the strengths and respect the limits
 
-Trees capture nonlinear thresholds and interactions, usually without feature scaling. Category and missing-value support depend on the implementation.
+Trees express nonlinear thresholds without ordinary scaling. Small data changes can alter early splits; ensembles reduce that sensitivity.
 
-An ordinary regression tree is piecewise constant. Beyond observed feature ranges it keeps routing to existing leaves rather than continuing a linear trend. Its leaf means remain within the training target range.
+A standard regression tree is piecewise constant. Outside observed input ranges it reuses existing leaves, rather than extending a trend. Category and missing-value support depend on the estimator.
 
-Built-in impurity importance can favor features with many possible split points. Check importance using held-out data when it informs decisions.
+## 6. Interview reasoning
 
-> **Mental image:** a flowchart cuts the feature map into rooms; every example reaching the same room receives the same leaf prediction.
+**Question:** Why can a minimum leaf size improve generalization?
+
+**Answer:** It prevents splits that rely on tiny groups and unstable target estimates. Too large a minimum can also remove useful local structure.
