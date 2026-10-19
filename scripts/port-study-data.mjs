@@ -182,7 +182,9 @@ function parseTopicList(varName) {
 }
 
 const coreStudyTopics = parseTopicList("coreStudyTopics");
-const challengeTopics = parseTopicList("challengeTopics");
+const challengeTopics = parseTopicList("challengeTopics").sort((a, b) =>
+  a.title.localeCompare(b.title, undefined, { numeric: true })
+);
 
 function slugify(title) {
   return title
@@ -198,7 +200,8 @@ function emitTopic(t, indent = "  ") {
   lines.push(`${indent}  slug: ${jsStr(slugify(t.title))},`);
   lines.push(`${indent}  group: ${jsStr(t.group)},`);
   lines.push(`${indent}  title: ${jsStr(t.title)},`);
-  lines.push(`${indent}  shortTitle: ${jsStr(t.shortTitle)},`);
+  const shortTitle = /^Round \d+$/.test(t.shortTitle) ? `Mixed Practice — ${t.shortTitle}` : t.shortTitle;
+  lines.push(`${indent}  shortTitle: ${jsStr(shortTitle)},`);
   lines.push(`${indent}  icon: ${jsStr(t.icon)},`);
   lines.push(`${indent}  color: ${jsStr(t.color)},`);
   lines.push(`${indent}  note: ${jsStr(t.note)},`);

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s · SWE Companion",
   },
   description:
-    "A free, in-depth study guide for software engineering interviews: LeetCode patterns by topic and a 57-lesson Google ML domain interview curriculum, with mock-interview practice quizzes.",
+    "A free, in-depth study guide for software engineering interviews: LeetCode patterns by topic and a 56-lesson Google ML domain interview curriculum, with mock-interview practice quizzes.",
   openGraph: {
     type: "website",
     siteName: "SWE Companion",

@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CV_DOMAIN, cvParts, cvPartsById, cvTopicCount } from "@/lib/cvStudyData";
+import { useChapterExpansion } from "@/lib/useChapterExpansion";
 import { useProgress } from "@/lib/useProgress";
 import { TopBar } from "@/components/TopBar";
 import { GuideControls, type ProblemFilter } from "@/components/guide/GuideControls";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { CvHero } from "@/components/cv/CvHero";
+import { MlHero } from "@/components/ml/MlHero";
 import { MlSidebar } from "@/components/ml/MlSidebar";
 import { MlPartDetails } from "@/components/ml/MlPartDetails";
 import { CV_PATH } from "@/lib/mlDomains";
@@ -17,7 +18,9 @@ export function CvHub() {
   const { completed, toggle, reset } = useProgress("cv", []);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ProblemFilter>("all");
-  const [openId, setOpenId] = useState<string | null>(cvParts[0]?.id ?? null);
+  const [openChapters, setOpenChapters] = useChapterExpansion(
+    "swe-companion:expanded-chapters:cv", cvParts[0]?.id
+  );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [collapsedResults, setCollapsedResults] = useState<Set<string>>(() => new Set());
@@ -29,16 +32,15 @@ export function CvHub() {
     const hash = window.location.hash.replace("#", "");
     const part = cvParts.find((p) => p.id === hash || p.topics.some((t) => t.id === hash));
     if (part) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setOpenId(part.id);
+      setOpenChapters((current) => new Set(current).add(part.id));
       requestAnimationFrame(() => {
         document.getElementById(part.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     }
-  }, []);
+  }, [setOpenChapters]);
 
   function jump(id: string) {
-    setOpenId(id);
+    setOpenChapters((current) => new Set(current).add(id));
     setQuery("");
     setFilter("all");
     setCollapsedResults(new Set());
@@ -111,7 +113,12 @@ export function CvHub() {
           <TopBar activeTrack="ml" onMenuPressed={() => setDrawerOpen(true)} />
 
           <main className="mx-auto max-w-4xl px-4 py-6 sm:px-8">
-            <CvHero />
+            <MlHero
+              domain={CV_DOMAIN}
+              lessonCount={cvTopicCount}
+              chapterCount={cvParts.length}
+              quizCount={cvParts.reduce((count, part) => count + part.quizQuestionCount, 0)}
+            />
 
             <div className="mb-5">
               <GuideControls
@@ -152,7 +159,7 @@ export function CvHub() {
                     key={part.id}
                     part={{ ...part, topics }}
                     completed={completed}
-                    open={filtering ? !collapsedResults.has(part.id) : openId === part.id}
+                    open={filtering ? !collapsedResults.has(part.id) : openChapters.has(part.id)}
                     onToggle={() => {
                       if (filtering) {
                         setCollapsedResults((current) => {
@@ -162,7 +169,13 @@ export function CvHub() {
                           return next;
                         });
                       } else {
-                        setOpenId((current) => current === part.id ? null : part.id);
+                        setOpenChapters((current) => {
+                          const next = new Set(current);
+                          if (next.has(part.id)) next.delete(part.id);
+                          else next.add(part.id);
+                          return next;
+                        });
+                        window.history.replaceState(null, "", window.location.pathname + window.location.search);
                       }
                     }}
                     onToggleTopic={toggle}

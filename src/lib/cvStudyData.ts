@@ -26,7 +26,7 @@ export const cvParts: CvPart[] = [
   {
     id: "images-and-signals", number: "1", title: "Foundations",
     description: "Understand the input before choosing an algorithm: capture, tensors, uncertainty, sampling, color, and filtering.",
-    color: "#4285F4", icon: "Shapes", quizQuestionCount: 0,
+    color: "#4285F4", icon: "Shapes", quizQuestionCount: 10,
     references: [{ title: "OpenCV image-processing tutorials", url: "https://docs.opencv.org/4.x/d2/d96/tutorial_py_table_of_contents_imgproc.html" }],
     topics: [
       topic("image-formation", "Image formation and digital representation", "A digital image is a grid of light measurements. Capture and encoding determine which scene details become usable pixel values.", ["Exposure time is how long light is collected; aperture is the lens opening. Both affect the visible evidence.", "A channel stores one measurement per pixel; image layout specifies the positions of height, width, channel, and batch axes."], "A camera works in daylight but fails at night. What changes in the input, and which changes can software recover?"),
@@ -40,7 +40,7 @@ export const cvParts: CvPart[] = [
   {
     id: "classical-vision", number: "2", title: "Classical vision: structure, geometry, and motion",
     description: "Extract regions, establish correspondences, recover geometry, and reason about motion from image evidence.",
-    color: "#34A853", icon: "Route", quizQuestionCount: 0,
+    color: "#34A853", icon: "Route", quizQuestionCount: 10,
     references: [{ title: "OpenCV features and matching", url: "https://docs.opencv.org/4.x/db/d27/tutorial_py_table_of_contents_feature2d.html" }, { title: "OpenCV camera geometry", url: "https://docs.opencv.org/4.x/d9/db7/tutorial_py_table_of_contents_calib3d.html" }],
     topics: [
       topic("gradients-and-edges", "Image gradients and edge detection", "An edge is a sharp intensity transition. An image gradient measures the size and direction of local intensity change.", ["Smoothing averages local fluctuations before differentiation, reducing unwanted responses to noise.", "Canny is an edge-detection algorithm that outputs thin binary boundary maps using gradients, thinning, and connected strong/weak responses."], "Why does an edge detector produce many responses on a textured wall but miss a low-contrast object?", ["filtering-and-restoration"]),
@@ -55,7 +55,7 @@ export const cvParts: CvPart[] = [
   {
     id: "learning-foundations", number: "3", title: "Learning foundations required for vision",
     description: "Learn only the neural-network and ML machinery needed to understand modern computer vision.",
-    color: "#EA4335", icon: "TrendingDown", quizQuestionCount: 0,
+    color: "#EA4335", icon: "TrendingDown", quizQuestionCount: 10,
     references: [{ title: "PyTorch neural-network fundamentals", url: "https://docs.pytorch.org/tutorials/beginner/basics/intro.html" }],
     topics: [
       topic("learning-and-splits", "Learning problems, baselines, and valid data splits", "Machine learning fits patterns from examples. Data splits separate fitting, model selection, and independent evaluation.", ["The prediction unit is what one answer describes: an image, object, pixel, or clip. Supervision supplies the learning targets.", "Data leakage makes evaluation optimistic when related sources or unavailable information cross training/evaluation boundaries."], "A video-frame classifier scores 99% on a random split and fails on new videos. What went wrong?", ["image-formation", "noise-and-probability"]),
@@ -69,7 +69,7 @@ export const cvParts: CvPart[] = [
   {
     id: "cnn-representations", number: "4", title: "Learning visual representations with CNNs",
     description: "Understand learned convolution, spatial reasoning, trainable depth, augmentation, and pretrained backbones.",
-    color: "#A142F4", icon: "Layers", quizQuestionCount: 0,
+    color: "#A142F4", icon: "Layers", quizQuestionCount: 10,
     references: [{ title: "PyTorch Conv2d reference", url: "https://docs.pytorch.org/docs/stable/generated/torch.nn.Conv2d.html" }, { title: "PyTorch transfer learning for vision", url: "https://docs.pytorch.org/tutorials/beginner/transfer_learning_tutorial.html" }],
     topics: [
       topic("convolution", "Convolution and learned feature maps", "A convolutional neural network (CNN) learns local filters and reuses their weights across image positions.", ["A feature map records a filter's spatial responses. Translation equivariance means moving an input also moves its responses.", "Depthwise convolution filters channels separately; pointwise convolution mixes channels at each spatial position."], "Compare the parameter counts and assumptions of a dense layer, standard convolution, and depthwise-separable convolution.", ["filtering-and-restoration", "neural-networks", "backpropagation"]),
@@ -83,7 +83,7 @@ export const cvParts: CvPart[] = [
   {
     id: "vision-tasks", number: "5", title: "Core vision tasks, objectives, and evaluation",
     description: "Connect outputs, model structure, supervision, losses, metrics, and failure modes for the major vision tasks.",
-    color: "#F29900", icon: "CircleDot", quizQuestionCount: 0,
+    color: "#F29900", icon: "CircleDot", quizQuestionCount: 10,
     references: [{ title: "Torchvision model families", url: "https://docs.pytorch.org/vision/stable/models.html" }, { title: "COCO evaluation implementation", url: "https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/cocoeval.py" }],
     topics: [
       topic("classification", "Image classification and decision-making", "Image classification predicts categories or properties for an image. Label relationships determine the output and decision rule.", ["Precision is the fraction of alerts correct; recall is the fraction of actual positives found. Accuracy can hide rare-class failures.", "A precision–recall curve compares thresholds. Real positive prevalence determines how scores translate into alert workload."], "A defect classifier has 99% accuracy but misses most defects. Explain the metric failure and choose a better decision rule.", ["losses-and-probabilities", "transfer-learning"]),
@@ -100,7 +100,7 @@ export const cvParts: CvPart[] = [
   {
     id: "modern-vision", number: "6", title: "Transformers and modern vision pretraining",
     description: "Learn attention, patch-based models, self-supervision, vision–language alignment, and promptable segmentation through their reusable ideas.",
-    color: "#00A6A6", icon: "Sparkles", quizQuestionCount: 0,
+    color: "#00A6A6", icon: "Sparkles", quizQuestionCount: 10,
     references: [{ title: "Vision Transformer paper", url: "https://arxiv.org/abs/2010.11929" }, { title: "Masked Autoencoders paper", url: "https://arxiv.org/abs/2111.06377" }, { title: "CLIP paper", url: "https://arxiv.org/abs/2103.00020" }, { title: "Segment Anything paper", url: "https://arxiv.org/abs/2304.02643" }],
     topics: [
       topic("attention", "Attention and the Transformer building block", "Attention combines feature vectors using content-dependent relevance weights. A token is one input vector, such as an image patch's representation.", ["Queries are compared with keys to produce weights; those weights combine the corresponding value vectors.", "A Transformer repeats attention and per-token feature transformations, with position information, normalization, and residual paths."], "Explain the shapes of Q, K, V and the attention output for a batch of image tokens.", ["visual-embeddings", "normalization-and-stability"]),
@@ -113,7 +113,7 @@ export const cvParts: CvPart[] = [
   {
     id: "practical-cv", number: "7", title: "Building, debugging, and operating CV systems",
     description: "Make model results trustworthy: curate data, validate inputs, diagnose failures, evaluate decisions, handle shift, and meet serving budgets.",
-    color: "#E871A5", icon: "Wrench", quizQuestionCount: 0,
+    color: "#E871A5", icon: "Wrench", quizQuestionCount: 10,
     references: [{ title: "PyTorch performance tuning", url: "https://docs.pytorch.org/tutorials/recipes/recipes/tuning_guide.html" }, { title: "Torchvision transforms", url: "https://docs.pytorch.org/vision/stable/transforms.html" }],
     topics: [
       topic("data-and-labels", "Data collection, annotation, and label quality", "Annotations are reference labels attached to images, regions, pixels, or landmarks. An annotation policy defines what counts as correct.", ["Occlusion means hidden by another surface; truncation means cut off by the image boundary. Define how both should be labeled.", "A failure slice is a subset such as small defects or nighttime captures. Collect relevant coverage and retain independent evaluation."], "Annotators disagree about faint defects. How would you improve the task and dataset before training?", ["learning-and-splits", "detection-evaluation", "instance-segmentation"]),
@@ -122,17 +122,6 @@ export const cvParts: CvPart[] = [
       topic("error-analysis", "Error analysis, calibration, and reliable evaluation", "Error analysis groups mistakes by cause and conditions so improvements address specific failure mechanisms.", ["A slice is a subset defined by size, lighting, source, class, or another relevant condition.", "Calibration tests probability reliability; ranking tests score order; an operating point fixes a threshold and its error tradeoff."], "Overall AP improves but night-time performance worsens. How would you decide whether to ship?", ["classification", "detection-evaluation", "training-diagnostics"]),
       topic("domain-shift", "Domain shift, robustness, and the improvement loop", "Domain shift means the data-generating conditions at use time differ from development conditions, potentially invalidating earlier results.", ["Drift monitoring detects changes in inputs or predictions. Without reviewed outcomes, it does not prove an accuracy change.", "Domain adaptation adjusts to target conditions. Choose it, new data, revised labels, or capture changes according to the diagnosed cause."], "A factory changes cameras and false alarms rise. How would you isolate preprocessing mismatch from real domain shift?", ["error-analysis", "transfer-learning", "data-and-labels"]),
       topic("inference-and-deployment", "Inference, deployment, and resource tradeoffs", "Inference computes predictions with trained weights. Deployment puts the full capture-to-result pipeline into a working application.", ["Profiling measures time/resources by stage, including decoding, preprocessing, model execution, postprocessing, and transport.", "Quantization uses fewer numeric levels; distillation trains a smaller student; batching groups inputs. Validate each quality/resource tradeoff."], "A model takes 20 ms on a GPU but requests take 150 ms. How would you find and reduce the bottleneck?", ["preprocessing", "vision-transformers", "error-analysis"]),
-    ],
-  },
-  {
-    id: "interview-synthesis", number: "8", title: "Interview synthesis and final revision",
-    description: "Turn the concepts into a reusable design process, work through contrasting systems, and review what to know cold.",
-    color: "#7BAAF7", icon: "ListChecks", quizQuestionCount: 0,
-    references: [],
-    topics: [
-      topic("cv-system-design", "A reusable CV system-design framework", "CV system design connects a product decision to capture, data, model outputs, evaluation, and serving constraints.", ["The prediction unit is the item receiving one decision. Specify its costly errors, operating conditions, and resource budget.", "A baseline is a simple reference system. Add complexity only when evidence shows which failure it should fix."], "Design a vision system for detecting defects on a moving production line, starting with requirements.", ["data-and-labels", "error-analysis", "domain-shift", "inference-and-deployment"]),
-      topic("design-cases", "Worked system-design cases and unfamiliar-problem reasoning", "Worked system-design cases apply one decision-to-evaluation framework to inspection, text extraction, search, and tracking.", ["Inspection rejects items; text extraction returns fields; retrieval ranks catalog items; tracking preserves identities. Their error costs differ.", "A bottleneck limits the desired outcome. Identify it and propose a measurable intervention before changing the model."], "How would your design change when the task moves from counting objects in still images to tracking them in live video?", ["cv-system-design", "ocr", "visual-embeddings", "video-and-tracking"]),
-      topic("interview-revision", "Final interview revision and common mistakes", "Revision connects concept definitions, mechanisms, equations, assumptions, and examples so unfamiliar vision questions can be explained clearly.", ["Define what a concept is and what it takes in/produces before describing its steps, equation, or tradeoff.", "Logits are scores; probabilities quantify modeled likelihood. Losses train; metrics evaluate. Detection finds objects; tracking maintains identities."], "Explain a CV concept in 90 seconds: intuition, mechanism, one equation, one failure mode, and one tradeoff.", ["design-cases", "vision-language", "promptable-segmentation"]),
     ],
   },
 ];

@@ -11,10 +11,10 @@ import { isCvVisualId } from "../src/lib/cvVisuals";
 // Validate the actual authored content through the same parser used by lesson pages.
 // This catches missing pages, broken prerequisites, unsupported source formatting,
 // malformed tables, and equations that the renderer would silently show as errors.
-assert.deepEqual(cvParts.map((part) => part.topics.length), [6, 7, 6, 6, 9, 5, 6, 3]);
-assert.equal(new Set(cvParts.map((part) => part.id)).size, 8);
-assert.equal(cvTopics.length, 48);
-assert.equal(new Set(cvTopics.map((topic) => topic.id)).size, 48);
+assert.deepEqual(cvParts.map((part) => part.topics.length), [6, 7, 6, 6, 9, 5, 6]);
+assert.equal(new Set(cvParts.map((part) => part.id)).size, 7);
+assert.equal(cvTopics.length, 45);
+assert.equal(new Set(cvTopics.map((topic) => topic.id)).size, 45);
 const directory = path.join(process.cwd(), "src/content/cv-lessons");
 assert.deepEqual(
   fs.readdirSync(directory).filter((file) => file.endsWith(".md")).sort(),
@@ -81,7 +81,7 @@ assert.ok(examples >= 10);
 if (process.argv.includes("--export")) {
   const validPaths = new Set([CV_PATH, ...cvTopics.map((topic) => `${CV_PATH}/${topic.id}`)]);
   const hub = fs.readFileSync(path.join(process.cwd(), "out", `${CV_PATH.slice(1)}.html`), "utf8");
-  assert.ok(hub.includes("48") && hub.includes("lessons"), "Exported hub is missing lesson count");
+  assert.ok(hub.includes("45") && hub.includes("lessons"), "Exported hub is missing lesson count");
   const sitemap = fs.readFileSync(path.join(process.cwd(), "out/sitemap.xml"), "utf8");
   for (const topic of cvTopics) {
     const lessonPath = `${CV_PATH}/${topic.id}`;
@@ -99,6 +99,6 @@ if (process.argv.includes("--export")) {
       assert.ok(validPaths.has(target), `${topic.id}: broken internal link ${target}`);
     }
   }
-  console.log("Static export validated: CV hub, all 48 lesson pages, canonical URLs, internal links, and sitemap entries.");
+  console.log("Static export validated: CV hub, all 45 lesson pages, canonical URLs, internal links, and sitemap entries.");
 }
 console.log(`CV guide validated: ${cvTopics.length} lessons, ${words} words, ${equations} equations, ${tables} tables, ${diagrams} text diagrams, ${visuals} graphical figures, ${examples} examples.`);

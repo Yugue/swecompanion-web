@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { studyTopics } from "@/lib/studyData";
-import { CODING_PATH, chapterHref, chapterQuizHref } from "@/lib/codingPaths";
+import { CODING_PATH, chapterHref } from "@/lib/codingPaths";
 import { mlParts } from "@/lib/mlStudyData";
 import { amlParts } from "@/lib/amlStudyData";
 import { agenticParts } from "@/lib/agenticStudyData";
@@ -24,9 +24,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   for (const topic of studyTopics) {
     entries.push({ url: `${siteUrl}${chapterHref(topic)}`, priority: 0.7 });
-    if ((topic.quizQuestionCount ?? 0) > 0) {
-      entries.push({ url: `${siteUrl}${chapterQuizHref(topic)}`, priority: 0.6 });
-    }
   }
 
   for (const part of mlParts) {
@@ -68,6 +65,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const part of cvParts) {
     for (const topic of part.topics) {
       entries.push({ url: `${siteUrl}${CV_PATH}/${topic.id}`, priority: 0.8 });
+    }
+    if (part.quizQuestionCount > 0) {
+      entries.push({ url: `${siteUrl}${CV_PATH}/${part.id}/quiz`, priority: 0.6 });
     }
   }
 

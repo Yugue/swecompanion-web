@@ -46,11 +46,12 @@ export function GuideSidebar({
             <button
               key={topic.slug}
               type="button"
+              title={topic.title}
               onClick={() => onJump(chapterPath(topic))}
               className="mb-1 flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left hover:bg-surface-high"
             >
               <span className="size-1.5 shrink-0 rounded-full" style={{ background: topic.color }} />
-              <span className="flex-1 truncate text-[13px] text-text-muted">{topic.shortTitle}</span>
+              <span className="min-w-0 flex-1 text-[13px] text-text-muted">{topic.shortTitle}</span>
               <ProgressRing done={done} total={topic.problems.length} color={topic.color} size={32} />
             </button>
           );

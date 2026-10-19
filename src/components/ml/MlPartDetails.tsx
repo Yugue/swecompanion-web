@@ -122,7 +122,7 @@ export function MlPartDetails({
       {part.quizQuestionCount > 0 && (
         <QuizTeaser
           href={`${basePath}/${part.id}/quiz`}
-          title={`Chapter ${part.number} mock interview`}
+          title={`${sectionLabel} ${part.number} mock interview`}
           questionCount={part.quizQuestionCount}
           className="border-t border-outline/50"
         />

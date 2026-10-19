@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { agenticParts, agenticPartsById, agenticTopicCount } from "@/lib/agenticStudyData";
+import { useChapterExpansion } from "@/lib/useChapterExpansion";
 import { useProgress } from "@/lib/useProgress";
 import { TopBar } from "@/components/TopBar";
 import { GuideControls, type ProblemFilter } from "@/components/guide/GuideControls";
@@ -18,7 +19,9 @@ export default function AgenticAiHubPage() {
   const { completed, toggle, reset } = useProgress("agentic", []);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ProblemFilter>("all");
-  const [openId, setOpenId] = useState<string | null>(agenticParts[0]?.id ?? null);
+  const [openChapters, setOpenChapters] = useChapterExpansion(
+    "swe-companion:expanded-chapters:agentic", agenticParts[0]?.id
+  );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
 
@@ -28,16 +31,15 @@ export default function AgenticAiHubPage() {
     const hash = window.location.hash.replace("#", "");
     const part = agenticParts.find((p) => p.id === hash || p.topics.some((t) => t.id === hash));
     if (part) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setOpenId(part.id);
+      setOpenChapters((current) => new Set(current).add(part.id));
       requestAnimationFrame(() => {
         document.getElementById(part.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     }
-  }, []);
+  }, [setOpenChapters]);
 
   function jump(id: string) {
-    setOpenId(id);
+    setOpenChapters((current) => new Set(current).add(id));
     setDrawerOpen(false);
     window.history.replaceState(null, "", `#${id}`);
     requestAnimationFrame(() => {
@@ -138,8 +140,16 @@ export default function AgenticAiHubPage() {
                     key={part.id}
                     part={{ ...part, topics }}
                     completed={completed}
-                    open={openId === part.id}
-                    onToggle={() => setOpenId((cur) => (cur === part.id ? null : part.id))}
+                    open={openChapters.has(part.id)}
+                    onToggle={() => {
+                      setOpenChapters((current) => {
+                        const next = new Set(current);
+                        if (next.has(part.id)) next.delete(part.id);
+                        else next.add(part.id);
+                        return next;
+                      });
+                      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+                    }}
                     onToggleTopic={toggle}
                     basePath={AGENTIC_AI_PATH}
                     partsById={agenticPartsById}

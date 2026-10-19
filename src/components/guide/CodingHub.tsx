@@ -7,6 +7,7 @@ import {
   type StudyTopic,
   type StudyProblem,
 } from "@/lib/studyData";
+import { useChapterExpansion } from "@/lib/useChapterExpansion";
 import { useProgress } from "@/lib/useProgress";
 import { CODING_PATH, chapterPath } from "@/lib/codingPaths";
 import { TopBar } from "@/components/TopBar";
@@ -16,7 +17,7 @@ import { TopicDetails } from "@/components/guide/TopicDetails";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 /**
- * The coding guide. Every chapter starts expanded. A chapter has no page of its own:
+ * The coding guide. Chapter expansion is remembered locally. A chapter has no page of its own:
  * /coding/<chapter> renders this same hub scrolled to that chapter, and picking a chapter here
  * updates the URL to match, so the address bar is always a shareable link to what is on screen.
  * (The URL only says which chapter is focused; expanding or collapsing others does not change it.)
@@ -25,8 +26,8 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
   const { completed, toggle, reset } = useProgress("leetcode", [...initialCompletedProblems]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ProblemFilter>("all");
-  const [openChapters, setOpenChapters] = useState<Set<string>>(
-    () => new Set(studyTopics.map(chapterPath))
+  const [openChapters, setOpenChapters] = useChapterExpansion(
+    "swe-companion:expanded-chapters:leetcode", chapterPath(studyTopics[0])
   );
   const [focusChapter, setFocusChapter] = useState<string | null>(initialChapter ?? null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -77,13 +78,14 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
     const fromHash = hash ? studyTopics.find((t) => chapterPath(t) === hash || t.slug === hash) : undefined;
     const target = fromHash ? chapterPath(fromHash) : initialChapter;
     if (!target) return;
+    setOpenChapters((current) => new Set(current).add(target));
     if (fromHash) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFocusChapter(target);
       setUrl(target);
     }
     scrollToChapter(target);
-  }, [initialChapter]);
+  }, [initialChapter, setOpenChapters]);
 
   function jump(path: string) {
     setDrawerOpen(false);
@@ -141,16 +143,12 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
 
           <main id="guide-top" className="mx-auto max-w-4xl px-4 py-6 sm:px-8">
             <div className="mb-6 rounded-2xl border border-outline/70 bg-surface p-6 sm:p-8">
-              <span className="mb-4 inline-block rounded-md border border-accent-blue/35 bg-accent-blue/15 px-2.5 py-1.5 text-xs font-bold tracking-wide text-accent-blue-soft">
-                FREE INTERVIEW GUIDE
-              </span>
               <h1 className="mb-2.5 text-3xl font-bold leading-tight tracking-tight text-text sm:text-4xl">
                 Master the fundamentals. Walk into L4–L6 interviews with confidence.
               </h1>
               <p className="text-base leading-relaxed text-text-muted">
                 A carefully organized guide to the data structures, algorithms, and representative
-                LeetCode questions that appear most often in software engineering interviews - plus
-                mock-interview practice quizzes for premium members.
+                LeetCode questions that appear most often in software engineering interviews.
               </p>
             </div>
 

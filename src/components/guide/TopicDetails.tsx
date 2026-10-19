@@ -7,8 +7,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import type { StudyTopic, StudyProblem } from "@/lib/studyData";
 import { getIcon } from "@/lib/icons";
 import { ProgressRing } from "@/components/ProgressRing";
-import { QuizTeaser } from "@/components/quiz/QuizTeaser";
-import { chapterPath, chapterQuizHref } from "@/lib/codingPaths";
+import { chapterPath } from "@/lib/codingPaths";
 import { ProblemRow } from "./ProblemRow";
 
 export function TopicDetails({
@@ -105,15 +104,6 @@ export function TopicDetails({
           );
         })}
       </div>
-
-      {(topic.quizQuestionCount ?? 0) > 0 && (
-        <QuizTeaser
-          href={chapterQuizHref(topic)}
-          title={`${topic.shortTitle} mock interview`}
-          questionCount={topic.quizQuestionCount ?? 0}
-          className="border-t border-outline/50"
-        />
-      )}
     </details>
   );
 }

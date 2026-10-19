@@ -129,6 +129,32 @@
       "Fine-tuning overwrites useful pretrained behavior. Mitigate it with a smaller learning rate, freezing, PEFT, or mixing broader data."
     ]
   },
+  "ml-practical-reasoning": {
+    "questions": [
+      "Which hyperparameter should you usually tune first, and why?",
+      "Why does random search often beat grid search on the same budget?",
+      "Why must the test set stay out of model selection?",
+      "Model A has 1% higher recall; model B is 10× faster. How do you choose?",
+      "A classifier is 90% accurate. What do you do before making it bigger?",
+      "How do you prioritize failure modes found during error analysis?",
+      "What is a strong first model for tabular churn prediction?",
+      "Why can a model fit in memory for inference but not for training?",
+      "How can batching raise throughput but hurt latency?",
+      "Name three ways to shrink a model for on-device serving."
+    ],
+    "answers": [
+      "The learning rate. It has the largest effect on whether and how fast training converges, and most other settings only matter once it is in a sensible range.",
+      "Only a few hyperparameters usually matter. A grid repeats the same few values of each one, while random search tries a new value of every parameter on every trial.",
+      "Each decision made with it leaks information, so the final score becomes optimistically biased and no longer estimates performance on unseen data.",
+      "Translate both into the product objective: the cost of the missed positives versus the latency budget and serving cost. If B meets the recall requirement and A breaks the latency SLA, B wins.",
+      "Error analysis: review a sample of false positives and negatives, slice errors by class, subgroup and time, and separate label noise and pipeline bugs from genuine model limits.",
+      "Rank them by frequency × how fixable they are × product impact, then address the top category first.",
+      "Logistic regression or gradient-boosted trees. They are fast, strong on tabular data, and set the baseline any deep model must beat.",
+      "Training also stores activations for the backward pass, the gradients, and optimizer state such as Adam's two moments, often several times the size of the weights.",
+      "Larger batches use the hardware more efficiently, but requests wait in a queue until a batch fills, which increases per-request and tail latency.",
+      "Quantization (lower-precision weights), distillation (training a smaller student on the teacher's outputs), and pruning (removing low-value weights or structure). Always re-check quality afterwards."
+    ]
+  },
   "aml-foundations": {
     "questions": [
       "When is a hand-written rule the better answer than a model?",
@@ -871,6 +897,188 @@
       "An array alone gives O(1) random access via a random index, but deletion from the middle is O(n) if you shift elements. A hash set alone gives O(1) insert/delete/lookup but has no way to pick a uniformly random element in O(1). The trick is combining both: an array for O(1) random-index access, plus a hash map from value to its array index for O(1) lookup, and on deletion, swap the target with the last array element before popping, updating the map, to avoid shifting.",
       "A heap gives you O(log n) insert and O(log n) extract-min/max, but only efficient access to the single min or max — no efficient arbitrary rank or range queries. A balanced BST (or a language's ordered map/set) supports O(log n) insert, delete, and lookup of arbitrary elements, plus in-order traversal and range queries. If you only ever need the extreme element, a heap is simpler and often faster in practice; if you need general ordered access, use a BST-backed structure.",
       "You need O(1) get and put while always knowing which entry was least recently used. A hash map gives O(1) lookup from key to a node, and a doubly linked list maintains usage order — moving a node to the front on every access, and evicting from the back when the cache is full. The combination gives O(1) for both operations, which neither structure alone would provide."
+    ]
+  },
+  "cv-images-and-signals": {
+    "questions": [
+      "A camera works in daylight but fails at night. What changed in the input, and what can software recover?",
+      "Why can a 2×2 matrix not represent translation, and how do homogeneous coordinates fix it?",
+      "Why does averaging N frames reduce noise, and when does it fail?",
+      "What is aliasing, and how do you prevent it when downsampling?",
+      "What is an image pyramid used for?",
+      "A model trained in PyTorch performs badly when served with OpenCV image loading. What do you check first?",
+      "Can gamma correction or histogram equalization recover detail in blown-out highlights?",
+      "Which filter would you use for salt-and-pepper noise, and is it also best for Gaussian sensor noise?",
+      "How does a bilateral filter differ from a Gaussian filter?",
+      "Why is deblurring ill-posed, and how is it stabilized?"
+    ],
+    "answers": [
+      "Fewer photons mean more shot noise, higher gain amplifies it, longer exposure adds motion blur, and lighting shifts color. Software can denoise and adjust contrast, but it cannot recover detail that was never captured; that needs better capture or night training data.",
+      "A 2×2 matrix always maps the origin to itself, so translation is not linear. Writing points as (x, y, 1) lets a 3×3 matrix express translation, rotation, scale, and perspective, and lets transforms compose by matrix multiplication.",
+      "Independent zero-mean noise has variance reduced by 1/N (standard deviation by 1/√N). It fails for shared errors such as fixed-pattern noise or bias, and for moving objects, which ghost or blur.",
+      "Detail finer than the new grid can represent folds into false low-frequency patterns such as moiré. Low-pass filter (blur or area interpolation) before subsampling so that detail is removed instead of misrepresented.",
+      "It stores the same image at several resolutions, enabling coarse-to-fine search, multi-scale detection, and cheaper processing of large structures.",
+      "Channel order: OpenCV loads BGR while most training pipelines use RGB. Then check numeric scaling and normalization, layout (HWC vs CHW), and resize interpolation.",
+      "No. Clipped pixels all saturate to the same value, so the information is gone. Intensity transforms only remap existing values; recovery requires capture changes such as exposure control or HDR.",
+      "A median filter: isolated outliers do not move the median and edges are preserved. For Gaussian noise, weighted averaging (Gaussian or bilateral) is usually better because every sample carries useful information.",
+      "It weights neighbors by both spatial distance and intensity similarity, so it smooths within regions while preserving edges. The cost is more computation and possible flat, cartoon-like regions.",
+      "Blur suppresses high frequencies, so inverting it amplifies noise wherever the signal is weak. Stabilize with an accurate blur-kernel estimate plus regularization or priors such as Wiener filtering, total variation, or learned priors."
+    ]
+  },
+  "cv-classical-vision": {
+    "questions": [
+      "Why smooth an image before computing gradients for edge detection?",
+      "Walk through the Canny edge detector.",
+      "What do morphological opening and closing do?",
+      "Why are corners better features to match than points on an edge?",
+      "Why are nearest-neighbor descriptor matches not enough to align two images?",
+      "How does RANSAC work, and what drives the number of iterations?",
+      "When is a single homography a valid model between two views?",
+      "What are intrinsics and extrinsics, and what happens to them if you resize the image by half?",
+      "Why is stereo depth unreliable for distant objects?",
+      "What is the aperture problem in optical flow, and how do methods handle it?"
+    ],
+    "answers": [
+      "Differentiation amplifies high-frequency noise. Smoothing (as in Sobel or derivative-of-Gaussian) suppresses it; a larger smoothing scale gives fewer spurious edges but loses fine, precisely localized ones.",
+      "Gaussian smoothing, gradient magnitude and direction, non-maximum suppression to thin edges to one pixel, then hysteresis with two thresholds: keep strong edges and weak edges connected to strong ones.",
+      "Opening (erode then dilate) removes small specks and thin protrusions; closing (dilate then erode) fills small holes and gaps. Both roughly preserve the size of larger shapes.",
+      "A corner changes intensity in two directions, so its position is fixed in 2D; along an edge, position is ambiguous. Harris detects this via the structure tensor: both eigenvalues large means a corner.",
+      "Repeated textures and noise create confident wrong matches. Filter with the ratio test or mutual matching, then verify geometrically by fitting a transformation with RANSAC and counting inliers.",
+      "Repeatedly sample a minimal set (4 pairs for a homography), fit a model, count inliers within a threshold, keep the best, and refit on its inliers. Iterations grow with the outlier ratio and the sample size: N = log(1−p) / log(1−wˢ).",
+      "When the scene is planar or the camera only rotates. A translating camera viewing objects at different depths creates parallax that no single homography can align.",
+      "Extrinsics are the camera's rotation and translation; intrinsics are focal lengths and the principal point. Halving the image halves fx, fy, cx, cy; cropping shifts the principal point; extrinsics are unchanged.",
+      "Depth is Z = f·B / d, so depth error grows roughly with Z² for a fixed disparity error. Far objects have tiny disparities, where a one-pixel mismatch is a large depth error; a wider baseline, longer focal length, or subpixel matching help.",
+      "Brightness constancy gives one equation (Iₓu + I_yv + I_t = 0) for two unknowns, so motion along an edge is invisible locally. Lucas–Kanade pools a textured window, Horn–Schunck adds smoothness, and coarse-to-fine pyramids handle large motions."
+    ]
+  },
+  "cv-learning-foundations": {
+    "questions": [
+      "A video-frame classifier scores 99% on a random split but fails on new videos. Why?",
+      "Why does a neural network need nonlinear activations?",
+      "When do you use softmax versus independent sigmoids at the output?",
+      "Why pass raw logits to a cross-entropy loss instead of applying softmax first?",
+      "What is the gradient of softmax cross-entropy with respect to the logits?",
+      "How is the gradient computed for a convolution weight shared across all positions?",
+      "What do loss.backward() and optimizer.step() each do, and why call zero_grad()?",
+      "How does AdamW differ from Adam with L2 regularization?",
+      "You increase batch size and learning rate together and the loss starts oscillating. What do you check?",
+      "Training accuracy is excellent but validation is poor. What do you prioritize?"
+    ],
+    "answers": [
+      "Leakage: near-duplicate frames from the same video landed in both train and test. Split by group (video, camera, site, or time) so evaluation matches deployment.",
+      "A stack of linear layers collapses into one linear map. Nonlinearities such as ReLU let the network represent complex functions; ReLU is also cheap and does not saturate for positive inputs.",
+      "Softmax for mutually exclusive classes (probabilities sum to one); independent sigmoids for multi-label tasks where several labels can be true at once.",
+      "The loss computes log-softmax internally with the log-sum-exp trick for numerical stability. Applying softmax first double-applies it and can underflow and distort gradients.",
+      "p − y: predicted probabilities minus the one-hot target. It is bounded and simple, which is why softmax and cross-entropy pair so well.",
+      "It is the sum of the contributions from every position where the weight is used. The gradient always has the same shape as the parameter.",
+      "backward computes gradients and adds them to .grad; step updates the weights. Gradients accumulate by default, so they must be cleared every iteration unless you accumulate on purpose.",
+      "With Adam + L2 the penalty enters the gradient and is rescaled by the adaptive denominator, weakening it for some weights. AdamW decouples weight decay and shrinks weights directly, giving more consistent regularization.",
+      "Larger batches reduce gradient noise and allow a higher learning rate, often scaled roughly linearly, but only with warmup and within limits. Inspect loss curves and gradient norms; lower the learning rate or add warmup before changing anything else.",
+      "First rule out leakage, split mismatch, and label problems. Then add data or augmentation, regularize (weight decay, dropout, label smoothing), use early stopping, or start from a pretrained backbone, guided by learning curves."
+    ]
+  },
+  "cv-cnn-representations": {
+    "questions": [
+      "Compare the parameter counts of a standard 3×3 convolution and a depthwise-separable one for 256 → 256 channels.",
+      "What is the difference between translation equivariance and invariance in CNNs?",
+      "What is the formula for a convolution's output size?",
+      "What is the receptive field of two 3×3 convolutions where the first has stride 2?",
+      "Why can adding layers to a plain network increase training error, and how do residual connections fix it?",
+      "What problem does a Feature Pyramid Network solve?",
+      "Why is BatchNorm a poor choice at batch size 1–2, and what do you use instead?",
+      "A model's predictions change depending on what else is in the batch at inference. What is the likely bug?",
+      "Which augmentations would you reject for reading text or for left-versus-right anatomy?",
+      "You have 500 labeled images from a new camera. How do you choose a fine-tuning strategy?"
+    ],
+    "answers": [
+      "Standard: 3·3·256·256 ≈ 590K. Depthwise-separable: 3·3·256 + 256·256 ≈ 68K, about 8.7× fewer. It assumes spatial filtering and channel mixing can be factored apart.",
+      "Convolution is equivariant: shifting the input shifts the feature map. Pooling and global pooling add approximate invariance. Stride and padding break exact equivariance.",
+      "floor((W + 2P − K) / S) + 1. For example, 224 input, kernel 3, padding 1, stride 2 gives 112.",
+      "7. Each layer adds (k−1) × the product of earlier strides: 1 + 2·1 + 2·2 = 7. Stacking small kernels reaches large receptive fields with fewer parameters and more nonlinearity.",
+      "It is an optimization problem, not overfitting: deep plain stacks struggle to even learn the identity. y = x + F(x) makes the identity easy (F = 0) and gives gradients a direct path.",
+      "Deep features are semantically strong but low-resolution, and shallow ones the reverse. FPN's top-down path with lateral connections gives strong semantics at every scale, which especially helps small objects.",
+      "Batch statistics become noisy or degenerate, and they mismatch the running statistics used at evaluation. Use GroupNorm or LayerNorm (per-example statistics), or freeze pretrained BatchNorm.",
+      "The model was left in training mode, so BatchNorm uses batch statistics (and dropout is active). Call model.eval() to use running statistics.",
+      "Horizontal flips (mirrored text, swapped sides) and large rotations for text. An augmentation must preserve the label, and geometric augmentations must also transform boxes, masks, and keypoints.",
+      "Start from a pretrained backbone: run a linear probe as a baseline, then fine-tune the top layers or the whole network with a low learning rate, strong augmentation, and early stopping on new-camera validation data. Go deeper only if the probe underfits."
+    ]
+  },
+  "cv-vision-tasks": {
+    "questions": [
+      "A defect classifier has 99% accuracy but misses most defects. What went wrong?",
+      "Define IoU and explain NMS, including when NMS fails.",
+      "Compare one-stage and two-stage detectors.",
+      "AP at IoU 0.5 is strong but AP at 0.75 is poor. What does that tell you?",
+      "How is COCO-style mAP computed?",
+      "Why can a segmentation model have high pixel accuracy but useless masks?",
+      "Distinguish semantic, instance, and panoptic segmentation.",
+      "What problem does CTC loss solve in OCR?",
+      "How do you train and evaluate visual embeddings for retrieval?",
+      "Two similar people cross behind an obstacle. How do you reduce identity switches?"
+    ],
+    "answers": [
+      "With 1% defects, predicting 'no defect' scores 99%. Use precision, recall, and the PR curve; pick the threshold from the cost of misses versus false alarms; consider class weighting, focal loss, or resampling.",
+      "IoU = area of overlap / area of union. NMS keeps the highest-scoring box and removes others above an IoU threshold, repeating. In crowded scenes it suppresses real overlapping objects; use Soft-NMS or set-based detectors such as DETR.",
+      "Two-stage (Faster R-CNN) proposes regions then refines them: more accurate on small and crowded objects but slower. One-stage (YOLO, RetinaNet) predicts densely in one pass: faster, and focal loss addresses its extreme foreground–background imbalance.",
+      "The model finds objects but localizes boxes loosely. Improve box regression (for example a GIoU loss, higher-resolution features, or a refinement stage) and check box-label consistency.",
+      "Per class, rank detections by score and match each to an unmatched ground truth at IoU ≥ threshold (TP, else FP), then take the area under the precision–recall curve. Average over classes and IoU thresholds 0.5 to 0.95.",
+      "Background dominates the pixels, so predicting background everywhere scores well. Use per-class IoU or Dice, train with Dice or focal loss for imbalance, and use skip connections (U-Net) to recover fine boundaries.",
+      "Semantic: a class per pixel with no identities. Instance: a separate mask per countable object. Panoptic: every pixel gets a class, plus an instance ID for 'things' (people, cars) but not 'stuff' (road, sky); it is scored with Panoptic Quality.",
+      "It trains sequence recognition without per-character alignment: the model outputs a distribution per time step including a blank, and CTC sums over every alignment that collapses to the target. Evaluate with character and word error rates plus exact field match.",
+      "Use metric learning (contrastive, triplet, or InfoNCE loss) with positives defined by the task's relevance rule (same SKU, not just similar look) and hard negatives. Evaluate recall@K on held-out queries, and measure approximate-index recall separately from embedding quality.",
+      "Combine a motion model (Kalman filter) with appearance embeddings for association (as in DeepSORT), match with the Hungarian algorithm, and keep lost tracks alive briefly for re-identification. Measure ID switches, IDF1, or HOTA separately from detection quality."
+    ]
+  },
+  "cv-modern-vision": {
+    "questions": [
+      "Write scaled dot-product attention and give the shapes for a batch of image tokens.",
+      "How does a Vision Transformer turn an image into tokens?",
+      "What happens to compute if you halve the ViT patch size?",
+      "Would you choose a CNN or a ViT for a small dataset?",
+      "How does contrastive self-supervised learning (SimCLR) work?",
+      "What is representation collapse, and how do methods prevent it?",
+      "How does a Masked Autoencoder (MAE) pretrain a ViT?",
+      "How does CLIP enable zero-shot classification?",
+      "Why might zero-shot classification fail even with a correct class description?",
+      "How does a promptable segmenter like SAM work, and how would you adapt it to a new domain?"
+    ],
+    "answers": [
+      "softmax(QKᵀ / √dₖ)V. For B images, N tokens, d dims: Q, K, V are B×N×d (per head B×h×N×dₕ), the weights are B×h×N×N, and the output is B×N×d. Dividing by √dₖ keeps logits from saturating the softmax.",
+      "Split it into P×P patches, flatten and linearly project each one (equivalent to a stride-P convolution), add position embeddings, and optionally prepend a class token. A 224×224 image with 16×16 patches gives 196 tokens.",
+      "4× more tokens and about 16× more attention pairs, because attention is quadratic in token count. Windowed and hierarchical designs such as Swin keep cost roughly linear in image size.",
+      "A CNN's locality and translation equivariance make it data-efficient. A ViT needs large-scale pretraining or strong augmentation and distillation (DeiT); with a good pretrained ViT, fine-tuning can win. Compare both on a held-out set under the same budget.",
+      "Two augmented views of one image are positives and other images in the batch are negatives, trained with the InfoNCE loss. The augmentations define which invariances are learned, and it benefits from many negatives.",
+      "Every input maps to the same embedding, trivially satisfying 'make views agree.' It is prevented with negatives (contrastive), a stop-gradient with a momentum teacher plus centering (BYOL, DINO), variance–covariance penalties (VICReg), or reconstruction targets (MAE).",
+      "It masks about 75% of patches; the encoder sees only the visible ones (cheap), and a light decoder reconstructs the masked pixels. The high ratio keeps the task hard because images are redundant. Judge it by linear probing and fine-tuning.",
+      "Image and text encoders are trained contrastively so matching image–caption pairs score high cosine similarity. To classify, embed prompts like 'a photo of a {class}' and pick the one most similar to the image.",
+      "The domain may be far from web pretraining (medical, industrial), results are sensitive to prompt wording, class names can be rare or ambiguous, and fine-grained differences may not be captured. Mitigate with prompt ensembles, a few-shot linear probe, or fine-tuning.",
+      "A heavy image encoder runs once per image (cacheable); a light prompt encoder and mask decoder run per point or box prompt and return several candidate masks. Adapt it by measuring mask IoU on labeled domain samples, then fine-tune the decoder or adapters, and track annotation time saved."
+    ]
+  },
+  "cv-practical-cv": {
+    "questions": [
+      "Annotators disagree about faint defects. How do you fix the data before training?",
+      "The model works in a notebook but deployed boxes are shifted. What do you investigate?",
+      "What sanity checks do you run before a full training run?",
+      "A new detector cannot beat the baseline. What do you check before trying a bigger backbone?",
+      "What is calibration, and how do you measure and fix it?",
+      "Overall AP improves but night-time performance worsens. Do you ship?",
+      "Distinguish covariate shift, label shift, and concept shift.",
+      "A factory changes cameras and false alarms rise. How do you diagnose it?",
+      "A model takes 20 ms on the GPU but requests take 150 ms. How do you find the bottleneck?",
+      "Compare quantization, distillation, and pruning for faster inference."
+    ],
+    "answers": [
+      "Write a guideline with edge-case examples (faint, occluded, truncated), measure inter-annotator agreement, adjudicate disagreements, consider an explicit 'ambiguous' label, and keep a re-labeled gold set for evaluation.",
+      "Train–serve preprocessing skew: resize or letterbox padding not reversed, aspect ratio, EXIF orientation, RGB/BGR, normalization, and box format (xyxy vs xywh, normalized vs pixels). Run one image through both pipelines and diff the tensors.",
+      "Overfit one small batch to near-zero loss, visualize augmented inputs with labels drawn on them, and confirm the initial loss is about ln(C) for C classes.",
+      "Verify labels and preprocessing, tune the learning rate and schedule, confirm both use the same evaluation protocol, ablate one change at a time, and slice errors (small objects, rare classes). Scale up only if the model is underfitting.",
+      "Confidence should match observed accuracy. Measure with reliability diagrams and Expected Calibration Error; fix with temperature scaling on a validation set, which does not change ranking or accuracy.",
+      "Weigh the slice's importance (safety, traffic share), check that the drop is statistically real, and apply per-slice guardrails. Do not ship if a critical slice regresses past tolerance; collect night data or gate the rollout.",
+      "Covariate: P(x) changes (new camera, lighting) but P(y|x) holds. Label: P(y) changes (defect rate). Concept: P(y|x) changes (new defect definition). Input drift monitoring flags change, but labeled samples are needed to confirm an accuracy drop.",
+      "First rule out pipeline mismatch: resolution, color, exposure, compression, and orientation; compare input statistics and inspect samples. If it is a real domain shift, label new-camera data, fine-tune, augment for camera variation, and recalibrate the threshold.",
+      "Profile end to end: network transfer, image decoding, CPU preprocessing, queueing or batching waits, host–device copies, postprocessing such as NMS, and serialization. Fix the largest stage, for example with GPU preprocessing, pipelining, or tuned batching.",
+      "Quantization (FP32 → INT8) gives about 4× smaller weights and speedups on supported hardware, with QAT if accuracy drops. Distillation trains a smaller student on teacher outputs. Structured pruning yields real speedups; unstructured needs sparse kernels. Re-check accuracy per slice after each."
     ]
   }
 }

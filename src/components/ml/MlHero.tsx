@@ -10,7 +10,7 @@ const mlQuizCount = mlParts.reduce((n, p) => n + p.quizQuestionCount, 0);
 /**
  * Shared hero for every ML-domain guide. The "how the interview works" explanation is identical
  * across domains (the candidate picks one domain, the format is the same), so only the domain
- * name and the counts are per-track.
+ * name, its summary and the counts are per-track.
  */
 export function MlHero({
   domain = "Deep Learning / Neural Networks",
@@ -23,11 +23,9 @@ export function MlHero({
   chapterCount?: number;
   quizCount?: number;
 }) {
+  const summary = ML_DOMAINS.find((d) => d.name === domain)?.summary;
   return (
     <div className="mb-6 rounded-2xl border border-outline/70 bg-surface p-6 sm:p-8">
-      <span className="mb-4 inline-block rounded-md border border-accent-blue/35 bg-accent-blue/15 px-2.5 py-1.5 text-xs font-bold tracking-wide text-accent-blue-soft">
-        GOOGLE L4–L6 ML DOMAIN INTERVIEW STUDY GUIDE
-      </span>
       <h1 className="mb-2.5 text-3xl font-bold leading-tight tracking-tight text-text sm:text-4xl">
         Prepare for the Google ML Domain Interview.
       </h1>
@@ -36,6 +34,13 @@ export function MlHero({
         Google L4–L6 candidates preparing for a 45–60 minute interview with 3–5 common knowledge
         questions in one ML domain selected in advance.
       </p>
+      <div className="mb-3 mt-4 rounded-md border border-accent-blue/35 bg-accent-blue/10 p-4">
+        <p className="text-sm font-semibold text-text-muted">
+          This guide covers the ML domain interview topic:
+        </p>
+        <p className="mt-1 text-lg font-bold leading-snug text-accent-blue">{domain}</p>
+        {summary && <p className="mt-1.5 text-sm leading-relaxed text-text-muted">{summary}</p>}
+      </div>
       <MlWritersNote />
       <MlGuideStats lessonCount={lessonCount} chapterCount={chapterCount} quizCount={quizCount} />
 
@@ -46,8 +51,8 @@ export function MlHero({
           <span className="text-sm font-bold text-text">Candidate-selectable Google ML domains</span>
         </div>
         <p className="mb-3.5 text-sm leading-relaxed text-text-muted">
-          Candidates pre-select one of the following areas before the interview. The highlighted
-          domain is the guide currently presented on this page; select another to switch guides.
+          Candidates pre-select one of the following areas before the interview. Select another
+          domain to switch guides.
         </p>
         <div className="flex flex-wrap gap-2">
           {ML_DOMAINS.map(({ name, href }) => {

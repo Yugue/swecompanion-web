@@ -1,4 +1,4 @@
-// Ported 1:1 from lib/ml_lesson_view.dart's bespoke markdown-subset parser, so all 57 lesson
+// Ported 1:1 from lib/ml_lesson_view.dart's bespoke markdown-subset parser, so all 56 lesson
 // files in src/content/ml-lessons render identically to the Flutter app, unedited.
 
 export type LessonBlockType =

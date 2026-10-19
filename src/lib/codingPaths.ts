@@ -5,7 +5,6 @@ import { studyTopics, type StudyTopic } from "./studyData";
  *
  *   /coding                        hub (all chapters, interactive checklist)
  *   /coding/<chapter>              a chapter's overview page
- *   /coding/<chapter>/quiz         that chapter's premium mock-interview quiz
  *
  * `topic.slug` is the stable identity of a chapter (Firestore quiz ids are `lc-<slug>`), so it
  * never changes. The URL segment is a separate, human-readable name of at most two words,
@@ -55,7 +54,6 @@ for (const topic of studyTopics) {
 
 export const chapterPath = (topic: StudyTopic): string => CHAPTER_PATHS[topic.slug];
 export const chapterHref = (topic: StudyTopic): string => `${CODING_PATH}/${chapterPath(topic)}`;
-export const chapterQuizHref = (topic: StudyTopic): string => `${chapterHref(topic)}/quiz`;
 
 export const studyTopicsByPath: Record<string, StudyTopic> = Object.fromEntries(
   studyTopics.map((topic) => [chapterPath(topic), topic] as const)

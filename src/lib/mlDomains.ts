@@ -22,16 +22,41 @@ export const ML_SYSTEM_DESIGN_PATH = "/mlsystemdesign";
 /** Where /mldomain and the top-bar ML tab land: a domain is always selected. */
 export const DEFAULT_ML_DOMAIN_PATH = DEEP_LEARNING_PATH;
 
-/** The domains a candidate can pre-select. `href` is set only for domains that have a guide;
- * the rest render as non-interactive chips. */
-export const ML_DOMAINS: { name: string; href?: string }[] = [
-  { name: "Deep Learning / Neural Networks", href: DEEP_LEARNING_PATH },
-  { name: "Computer Vision (CV) / Image Processing", href: CV_PATH },
-  { name: "Applied Machine Learning → Basics of ML", href: APPLIED_ML_PATH },
+/** The domains a candidate can pre-select. `href` and `summary` are set only for domains that
+ * have a guide; the rest render as non-interactive chips. `summary` is the hero's one-line list of what the guide covers. */
+export const ML_DOMAINS: { name: string; href?: string; summary?: string }[] = [
+  {
+    name: "Deep Learning / Neural Networks",
+    href: DEEP_LEARNING_PATH,
+    summary:
+      "Backpropagation and optimization, CNNs, RNNs and transformers, modern training practice, generative models, and how to reason through a model that misbehaves.",
+  },
+  {
+    name: "Computer Vision (CV) / Image Processing",
+    href: CV_PATH,
+    summary:
+      "Images and classical vision, CNNs, detection and segmentation, vision transformers and pretraining, and building and debugging real CV systems. No separate Deep Learning course required.",
+  },
+  {
+    name: "Applied Machine Learning → Basics of ML",
+    href: APPLIED_ML_PATH,
+    summary:
+      "Data and features, core supervised algorithms, generalization, evaluation, unsupervised learning, and the judgment to choose and debug models.",
+  },
   { name: "Natural Language Processing / Understanding (NLP / NLU)" },
   { name: "Generative AI" },
-  { name: "Recommendations / Ranking / Predictions (RRP)", href: RRP_PATH },
-  { name: "Agentic AI Development", href: AGENTIC_AI_PATH },
+  {
+    name: "Recommendations / Ranking / Predictions (RRP)",
+    href: RRP_PATH,
+    summary:
+      "Classical recommenders, retrieval and candidate generation, ranking models, offline and online evaluation, and serving predictions at scale.",
+  },
+  {
+    name: "Agentic AI Development",
+    href: AGENTIC_AI_PATH,
+    summary:
+      "Tool use and function calling, planning, memory and retrieval, multi-agent systems, evaluation and safety, and running agents in production.",
+  },
   { name: "Large Language Models (LLM)" },
   { name: "Speech / Audio" },
   { name: "Reinforcement Learning" },
