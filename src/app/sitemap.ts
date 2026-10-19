@@ -14,6 +14,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://swecompanion.web.ap
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [
+    { url: `${siteUrl}/`, priority: 1 },
     { url: `${siteUrl}${CODING_PATH}`, priority: 1 },
     { url: `${siteUrl}${DEEP_LEARNING_PATH}`, priority: 1 },
     { url: `${siteUrl}${APPLIED_ML_PATH}`, priority: 1 },

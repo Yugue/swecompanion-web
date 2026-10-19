@@ -5,7 +5,6 @@
     "cleanUrls": true,
     "trailingSlash": false,
     "redirects": [
-      { "source": "/", "destination": "/coding", "type": 302 },
       { "source": "/mldomain", "destination": "/mldomain/deeplearning", "type": 302 },
       { "source": "/ml", "destination": "/mldomain/deeplearning", "type": 301 },
       { "source": "/ml/:path*", "destination": "/mldomain/deeplearning/:path*", "type": 301 },

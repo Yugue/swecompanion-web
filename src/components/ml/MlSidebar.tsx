@@ -6,6 +6,7 @@ import { mlTopicCount } from "@/lib/mlStudyData";
 import { getIcon } from "@/lib/icons";
 import { ProgressRing } from "@/components/ProgressRing";
 import { ProductMark } from "@/components/ProductMark";
+import Link from "next/link";
 
 export function MlSidebar({
   parts,
@@ -30,10 +31,10 @@ export function MlSidebar({
 
   return (
     <div className="flex h-full flex-col border-r border-outline/55 bg-surface/95">
-      <div className="flex items-center gap-3 px-5 py-5">
+      <Link href="/" className="flex items-center gap-3 px-5 py-5">
         <ProductMark size={30} />
         <span className="text-[17px] font-bold text-text">SWE Companion</span>
-      </div>
+      </Link>
 
       <div className="mx-3.5 mb-3 flex items-center gap-3 rounded-lg px-3 py-2.5">
         <span className="flex-1 text-sm font-semibold text-text">{domain}</span>

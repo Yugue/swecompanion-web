@@ -6,6 +6,7 @@ import { uniqueProblems } from "@/lib/studyData";
 import { chapterPath } from "@/lib/codingPaths";
 import { ProgressRing } from "@/components/ProgressRing";
 import { ProductMark } from "@/components/ProductMark";
+import Link from "next/link";
 
 export function GuideSidebar({
   topics,
@@ -22,10 +23,10 @@ export function GuideSidebar({
 
   return (
     <div className="flex h-full flex-col border-r border-outline/55 bg-surface/95">
-      <div className="flex items-center gap-3 px-5 py-5">
+      <Link href="/" className="flex items-center gap-3 px-5 py-5">
         <ProductMark size={30} />
         <span className="text-[17px] font-bold text-text">SWE Companion</span>
-      </div>
+      </Link>
 
       <button
         type="button"
