@@ -15,7 +15,7 @@ export function TopBar({
   onMenuPressed?: () => void;
 }) {
   return (
-    <header className="grid h-[72px] grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-2.5 border-b border-outline/55 bg-bg/95 px-3 sm:px-6">
+    <header className="grid h-[72px] grid-cols-[1fr_auto_1fr] items-center gap-1 sm:gap-2.5 border-b border-outline/55 bg-bg/95 px-2 sm:px-6">
       <div className="flex items-center">
         {onMenuPressed && (
           <button

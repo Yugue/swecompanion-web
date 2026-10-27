@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "check:nlp": "tsx scripts/checkNlpGuide.ts",
     "check:cv": "tsx scripts/checkCvGuide.ts",
     "seed:quizzes": "tsx scripts/seedQuizzes.ts"
   },

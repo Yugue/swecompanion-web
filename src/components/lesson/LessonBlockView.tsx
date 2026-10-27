@@ -8,10 +8,14 @@ import { DlLessonVisual } from "@/components/ml/visuals/DlLessonVisual";
 import { AmlLessonVisual } from "@/components/aml/visuals/AmlLessonVisual";
 import { RrpLessonVisual } from "@/components/rrp/visuals/RrpLessonVisual";
 
+import { NlpLessonVisual } from "@/components/nlp/NlpLessonVisual";
+
 const NUMBERED_ITEM = /^\d+\.\s+/;
 
 export function LessonBlockView({ block }: { block: LessonBlock }) {
   switch (block.type) {
+    case "nlp-visual":
+      return <NlpLessonVisual id={block.text.trim()} />;
     case "rrp-visual":
       return <RrpLessonVisual id={block.text.trim()} />;
     case "aml-visual":

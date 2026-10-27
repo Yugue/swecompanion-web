@@ -17,11 +17,15 @@ export function MlHero({
   lessonCount = mlTopicCount,
   chapterCount = mlParts.length,
   quizCount = mlQuizCount,
+  sectionLabel = "Chapter",
+  showWritersNote = true,
 }: {
   domain?: string;
   lessonCount?: number;
   chapterCount?: number;
   quizCount?: number;
+  sectionLabel?: "Chapter" | "Part";
+  showWritersNote?: boolean;
 }) {
   const summary = ML_DOMAINS.find((d) => d.name === domain)?.summary;
   return (
@@ -41,8 +45,8 @@ export function MlHero({
         <p className="mt-1 text-lg font-bold leading-snug text-accent-blue">{domain}</p>
         {summary && <p className="mt-1.5 text-sm leading-relaxed text-text-muted">{summary}</p>}
       </div>
-      <MlWritersNote />
-      <MlGuideStats lessonCount={lessonCount} chapterCount={chapterCount} quizCount={quizCount} />
+      {showWritersNote && <MlWritersNote />}
+      <MlGuideStats lessonCount={lessonCount} chapterCount={chapterCount} quizCount={quizCount} sectionLabel={sectionLabel} />
 
       <MlInterviewExplanation />
 

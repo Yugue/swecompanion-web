@@ -15,6 +15,7 @@ export type LessonBlockType =
   | "dl-visual"
   | "aml-visual"
   | "rrp-visual"
+  | "nlp-visual"
   | "table"
   | "math"
   | "divider";
@@ -107,7 +108,7 @@ export function parseLesson(source: string): LessonBlock[] {
       if (index < lines.length) index++;
       const fencedText = content.join("\n").replace(/\s+$/, "");
       blocks.push({
-        type: language === "cv-visual" ? "visual" : language === "dl-visual" ? "dl-visual" : language === "aml-visual" ? "aml-visual" : language === "rrp-visual" ? "rrp-visual"
+        type: language === "nlp-visual" ? "nlp-visual" : language === "cv-visual" ? "visual" : language === "dl-visual" ? "dl-visual" : language === "aml-visual" ? "aml-visual" : language === "rrp-visual" ? "rrp-visual"
           : language === "text" && looksLikeDiagram(fencedText) ? "diagram" : "code",
         text: fencedText,
       });

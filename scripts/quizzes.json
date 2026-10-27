@@ -1080,5 +1080,193 @@
       "Profile end to end: network transfer, image decoding, CPU preprocessing, queueing or batching waits, host–device copies, postprocessing such as NMS, and serialization. Fix the largest stage, for example with GPU preprocessing, pipelining, or tuned batching.",
       "Quantization (FP32 → INT8) gives about 4× smaller weights and speedups on supported hardware, with QAT if accuracy drops. Distillation trains a smaller student on teacher outputs. Structured pruning yields real speedups; unstructured needs sparse kernels. Re-check accuracy per slice after each."
     ]
+  },
+  "nlp-foundations": {
+    "questions": [
+      "A support model recognizes the cancellation intent in “cancel that.” What else must be established before an order can be canceled?",
+      "Two intent models both classify 90 of 100 messages correctly. What evidence would let you choose between them?",
+      "A random message split beats a conversation-grouped time split by 19 accuracy points. What leakage and availability checks come before model redesign?"
+    ],
+    "answers": [
+      "The system needs the intended order, enough conversation context, authorization, and an action policy. If the referent remains ambiguous, ask for clarification or review. Intent accuracy measures one stage; it does not establish that executing the action is correct.",
+      "Inspect which ten messages each misses, per-intent support, costly confusions, and their deployed routing or review policies. Compare latency and uncertainty on representative data. The same accuracy can conceal very different wrongful-action and missed-request costs.",
+      "Inspect shared conversations, duplicated templates, related documents, and features written after the original decision time. Check label-policy and traffic changes too. Rebuild the evaluation to match the intended deployment; the score difference suggests hypotheses but does not prove one cause."
+    ]
+  },
+  "nlp-mathematics-and-probability": {
+    "questions": [
+      "A language model gives “cats,” then “sleep,” then END conditional probabilities 0.4, 0.5, and 0.8. What is the sequence probability, and what if the final factor is zero?",
+      "You annotate only cases selected by model uncertainty, then report accuracy on that same pool. Why is that not a representative deployment estimate?",
+      "A query vector is [1,0], with document vectors [1,1] and [2,2]. Compare their dot products and cosine similarities, and explain the ranking implication.",
+      "A phrase occurs in 80% of spam and 5% of legitimate messages, while spam is 1% of traffic. Estimate spam risk for a phrase-bearing message.",
+      "The true two-class distribution is [0.5,0.5], but the model predicts [0.9,0.1]. Is the true entropy equal to cross-entropy? Use natural logs."
+    ],
+    "answers": [
+      "Multiplying the chain-rule factors gives 0.16. A zero factor makes the complete sequence probability zero even if earlier tokens are likely. Inspect smoothing, vocabulary, and termination behavior rather than treating fluent local predictions as proof of a well-scored sequence.",
+      "The selection policy changes which examples receive labels and often overrepresents difficult cases while missing confident mistakes. Keep independent representative audits or an appropriately designed evaluation sample. Targeted active-learning data can help training without becoming an unbiased test of traffic quality.",
+      "The dot products are 1 and 2. Both cosine similarities are 1/√2, about 0.707. Doubling a document vector changes its magnitude but not direction, so dot-product ranking can reward a length difference that cosine removes. Choose the scoring geometry that matches training and relevance.",
+      "The spam-and-phrase probability is 0.008; legitimate-and-phrase probability is 0.0495. Bayes’ rule gives 0.008/0.0575, about 13.9%. The phrase is strong relative evidence, but legitimate traffic is much more common. Reversing the conditional without the base rate would exaggerate risk.",
+      "True entropy is about 0.693 nats. Cross-entropy is −0.5 log 0.9 −0.5 log 0.1, about 1.204. Their difference, about 0.511, is the directed KL mismatch. The model is more confident than the evidence supports; its own low entropy is not a quality guarantee."
+    ]
+  },
+  "nlp-text-representations": {
+    "questions": [
+      "A cleaning pipeline changes “I do not recommend it” into “recommend.” Why can a larger sentiment model fail to repair the result?",
+      "A name detector predicts the right processed-text span but highlights the wrong characters after an emoji. What would you inspect?",
+      "A toy tokenizer starts with l, o, w, e, r and applies frozen merges l+o, lo+w, then e+r. What sequence remains, and does inference learn new merges from this request?",
+      "An unseen surname becomes six subword tokens. How do you decide whether to change the tokenizer?",
+      "Using count × (1 + log((N+1)/(df+1))), compare a term appearing twice in one of three fitting documents with one appearing twice in all three. What does the difference mean?",
+      "A bag-of-words baseline confuses “dog bites man” with “man bites dog.” You can afford more lexical features and must preserve exact product codes. What would you test, and what limits remain?"
+    ],
+    "answers": [
+      "The preprocessing step erased the evidence distinguishing praise from negation. The model now sees an input compatible with the opposite sentiment. Preserve negation and test minimal pairs end to end; extra model capacity cannot reliably reconstruct information the interface discarded.",
+      "Compare byte, Unicode code-point, and UTF-16 offset conventions, then trace the processed-to-original mapping. Unicode normalization and identifier replacement may also shift boundaries. Verify the original source span before treating the error as a name-recognition failure.",
+      "The steps give [lo,w,e,r], then [low,e,r], then [low,er]. The learned merge order is fixed during inference. Recomputing frequent pairs for each request would change the tokenizer interface and could produce identifiers incompatible with the trained model.",
+      "Fragmentation is not itself a coverage failure: reusable pieces can represent an unseen word. Measure name extraction, source-span alignment, token lengths, truncation, and latency on the affected population. Changing tokenization also requires a compatible model; a shorter encoding alone is not enough.",
+      "The rare term receives 2 × (1 + log 2), about 3.386; the ubiquitous term receives 2. The inverse-document-frequency factor emphasizes more distinctive terms. These are feature weights under a stated convention, not probabilities of relevance.",
+      "Word n-grams preserve selected local order, while character n-grams share spelling patterns across variants. Keep exact identifier evidence and evaluate role reversals and product-code cases separately. These features do not guarantee correct grammatical roles or capture every distant dependency; choose them by the required task and measured errors."
+    ]
+  },
+  "nlp-classical-models": {
+    "questions": [
+      "A bigram context has three observed continuations and a vocabulary of four possible next tokens. Under add-one smoothing, what probability does an unseen continuation get, and what is sacrificed?",
+      "Two systems report different token-level perplexities after using different tokenizers. What must be held fixed before interpreting the comparison?",
+      "A binary Naive Bayes example has prior P(spam)=0.25 and one observed feature with likelihood 0.6 in spam and 0.1 in legitimate text. What posterior does this tiny model produce?",
+      "A logistic text model uses weights [2,−1], intercept −0.5, and input counts [2,1]. Compute its score and approximate positive probability. What would a missing interaction require?"
+    ],
+    "answers": [
+      "Its probability is (0+1)/(3+4) = 1/7. Adding one to every count reserves mass for unseen outcomes while reducing the relative mass of observed continuations. This simple rule can overallocate probability to unseen events; compare held-out likelihood with better smoothing where needed.",
+      "Tokenization changes both the prediction units and the denominator. Match tokenizer, evaluation text, available context, masking, and aggregation, or choose an explicitly comparable unit-based protocol. Perplexity measures reference-token surprise, not generated-text faithfulness or usefulness.",
+      "Unnormalized scores are 0.25×0.6=0.15 and 0.75×0.1=0.075. Normalizing gives spam posterior 0.15/0.225=2/3. This is the stated one-feature model; a full model would include its other declared features. A normalized result alone does not establish calibrated real-world risk.",
+      "The score is 2×2−1×1−0.5=2.5, giving sigmoid probability about 0.924. A needed interaction must be represented by an appropriate feature or computation; longer fitting alone cannot distinguish examples that map to identical inputs. Evaluate the chosen representation and cutoff separately."
+    ]
+  },
+  "nlp-neural-foundations": {
+    "questions": [
+      "An intent model has logits [log 3, 0]. What probabilities does softmax produce, and can you improve them by adding 100 to both logits?",
+      "For two directly learned logits starting at [0,0], the first class is correct. What does one cross-entropy gradient step with learning rate 0.2 do?",
+      "A dense text layer uses x=[1,2], W rows [1,−1] and [2,0], and b=[0,1]. What are its outputs before and after ReLU, and why keep the nonlinearity?",
+      "For L(w)=(w−3)² at w=1, compare one gradient step with rates 0.1 and 2. Does a larger step necessarily improve fitting?"
+    ],
+    "answers": [
+      "Softmax gives [0.75,0.25]. Adding the same constant changes neither probability because the common exponential factor cancels. Relative logit differences determine the distribution; subtracting the maximum is a numerical-stability device rather than a model-quality improvement.",
+      "The logit gradients are [−0.5,0.5], so the update yields [0.1,−0.1]. The first-class probability rises from 0.5 to about 0.550. In a real text model, logits depend on shared parameters, so their changes also depend on feature values and other examples.",
+      "The weighted sums are [−1,3], and ReLU produces [0,3]. Without nonlinearities, stacked affine layers collapse to another affine mapping. ReLU enables richer interactions, although sentence order still needs an appropriate representation or sequence mechanism.",
+      "The derivative is −4. Rate 0.1 moves to 1.4 and reduces loss from 4 to 2.56; rate 2 moves to 9 and raises loss to 36. A locally downhill direction does not justify an arbitrarily large step. Check the rate and stability rather than assuming more movement is better."
+    ]
+  },
+  "nlp-embeddings-and-sequences": {
+    "questions": [
+      "A token lookup vector affects a prediction but remains unchanged through training. How would you distinguish an intentional design from a broken update?",
+      "A static embedding puts “hot” close to “cold.” Why can this be expected, and what would you measure before using cosine as a synonym test?",
+      "In negative-sampling training, an observed word pair and a sampled alternative both start with dot-product score zero. Which score directions does the loss favor, and is the sampled alternative necessarily invalid language?",
+      "A bidirectional recurrent model reports excellent next-word accuracy. What information-access check comes before accepting the gain?",
+      "An RNN loses a negation appearing far before the final adjective. Why might gates help, and why would gradient clipping alone be insufficient?",
+      "A causal decoder sees “cats sleep END.” Which token should the output at “cats” predict, and why does a causal mask not repair a wrong target shift?",
+      "For reference target “cats sleep END,” what are the decoder inputs and targets under teacher forcing, and what must padding contribute to loss?",
+      "A one-coordinate text sequence is [1,−1,2], and one shared two-position filter is [2,1] with zero bias. What responses and max-pooled ReLU feature result?"
+    ],
+    "answers": [
+      "Check whether the table is deliberately frozen, whether it is connected to the loss, whether gradients are computed, and whether its parameters are in the optimizer. A forward dependency does not guarantee a parameter update. Compare values before and after a controlled training step.",
+      "The words can occur in very similar contexts despite opposite meanings. Distributional similarity captures usage under the learned objective, not guaranteed synonymy. Test antonyms, multiple senses, and task-specific judgments before choosing a similarity rule or threshold.",
+      "The positive pair has score sensitivity −0.5 and is pushed upward; the sampled alternative has +0.5 and is pushed downward. A sampled pair can still be linguistically plausible. Sampling defines a training contrast, not a universal claim that a word pair is impossible.",
+      "Verify that the backward state and other inputs cannot read the target token or later tokens. Full-sentence context is legitimate for complete-input labeling but leaks unavailable evidence for causal next-token prediction. Re-evaluate using only the prefix available at the decision time.",
+      "Repeated recurrent transformations can weaken retained information and shrink learning signals over distance. Gates learn what to retain and overwrite; clipping limits exploding gradient magnitude. Clipping does not recover missing information or restore vanishing gradients, and gated recurrence still has sequential computation costs.",
+      "It should predict “sleep,” the next target. The mask limits what input positions can be read; it does not decide which label is paired with each output. Training to reproduce the visible current token can yield deceptively low loss while teaching the wrong prediction problem.",
+      "Use inputs “START cats sleep” and targets “cats sleep END.” Only the intended supervised target positions contribute; padding receives no loss. Prompt masking depends on the declared objective. The attention mask controls available context, while target shifting and the loss mask control what is scored.",
+      "The windows give 2×1−1=1 and 2×(−1)+2=0. ReLU keeps [1,0], and max pooling returns 1. The filter reuses the same weights across positions. Pooling retains the strongest response but discards where it occurred, which can matter for order-sensitive tasks."
+    ]
+  },
+  "nlp-transformers": {
+    "questions": [
+      "One attention query has already-scaled scores [log 3,0] and values [2,0] and [0,4]. What output is produced, and what changes if the weights swap?",
+      "A model normalizes attention over real tokens and padding, then sets the padding weights to zero. Is this equivalent to masking padding before softmax?",
+      "A full self-attention classifier with mean pooling cannot reliably distinguish “Ada follows Ben” from “Ben follows Ada.” What positional check is useful?",
+      "A Transformer with unchanged parameters runs out of memory after doubling padded sequence length. Explain a likely cause and an appropriate first measurement.",
+      "During translation, may the decoder predicting “sleep” read the entire French source and the future English reference “sleep”? Defend each access decision.",
+      "A batch contains text lengths 10, 10, and 100, padded to the longest input. How many token slots are processed, and why might length bucketing help?",
+      "For one token vector [1,3], use layer normalization with unit learned scales, zero offsets, and ignore epsilon. What normalized vector results, and should another batch example affect it?"
+    ],
+    "answers": [
+      "Softmax gives weights [0.75,0.25], so the mixture is [1.5,1]. Swapping the weights gives [0.5,3]. Compatibility scores determine how much each position contributes; the values supply the content. The result need not equal any single input value.",
+      "No. Unless the remaining weights are renormalized, their sum falls below one and the mixture changes scale. Excluding padding before softmax normalizes only over allowed positions. Also check pooling and loss masks separately, and handle fully masked rows without undefined normalization.",
+      "Without position-dependent information or restrictions, reordering tokens reorders self-attention outputs; mean pooling can then erase the change. Check position embeddings or relative-position mechanisms, while also testing the actual role-reversal examples. Extra attention layers alone do not establish sensitivity to order.",
+      "Dense attention creates pair scores across positions, so its work grows quadratically with padded length at fixed dimensions. Activation and implementation choices affect stored memory too. Measure actual batch lengths, padding, and the attention implementation before assuming parameter count grew or changing the task.",
+      "The whole source is available at inference, so a bidirectional source encoder and source cross-attention are valid. The future English target is not yet available and must be withheld. Target self-attention uses the existing prefix; source padding is separately excluded from cross-attention.",
+      "The batch contains 300 token slots for 120 real tokens. Grouping similar lengths can reduce padding and dense attention work, but may add queueing delay or change batch utilization. Measure end-to-end tail latency and quality rather than judging only token arithmetic.",
+      "The coordinate mean is 2 and variance is 1, giving [−1,1]. Ordinary layer normalization uses this example’s feature coordinates, so another batch example does not change those statistics. Check the normalized axes if adding unrelated text to the batch changes this operation."
+    ]
+  },
+  "nlp-pretraining-and-adaptation": {
+    "questions": [
+      "You need full-sentence entity vectors and a left-to-right continuation model. How do masked and causal pretraining differ for these uses?",
+      "You have 500 labeled domain messages. How would you compare frozen encoder features, full fine-tuning, and prompting without using the final test to choose?",
+      "The best first token has probability 0.6 and its best continuation 0.5. A second first token has probability 0.4 and best continuation 0.9. With equal termination factors, why can beam width two beat greedy here?",
+      "A next-token distribution is [0.5,0.3,0.2]. With nucleus cutoff 0.7, which tokens remain and what are their sampling probabilities?",
+      "A frozen matrix maps six input coordinates to four outputs. With LoRA rank one, how many adapter weights are trained versus full matrix tuning, ignoring biases and scale?",
+      "A dataset gives a preferred and rejected response for each prompt. What information is discarded if training only imitates the preferred response, compared with a paired preference objective?"
+    ],
+    "answers": [
+      "Masked learning predicts selected withheld tokens from surrounding input; causal learning predicts next tokens without future targets. Bidirectional encoder representations fit complete-input labeling, while a causal decoder naturally supports continuation. Evaluate the task head and adaptation, rather than assuming pretraining loss alone supplies the required output.",
+      "Use the same permitted splits and task metrics, tuning on validation data. Frozen features train cheaply but cannot reshape the encoder; fine-tuning adapts features with overfitting risk; prompting spends inference context and depends on wording. Compare rare-intent quality, uncertainty, latency, and label consistency before final testing.",
+      "Greedy commits to the 0.6 branch, whose best path has probability 0.30. Keeping both first-step branches lets search retain the alternative path with probability 0.36. Beam search remains approximate, and a higher model probability still need not mean better task utility.",
+      "The first token alone supplies only 0.5 mass, so include the second to reach 0.8. Renormalizing gives [0.625,0.375] over those two tokens. Record filtering and temperature order because it changes the distribution actually sampled.",
+      "The base matrix has 4×6=24 entries. The two adapter factors contain 1×6 + 4×1=10 trainable weights. This reduces trainable state while retaining a restricted rank-one update. The frozen matrix still exists, and activation or cache memory does not shrink by that same ratio.",
+      "Winner-only supervised training uses the preferred text as a target but does not explicitly compare it with the rejected alternative. A paired objective learns the stated relative distinction. The comparison’s usefulness still depends on the judging criterion and data quality; neither approach guarantees factual correctness."
+    ]
+  },
+  "nlp-understanding-tasks": {
+    "questions": [
+      "A message can be both urgent and about billing. Why might a single softmax over “urgent” and “billing” be the wrong objective?",
+      "An intent classifier assigns 0.99 maximum softmax probability to unsupported messages. Does in-distribution accuracy justify automatic routing?",
+      "In a 1,000-token NER test, 990 tokens are outside entities. A model predicts outside everywhere. What does its 99% token accuracy conceal?",
+      "A subword tagger emits O followed by I-ORG and reconstructs the wrong source span. What separate issues could structured decoding and offset checks address?",
+      "An inference system says “Ada follows Ben” entails “Ben follows Ada” because the words match. Which mechanism and evaluation changes would you investigate?",
+      "Two annotators disagree whether “Every cat slept” entails “Some cat slept.” Is increasing model size the first response?",
+      "A QA system returns an incorrect answer. How does evaluating the reader with reference passages help distinguish retrieval and reading failures?",
+      "An extractive QA model returns an answer span for every question, including those not answered by the passage. What target and output-policy changes are needed?",
+      "An entity extractor has 8 exact true-positive spans, 2 false positives, and 4 missed reference spans. Compute precision, recall, and F1, stating the counted unit.",
+      "An intent model’s micro score rises while a rare class becomes unusable. Which measurements can reveal the regression, and what uncertainty should accompany them?",
+      "Among two permitted tag paths, B-PER/O has emission sum 8 and transition score 0. B-PER/I-PER has emission sum 7 and transition score 2. Which does a CRF score higher, and why?"
+    ],
+    "answers": [
+      "Softmax treats the categories as mutually exclusive competitors. Use a multilabel schema when both attributes can apply, commonly with one sigmoid and binary loss per label. Choose per-label operating thresholds and inspect support; changing the encoder cannot repair an incorrect output contract.",
+      "No. A closed-set distribution can be confident on unfamiliar inputs, and in-distribution accuracy does not measure rejection quality. Evaluate representative out-of-scope messages and a rejection or review policy, including the costs of wrong supported-intent assignments.",
+      "It recovers no reference entities. Count correct exact typed spans, missed reference entities, and false extra entities, using the annotation policy. Inspect boundaries and types separately. Dominant outside tokens make token accuracy a misleading headline for extraction, even when the reported percentage is arithmetically correct.",
+      "Under strict BIO, the tag transition may be illegal; constrained decoding or a CRF can enforce path consistency. Incorrect source spans can instead come from word-to-subword labeling or coordinate mapping. Structured decoding does not fix byte/character offsets or recover discarded source text.",
+      "The system may ignore argument roles or exploit lexical overlap. Check order-sensitive representations and annotations, then test role reversals, negation, and high-overlap neutral pairs. Dependency or role information may help, but evaluate it rather than assuming any parse guarantees correct meaning.",
+      "Clarify whether the annotation convention assumes that cats exist. Formal and everyday interpretations can differ on existential assumptions. Establish a consistent labeling policy and adjudicate ambiguous examples; model capacity cannot make an unspecified target reproducible.",
+      "Compare reader quality given correct evidence with the actual retrieved-passage pipeline. A large gap suggests retrieval, chunking, or evidence-selection failures. If the correct clause is visible and the answer is still wrong, inspect reader behavior, target alignment, conflicting versions, and source support.",
+      "Add explicit answerability or no-answer supervision and representative unanswerable evaluation. Choose a validated abstention threshold and legal span rules. A forced span selector always returns something; overlap with a plausible answer does not establish that the evidence supports it.",
+      "The counted unit is an exact typed entity span. Precision is 8/10 = 0.8, recall is 8/12 ≈ 0.667, and F1 is 16/22 ≈ 0.727. Token-level partial matches must not silently count as exact entity successes.",
+      "Inspect per-class precision/recall/F1 and support, plus macro aggregation that gives classes equal weight. Compare paired error changes and uncertainty using evaluation units that respect document or conversation dependence. A small rare-class sample can make its estimated score unstable.",
+      "The first totals 8; the second totals 9. The second is preferred among these paths because transition evidence outweighs its weaker emissions. Independent token decisions ignore this coupling. Complete decoding must also respect the stated start, end, and legal-transition rules."
+    ]
+  },
+  "nlp-retrieval-and-generation": {
+    "questions": [
+      "A semantic search model helps paraphrases but loses exact product identifiers. Why might hybrid retrieval help, and how should the merge be evaluated?",
+      "You must search a million passages, then inspect subtle query–passage interactions. What are the roles and limitations of a bi-encoder and cross-encoder?",
+      "A translation is fluent but removes “not” from a medical sentence. What evaluation and data checks address the failure?",
+      "A low-resource translator improves on synthetic back-translated data but not on real held-out pairs. What might have happened?",
+      "A summary scores well on word overlap yet changes “no data was lost” to “data was lost.” How should the quality assessment change?",
+      "A long-document summarizer first summarizes chunks, then summarizes those summaries. Why can an omitted qualification be difficult to recover, and how would you test it?",
+      "A multilingual model improves its global average but worsens a low-traffic script. What would you inspect before deciding the change is acceptable?",
+      "A translate-then-classify pipeline succeeds on formal examples but misses code-switched requests. How do you construct a useful diagnostic comparison?",
+      "In a contrastive batch, two different query rows have genuinely relevant documents that are near-duplicate answers. Why can treating every off-diagonal document as negative harm learning?",
+      "A correct policy passage is among the retrieved candidates, but RAG returns the wrong return deadline. What checks distinguish evidence delivery from generation failure?"
+    ],
+    "answers": [
+      "Lexical candidates preserve exact term evidence while learned vectors can recover paraphrases. Deduplicate and use a validated score transform, learned merge, or rank-based rule rather than comparing raw BM25 and cosine values directly. Report identifier and paraphrase slices under the same relevance protocol.",
+      "A bi-encoder reuses independently computed passage vectors for cheap indexed retrieval. A cross-encoder jointly reads each pair and can rerank a smaller pool with richer interaction. The latter cannot recover an omitted candidate; measure candidate recall, ranking quality, latency, and index compatibility separately.",
+      "Evaluate meaning preservation with a negation slice and qualified bilingual review, including paired-data quality and source truncation checks. Fluency or general overlap alone can miss a polarity reversal. Compare generated conditions, numbers, and participant roles against the source.",
+      "Synthetic sources can add useful coverage while carrying the reverse model’s errors and artificial phrasing. Inspect real versus synthetic domains, alignment, duplicates, and evaluation leakage. Choose the mixture by performance on representative real examples rather than assuming more paired rows always improve translation.",
+      "Add source-support checks for negation, entities, numbers, and conditions, plus coverage and coherence review. Overlap credits shared wording without guaranteeing faithfulness. Keep faithfulness to the source separate from external factual truth if the source itself could be inaccurate.",
+      "A qualification dropped during the first compression may never reach the final model. Test late corrections to earlier claims and dependencies crossing chunk boundaries. Compare overlap, source-linked intermediate notes, and end-to-end supported-claim quality while measuring the added cost and reconciliation errors.",
+      "Measure per-language and script support, token fragmentation, truncation, routing errors, annotation quality, and task outcomes. Shared parameters can transfer knowledge while competing for capacity. Acceptance depends on supported-language requirements and fallback behavior, not only the traffic-weighted global average.",
+      "Use native, validated code-switched examples with consistent intent labels. Compare direct multilingual classification with the translated pipeline, inspecting meaning, negation, entities, and routing after each stage. Do not assume translation or dialect substitutions preserve the intended meaning without speaker review.",
+      "The negative assumption is false for those comparisons. Training can push valid answers apart or punish a query for recognizing another relevant passage. Identify duplicate or multiple-positive relationships, exclude invalid negatives, or use a suitable multiple-positive objective. More negatives do not necessarily mean better evidence.",
+      "Trace whether the exact relevant clause survives chunking, reranking, context selection, and prompt assembly. Check conflicting versions and attribution. If the right evidence reaches the model, inspect its reading and generated claims. Merely finding the document in the candidate list does not establish that the generator saw or used the needed passage."
+    ]
   }
 }
