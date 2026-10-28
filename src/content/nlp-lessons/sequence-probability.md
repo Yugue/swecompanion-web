@@ -1,60 +1,60 @@
 # Sequence probability, likelihood, and logarithms
 
-## 1. Predict a sequence through smaller questions
+## 1. Predict text one conditional at a time
 
-A **language model** assigns probabilities to token sequences. An **autoregressive** model does so by predicting each token from the available prefix.
+A **language model** assigns probabilities to token sequences. A **token** is a unit processed by the model, such as a word or text piece.
 
-The probability chain rule states:
+An **autoregressive model** predicts each token from its available prefix.
+
+## 2. Factor a sequence
+
+The probability chain rule gives:
 
 \[
 P(x_{1:T})=\prod_{t=1}^{T}P(x_t\mid x_{<t})
 \]
 
-\(x_t\) is token \(t\); \(T\) the sequence length; \(x_{<t}\) its earlier tokens. The first factor has no earlier text, apart from any declared starting context.
+\(x_t\): token t; \(T\): sequence length; \(x_{<t}\): earlier tokens. The first factor uses any declared starting context.
 
-## 2. Multiply one sequence
+This is an identity, not an independence assumption.
 
-For “cats sleep” followed by an **end-of-sequence (EOS)** marker:
+## 3. Include termination
+
+An **end-of-sequence (EOS)** marker makes stopping a predicted event:
 
 ```text
 P(cats)=0.4
 P(sleep | cats)=0.5
 P(EOS | cats sleep)=0.8
-sequence probability = 0.4 × 0.5 × 0.8 = 0.16
+complete probability = 0.4 × 0.5 × 0.8 = 0.16
 ```
 
-EOS makes termination an event the model can predict. It is not the same as an artificial padding position.
+This marks a real ending, rather than a storage-only position.
 
-## 3. Separate an identity from a model assumption
+## 4. Limit history deliberately
 
-The chain rule itself loses no information. Replacing the entire prefix with its last two tokens is an additional assumption about useful context.
+A **history** is the context used for prediction. Replacing the full prefix with its last two tokens is an additional modeling assumption.
 
-A **history** is the context used to predict the next token. N-gram models restrict it explicitly; neural models represent it through learned computations and context limits.
+Short histories share counts more easily but discard longer relationships.
 
-## 4. Understand likelihood
+## 5. Fit likelihood in log space
 
-**Likelihood** treats observed data as fixed and asks how well different parameter settings account for it. Write model probabilities as \(P_\theta\), where \(\theta\) denotes fitted parameters.
-
-Training by **maximum likelihood** chooses parameters giving the observed targets high probability. It need not assign high probability to every conceivable continuation.
-
-## 5. Turn products into sums
+**Likelihood** compares parameter settings against fixed observed data. **Maximum likelihood** chooses parameters assigning those observations high probability.
 
 \[
-\log P_\theta(x_{1:T})=\sum_{t=1}^{T}\log P_\theta(x_t\mid x_{<t})
+\log P_\theta(x_{1:T})=\sum_t\log P_\theta(x_t\mid x_{<t})
 \]
 
-Logs here are natural. Their monotonicity preserves likelihood ordering, while summation avoids multiplying many tiny numbers into numerical zero.
+\(\theta\) denotes parameters. Natural logarithms preserve probability ordering and replace tiny products with sums.
 
-**Negative log-likelihood (NLL)** reverses the sign so training can minimize a cost. A target probability of 0.1 costs more than 0.9.
+**Negative log-likelihood (NLL)** negates this score for minimization.
 
-## 6. Respect the scoring convention
+## 6. Specify the score
 
-Raw sequence probability, average token log loss, and a length-adjusted decoding score answer different questions. Compare them only with the intended input, targets, termination rules, and units specified.
-
-> A sequence score is a chain of conditional bets; inspect what each bet was allowed to see.
+Total sequence probability, average token loss, and length-adjusted search scores answer different questions. Declare targets, boundaries, and termination before comparing them.
 
 ## 7. Interview reasoning
 
-**Question:** Is the probability chain rule the same as assuming neighboring words are independent?
+**Question:** Does the chain rule assume adjacent words are independent?
 
-**Answer:** No. The full factorization conditions on the entire prefix. Independence or limited-context assumptions enter only when that conditional distribution is simplified.
+**Answer:** No. Its full conditionals use the entire prefix. Restricted context is a separate approximation made by a model.

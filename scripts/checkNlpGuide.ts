@@ -6,7 +6,7 @@ import { nlpParts, nlpTopics, nlpTopicsById, nlpLessonNumbers, nlpReferencesByTo
 import { getLessonBlocks } from "../src/lib/getLessonBlocks";
 import { parseInline, parseTableRows } from "../src/lib/lessonParser";
 import { isNlpVisualId, nlpVisuals } from "../src/lib/nlpVisuals";
-import { attentionExample, attentionMixture, causalAccess, contrastiveLogits, convolutionExample, convolveText, crfExample, crfLogPartition, decodingExample, dot, embeddingExample, loraParameterCounts, lstmStep, pathScore, softmax, subwordSteps, teacherForcingExample, vectorExample, viterbi } from "../src/lib/nlpVisualMath";
+import { attentionExample, attentionQuery, attentionKeys, attentionMixture, causalAccess, contrastiveLogits, convolutionExample, convolveText, crfExample, crfLogPartition, decodingExample, dot, embeddingExample, loraParameterCounts, lstmStep, nerAlignmentExample, nerFirstPieceLabels, nerAllPieceLabels, pathScore, softmax, subwordSteps, teacherForcingExample, vectorExample, viterbi, viterbiTrace } from "../src/lib/nlpVisualMath";
 import { mlpForwardBackward, mlpParameters, updateMlp } from "../src/lib/cvVisualMath";
 import sitemap from "../src/app/sitemap";
 import { NLP_PATH } from "../src/lib/mlDomains";
@@ -71,6 +71,7 @@ assert.deepEqual(convolveText([1, -1, 2], [2, 1]), [1, 0]);
 const memory = lstmStep(); close(memory.retained, 3); close(memory.added, -0.2); close(memory.memory, 2.8); close(memory.hidden, 0.8 * Math.tanh(2.8));
 assert.deepEqual(teacherForcingExample.inputs.slice(1), teacherForcingExample.labels.slice(0, -1));
 const mixture = attentionMixture(attentionExample.scores, attentionExample.values);
+close(attentionQuery, 1); attentionKeys.forEach((key, i) => close(key, [Math.log(3), 0][i]));
 mixture.weights.forEach((value, i) => close(value, [0.75, 0.25][i])); mixture.output.forEach((value, i) => close(value, [1.5, 1][i]));
 attentionMixture([...attentionExample.scores].reverse(), attentionExample.values).output.forEach((value, i) => close(value, [0.5, 3][i]));
 assert.deepEqual(attentionMixture([0, -Infinity], attentionExample.values).output, [2, 0]);
@@ -103,10 +104,26 @@ const allPaths = crfExample.labels.flatMap((_, a) => crfExample.labels.map((_, b
 const validScores = allPaths.map(path => ({ path, score: pathScore(path) })).filter(item => Number.isFinite(item.score));
 const best = validScores.reduce((a, b) => a.score >= b.score ? a : b);
 assert.deepEqual(viterbi(), best); close(crfLogPartition(), Math.log(sum(validScores.map(item => Math.exp(item.score)))));
+const trace = viterbiTrace();
+assert.deepEqual(trace.scoresByStep[0], [2, -Infinity, 1]);
+trace.scoresByStep[1].forEach((score, label) => close(score, Math.max(...validScores.filter(item => item.path[1] === label).map(item => item.score))));
+assert.equal(trace.predecessors[0][trace.path[1]], trace.path[0]);
 close(sum(validScores.map(item => Math.exp(item.score - crfLogPartition()))), 1);
+assert.deepEqual(nerFirstPieceLabels, ["B-PER", "ignore", "O", "B-LOC", "I-LOC"]);
+assert.deepEqual(nerAllPieceLabels, ["B-PER", "I-PER", "O", "B-LOC", "I-LOC"]);
+nerAlignmentExample.pieces.forEach((piece, i) => assert.equal(piece.replace(/^##/, ""), nerAlignmentExample.source.slice(...nerAlignmentExample.offsets[i] as [number, number])));
+nerAlignmentExample.words.forEach((word, i) => assert.equal(nerAlignmentExample.pieces.filter((_, j) => nerAlignmentExample.wordIds[j] === i).map(piece => piece.replace(/^##/, "")).join(""), word));
 contrastiveLogits.forEach((row, i) => { close(softmax(row)[i], Math.exp(2) / (Math.exp(2) + 2)); close(-Math.log(softmax(row)[i]), 0.2395447662218845); });
 [1, 2, 3].forEach((frequency, i) => close(2 * frequency / (frequency + 1), [1, 4 / 3, 1.5][i]));
 close((1 + 0.5 + 0) / 3, 0.5);
+const dcg = (grades: number[]) => sum(grades.map((grade, rank) => (2 ** grade - 1) / Math.log2(rank + 2)));
+close(dcg([3, 1, 0]) / dcg([3, 1, 0]), 1); close(dcg([1, 3, 0]) / dcg([3, 1, 0]), 0.710, 0.0005);
+for (const [cutoff, precision, recall] of [[0.85, 1, 0.5], [0.55, 2 / 3, 1]]) {
+  const positives = [0.9, 0.6].filter(score => score >= cutoff).length;
+  const negatives = [0.8, 0.2].filter(score => score >= cutoff).length;
+  close(positives / (positives + negatives), precision); close(positives / 2, recall);
+}
+assert.ok(100 / 110 > 98 / 110); assert.ok(5 / 10 < 8 / 10);
 const counts = (text: string) => text.split(" ").reduce((map, word) => map.set(word, (map.get(word) ?? 0) + 1), new Map<string, number>());
 const candidate = counts("the cat the cat"), reference = counts("the cat sat");
 assert.equal(sum([...candidate].map(([word, count]) => Math.min(count, reference.get(word) ?? 0))), 2);
@@ -189,13 +206,34 @@ const definitions: [string, string][] = [
   ["language-tasks", "**Natural language processing (NLP)**"], ["probability-and-language", "**Conditional probability**"],
   ["information-theory", "**Cross-entropy**"], ["tokens-and-vocabularies", "**tokenizer**"], ["tokens-and-subwords", "**Byte-pair encoding (BPE)**"],
   ["naive-bayes", "**Naive Bayes**"], ["neural-text-features", "**neural network**"], ["neural-output-heads", "**Softmax**"],
-  ["backpropagation", "**Backpropagation**"], ["embedding-lookup", "**embedding**"], ["sequence-models", "**recurrent neural network (RNN)**"],
+  ["backpropagation", "**Backpropagation**"], ["tokens-and-vocabularies", "**embedding**"], ["sequence-models", "**recurrent neural network (RNN)**"],
   ["gated-sequence-models", "**Long short-term memory (LSTM)**"], ["sequence-objectives", "**Teacher forcing**"],
   ["attention", "**Attention**"], ["transformer-blocks", "**Layer normalization**"], ["fine-tuning", "**Low-rank adaptation (LoRA)**"],
   ["entities-and-spans", "**Named-entity recognition (NER)**"], ["structured-prediction", "**linear-chain conditional random field (CRF)**"],
   ["retrieval-augmented-qa", "**Retrieval-augmented generation (RAG)**"],
 ];
 for (const [id, marker] of definitions) assert.ok(getLessonBlocks(id, "nlp").some(block => block.type === "paragraph" && block.text.includes(marker)), `Explicit prose definition missing: ${id} ${marker}`);
+// Guard teaching order as well as the existence of a definition somewhere later.
+const firstUses: [string, RegExp, string][] = [
+  ["sequence-probability", /\btoken\b/i, "**token**"],
+  ["tokens-and-vocabularies", /\btokenizer\b/i, "**tokenizer**"],
+  ["tokens-and-vocabularies", /\bembedding\b/i, "**embedding**"],
+  ["tfidf-and-hashing", /\bTF-IDF\b/i, "**Term frequency–inverse document frequency (TF-IDF)**"],
+  ["neural-text-features", /\bneural network\b/i, "**neural network**"],
+  ["backpropagation", /\bgradient\b/i, "**gradient**"],
+  ["generalization", /\bdropout\b/i, "**Dropout**"],
+  ["sequence-models", /\bbackpropagation through time\b/i, "**Backpropagation through time**"],
+  ["sequence-objectives", /\bteacher forcing\b/i, "**Teacher forcing**"],
+  ["attention", /\battention\b/i, "**Attention**"],
+  ["encoder-decoder-masks", /\bcausal mask\b/i, "**causal mask**"],
+];
+for (const [expected, pattern, marker] of firstUses) {
+  const teachingBlocks = nlpTopics.flatMap(topic => getLessonBlocks(topic.id, "nlp").filter(block => ["paragraph", "quote", "table"].includes(block.type)).map(block => ({ id: topic.id, text: block.text })));
+  const first = teachingBlocks.find(block => pattern.test(block.text));
+  assert.ok(first, `Missing concept: ${marker}`); assert.equal(first.id, expected, `Concept used before its teaching lesson: ${marker}`);
+  assert.ok(first.text.includes(marker), `Define concept on its first prose use: ${marker}`);
+  assert.equal(teachingBlocks.reduce((count, block) => count + block.text.split(marker).length - 1, 0), 1, `Repeated primary definition: ${marker}`);
+}
 const retired = ["nlp-system-design", "nlp-revision", "calibration-and-error-analysis", "serving-and-drift", "multilingual-and-linguistic-failures", "task-metrics", "syntax-relations-and-meaning", "learning-text-models", "pretraining-and-adaptation"];
 retired.forEach(id => assert.ok(!nlpTopicsById[id], `Obsolete lesson still registered: ${id}`));
 assert.equal(urls.filter(url => url.startsWith(`${NLP_PATH}/`) && !url.endsWith("/quiz")).length, 55);

@@ -1,24 +1,26 @@
 # How models learn from language
 
-## 1. Identify the learning signal
+## 1. Identify the signal
 
-**Training** adjusts a model using examples and a learning signal. A **parameter** is an adjustable value learned during that process; a **hyperparameter** configures the model or fitting procedure.
+**Training** adjusts a model using examples. A **parameter** is a learned value; a **hyperparameter** configures the model or fitting procedure.
 
-A vocabulary vector’s entries can be parameters. Choosing its width is a hyperparameter.
+A word’s classifier weight is a parameter. Choosing the model’s size is a hyperparameter.
 
-## 2. Learn from supplied targets
+A **loss** is a numerical training cost; an **objective** is the complete quantity optimized, including any penalties.
 
-**Supervised learning** uses input–target pairs. A **label** is the supplied target: a spam category, entity boundary, or translated sentence.
+## 2. Supply target answers
 
-Labels can come from people or recorded outcomes. A clicked result is an observed response to something shown, not a direct judgement about every document that could have been shown.
+**Supervised learning** uses input–target pairs. A **label** is the supplied target: a category, entity boundary, or translated sequence.
 
-## 3. Find structure without per-example targets
+Labels may come from people or recorded outcomes. A click describes a response to a shown result, not every document’s relevance.
 
-**Unsupervised learning** seeks structure without a supplied answer for each input. Examples include grouping similar documents or estimating where feature vectors concentrate.
+## 3. Discover structure
 
-A discovered group is not automatically a meaningful intent. Its usefulness must be checked against the intended use.
+**Unsupervised learning** seeks patterns without a supplied answer per example, such as document groups.
 
-## 4. Construct a prediction task from text
+A discovered group needs inspection before calling it an intent.
+
+## 4. Construct targets from text
 
 **Self-supervised learning** creates targets from the data itself:
 
@@ -27,28 +29,28 @@ input:  The parcel arrived on [MASK].
 target: Tuesday
 ```
 
-The answer is withheld from the input used for that prediction. Predicting a next token from a prefix is another self-supervised task.
+The [MASK] marker hides the word to predict.
 
-**Pretraining** first learns reusable parameters from such tasks; later task training can adapt them. It is a stage of learning, not a guarantee of useful downstream behavior.
+**Pretraining** learns reusable parameters before task adaptation. Predicting the next word or piece from a prefix is another self-supervised task.
 
-## 5. Combine limited labels with other evidence
+## 5. Combine scarce labels with other evidence
 
 | Approach | Signal |
 |---|---|
-| Semi-supervised learning | Labelled and unlabelled examples for a target task |
-| Weak supervision | Noisy labels from heuristics or indirect evidence |
+| Semi-supervised learning | Labelled and unlabelled task examples |
+| Weak supervision | Noisy heuristic or indirect labels |
 | Active learning | Selected examples sent for human labelling |
 
-These approaches solve different constraints and can be combined. More unlabelled text does not directly supply missing task labels.
+These choices address different constraints; they can be combined.
 
-## 6. Keep evaluation independent
+## 6. Evaluate the actual task
 
-Separate the source of training targets from the evidence used to assess success. A masked-word objective measures a particular prediction task; support-routing quality needs trustworthy routing labels.
+With 500 reviewed messages, establish a supervised starting model. Test whether pretraining or extra text improves routing on independent routing labels.
 
-With 500 reviewed messages, first establish an honest supervised baseline. Reuse pretrained features or additional text when they improve the target task under the same evaluation.
+Masked-word performance alone does not answer that question.
 
 ## 7. Interview reasoning
 
-**Question:** Does self-supervised learning mean that training has no targets?
+**Question:** Does self-supervised training have no targets?
 
-**Answer:** No. Its targets are constructed from the input data instead of separately supplied answers. The model still solves a prediction problem with a measurable objective.
+**Answer:** It has targets constructed from the data rather than separately supplied answers. The model still minimizes a prediction cost.

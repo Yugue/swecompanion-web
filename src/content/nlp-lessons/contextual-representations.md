@@ -1,51 +1,57 @@
 # Using contextual representations
 
-## 1. Distinguish lookup from contextual state
+## 1. Use states after context processing
 
-A **contextual representation** changes with surrounding evidence after a model processes the input. The same static lookup for “bank” can lead to different states in financial and river contexts.
+The same “bank” lookup can produce different states in financial and river sentences.
 
-The state reflects the model’s allowed information, learned parameters, and training objective—not a guaranteed complete meaning representation.
+These states reflect available context and the training objective. They are not guaranteed complete meaning representations.
 
-## 2. Choose a token or sequence output
+## 2. Choose position or sequence outputs
 
-For one input of \(T\) positions and state width \(d\), a contextual model produces a [T,d] array.
+T positions with width d produce [T,d] states.
 
-A token task can attach a head to each valid position. A sentence task needs a sequence-level representation or a generation formulation. Those are different output interfaces.
+| Task | Interface |
+|---|---|
+| Tagging | Head at valid positions |
+| Classification | Sequence representation → head |
+| Search | Trained sentence representation → comparison |
+
+Selecting a shape does not select a useful similarity objective.
 
 ## 3. Pool valid positions
 
-**Pooling** summarizes several states into one vector. A masked mean is:
+**Masked mean pooling** averages included states:
 
 \[
 s=\frac{\sum_t m_th_t}{\sum_t m_t}
 \]
 
-\(h_t\) is position \(t\)'s vector; \(m_t\in\{0,1\}\) indicates inclusion; \(s\) the pooled vector. Require at least one included position.
+h_t is position t’s vector; m_t is 1 for included positions, otherwise 0; s is the summary. Require a nonempty set.
 
-Padding and selected special tokens need explicit inclusion rules. Averaging storage positions indiscriminately can change the representation when batch padding changes.
+Declare padding/special-token inclusion. Otherwise longer batch padding can change a sentence’s representation.
 
-## 4. Understand a special summary position
+## 4. Understand CLS
 
-A **classification token**, often written CLS, is a designated position whose output can feed a task head. Its usefulness depends on how training taught that position to summarize information.
+A **classification token**, often CLS, is a designated summary position whose output can feed a head.
 
-It is not automatically a high-quality sentence-similarity vector. A model trained to recover masked tokens and one trained to compare sentences optimize different relationships.
+Its usefulness depends on training. A masked-token model’s CLS vector is not automatically trained for sentence similarity.
 
-## 5. Reuse or adapt the features
+## 5. Freeze features when appropriate
 
-**Frozen feature extraction** applies a pretrained model without updating its weights, then trains a smaller downstream predictor.
+**Frozen feature extraction** keeps pretrained weights fixed and trains a smaller downstream predictor.
 
-This can reduce training cost and overfitting pressure. It cannot guarantee that the frozen features preserve a rare domain distinction. Comparing layers, pooling, or a trainable task head is still a validation choice.
+This reduces update cost but cannot adapt missing distinctions. Compare layers, pooling, and heads using validation data.
 
-A causal decoder’s last valid state summarizes its available prefix; an encoder’s token states may each use the complete valid input.
+An encoder’s states may read the full input; a causal decoder’s last valid state reads its prefix.
 
-## 6. Test what similarity means
+## 6. Inspect the lost distinction
 
-A pooled vector suitable for sentiment can be poor for document relevance. Sentence length, repeated templates, and lexical overlap can dominate a representation in ways the product does not want.
+Averaging can dilute one decisive word among boilerplate. A sentiment-trained summary can organize documents by attitude rather than answer relevance.
 
-Use frozen mean pooling as a measured baseline when appropriate. The later sentence-embedding lesson teaches an objective designed specifically for pair relationships.
+Evaluate the intended comparison; the sentence-embedding lesson supplies a relationship-specific training objective.
 
 ## 7. Interview reasoning
 
-**Question:** Why can averaging good token representations still produce a weak retrieval embedding?
+**Question:** Why can averaging useful token states produce weak retrieval?
 
-**Answer:** The pooling and pretraining objective may not make sentence-level distances reflect relevance. Compare a retrieval-trained objective and inspect what the average loses.
+**Answer:** The training signal and pooling may not make sentence distances express relevance. Test a suitable retrieval objective and inspect lost evidence.

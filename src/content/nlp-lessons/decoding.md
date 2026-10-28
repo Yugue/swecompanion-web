@@ -1,57 +1,56 @@
 # Decoding and stopping decisions
 
-## 1. Turn probabilities into a sequence
+## 1. Turn distributions into output
 
-**Decoding** chooses an output using a model’s next-token distributions. The fitted distribution and the policy used to produce a sequence are separate.
+**Decoding** chooses a sequence from next-token distributions. Changing that policy changes outputs without updating model weights.
 
-A model can produce different outputs under greedy choice, search, or sampling without any parameter update.
+## 2. Separate local and complete choices
 
-## 2. See why local choice can fail globally
-
-**Greedy decoding** selects the highest-probability next token at each step.
+**Greedy decoding** takes the most probable next token:
 
 ```nlp-visual
 decoding-tree
 ```
 
-The example gives first tokens A and B probabilities 0.6 and 0.4. Ending after A has conditional probability 0.5; ending after B has 0.9. Complete probabilities are 0.30 and 0.36.
+A starts at 0.6 and ends with probability 0.5: total 0.30. B starts at 0.4 and ends with 0.9: total 0.36.
 
-Greedy takes A, although B followed by EOS is the better complete sequence. Other continuations are split so EOS is the local best second token on both branches.
+Greedy chooses A. Remaining second-step mass is split so EOS is locally best on both branches.
 
 ## 3. Retain alternative prefixes
 
-**Beam search** keeps a limited set of high-scoring partial sequences, expands them, and prunes again. Width two retains B in this example.
+**Beam search** keeps a limited number of high-scoring partial sequences, expands, and prunes them. Width two retains B here.
 
-Finite beam search can still discard a prefix that would lead to a better final sequence. It is not a general guarantee of global optimality or better task quality.
-
-Length penalties and stopping rules can change the search objective away from raw sequence probability.
+Finite beams can still discard the globally best path. Length penalties and stopping rules alter the search objective.
 
 ## 4. Adjust sampling sharpness
 
-**Temperature sampling** rescales logits before softmax:
+**Temperature sampling** rescales logits:
 
 \[
-p_i(T)=\frac{\exp(z_i/T)}{\sum_j\exp(z_j/T)}
+p_i(T)=\frac{e^{z_i/T}}{\sum_j e^{z_j/T}}
 \]
 
-\(z_i\) is token \(i\)'s logit; \(T>0\) temperature. Smaller \(T\) concentrates mass; larger \(T\) spreads it.
+z_i is token i’s logit; T>0 temperature. Smaller T concentrates probability; larger T spreads it.
 
-Scores [log 3, 0] give [0.75,0.25] at temperature 1 and [0.9,0.1] at 0.5. This changes sampling, not the model’s factual knowledge.
+[log 3,0] gives [0.75,0.25] at T=1 and [0.9,0.1] at T=0.5.
 
-## 5. Restrict the sampling set
+## 5. Restrict candidates
 
-**Top-k sampling** keeps the k highest-probability tokens. **Top-p**, or nucleus sampling, keeps a smallest leading set whose cumulative mass reaches a chosen threshold, then renormalizes.
+| Method | Kept set |
+|---|---|
+| Top-k | k highest-probability tokens |
+| Top-p/nucleus | Smallest leading set reaching probability p |
 
-For probabilities [0.5,0.3,0.2] and threshold 0.7, the first two remain; renormalized probabilities are [0.625,0.375]. Tie rules and the order of temperature/truncation operations must be specified.
+Renormalize afterward. For [0.5,0.3,0.2] and p=0.7, keep the first two → [0.625,0.375]. Declare ties and operation order.
 
-## 6. Define termination and evaluate the result
+## 6. Define stopping
 
-EOS is a learned stopping event. A maximum output length imposes an external cap that can cut an answer mid-sentence.
+EOS is learned termination; an output cap can cut text mid-sentence. Stop strings and repetition penalties also change behavior.
 
-Repetition penalties, constrained vocabularies, and stop strings also alter behavior. Choose a policy using task quality, required format, diversity, faithfulness, and cost. A lower temperature is not a substitute for evaluating correctness.
+Compare quality, diversity, support, and cost. Lower temperature does not supply missing factual knowledge.
 
 ## 7. Interview reasoning
 
-**Question:** Why can widening a beam worsen a translation metric?
+**Question:** Why can a wider beam worsen translation quality?
 
-**Answer:** Search more closely optimizes its chosen model score, which may disagree with reference quality or the desired length. Better search under a mismatched score need not improve the task.
+**Answer:** It better searches a model score that can disagree with desired quality or length. Better search cannot correct a mismatched scoring objective.

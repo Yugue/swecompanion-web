@@ -1,55 +1,55 @@
 # Sentence embeddings and contrastive learning
 
-## 1. Train the relationship the distance should express
+## 1. Learn the comparison
 
-A **sentence embedding** represents a text as a fixed-width vector for a specified comparison task. Pooling creates a vector; its objective determines whether distances reflect paraphrase, relevance, or another relationship.
+A **sentence embedding** is a fixed-width text vector for a comparison task. Pooling creates the vector; training determines what its distances mean.
 
-Reusing arbitrary contextual states does not automatically produce a reliable search space.
+Paraphrase equivalence and answer relevance require different evidence.
 
-## 2. Construct positive comparisons
+## 2. Define positive and negative pairs
 
-A **positive pair** expresses the relationship training should reward, such as a question and a relevant passage. A **negative pair** supplies a comparison treated as not satisfying that relationship.
+A **positive pair** satisfies the desired relationship. A **negative pair** is treated as not satisfying it.
 
-Paraphrase equivalence and query-document relevance are different signals. Relevance can be directional even when the final vector score uses a symmetric dot product between separately encoded roles.
+For search, a question and answer passage form a positive. Separate query/document encoders preserve roles even when their final dot product is symmetric.
 
-## 3. Contrast the correct candidate
+## 3. Contrast candidates
 
-For query \(i\), one positive document \(i\), and batch candidates \(j\):
+For query i, positive document i, and batch documents j:
 
 \[
-\ell_i=-\log\frac{\exp(s_{ii}/\tau)}{\sum_j\exp(s_{ij}/\tau)}
+\ell_i=-\log\frac{e^{s_{ii}/\tau}}{\sum_j e^{s_{ij}/\tau}}
 \]
 
-\(s_{ij}\) is query-document similarity and \(\tau>0\) temperature. The loss increases when alternatives compete strongly with the positive. Lower temperature sharpens the comparison; it is a training choice, not a universal improvement.
+\(\ell_i\) is query loss; \(s_{ij}\) similarity; \(\tau>0\) temperature. Strong competing scores increase loss. Lower tau sharpens the comparison, changing the learning signal.
 
-## 4. Read the in-batch matrix
+## 4. Reuse in-batch negatives
 
-**In-batch negatives** reuse other batch documents as alternatives for each query.
+**In-batch negatives** use other batch documents as alternatives:
 
 ```nlp-visual
 contrastive-matrix
 ```
 
-With orthogonal matching unit vectors and temperature 0.5, diagonal logits are 2 and off-diagonal logits zero. Each positive gets probability about 0.787 and loss about 0.240.
+Orthogonal matching unit vectors at tau=0.5 give diagonal logits 2, others 0. Positive probability≈0.787; loss≈0.240.
 
-The diagonal is correct only under the batch’s actual pairing policy.
+The diagonal is positive only under the actual pairing policy.
 
-## 5. Choose informative negatives
+## 5. Mine useful comparisons
 
-A **hard negative** resembles the query or ranks highly but is judged irrelevant. It teaches a distinction missing from many easy random comparisons.
+A **hard negative** looks relevant but is judged irrelevant. A **false negative** is genuinely relevant despite its negative label.
 
-A **false negative** is genuinely relevant despite being treated as negative. Duplicate passages, equivalent answers, or multiple valid references can create these. Larger batches can increase both useful comparisons and contradictory labels.
+Duplicate answers and multiple valid passages create false negatives. Larger batches can add both informative and contradictory comparisons.
 
-Use validated mining, multiple positives, or appropriate exclusions when needed.
+Validate mining, allow multiple positives, or exclude known equivalent documents.
 
-## 6. Align training and retrieval
+## 6. Keep retrieval consistent
 
-Mean pooling, special-token pooling, and other heads need consistent training and inference conventions. Normalize vectors when cosine-style behavior is intended, and handle empty or zero representations explicitly.
+Use the trained pooling and vector-normalization conventions. Handle empty/zero vectors explicitly.
 
-Measure actual retrieval or pair-task quality. Low contrastive training loss can reflect easy negatives rather than good discrimination among realistic candidates.
+Evaluate realistic competing passages. Easy negatives can give low training loss without useful retrieval discrimination.
 
 ## 7. Interview reasoning
 
-**Question:** Why can a paraphrase-trained embedding retrieve the wrong answer to a question?
+**Question:** Why can paraphrase embeddings retrieve the wrong answer?
 
-**Answer:** Shared meaning or wording is not the same as answer relevance. Train and evaluate comparisons matching the query-document relationship, including realistic competing passages.
+**Answer:** Similar wording is not answer relevance. Train and evaluate the query-document relationship with realistic alternatives.

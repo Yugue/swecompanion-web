@@ -1,64 +1,67 @@
 # Linear and logistic text classifiers
 
-## 1. Learn contributions from lexical evidence
+## 1. Add feature contributions
 
-A **linear model** combines feature contributions into a score:
+A **linear model** scores a document using:
 
 \[
 z=w^\top x+b
 \]
 
-\(x\) is a document’s feature vector, \(w\) its learned coefficients, \(b\) the intercept or zero-feature baseline, and \(z\) the score. Sparse features make this computation inexpensive because most input entries are zero.
+\(x\): features; \(w\): learned coefficients; \(b\): intercept; \(z\): score. Sparse inputs make scoring cheap because zero features contribute nothing.
 
-## 2. Calculate a prediction
+## 2. Calculate two predictions
 
-With features [“refund”, “excellent”], weights [2, −1], and intercept −0.5:
+Positive class: refund request. Features [refund, excellent], weights [2,−1], intercept −0.5:
 
 ```text
-message counts [1,0] → score 1.5
-message counts [0,1] → score −1.5
+“refund”    → [1,0] → z=1.5
+“excellent” → [0,1] → z=−1.5
 ```
 
-The learned signs reflect associations with the chosen positive class, not inherent word meanings.
+Signs express learned associations with this label.
 
-## 3. Convert a binary score into probability
+## 3. Convert scores to probability
 
-**Logistic regression** applies the **sigmoid** function:
+**Logistic regression** applies **sigmoid**:
 
 \[
 p=\sigma(z)=\frac1{1+e^{-z}}
 \]
 
-\(p\) is predicted positive probability. Scores 1.5 and −1.5 give approximately 0.818 and 0.182.
+\(p\) is positive-class probability. Scores ±1.5 give approximately 0.818 and 0.182.
 
-A cutoff of 0.5 corresponds to score zero. Choosing the decision cutoff is separate from fitting the coefficients.
+Raising z raises p. A probability cutoff 0.5 corresponds to score zero; other decision cutoffs are possible.
 
-## 4. Fit a useful objective
+## 4. Fit binary cross-entropy
 
-For binary label \(y\in\{0,1\}\), **log loss** is:
+For target \(y\in\{0,1\}\):
 
 \[
 \ell(y,p)=-y\log p-(1-y)\log(1-p)
 \]
 
-It is cross-entropy for a binary target. Fitting minimizes aggregated loss; the neural-foundations chapter teaches the gradient mechanism used by many solvers.
-
-The logistic log-loss objective is convex in its weights, meaning local minima are global. This alone does not ensure a unique finite unregularized solution.
+This **binary cross-entropy**, or log loss, penalizes probability assigned away from the observed class. Average training costs to fit coefficients.
 
 ## 5. Restrict unstable coefficients
 
-**Regularization** penalizes or restricts a fit to discourage unstable complexity. L2 penalizes the sum of squared weights; L1 penalizes the sum of absolute weights and can produce exact zeros.
+**Regularization** discourages overly flexible fits through penalties or restrictions.
 
-Numeric feature scales affect these penalties. Stronger restriction can improve transfer or remove useful signal; select it on valid development data.
+| Penalty | Operation | Effect |
+|---|---|---|
+| L2 | Sum squared weights | Shrinks coefficients |
+| L1 | Sum absolute weights | Can create exact zeros |
 
-## 6. Find the representation limit
+Feature scaling affects penalty strength. Choose it and the penalty using validation data.
 
-A unigram linear model adds separate word contributions. A bigram coordinate for “not good” exposes an interaction absent from the unigram representation.
+## 6. Diagnose representation limits
 
-It still cannot infer every paraphrase or long-distance relationship. Inspect the missed distinction before replacing a simple model with a much larger one. Probability normalization does not guarantee calibration.
+A bigram feature for “not good” adds a joint condition missing from unigram features.
+
+If reversed-role sentences have identical input vectors, no coefficient update distinguishes them. Change the representation before spending more training steps.
 
 ## 7. Interview reasoning
 
-**Question:** A linear classifier fails on reversed participant roles. Would training longer necessarily help?
+**Question:** Would training longer fix identical features assigned different meanings?
 
-**Answer:** No. If both sentences have identical input features, no coefficient update can distinguish them. Add a suitable representation or model that preserves the needed structure.
+**Answer:** No. Identical inputs produce identical scores. Preserve the missing distinction through features or model structure.

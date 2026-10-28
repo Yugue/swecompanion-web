@@ -1,49 +1,51 @@
 # Lexical, dense, and hybrid retrieval
 
-## 1. Retrieve a useful candidate set
+## 1. Recover useful candidates
 
-**Retrieval** selects candidates from a corpus before more expensive processing. It needs both a scoring rule and an index that makes selection feasible.
+**Retrieval** selects documents from a corpus using a scoring rule and searchable index.
 
-A relevant document absent from the candidate set cannot be recovered by a reranker that only reads that set.
+A relevant document missing from this set cannot be recovered by a reranker limited to those candidates.
 
-## 2. Score explicit terms with BM25
+## 2. Score terms with BM25
 
-**BM25** is a lexical ranking function combining term rarity, diminishing returns from repetition, and document-length normalization. One common term contribution is:
+**BM25** combines rarity, repetition saturation, and length adjustment. One term contributes:
 
 \[
 \operatorname{IDF}(t)\frac{f(t,d)(k_1+1)}{f(t,d)+k_1(1-b+b|d|/\overline{|d|})}
 \]
 
-\(t\) is a query term; \(d\) a document; \(f\) its term count; \(|d|\) document length; \(\overline{|d|}\) average corpus length. \(k_1>0\) controls frequency saturation; \(b\in[0,1]\) length adjustment; IDF measures term rarity under a stated formula.
+t is query term; d document; f occurrence count; |d| length; average |d| corpus mean. IDF is corpus term rarity under the chosen convention.
 
-Sum over the selected query terms. At equal document lengths and \(k_1=1\), frequency factors for counts 1, 2, 3 are 1, 1.333, 1.5: repeated evidence has diminishing returns.
+k₁>0 controls saturation; b∈[0,1] controls length adjustment. Sum contributions over query terms.
 
-## 3. Search a learned vector space
+At equal lengths and k₁=1, counts 1,2,3 give factors 1,1.333,1.5. Repetition has diminishing returns; larger b strengthens length adjustment.
 
-**Dense retrieval** encodes queries and documents into vectors, then searches by similarity. Document vectors can be computed before a request if their encoder is query-independent.
+## 3. Search learned vectors
 
-**Approximate nearest-neighbor (ANN) search** trades exact neighbor recovery for speed. Compare approximate results with exact search on a feasible sample to distinguish index misses from representation errors.
+**Dense retrieval** compares encoded queries/documents. Query-independent document vectors can be prepared in advance.
+
+**Approximate nearest-neighbor (ANN) search** trades exact recovery for speed. Compare with exact search on a sample to separate index misses from representation errors.
 
 ## 4. Combine complementary evidence
 
-**Hybrid retrieval** combines lexical and dense candidates or rankings. Exact product codes and rare names may favor lexical evidence; paraphrases can benefit from learned representations.
+**Hybrid retrieval** combines lexical and dense rankings. Product codes favor exact terms; paraphrases can favor learned representations.
 
-Raw scores from different systems need not share units. Use a validated score transformation, learned fusion, or rank-based fusion rather than assuming their unscaled sum is meaningful.
+Scores need not share units. Validate score transformations or use rank-based fusion rather than an arbitrary raw sum.
 
-## 5. Evaluate candidate coverage
+## 5. Measure candidate coverage
 
-**Recall@K** measures the fraction of known relevant documents recovered among K candidates under the declared relevance set.
+**Recall@K** is the fraction of known relevant documents recovered among K candidates.
 
-Report query-level aggregation and coverage of relevance judgments. An unjudged document is not automatically irrelevant; incomplete labels can distort the score.
+Declare query aggregation and judgment coverage. Unjudged documents are not automatically irrelevant.
 
 ## 6. Keep the index compatible
 
-Corpus snapshots, tokenizer, encoder version, similarity rule, and vector normalization form a retrieval contract. Changing the query encoder without compatible document vectors can break that contract.
+Corpus snapshot, encoder, tokenizer, normalization, and similarity rule must agree. Updating only the query encoder can make stored document vectors incompatible.
 
-Set the candidate budget from coverage, downstream capacity, and latency. More candidates increase possible coverage but also processing work.
+Choose K using recall, downstream capacity, and latency.
 
 ## 7. Interview reasoning
 
-**Question:** Why can a dense retriever miss an exact serial number while finding topical documents?
+**Question:** Why retrieve topical passages but miss an exact serial number?
 
-**Answer:** Its training may emphasize broad semantic relationships rather than precise identifier matching. Check lexical or hybrid retrieval and inspect tokenizer and index behavior.
+**Answer:** Learned similarity may ignore identifier distinctions. Inspect tokenization and index behavior, then compare lexical or hybrid retrieval.

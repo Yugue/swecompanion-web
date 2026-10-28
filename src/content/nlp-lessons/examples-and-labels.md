@@ -1,52 +1,50 @@
 # Defining examples, features, and labels
 
-## 1. State what one example represents
+## 1. Define one example
 
-A **training example** is one input used for learning. **Features** represent that input; its supervised **target** states the answer to predict.
+A **training example** supplies an input and, in supervised learning, its target. **Features** encode the input used for prediction.
 
-“One row per message” differs from “one row per conversation.” The unit changes available evidence, target structure, and dependence between examples.
+“One row per message” and “one row per conversation” expose different evidence.
 
-## 2. Match examples to outputs
+## 2. Match the unit to the output
 
 | Unit | Input | Target |
 |---|---|---|
-| Document | Article text | Topic category |
-| Token position | Sentence and position | Entity tag |
-| Text pair | Question and candidate answer | Relevance judgement |
-| Source sequence | English sentence | French sequence |
+| Document | Article | Topic |
+| Position | Sentence and position | Entity tag |
+| Pair | Question and passage | Relevance |
+| Sequence | English text | French text |
 
-A **schema** is the contract describing these fields, types, and meanings. Record it before choosing a model.
+A **schema** specifies these fields, types, and meanings.
 
-## 3. Put the prediction on a timeline
+## 3. Place prediction on a timeline
 
 ```text
-messages received so far → route conversation now → later resolution
+messages so far → route now → later agent reply and resolution
 ```
 
-A future agent reply cannot be an input when routing the conversation now. A feature may exist in today’s warehouse while remaining unavailable at the historical prediction time.
+Later replies cannot be inputs to the earlier decision. A field in today’s warehouse may not have existed at the historical prediction time.
 
-Specify what is available, not merely what can eventually be retrieved.
+## 4. Make labels reproducible
 
-## 4. Make the label reproducible
+For routing, decide whether billing and delivery can both apply. For extraction, decide whether “New York City” includes “City.”
 
-For routing, define what “billing” includes and how mixed requests are handled. A conversation about a late delivery and a refund may need several labels or a clearly prioritized one.
+These policies define the answer; they are not formatting details.
 
-For extraction, decide whether “New York City” includes “City,” and whether punctuation belongs to the span. Label boundaries are part of the task, not cosmetic formatting.
+## 5. Represent uncertainty
 
-## 5. Represent uncertain evidence honestly
+**Label noise** is error or inconsistency in recorded targets. Disagreement can reveal unclear rules, missing context, or ambiguous cases.
 
-**Label noise** is error or inconsistency in the recorded target. Human disagreement can expose a vague policy, missing context, or a genuinely ambiguous example.
+Keep unresolved cases distinct from confirmed negatives. Review disagreements before relabelling them automatically.
 
-Keep an uncertain or unresolved status where appropriate. Do not silently treat unreviewed cases as negative outcomes.
+## 6. Preserve source alignment
 
-## 6. Keep source alignment
+An **offset** locates a source boundary under an indexing convention. Bytes, code points, and model-unit positions can differ.
 
-An **offset** locates a boundary in the original text under a specified indexing convention. Byte, code-point, and tokenizer positions can differ.
-
-Store source text and alignment information when predictions must highlight exact evidence. A correct entity type with the wrong boundary is still an extraction error.
+Retain original text and mappings when outputs must highlight evidence. Correct type plus wrong boundary remains an extraction error.
 
 ## 7. Interview reasoning
 
-**Question:** Can an agent’s eventual resolution category directly label an earlier message?
+**Question:** Can eventual resolution label an earlier message?
 
-**Answer:** It can supply an outcome target if that matches the goal, but future replies must remain outside the earlier input. Also check whether the resolution reflects the original request or later changes in the conversation.
+**Answer:** Yes, if that outcome matches the prediction goal. Exclude future information from inputs and check whether later conversation changed the original request.

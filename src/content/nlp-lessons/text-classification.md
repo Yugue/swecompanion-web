@@ -1,49 +1,56 @@
 # Text classification, sentiment, and intent
 
-## 1. Define the category’s meaning
+## 1. Classify the required meaning
 
-**Text classification** predicts categories from a text input. **Sentiment analysis** classifies expressed attitude; **intent classification** predicts the requested action or communicative goal.
+**Text classification** assigns categories to text. “The refund was handled brilliantly” expresses positive sentiment about a refund; attitude and requested action are different targets.
 
-“The refund was handled brilliantly” mentions refunds with positive sentiment. Topic, sentiment, and intent are different labels even when their evidence overlaps.
+## 2. Choose the output structure
 
-## 2. Match the output structure
+| Labels | Head |
+|---|---|
+| Spam or legitimate | One sigmoid score |
+| Exactly one routing category | Softmax |
+| Billing and delivery can coexist | Sigmoid per label |
 
-| Setup | Label contract | Suitable head |
+Define mixed-request labels before fitting.
+
+## 3. Compare usable baselines
+
+Evaluate rules, a TF-IDF linear model, and a contextual model on the same split.
+
+Inspect whether context resolves failures that lexical features cannot express. Compare cost alongside quality.
+
+## 4. Handle rare classes
+
+**Class imbalance** means unequal class frequencies. Report per-class counts and F1; majority accuracy can conceal rare-intent failure.
+
+**Class weighting** scales loss by class. **Resampling** changes how often cases are selected. Keep evaluation representative of deployment.
+
+## 5. Choose a threshold from scores
+
+For positive scores [0.9,0.6] and negative scores [0.8,0.2], flag scores at or above the cutoff:
+
+| Cutoff | Precision | Recall |
 |---|---|---|
-| Binary | Spam or legitimate | One sigmoid score |
-| Multiclass | Exactly one routing category | Softmax over categories |
-| Multilabel | Several issues may apply | Separate sigmoid outputs |
+| 0.85 | 1 | 0.5 |
+| 0.55 | 2/3 | 1 |
 
-A message mentioning billing and delivery needs a policy for mixed requests. No loss function can repair an undefined label contract.
+A **precision–recall curve** plots these quantities across cutoffs. Choose using error costs or review capacity, on validation data.
 
-## 3. Establish a credible comparison
+## 6. Check confidence separately
 
-Compare current rules, a TF-IDF linear classifier, and a contextual model on the same valid split.
+If 100 predictions near 0.8 contain only 60 correct labels, confidence and observed frequency disagree.
 
-Lexical models can exploit distinctive phrases cheaply. Contextual models can represent negation and interactions, but need appropriate training and evaluation. Larger parameter count is not proof of a useful advantage.
+**Temperature scaling** fits a positive logit divisor on held-out loss. It can adjust multiclass confidence without changing the highest-scoring class.
 
-## 4. Fit and evaluate the intended decisions
+## 7. Test unsupported inputs
 
-Use cross-entropy for exclusive classes and appropriate binary losses for multilabel targets. Check the class axis, target encoding, and label order.
+Negation, quotations, unfamiliar names, and missing conversation context expose different failures.
 
-Evaluate precision, recall, F1, and class-level behavior according to the decision. **Class imbalance** means some classes are much rarer; majority-class accuracy can hide poor rare-intent detection.
+An unknown intent can receive a large softmax score. Calibration on known inputs does not establish unknown-intent detection; validate a review or clarification policy too.
 
-Macro averaging gives each class equal weight but does not remove uncertainty in classes with very few examples.
+## 8. Interview reasoning
 
-## 5. Separate representation and threshold failures
+**Question:** Does 0.99 maximum softmax justify routing an unfamiliar request automatically?
 
-If useful cases are ranked above negatives but few pass a default cutoff, test the decision rule. If relevant and irrelevant messages receive indistinguishable scores, investigate features, labels, and training.
-
-Class weighting or resampling changes the fitting emphasis. Preserve a representative evaluation population and recheck probability meaning when scores drive actions.
-
-## 6. Inspect linguistic failure modes
-
-Test negation, quoted language, mixed requests, spelling variants, unfamiliar names, and conversations needing earlier context.
-
-An unseen intent may be forced into a known class. A model’s largest softmax score is not automatically reliable evidence that the input belongs to the supported taxonomy. Consider a validated review or clarification path.
-
-## 7. Interview reasoning
-
-**Question:** Does a high sentiment score identify which support team should receive a message?
-
-**Answer:** No. Sentiment describes attitude, while routing requires task-specific intent or issue labels. Train and evaluate the output that the operational decision actually needs.
+**Answer:** No. The model must distribute probability among its known classes. Test unsupported inputs and the review policy independently.

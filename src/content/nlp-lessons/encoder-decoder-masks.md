@@ -1,57 +1,55 @@
 # Padding masks, causal masks, and information access
 
-## 1. Specify legal reading paths
+## 1. Specify legal access
 
-A **mask** excludes selected information from a computation. An **attention mask** determines which key positions each query may read.
+A **mask** excludes selected information. An **attention mask** specifies which keys each query may read.
 
-This is different from modifying a word’s meaning or setting an ignored target label. Each operation needs its own contract.
+An input corruption marker such as [MASK] and an ignored loss target perform different operations.
 
-## 2. Block scores before normalization
-
-For compatibility scores \(s_j\), add mask value \(m_j\):
+## 2. Block before normalization
 
 \[
 a_j=\operatorname{softmax}_j(s_j+m_j)
 \]
 
-Use \(m_j=0\) when allowed and conceptually \(-\infty\) when blocked. The blocked weight becomes zero while remaining weights renormalize.
+s_j is key j’s score; m_j is 0 when allowed and conceptually −∞ when blocked; a_j is the resulting weight.
 
-With scores [log 3, 0], blocking the second changes weights [0.75,0.25] to [1,0]. Zeroing the second weight afterward without renormalizing would leave a different computation.
+Scores [log 3,0] produce [0.75,0.25]. Blocking the second produces [1,0]. Zeroing it afterward without renormalizing leaves a different output.
 
-## 3. Prevent future-target access
+## 3. Block future targets
 
-A **causal mask** allows a position to read its prefix, including itself under the usual next-token input convention.
+A **causal mask** permits the prefix, including the current input under next-token prediction:
 
 ```nlp-visual
 masks
 ```
 
-At input token “cats,” predict “sleep.” Reading the current input is legal; reading the future target “sleep” is not. Shifted labels and the mask must agree.
+At input “cats,” predict “sleep.” Reading “cats” is legal; reading the future target is not. Labels must be shifted consistently.
 
 ## 4. Exclude artificial keys
 
-A **padding mask** blocks storage positions that do not contain real inputs. A source encoder can read all valid source tokens without reading padding.
+A **padding mask** blocks positions added only for storage. An encoder can read all valid source tokens without reading padding.
 
-Blocking padded keys does not automatically zero padded query outputs. Ignore or handle those outputs where appropriate, such as sentence pooling or token scoring.
+Blocking padded keys does not automatically zero padded query outputs.
 
-## 5. Separate other masks
+## 5. Distinguish exclusions
 
 | Mask | Excludes |
 |---|---|
-| Attention | Keys unavailable to a query |
-| Pooling | Positions excluded from a summary |
-| Loss | Targets excluded from training cost |
+| Attention | Unavailable keys |
+| Pooling | Positions omitted from a summary |
+| Loss | Targets omitted from cost |
 
-A token can legally provide context while its position is not a training target. Prompt tokens in some fine-tuning setups are one example.
+A prompt can supply context while contributing no target loss.
 
-## 6. Handle edge cases explicitly
+## 6. Handle empty access
 
-A row with every score blocked has no valid normalized distribution under ordinary softmax. Handle empty or fully masked inputs deliberately rather than relying on accidental library behavior.
+All-blocked scores have no ordinary softmax distribution. Handle that case explicitly.
 
-Mask APIs differ in boolean direction and broadcasting conventions. Check the actual operation and dimensions; some use true to allow while others use true to block.
+Check boolean direction and broadcast dimensions: APIs differ in whether true means allow or block.
 
 ## 7. Interview reasoning
 
-**Question:** Is setting padding labels to an ignored value sufficient to stop padding from influencing predictions?
+**Question:** Does ignoring padding labels prevent padding from affecting predictions?
 
-**Answer:** No. It removes those targets from loss, but attention and pooling may still read padded states. Check all three paths independently.
+**Answer:** It excludes loss terms only. Attention and pooling still need appropriate exclusions.

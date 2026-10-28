@@ -1,55 +1,64 @@
 # Mini-batches, optimizers, and learning rates
 
-## 1. Change parameters using training evidence
+## 1. Choose how to update
 
-An **optimizer** uses gradients and possibly stored state to update parameters. The **learning rate** controls the size of the step.
+An **optimizer** changes parameters using gradients and possibly stored history. The learning rate sets step size.
 
-The objective defines what training should prefer; the optimizer defines how to search. More updates do not help when the target or objective is wrong.
+The objective states what training prefers; the optimizer searches for a fit.
 
-## 2. Estimate a gradient from a batch
+## 2. Estimate from a mini-batch
 
-A **mini-batch** is a selected group of training examples. Averaging its losses supplies an estimated gradient.
+A **mini-batch** is a group of training examples used for one gradient estimate.
 
-Full-batch descent uses every example per update; stochastic gradient descent originally uses one. “SGD” is also commonly used for mini-batch implementations, so state the intended batch size.
+| Method | Examples per estimate |
+|---|---|
+| Full batch | Entire training set |
+| Stochastic gradient descent (original usage) | One |
+| Mini-batch SGD | Selected group |
 
-Smaller batches reduce per-step work but add sampling noise. Full-data loss need not decrease after every sampled update.
+Smaller batches add sampling noise. Full-data loss need not decrease after every sampled update.
 
-## 3. Retain gradient history
+## 3. Carry a running direction
 
-**Momentum** carries a running direction so updates need not respond only to the latest gradient. One exponential-average form is:
+**Momentum** smooths gradient history. One form is:
 
 \[
 m_t=\beta m_{t-1}+(1-\beta)g_t
 \]
 
-\(g_t\) is the current gradient; \(m_t\) its running average; \(0\le\beta<1\) controls persistence; \(t\) indexes steps. Larger persistence smooths more but responds more slowly to changes.
+g_t is current gradient; m_t running average; t step; \(0\le\beta<1\) persistence. Larger beta smooths more but reacts more slowly.
 
 ## 4. Adapt coordinate scales
 
-**Adam** tracks averages of gradients and squared gradients. Its adjusted step uses:
+**Adam** tracks gradient and squared-gradient averages:
 
 \[
 \Delta w=-\eta\frac{\hat m}{\sqrt{\hat v}+\epsilon}
 \]
 
-\(w\) is a parameter coordinate; \(\hat m,\hat v\) are bias-corrected running estimates; \(\epsilon>0\) stabilizes the denominator. Different coordinates receive different effective scaling.
+For parameter coordinate w, hats denote averages corrected for their initial bias toward zero; eta is learning rate; \(\epsilon>0\) stabilizes division.
 
-**AdamW** applies weight decay separately from this adaptive gradient step. Adding an L2 loss term is not generally equivalent under Adam’s adaptive scaling.
+**AdamW** separately shrinks weights toward zero, an operation called **weight decay**. Adding an L2 loss penalty is not generally equivalent under adaptive scaling.
 
-## 5. Follow a learning-rate schedule
+## 5. Size and schedule steps
 
-**Warmup** increases the rate gradually at the start; **decay** reduces it later. These are scheduling choices, not additional learning signals.
+For L(w)=(w−3)² at w=1, gradient=−4:
 
-For \(L(w)=(w-3)^2\), starting at 1 gives derivative −4. Rate 0.1 moves to 1.4 and reduces loss from 4 to 2.56. Rate 2 moves to 9 and raises loss to 36.
+| Rate | New w | New loss |
+|---|---|---|
+| 0.1 | 1.4 | 2.56 |
+| 2 | 9 | 36 |
 
-## 6. Control unstable steps
+**Warmup** gradually increases the early rate; **decay** lowers it later.
 
-**Gradient clipping** limits gradient magnitude, for example by rescaling a vector whose norm exceeds a bound. It changes the update, not the computed forward prediction.
+## 6. Limit unstable updates
 
-Inspect loss scaling, nonfinite values, batch composition, and learning rate before assuming clipping fixes the cause. Compare training runs under consistent token and update budgets.
+**Gradient clipping** limits magnitude, for example by rescaling gradients beyond a norm bound.
+
+Check targets, rate, nonfinite values, and batch composition too. Clipping limits an update; it does not repair the wrong objective.
 
 ## 7. Interview reasoning
 
-**Question:** Does doubling batch size and keeping the same number of steps preserve the experiment?
+**Question:** Does doubling batch size with the same step count preserve an experiment?
 
-**Answer:** No. The model sees more examples per step and the gradient noise changes. Specify data exposure, accumulation, learning rate, and update budget before comparing outcomes.
+**Answer:** No. Data exposure and gradient noise change. Compare update count, examples/tokens seen, and learning-rate settings together.

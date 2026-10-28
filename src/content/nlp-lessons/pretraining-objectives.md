@@ -1,52 +1,59 @@
 # Language-model pretraining objectives
 
-## 1. Create a prediction task from text
+## 1. Choose what to predict
 
-A **pretraining objective** defines which inputs are visible and which targets supply the learning signal before task adaptation.
+A **pretraining objective** specifies visible inputs and learning targets before task adaptation.
 
-Self-supervision can use the same raw corpus to construct several different tasks. Shared source text does not make their conditionals or scores interchangeable.
+The same corpus can construct different prediction tasks. Their losses are not automatically comparable.
 
-## 2. Predict the next token causally
+## 2. Predict the next token
 
-**Causal language modelling** predicts each next token from its prefix. For “the parcel arrived,” the model learns continuations without reading future target tokens.
+**Causal language modelling** predicts from the prefix:
 
-Teacher forcing and causal masks permit parallel computation of training positions while preserving this access rule. Inference usually extends a generated prefix one step at a time.
+```text
+input:  the parcel
+next target: arrived
+```
 
-## 3. Recover selected source positions
+Teacher forcing supplies reference prefixes; causal masks permit parallel training outputs. Generation instead appends chosen tokens.
 
-**Masked language modelling (MLM)** predicts selected tokens from a corrupted input, often using both left and right context.
+## 3. Recover selected positions
+
+**Masked language modelling (MLM)** predicts selected tokens from corrupted input, often using both sides:
 
 ```text
 input:  the [MASK] arrived
 target: parcel at the selected position
 ```
 
-Only the designated targets contribute to that objective. Some corruption policies retain or randomly replace a subset of selected tokens; state the actual training rule rather than assuming every selected position is a literal mask.
+Only designated targets contribute loss. Corruption policies can mask, replace, or retain selected tokens; a selected target need not always appear as [MASK].
 
-## 4. Reconstruct corrupted text
+## 4. Reconstruct missing spans
 
-**Denoising** learns to restore information removed or changed by a corruption process. An encoder-decoder model can read corrupted source text and generate a reconstruction or the removed spans.
+**Denoising** learns to recover removed or altered content.
 
-A **sentinel** is a special marker identifying a removed span in designs such as T5. Several removed spans can have separate markers. The exact target and termination convention belongs to the objective.
+An encoder-decoder can read corrupted text and generate a reconstruction. A **sentinel** is a special marker identifying a removed span, as in T5.
 
-## 5. Compare the prediction contracts
+Specify whether targets contain the whole source or only removed spans.
 
-| Objective | Available evidence | Typical scored targets |
+## 5. Compare information contracts
+
+| Objective | Visible evidence | Scored targets |
 |---|---|---|
-| Causal | Earlier target tokens | Next tokens |
+| Causal | Prefix | Next tokens |
 | Masked | Corrupted full input | Selected positions |
-| Denoising | Corrupted source and target prefix | Reconstruction or removed spans |
+| Denoising | Corrupted source + target prefix | Reconstruction/removed spans |
 
-A bidirectional encoder is useful only when its permitted input does not simply reveal the answer contrary to the declared objective.
+Architecture access and corruption must match the declared objective.
 
-## 6. Evaluate transfer rather than objective names
+## 6. Evaluate transfer
 
-Pretraining learns regularities useful under its corpus and task. Adaptation must still match the needed labels, languages, input lengths, and output behavior.
+Test relevant labels, languages, lengths, and outputs after adaptation. Pretraining loss measures its constructed task, not factual support or universal downstream quality.
 
-Better pretraining loss does not establish factual support or a universally superior representation. Compare task performance under a fixed, valid evaluation and document the pretraining resources used.
+Document pretraining resources when assessing held-out generalization.
 
 ## 7. Interview reasoning
 
-**Question:** Can ordinary masked-token scores be multiplied as though they were causal sequence probabilities?
+**Question:** Can masked-token scores be multiplied as ordinary causal sequence probabilities?
 
-**Answer:** Not directly. Their conditionals can see right context and differ from the prefix factorization. Define an appropriate scoring convention instead of treating the objectives as identical.
+**Answer:** Not directly. Their conditionals can read right context and differ from prefix-only factors. Use a declared scoring convention.

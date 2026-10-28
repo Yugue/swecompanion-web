@@ -1,54 +1,62 @@
 # Attention as weighted information aggregation
 
-## 1. Read several available representations
+## 1. Read information directly
 
-**Attention** constructs an output by taking a learned weighted mixture of value vectors. It lets a prediction read relevant information directly instead of relying only on one recurrent summary.
+**Attention** forms a weighted mixture of value vectors. A prediction can read several relevant positions instead of relying on one compressed summary.
 
-A **projection** is a learned linear transformation. Separate projections produce queries, keys, and values from input representations.
+A **projection** is a learned linear transformation. Separate projections produce queries, keys, and values.
 
-## 2. Give the vectors different roles
+## 2. Assign three roles
 
-A **query** represents the current information request. A **key** is compared with that query to determine compatibility. A **value** supplies the content to be combined.
+| Vector | Role |
+|---|---|
+| Query q | Information request |
+| Key k | Compared with the query |
+| Value v | Content contributed to the output |
 
-Keys and values can come from the same input states while using different learned transformations. Matching content and supplied content need not have identical coordinates.
+Keys and values may come from the same states while using different weights.
 
-## 3. Score, normalize, and mix
-
-For one query \(q\):
+## 3. Score, normalize, mix
 
 \[
-s_j=\frac{q^\top k_j}{\sqrt{d_k}},\qquad
- a_j=\frac{e^{s_j}}{\sum_i e^{s_i}},\qquad o=\sum_j a_jv_j
+s_j=\frac{q^\top k_j}{\sqrt{d_k}},\qquad a_j=\frac{e^{s_j}}{\sum_i e^{s_i}},\qquad o=\sum_j a_jv_j
 \]
 
-\(k_j,v_j\) are position \(j\)'s key and value; \(d_k\) is key width; \(s_j\) compatibility; \(a_j\) its weight; \(o\) the output. Indices range over allowed candidate positions.
+j indexes allowed keys; d_k is key width; s compatibility; a normalized weight; o output. Weights are nonnegative and sum to one.
 
-Weights are nonnegative and sum to one. Increasing one relative score raises that value’s share while reducing the others’ shares.
+Increasing one relative score raises that value’s share.
 
-## 4. Follow a numerical mixture
+## 4. Follow one complete head
+
+Toy column inputs and projection weights:
+
+```text
+x1=[1,0], x2=[0,1]
+Wq=[1,0], Wk=[log 3,0], Wv=[[2,0],[0,4]]
+q1=1; keys=[log 3,0]; values=[[2,0],[0,4]]
+scores=q1×keys/√1=[log 3,0]
+```
 
 ```nlp-visual
 attention
 ```
 
-Already-computed scores [log 3, 0] give weights [0.75, 0.25]. Values [2,0] and [0,4] combine into [1.5,1]. Swapping scores gives [0.5,3].
+Swapping the two scores while keeping values fixed changes the output to [0.5,3].
 
-The result is a mixture, not necessarily one original value. A later output transformation can further change it.
+## 5. Explain scaling
 
-## 5. Explain the scaling
+Dot-product variance can grow with key width under common component assumptions. Large score gaps saturate softmax.
 
-Without scaling, the variance of a dot product can grow with key width under common component assumptions. Large score gaps can saturate softmax, concentrating weights and changing gradient behavior.
+Dividing by √d_k moderates this growth. The toy uses d_k=1, so scaling leaves its scores unchanged.
 
-Dividing by the square root of width moderates this effect. It does not guarantee uniform or useful attention.
+## 6. Recognize the limits
 
-## 6. Check the information and explanation limits
+Only supplied, allowed values can contribute. The output is a mixture, not necessarily one original vector.
 
-The mechanism can only use supplied keys and values. It cannot read an absent document or a future token that has been excluded.
-
-An attention map shows one internal routing computation. A large weight alone does not prove that a word caused the final prediction or is a faithful human explanation.
+An attention weight shows internal routing; it does not alone establish a faithful explanation of the final prediction.
 
 ## 7. Interview reasoning
 
-**Question:** If the highest attention weight belongs to token A, must the output equal A’s embedding?
+**Question:** Must the most-attended token’s embedding equal the output?
 
-**Answer:** No. The head mixes projected value vectors from all allowed positions. That mixture and later transformations generally differ from the original token embedding.
+**Answer:** No. Attention mixes projected values, and later transformations can change that mixture further.

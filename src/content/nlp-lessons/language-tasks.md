@@ -1,52 +1,50 @@
 # What NLP and NLU do
 
-## 1. Turn language into an output
+## 1. Turn language into an answer
 
-**Natural language processing (NLP)** builds computational systems that analyze or generate human language. **Natural language understanding (NLU)** focuses on interpreting language for a defined task: identifying an intent, extracting an entity, or deciding whether one statement supports another.
+**Natural language processing (NLP)** analyzes or generates human language. **Natural language understanding (NLU)** interprets it for a defined task.
 
-“Understand this message” becomes useful only after the required answer is specified.
+An **intent** is a requested action or communicative goal. An **entity** is a mention assigned a type, such as person or location.
 
-## 2. Choose the prediction structure
+> First choose the answer’s shape.
+
+## 2. Choose the output
 
 | Task | Input | Output |
 |---|---|---|
 | Classification | “My parcel is late” | Delivery complaint |
-| Extraction | “Arrive in Paris on Friday” | City and date spans |
-| Retrieval | A question and a collection | Ranked documents |
-| Generation | A source and instructions | A text sequence |
+| Extraction | “Paris on Friday” | City and date spans |
+| Retrieval | Question and document collection | Ranked documents |
+| Generation | Source and instructions | New text |
 
-A **span** is a contiguous source-text segment. A **corpus** is a collection of texts. These output structures need different labels, models, and evaluation.
+A **span** is a contiguous text segment; a **corpus** is a text collection.
 
 ## 3. Separate prediction from action
 
 ```text
-customer message → intent prediction → routing policy → support queue
+message → intent prediction → routing policy → support queue
 ```
 
-The prediction could be a category with estimated probability. The policy decides whether to route automatically or request review. A **threshold** is a cutoff used to choose that action.
+A **threshold** is a score cutoff used to choose an action. A category prediction and a decision to route automatically are different outputs.
 
-The model and policy solve related but different problems.
+## 4. Specify available evidence
 
-## 4. Define the available context
+“That’s great” could express approval or sarcasm. Earlier conversation may change its interpretation.
 
-“That's great” can express approval or sarcasm. A standalone sentence and the same sentence inside a conversation contain different evidence.
+**Inference** applies a fitted model to an input. State which messages, documents, or metadata exist at that time.
 
-State whether the model receives earlier messages, account information, or a document. **Inference** means applying a fitted model to an input; information unavailable then cannot be required for its prediction.
+## 5. Measure the intended result
 
-## 5. Measure useful behavior
+Routing needs correct destinations. Extraction needs correct boundaries and types. Generation needs useful, supported content.
 
-For routing, measure incorrect destinations and unresolved messages, including the consequences of mistakes. For extraction, check source boundaries and types. For generation, check meaning and support as well as readability.
+**Sentiment** is expressed attitude: positive sentiment about a refund still does not identify every required support action.
 
-A fluent answer may still be incorrect. A model can recognize the topic of a message without identifying the action the customer wants.
+## 6. Handle missing context
 
-## 6. State the boundary
-
-A prediction is evidence produced under a task definition, not unrestricted human understanding. When inputs omit essential context, the supported action may be to ask for clarification.
-
-> First choose the answer’s shape; then decide how to learn it.
+If essential evidence is absent, allow clarification or review. Fluent output does not establish understanding or correctness.
 
 ## 7. Interview reasoning
 
-**Question:** Is a sentiment classifier sufficient to route complaints?
+**Question:** Is sentiment classification sufficient to route complaints?
 
-**Answer:** No. Negative sentiment does not identify the requested service or destination. Define routing labels and compare against a routing baseline; sentiment may supply an additional feature.
+**Answer:** No. Attitude does not identify the requested service. Define routing labels and evaluate those predictions directly.

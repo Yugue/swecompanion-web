@@ -7,7 +7,15 @@ export function softmax(scores: readonly number[]) {
   const total = exponents.reduce((sum, value) => sum + value, 0);
   return exponents.map(value => value / total);
 }
-export const attentionExample = { scores: [Math.log(3), 0], values: [[2, 0], [0, 4]] };
+export const attentionProjection = {
+  inputs: [[1, 0], [0, 1]], queryWeights: [1, 0], keyWeights: [Math.log(3), 0], valueWeights: [[2, 0], [0, 4]],
+};
+export const attentionQuery = dot(attentionProjection.queryWeights, attentionProjection.inputs[0]);
+export const attentionKeys = attentionProjection.inputs.map(input => dot(attentionProjection.keyWeights, input));
+export const attentionExample = {
+  scores: attentionKeys.map(key => attentionQuery * key / Math.sqrt(1)),
+  values: attentionProjection.inputs.map(input => attentionProjection.valueWeights.map(row => dot(row, input))),
+};
 export function attentionMixture(scores: readonly number[], values: readonly (readonly number[])[]) {
   const weights = softmax(scores);
   if (values.length !== weights.length || !values.length || values.some(value => value.length !== values[0].length)) throw new Error("Attention shapes disagree");
@@ -35,12 +43,22 @@ export const crfExample = {
   labels: ["B-PER", "I-PER", "O"], emissions: [[2, 0, 1], [0, 2, 3]],
   transitions: [[0, 2, 0], [0, 0, 0], [0, -Infinity, 0]], start: [0, -Infinity, 0],
 };
+export const nerAlignmentExample = {
+  source: "Ada visits New York.", words: ["Ada", "visits", "New", "York"], labels: ["B-PER", "O", "B-LOC", "I-LOC"],
+  pieces: ["A", "##da", "visits", "New", "York"], wordIds: [0, 0, 1, 2, 3], offsets: [[0, 1], [1, 3], [4, 10], [11, 14], [15, 19]],
+};
+export const nerFirstPieceLabels = nerAlignmentExample.wordIds.map((word, i, ids) => ids[i - 1] === word ? "ignore" : nerAlignmentExample.labels[word]);
+export const nerAllPieceLabels = nerAlignmentExample.wordIds.map((word, i, ids) => {
+  const label = nerAlignmentExample.labels[word];
+  return ids[i - 1] === word && label.startsWith("B-") ? `I-${label.slice(2)}` : label;
+});
 export function pathScore(labels: readonly number[], example = crfExample) {
   return labels.reduce((sum, label, t) => sum + example.emissions[t][label] + (t ? example.transitions[labels[t - 1]][label] : example.start[label]), 0);
 }
-export function viterbi(example = crfExample) {
+export function viterbiTrace(example = crfExample) {
   let scores = example.emissions[0].map((score, label) => score + example.start[label]);
   const back: number[][] = [];
+  const scoresByStep = [scores];
   for (let t = 1; t < example.emissions.length; t++) {
     const predecessors = example.labels.map((_, label) => {
       const candidates = scores.map((score, previous) => score + example.transitions[previous][label]);
@@ -48,9 +66,14 @@ export function viterbi(example = crfExample) {
     });
     scores = predecessors.map((previous, label) => scores[previous] + example.transitions[previous][label] + example.emissions[t][label]);
     back.push(predecessors);
+    scoresByStep.push(scores);
   }
   const score = Math.max(...scores), path = [scores.indexOf(score)];
   for (let t = back.length - 1; t >= 0; t--) path.unshift(back[t][path[0]]);
+  return { score, path, scoresByStep, predecessors: back };
+}
+export function viterbi(example = crfExample) {
+  const { score, path } = viterbiTrace(example);
   return { score, path };
 }
 export function crfLogPartition(example = crfExample) {

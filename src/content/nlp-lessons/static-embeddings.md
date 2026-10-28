@@ -1,59 +1,60 @@
 # Learning static word embeddings
 
-## 1. Share evidence through context
+## 1. Learn from surrounding words
 
-**Distributional learning** uses patterns of surrounding words to learn representations. **Static word embeddings** assign one vector per vocabulary word, shared across occurrences.
+**Distributional learning** uses context patterns to learn representations. **Static word embeddings** assign one vector per word across occurrences.
 
-Similar usage can create nearby vectors. It does not establish equivalent meaning or a real-world relationship between the words.
+Words sharing contexts can become close without being synonyms.
 
-## 2. Construct predictive pairs
+## 2. Construct prediction pairs
 
-**Skip-gram** predicts surrounding context words from a center word. **CBOW**, continuous bag-of-words, predicts a center word from a combined context representation.
+**Skip-gram** predicts context words from a center word. **CBOW**, continuous bag-of-words, predicts the center from combined context.
 
 ```nlp-visual
 skipgram
 ```
 
-The context window, corpus, and sampling rules determine the evidence. A word’s vector reflects these choices, rather than a dictionary definition.
+The **word-context window** selects neighbors used for training pairs. Changing its radius changes the relationships emphasized.
 
 ## 3. Score a pair
-
-Let \(v_c\) be center-word \(c\)'s vector and \(u_o\) context-word \(o\)'s vector. Their score is:
 
 \[
 a=u_o^\top v_c
 \]
 
-An input table and a context/output table can be learned separately. Choosing one table or a combination for later use is a representation choice.
+v_c is center c’s vector; u_o context o’s vector; a their compatibility score. Input and context tables can have separate learned parameters.
 
 ## 4. Contrast observed and sampled pairs
 
-**Negative sampling** trains observed pairs as positives and sampled alternatives as negatives. For one positive and \(K\) negatives:
+**Negative sampling** trains observed pairs as positives and sampled alternatives as negatives:
 
 \[
 \ell=-\log\sigma(u_o^\top v_c)-\sum_{j=1}^{K}\log\sigma(-u_{n_j}^\top v_c)
 \]
 
-\(n_j\) is sampled negative \(j\); \(\sigma\) is sigmoid. Increasing a positive score lowers its term; decreasing a negative score lowers its term.
+\(\ell\) is loss; K negative count; \(n_j\) negative j; sigma sigmoid. Raise positive scores and lower negative scores to reduce loss.
 
-These binary pair probabilities are not a normalized next-word distribution over the vocabulary.
+These are binary pair decisions, not a normalized next-word distribution.
 
-## 5. Follow the fitting direction
+## 5. Follow gradient signs
 
-At score zero, sigmoid is 0.5. A positive pair’s score derivative is −0.5; a negative pair’s is +0.5.
+At score zero, sigmoid=0.5:
 
-The parameter gradients also multiply by the participating vectors. Updating one shared word can affect several pair scores, so scores are not independent parameters.
+| Pair | Score derivative | Favored direction |
+|---|---|---|
+| Positive | −0.5 | Increase score |
+| Negative | +0.5 | Decrease score |
 
-Frequent or easy negatives and rare hard comparisons supply different learning signals.
+Parameter gradients also depend on the participating vectors. Sampled negatives are not necessarily impossible language.
 
-## 6. Respect the limits
+## 6. Recognize representation limits
 
-“Hot” and “cold” can share contexts and become close despite opposing meanings. A single “bank” vector mixes financial and river usage.
+“Hot” and “cold” share contexts despite opposite meanings. One “bank” vector mixes its senses.
 
-Averaging static word vectors offers a simple sentence baseline but discards order. “Dog bites man” and “man bites dog” have the same average if their token vectors are unchanged.
+Averaging static vectors loses order: “dog bites man” and “man bites dog” have the same average.
 
 ## 7. Interview reasoning
 
-**Question:** Does a larger context window necessarily produce better embeddings?
+**Question:** Does a larger context window always improve vectors?
 
-**Answer:** No. It changes the relationships emphasized and may mix more topic-level evidence. Select and evaluate representations for the intended task rather than assuming more context is universally better.
+**Answer:** It changes the learning signal, often toward broader topical relationships. Evaluate the relationships your task needs.

@@ -1,59 +1,57 @@
 # Self-attention, cross-attention, and multiple heads
 
-## 1. Choose where information comes from
+## 1. Choose the sources
 
-Attention’s scoring and mixing operation can connect different sources.
+**Self-attention** derives queries, keys, and values from one sequence. **Cross-attention** takes queries from one sequence and keys/values from another.
 
-**Self-attention** uses queries, keys, and values derived from the same sequence. **Cross-attention** uses queries from one sequence and keys/values from another.
+Shared source does not imply shared projection weights.
 
-“Same sequence” does not mean the query, key, and value projections share weights.
+## 2. Trace the roles
 
-## 2. Trace the source roles
-
-| Operation | Queries | Keys and values |
+| Operation | Queries | Keys/values |
 |---|---|---|
 | Sentence self-attention | Sentence states | Sentence states |
-| Decoder cross-attention | Target-prefix states | Source states |
-| Query over document states | Query states | Document states |
+| Translation cross-attention | Target-prefix states | Source states |
+| Query over document | Query states | Document states |
 
-A decoder can therefore ask which source positions help predict its next target token.
+Source selection determines what information can be requested and supplied.
 
-## 3. Compute several learned mixtures
+## 3. Combine multiple heads
 
-**Multi-head attention** runs attention in several learned projection subspaces, concatenates the head outputs, and applies an output projection.
+**Multi-head attention** runs attention in separate learned projection subspaces, concatenates outputs, then projects the result.
 
 ```nlp-visual
 multihead
 ```
 
-Heads are learned computations, not preset roles such as “grammar” and “sentiment.” Distinct projections permit different behavior but do not guarantee useful diversity.
+Heads can learn different relationships. They are not assigned fixed linguistic jobs such as grammar or sentiment.
 
-## 4. Keep matrix dimensions consistent
+## 4. Check matrix shapes
 
-Store sequence vectors as rows. If query length is \(T_q\), key length \(T_k\), and one head’s widths are \(d_k,d_v\):
+Store states as rows. Tq is query length, Tk source length; dk,dv are head key/value widths:
 
 ```text
-Q: [Tq, dk]    K: [Tk, dk]    V: [Tk, dv]
-Q Kᵀ: [Tq, Tk]   → normalized weights
-head output: [Tq, dv]
+Q: [Tq,dk]   K: [Tk,dk]   V: [Tk,dv]
+Q Kᵀ → [Tq,Tk] weights
+weights × V → [Tq,dv] output
 ```
 
-Each query receives one mixture. For \(H\) heads, concatenated width is \(Hd_v\); a learned matrix maps it back to the required model width.
+Each query receives one mixture. H heads concatenate to width H×dv; an output matrix restores the required model width.
 
-## 5. Separate head count from total width
+## 5. Separate heads from capacity
 
-At fixed overall width, adding heads commonly divides the available width into smaller pieces. It need not multiply the total projection parameter count by the head-count increase.
+At fixed overall width, more heads commonly mean narrower heads. Projection parameter count need not grow in proportion to head count.
 
-Changing both head count and head width is a different capacity and cost experiment. Compare the actual shapes and work rather than the head number alone.
+Increasing head count and head width together is a different cost experiment.
 
-## 6. Respect legal access
+## 6. Apply access restrictions separately
 
-Self-attention can be full-context or causally restricted; the source choice alone does not define its mask. Cross-attention can read a complete available source while target self-attention remains causal.
+Self-attention can use full context or only a prefix. Cross-attention can read a complete source while target self-attention remains causal.
 
-More information access is useful only when that information is actually available for the prediction.
+Source choice alone does not specify the mask.
 
 ## 7. Interview reasoning
 
-**Question:** Can cross-attention have a rectangular score matrix?
+**Question:** Can cross-attention scores form a rectangular matrix?
 
-**Answer:** Yes. Query and source lengths can differ. Each query compares against all allowed source keys, giving a Tq-by-Tk matrix rather than requiring equal lengths.
+**Answer:** Yes. Query and source lengths may differ, producing Tq-by-Tk comparisons.

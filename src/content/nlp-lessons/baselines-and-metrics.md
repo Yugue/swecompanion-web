@@ -1,60 +1,62 @@
 # Baselines and basic evaluation
 
-## 1. Establish what improvement means
+## 1. Establish a reference
 
-A **baseline** is a reference method tested under the same conditions as a proposed model. Compare a trivial prediction, the current system, and a simple learned model.
+A **baseline** is a reference method tested under the same conditions. A **metric** measures the outcome of interest.
 
-For spam, “always legitimate” and existing filtering rules answer different comparison questions.
+For spam, compare “always legitimate,” current rules, and a simple learned model.
 
-## 2. Count decisions against outcomes
+## 2. Count outcomes
 
-A **confusion matrix** compares predicted and actual classes. Name the positive class first: here, spam.
+A **confusion matrix** compares predicted and actual classes. Here the positive class is spam:
 
-| Count | Meaning | Toy count |
+| Count | Meaning | Value |
 |---|---|---|
-| TP | Spam flagged correctly | 30 |
+| TP | Spam correctly flagged | 30 |
 | FP | Legitimate message flagged | 10 |
 | FN | Spam missed | 70 |
 | TN | Legitimate message allowed | 890 |
 
-There are 1,000 messages, 100 actual spam messages, and 40 flags.
+There are 1,000 messages, 100 actual positives, and 40 flags.
 
-## 3. Ask two denominator questions
+## 3. Choose the denominator
 
-**Precision** asks how many flags are correct; **recall** asks how many actual positives were found:
+**Precision** measures correct flags; **recall** measures recovered positives:
 
 \[
 P=\frac{TP}{TP+FP}=0.75,\qquad R=\frac{TP}{TP+FN}=0.30
 \]
 
-Here \(P\) and \(R\) denote precision and recall. Both use TP, but they assess different failures.
+\(P,R\) denote precision and recall. False alarms reduce precision; missed positives reduce recall.
 
-## 4. Interpret summary scores
+## 4. Read summary scores
 
-**Accuracy** is the correct fraction: \((TP+TN)/n=0.92\), where \(n\) is total cases. The all-legitimate baseline gets 0.90 and finds no spam.
+**Accuracy** is \((TP+TN)/n=0.92\), with \(n\) total cases. The all-legitimate baseline scores 0.90 while finding no spam.
 
-**F1** is precision and recall’s harmonic mean:
+**F1** is the harmonic mean of precision and recall:
 
 \[
 F_1=\frac{2TP}{2TP+FP+FN}\approx0.429
 \]
 
-It does not encode every possible error cost. Undefined denominators require a reporting convention.
+F1 does not specify error costs. Declare handling of undefined denominators.
 
 ## 5. Average classes deliberately
 
-**Macro** averaging gives each class equal weight. **Weighted** averaging uses class counts. **Micro** averaging pools counts before computing a score.
+| Averaging | Operation |
+|---|---|
+| Macro | Equal weight per class |
+| Weighted | Weight by class counts |
+| Micro | Pool counts before scoring |
 
-Ordinary single-label classification over all classes has micro-F1 equal to accuracy. Keep per-class evidence when a rare intent matters.
+For ordinary single-label classification over all classes, micro-F1 equals accuracy. Inspect rare classes separately.
 
-## 6. Compare the actual decision
+## 6. Compare equal workloads
 
-For a review queue, compare models at the same capacity. Forty flags versus four hundred are different workloads. Lowering a score cutoff adds cases and cannot reduce recall on a fixed dataset, but precision may rise or fall.
-
-A probability-quality metric and a ranking metric need original scores; a confusion matrix describes decisions at one cutoff.
+Forty flags and four hundred flags create different review burdens. Lowering a cutoff cannot reduce recall on fixed scores, but precision can rise or fall.
 
 ## 7. Interview reasoning
 
-**Question:** Can higher accuracy make spam handling less useful?
+**Question:** Can higher accuracy make filtering less useful?
 
-**Answer:** Yes. The change may miss costly spam or block important legitimate messages. Compare the relevant error types and workloads against the current policy.
+**Answer:** Yes. It may miss costly spam or block valuable legitimate messages. Compare error types and review workload against the current policy.

@@ -1,58 +1,58 @@
 # Diagnosing training failures
 
-## 1. Make a testable diagnosis
+## 1. Turn symptoms into experiments
 
-**Training diagnostics** use measured behavior to distinguish faults in data, optimization, representation, and model restrictions.
+**Training diagnostics** distinguish faults in data, optimization, representation, and model restrictions.
 
-A flat metric is an observation, not a diagnosis. Compare against a valid baseline and inspect actual examples before choosing a larger model.
+A flat metric is an observation. Inspect actual examples and a valid baseline before enlarging the model.
 
-## 2. Verify the smallest complete computation
+## 2. Check the smallest complete computation
 
-Check that examples and labels align, the class order is correct, shapes match the loss, and artificial positions are excluded appropriately.
+Verify input/label alignment, class order, loss shape, and ignored positions.
 
-For a token model, a shifted target or incorrect class axis can produce a perfectly executable program that learns the wrong task.
+A shifted token target can run successfully while teaching the wrong prediction.
 
-## 3. Try a suitable small-subset fit
+## 3. Fit a small consistent subset
 
-A **small-subset overfit check** asks whether a sufficiently flexible model can learn a small consistent dataset.
+A **small-subset overfit check** tests whether a sufficiently flexible model can learn a tiny dataset.
 
-Failure suggests inspecting frozen weights, missing updates, graph breaks, label mistakes, or excessive restrictions. A constrained model cannot memorize arbitrary outputs, and identical inputs with conflicting labels remain inseparable.
+Failure points toward frozen weights, missing updates, graph breaks, target mistakes, or excessive restrictions. Identical inputs with conflicting labels remain inseparable.
 
-Passing this check confirms a capability of the pipeline, not generalization.
+Passing confirms pipeline capability, not generalization.
 
-## 4. Distinguish three curves
+## 4. Read the right curve
 
-| Curve | What varies | Question |
+| Curve | Horizontal axis | Question |
 |---|---|---|
-| Learning curve | Training-data size | Would more representative data help? |
-| Iteration curve | Steps within a fit | Are later updates less transferable? |
-| Validation curve | A selected setting | Which restriction fits this task? |
+| Learning | Training-set size | Would more data help? |
+| Iteration | Training progress | When should fitting stop? |
+| Validation | A model setting | Which setting transfers? |
 
 ```nlp-visual
 learning-curves
 ```
 
-A limited-range plateau is evidence, not proof that more data could never help.
+The figure shows training progress: later fitting reduces training loss while validation loss rises.
 
-## 5. Match the experiment to the clue
+## 5. Match clues to checks
 
-| Observation | Next check |
+| Symptom | Inspect |
 |---|---|
-| Loss never falls | Targets, gradients, rate, optimizer membership |
-| Train improves; validation worsens | Overfitting, checkpoint choice, evaluation consistency |
-| Only long inputs fail | Truncation, masks, context use |
-| Some labels never predicted | Coverage, label encoding, objective, decision rule |
+| Loss never falls | Targets, gradients, optimizer, rate |
+| Only long inputs fail | Truncation, masks, retained context |
+| Rare labels disappear | Coverage, label mapping, loss weights, thresholds |
+| Train improves; validation worsens | Checkpoint choice, overfitting, split consistency |
 
-Use the same metric definition and preprocessing when comparing train and validation.
+Compare the same metric and preparation on both sets.
 
 ## 6. Change one plausible cause
 
-An **ablation** removes or changes a component to test its contribution. Keep other important conditions comparable, and repeat fits when randomness can change the conclusion.
+An **ablation** changes or removes a component to measure its contribution. Keep other conditions comparable; repeat fits when randomness matters.
 
-Useful experiments may improve data or features rather than architecture. Record both the gain and its costs; a lucky validation maximum is not an independent final estimate.
+Record quality and cost. A lucky validation maximum still needs independent final assessment.
 
 ## 7. Interview reasoning
 
-**Question:** The training loss falls, but accuracy stays flat. Is training broken?
+**Question:** Loss falls but accuracy stays flat. Is training broken?
 
-**Answer:** Not necessarily. Probabilities may improve without changing class decisions. Inspect the loss, thresholded outputs, label distribution, and task metric before concluding that no learning occurred.
+**Answer:** Probabilities can improve without crossing decision boundaries. Inspect scores, decisions, and labels before diagnosing failure.

@@ -1,55 +1,57 @@
 # Encoder-decoder models and teacher forcing
 
-## 1. Map one sequence to another
+## 1. Map a source to a target sequence
 
-A **sequence-to-sequence model** predicts an output sequence conditioned on an input sequence. An **encoder** represents the source; a **decoder** generates the target using that representation and an available target prefix.
+A **sequence-to-sequence model** predicts output text conditioned on input text.
 
-A recurrent encoder can summarize the source in its final state. This gives a concrete initial design before attention adds direct access to multiple source states.
+An **encoder** represents the source; a **decoder** predicts targets using that representation and earlier target tokens.
 
-## 2. Factor the target distribution
+A basic recurrent encoder supplies its final state to the decoder.
+
+## 2. Factor target probability
 
 \[
 P(y\mid x)=\prod_{t=1}^{T}P(y_t\mid y_{<t},x)
 \]
 
-\(x\) is the complete source; \(y_t\) target token \(t\); \(y_{<t}\) earlier target tokens; \(T\) includes the chosen termination event.
+x is source; y_t target token t; y_<t earlier targets; T includes the chosen termination event.
 
-The source is allowed evidence. The unseen future target is not.
+The complete source is available. Future target text is unknown.
 
-## 3. Shift inputs and labels
+## 3. Align reference inputs and labels
 
-**Teacher forcing** supplies earlier reference target tokens as decoder inputs during training.
+**Teacher forcing** supplies earlier reference tokens during training:
 
 ```nlp-visual
 teacher-forcing
 ```
 
-For target “I agree,” decoder inputs are [BOS, I, agree] and labels are [I, agree, EOS]. Position by position, the decoder predicts the next target rather than copying its current input.
+For “I agree,” inputs [BOS,I,agree] predict labels [I,agree,EOS]. Each position predicts the next token, rather than copying itself.
 
-BOS marks a beginning; EOS marks termination.
+## 4. Score intended positions
 
-## 4. Fit only the intended positions
+Sum or average target cross-entropy, excluding padding. Decide whether examples or tokens receive equal weight.
 
-Cross-entropy sums or averages target-token losses. Artificial padding must be excluded, with the denominator matching the intended example or token weighting.
+A decoder must not see future targets through another path. Recurrence enforces dependent forward states; other designs need explicit access restrictions.
 
-A source-only encoder can read its complete input. A decoder must not obtain later target tokens through another path; recurrence enforces a forward path, while later Transformer lessons introduce explicit masks.
+## 5. Generate from the model’s own prefix
 
-## 5. Generate using the model’s own prefix
+```text
+BOS → predict → append chosen token → predict again → EOS
+```
 
-At inference, start with the beginning marker, predict a token, append it, and continue until a stop rule fires.
+**Exposure bias** is the mismatch between reference prefixes during teacher-forced training and generated prefixes at inference.
 
-An incorrect early token can change later inputs. **Exposure bias** describes the mismatch between reference prefixes used in teacher-forced training and model-generated prefixes encountered in generation.
+An early error changes later inputs. Evaluate complete outputs alongside reference-prefix loss.
 
-Evaluate complete generated sequences as well as reference-prefix token loss.
+## 6. Recognize the summary bottleneck
 
-## 6. Identify the summary bottleneck
+One fixed-width source state can lose long-input details. Increasing width differs from letting each prediction read relevant source positions directly.
 
-Compressing a long source into one fixed-width state can make details difficult to retain. Increasing width can help but is not equivalent to giving each prediction direct access to relevant source positions.
-
-This motivates attention, which the next chapter develops as a separate information-reading mechanism.
+The next chapter develops that direct-reading mechanism.
 
 ## 7. Interview reasoning
 
-**Question:** Why can low teacher-forced loss coexist with weak complete translations?
+**Question:** Why can low teacher-forced loss coexist with poor translations?
 
-**Answer:** Training predictions receive correct earlier targets; generation must use its own earlier choices. Errors, stopping, and decoding policy can produce poor sequences despite good reference-prefix predictions.
+**Answer:** Generation uses the model’s own earlier choices. Prefix errors, stopping, and search can damage complete outputs despite good predictions under reference prefixes.

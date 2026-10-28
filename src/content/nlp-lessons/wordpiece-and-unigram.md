@@ -1,63 +1,61 @@
 # WordPiece, unigram tokenization, and tokenizer tradeoffs
 
-## 1. Separate vocabulary learning from encoding
+## 1. Separate learning from encoding
 
-A **subword vocabulary** supplies reusable pieces. The vocabulary-training objective and the rule selecting pieces at inference are distinct choices.
+A subword method needs a vocabulary-learning rule and an inference segmentation rule. These are different decisions.
 
-BPE’s merge sequence is one design. WordPiece and unigram approaches use other learning or segmentation ideas.
+BPE uses merge ranks; the following methods choose pieces differently.
 
-## 2. Read a WordPiece encoding
+## 2. Encode with WordPiece
 
-**WordPiece** uses a learned vocabulary; BERT-style encoding commonly applies greedy longest matching from the current word position.
+**WordPiece** uses a learned vocabulary. BERT-style encoding greedily takes the longest matching piece at the current word position:
 
 ```text
-vocabulary contains: play, ##ing
+vocabulary: play, ##ing
 playing → [play, ##ing]
 ```
 
-The continuation prefix ## is an implementation convention. Exact vocabulary-training procedures vary; longest matching describes this encoding behavior, not a universal training formula.
+The ## continuation marker is a convention. Longest matching describes encoding, not a universal vocabulary-training formula.
 
-## 3. Score alternative segmentations
+## 3. Score unigram alternatives
 
-A **unigram tokenizer model** assigns probabilities to pieces and scores a segmentation using their product. Vocabulary learning can prune pieces that contribute little to corpus likelihood.
-
-For a toy “lower” vocabulary:
+A **unigram tokenizer model** assigns piece probabilities and scores each segmentation by their product.
 
 ```text
 P(low)=0.20, P(er)=0.10, P(lower)=0.015
-[low, er] score = 0.020
-[lower] score  = 0.015
+[low, er] → 0.020
+[lower]   → 0.015
 ```
 
-Remaining probability mass belongs to other pieces. Among these alternatives, the two-piece segmentation scores higher despite using more pieces.
+Other pieces hold the remaining mass. Here two pieces beat one; shorter segmentation is not necessarily preferred.
 
-## 4. Search or sample a segmentation
+Vocabulary training can prune pieces with little contribution to corpus likelihood.
 
-When several segmentations are possible, dynamic programming can find a high-probability decomposition under the unigram model.
+## 4. Search or sample
 
-**Subword regularization** samples alternative valid segmentations during training. This exposes a model to more surface decompositions; inference still needs an explicit encoding policy.
+**Dynamic programming** reuses solutions to smaller subproblems. For unigram segmentation, it can retain the best decomposition of each prefix.
 
-It is different from replacing words with arbitrary synonyms, which can alter meaning.
+**Subword regularization** samples valid segmentations during training. This varies boundaries without arbitrarily replacing words or their meanings.
 
-## 5. Compare consequences for readers and models
+## 5. Compare practical consequences
 
 | Choice | Inspect |
 |---|---|
-| Vocabulary and base alphabet | Script coverage and unknown behavior |
-| Training text | Language and domain representation |
-| Segmentation policy | Length, stability, and alignment |
-| Special-token rules | Compatibility with the pretrained model |
+| Base alphabet | Script coverage and unknowns |
+| Training corpus | Language/domain representation |
+| Segmentation | Length and alignment |
+| Special tokens | Model compatibility |
 
-**Token fertility** is the number of pieces produced per chosen word-like unit. State how that unit is defined when comparing languages.
+**Token fertility** counts pieces per chosen word-like unit; define that unit before comparing languages.
 
-## 6. Match evaluation budgets
+## 6. Compare equal evidence budgets
 
-The same character-length document can require different token counts across tokenizers or languages. A shared token cutoff can therefore expose different amounts of source evidence.
+Equal vocabulary sizes do not imply equal token lengths. Under one token cutoff, different tokenizers can expose different amounts of source text.
 
-Compare downstream performance and truncation effects, rather than choosing solely by vocabulary size or the attractiveness of a few example pieces.
+Measure truncation and downstream errors on the languages you serve.
 
 ## 7. Interview reasoning
 
-**Question:** Do two tokenizers with the same vocabulary size have equivalent context coverage?
+**Question:** Does equal vocabulary size imply equal context coverage?
 
-**Answer:** No. Their pieces and segmentation rules can produce different sequence lengths. Measure coverage on the actual languages and document types.
+**Answer:** No. Different pieces and segmentation rules produce different lengths for the same text.

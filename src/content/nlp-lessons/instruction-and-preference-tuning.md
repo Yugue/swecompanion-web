@@ -1,59 +1,59 @@
 # Instruction tuning and preference-based adaptation
 
-## 1. Learn a response behavior
+## 1. Teach response behavior
 
-**Instruction tuning** trains a model to respond to requests using input–response examples. It adapts behavior beyond predicting arbitrary continuations of pretraining text.
+**Instruction tuning** trains on requests and example responses.
 
-The task still needs a definition: concise support answers, faithful summaries, or format-constrained extraction require different demonstrations and evaluation.
+“Summarize this policy” requires different demonstrations from free-form continuation. Define desired content, format, and support.
 
-## 2. Fit demonstrations with supervised learning
+## 2. Imitate demonstrations
 
-**Supervised fine-tuning (SFT)** typically minimizes token cross-entropy on reference responses conditioned on prompts and any supplied context.
+**Supervised fine-tuning (SFT)** commonly minimizes response-token cross-entropy conditioned on a prompt.
 
-A training example includes the template, role markers, and output. Some setups score response tokens while using prompt tokens only as context. Loss masking must implement that declared target choice.
+Some setups use prompt tokens as context but exclude them from loss. Templates and role markers are part of the input.
 
-Imitating examples can reproduce their errors and stylistic biases.
+Imitation can reproduce demonstration errors.
 
-## 3. Learn from comparisons
+## 3. Compare alternatives
 
-A **preference pair** contains responses to the same prompt, with one judged better under a stated criterion.
+A **preference pair** ranks responses to the same prompt under a stated criterion:
 
 ```text
-prompt: Summarize this return policy.
+prompt: Summarize the return policy.
 chosen: Correct deadline and conditions.
 rejected: Fluent answer with the wrong deadline.
 ```
 
-Comparisons supply relative judgments, not necessarily a perfect target response. The criterion and annotator agreement matter.
+This supplies relative judgement, not a perfect reference answer.
 
-## 4. Model a relative reward
+## 4. Fit a reward score
 
-A **reward model** maps a prompt–response pair to a desirability score. One paired model uses:
+A **reward model** scores response desirability. One pairwise model uses:
 
 \[
 P(y^+\succ y^-\mid x)=\sigma(r(x,y^+)-r(x,y^-))
 \]
 
-\(x\) is prompt/context; \(y^+,y^-\) compared responses; \(r\) the learned reward; \(\sigma\) sigmoid; \(\succ\) means preferred.
+x is prompt/context; y⁺,y⁻ compared responses; r learned reward; sigma sigmoid; ≻ means preferred.
 
-A larger score gap predicts stronger preference. Reward magnitude is not automatically factual confidence or a calibrated utility value.
+A larger score gap predicts stronger preference, not factual confidence.
 
-## 5. Distinguish adaptation procedures
+## 5. Distinguish preference methods
 
-**Reinforcement learning from human feedback (RLHF)** can optimize a response-generating **policy**, the model’s conditional action distribution, using a learned reward and constraints such as closeness to a reference policy.
+**Reinforcement learning from human feedback (RLHF)** can optimize a **policy**, the response-generating distribution, using learned reward with a reference-policy constraint.
 
-**Direct preference optimization (DPO)** instead fits paired preferences through an objective using chosen/rejected response log probabilities relative to a reference model, without requiring a separately trained reward model in that procedure.
+**Direct preference optimization (DPO)** fits chosen/rejected log-probability comparisons relative to a reference model without a separately trained reward model in that procedure.
 
-Neither is merely ordinary next-token pretraining, and not every preference method uses the same reinforcement-learning process.
+These are different objectives and training processes.
 
-## 6. Evaluate the desired consequence
+## 6. Check what judgements reward
 
-Preference data can favor verbosity, familiar wording, or persuasive errors if the judging process rewards them. A helpful style is not proof of factual correctness.
+If reviewers favor verbosity or persuasive wording, optimization can reinforce those patterns.
 
-Assess the actual task, unsupported claims, critical slices, and retained capabilities. Treat advanced reward optimization as an extension when deeper algorithmic detail is required.
+Evaluate correctness, unsupported claims, and retained abilities separately from style preference.
 
 ## 7. Interview reasoning
 
-**Question:** Why can a preference-trained model produce a convincing wrong answer?
+**Question:** Why can preference training produce convincing wrong answers?
 
-**Answer:** Its training rewards what the preference process identifies as better. If correctness is weakly measured or the data is incomplete, persuasive style can improve without reliable factual support.
+**Answer:** It optimizes the supplied judgements. Weak correctness evidence can reward persuasive responses without reliable factual support.

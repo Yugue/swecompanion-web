@@ -1,24 +1,22 @@
 # Evaluating language models
 
-## 1. Ask how much probability went to actual text
+## 1. Score actual held-out targets
 
-A language model’s held-out score measures its predictions on text excluded from its fitting decisions.
+At each position, supply only permitted context and inspect the probability of the observed next token.
 
-At each scored position, provide only the permitted context and inspect the probability assigned to the observed next token. This evaluates a probability model, not a completed product decision.
+This measures predictive fit. Product usefulness needs task-specific assessment too.
 
 ## 2. Average negative log-likelihood
-
-For \(N\) scored targets:
 
 \[
 L=-\frac1N\sum_{t=1}^{N}\log P_\theta(x_t\mid x_{<t})
 \]
 
-\(x_t\) is an observed target, \(x_{<t}\) its available prefix, and \(\theta\) model parameters. Logs are natural. More probability on those targets lowers \(L\).
+\(N\): scored targets; \(x_t\): observed token; \(x_{<t}\): permitted prefix; \(\theta\): parameters. Natural logs are used.
 
-Exclude artificial padding. State whether EOS and other special targets are counted.
+Higher observed-token probability lowers L. Exclude padding and state whether EOS is counted.
 
-## 3. Express it as perplexity
+## 3. Convert to perplexity
 
 **Perplexity** is exponential average token NLL:
 
@@ -26,32 +24,36 @@ Exclude artificial padding. State whether EOS and other special targets are coun
 \operatorname{PPL}=e^L
 \]
 
-For target probabilities [0.5, 0.25], \(L\approx1.040\) and perplexity is \(\sqrt8\approx2.828\).
+Target probabilities [0.5,0.25] give L≈1.040 and PPL=√8≈2.828.
 
-A uniform predictor over \(K\) possible tokens has perplexity \(K\). This motivates an effective-choice intuition; it does not mean every step literally has that many equally likely alternatives.
+A uniform predictor over K alternatives has perplexity K. This motivates “effective choices,” without requiring equally likely alternatives at every position.
 
-## 4. Keep the measurement units comparable
+## 4. Keep units comparable
 
-Per-token loss depends on tokenization. Changing the vocabulary changes how many prediction steps represent a text and what each target means.
+| Change | Why comparison changes |
+|---|---|
+| Tokenizer | Different prediction units and target count |
+| Context access | Different evidence per prediction |
+| EOS/boundaries | Different scored events |
 
-Compare perplexities under compatible tokenization, text, context access, boundaries, and target inclusion. A masked model’s **pseudo-likelihood**, obtained from conditionals with other tokens visible, is not ordinary causal sequence likelihood.
+A masked model’s **pseudo-likelihood** uses conditionals with other tokens visible. It is not ordinary causal sequence likelihood.
 
-A declared common byte or character normalization can support other comparisons, but it must be computed consistently.
+Common byte/character-normalized comparisons require their own consistent definition.
 
-## 5. Inspect where the model loses probability
+## 5. Inspect score slices
 
-Break scores down by language, rare names, document length, or domain. A model can improve average loss while worsening an important minority group.
+Break loss down by language, rare names, length, and domain. An average can hide regressions.
 
-Corpus contamination can make memorized held-out passages look easy. Confirm that the claimed generalization setting was genuinely held out.
+Check for training contamination in held-out passages; memorized text does not test performance on new text.
 
-## 6. Separate prediction fit from usefulness
+## 6. Evaluate downstream behavior
 
-Lower perplexity does not by itself establish factual accuracy, faithful summarization, safe abstention, or successful retrieval.
+Lower perplexity does not establish faithful summaries, correct facts, or appropriate refusal to answer.
 
-Evaluate the downstream task with its own targets and error costs. A fluent hallucination may be a likely continuation while remaining unsupported by the available evidence.
+A likely continuation can remain unsupported by the supplied document.
 
 ## 7. Interview reasoning
 
-**Question:** Model A has perplexity 8 and B has 10 under different tokenizers. Is A better?
+**Question:** Is perplexity 8 better than 10 under different tokenizers?
 
-**Answer:** That comparison is not established. Align the scoring units and protocol, then compare the intended task. Different tokenizations can change per-token perplexity without an equivalent quality change.
+**Answer:** That conclusion is unsupported. Align scoring units, evidence, and targets, then evaluate the intended task.

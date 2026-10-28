@@ -1,60 +1,58 @@
 # Word, character, and byte tokenization
 
-## 1. Define the model’s units
+## 1. Map text to model units
 
-A **tokenizer** segments text into model units called **tokens** and maps them to identifiers. Its **vocabulary** lists the available units and IDs.
+A **tokenizer** segments text into tokens and maps them to IDs. Its **vocabulary** lists those units and identifiers.
 
-A token can be a word, character, byte, or subword piece. A token ID is a name, not a semantic magnitude.
+IDs name entries: 10 and 11 need not mean more similar things than 10 and 900.
 
 ## 2. Compare granularity
 
-| Unit | Benefit | Limitation |
+| Unit | Benefit | Cost |
 |---|---|---|
-| Word | Short sequences of familiar words | Large vocabulary; unseen forms |
-| Character | Reuse symbols within words | Longer sequences |
-| Byte | Represent arbitrary byte sequences | Several tokens per visible character |
-| Subword | Reuse common word pieces | Language-dependent segmentation |
+| Word | Short familiar sequences | Large vocabulary; unseen forms |
+| Character | Reusable symbols | Longer sequences |
+| Byte | Byte coverage | Several units per visible character |
+| Subword: reusable word piece | Shares common fragments | Language-dependent segmentation |
 
-Coverage of bytes supplies representability, not language understanding. Training evidence still determines useful behavior.
+Byte coverage provides representability, not language understanding.
 
-## 3. Handle unfamiliar inputs
+## 3. Handle unfamiliar text
 
-An **unknown token** replaces an input unit absent from a vocabulary. Many distinct words can then become the same ID.
+An **unknown token** replaces an unsupported unit, potentially collapsing many names into one ID. Character/byte fallback helps only when actually supported.
 
-Character or byte fallback can preserve more detail, provided the tokenizer actually includes and supports that fallback. “Subword” alone does not guarantee every input is representable.
+An **embedding** is a learned vector representation; an **embedding table** stores one vector per vocabulary entry. More entries enlarge that table; finer segmentation lengthens later computations.
 
-Vocabulary size is a tradeoff: more entries increase an embedding table’s rows; finer segmentation increases the sequence length processed by later layers.
-
-## 4. Give special tokens explicit roles
+## 4. Assign special-token roles
 
 | Marker | Role |
 |---|---|
-| Beginning-of-sequence | Starts a sequence or generation prefix |
-| End-of-sequence | Marks a learned stopping event |
-| Padding | Fills unused storage positions |
-| Separator | Distinguishes segments under a model convention |
+| Beginning-of-sequence (BOS) | Starts an input or generation prefix |
+| EOS | Predicts termination |
+| Padding (PAD) | Fills unused storage |
+| Separator | Marks boundaries between segments |
 
-A visible special string is useful only when assigned the role expected by that model. Do not freely substitute markers between pretrained tokenizers.
+Use the conventions expected by the pretrained model.
 
 ## 5. Batch different lengths
 
-**Padding** adds artificial positions so sequences fit a rectangular batch. **Truncation** removes positions beyond a chosen limit.
+**Padding** adds artificial positions. **Truncation** removes positions beyond a limit.
 
 ```text
 short: [hello, EOS, PAD, PAD]
 long:  [please, refund, me, EOS]
 ```
 
-Padding needs exclusion in the relevant computation and loss. Truncation can delete the answer or the word reversing sentiment; inspect which evidence is lost.
+Exclude padding where required. Check whether truncation removes the answer or a negation.
 
-## 6. Maintain compatible IDs
+## 6. Keep IDs compatible
 
-Keep vocabulary, tokenizer rules, and model weights compatible. Reassigning IDs changes which learned row represents a piece even if the vocabulary contains the same strings.
+Tokenizer rules, vocabulary IDs, and model weights must agree. Reassigning IDs selects different learned vectors.
 
-Preserve token-to-source mappings when extracting spans. Measure token length by language and input type before setting a shared budget.
+Measure token lengths across supported languages and preserve source mappings for extraction.
 
 ## 7. Interview reasoning
 
-**Question:** Why can a tokenizer with a smaller vocabulary make inference more expensive?
+**Question:** Why can a smaller vocabulary increase inference cost?
 
-**Answer:** It may split inputs into more tokens. Longer sequences increase the work of subsequent computations, sometimes outweighing a smaller embedding table.
+**Answer:** It may produce more tokens. Longer sequences can outweigh savings from a smaller embedding table.

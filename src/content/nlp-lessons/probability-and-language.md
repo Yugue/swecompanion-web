@@ -1,65 +1,61 @@
 # Probability and conditional reasoning
 
-## 1. Specify the event
+## 1. Name the event
 
-A **probability** assigns a number from zero to one to an event under a defined population or process. A **distribution** assigns probabilities across possible outcomes.
+A **probability** assigns an event a value from zero to one. A **distribution** assigns probabilities across possible outcomes.
 
-“Spam probability 0.1” means an estimate of that event, not that one message is 10% spam.
+Spam probability 0.1 estimates an event; it does not mean a message is partly spam.
 
 ## 2. Condition on evidence
 
-**Conditional probability** restricts attention to cases where evidence is known:
+**Conditional probability** considers cases where evidence is known:
 
 \[
 P(A\mid B)=\frac{P(A\cap B)}{P(B)}
 \]
 
-\(A\) and \(B\) are events; \(A\cap B\) means both occur. The formula requires \(P(B)>0\).
+\(A,B\) are events; \(\cap\) means both occur; require \(P(B)>0\).
 
-Among 100 messages containing “prize,” if 20 are spam, the observed spam fraction given that word is 0.2. That differs from the fraction of spam messages containing the word.
+If 20 of 100 “prize” messages are spam, the observed spam fraction given that word is 0.2. Reversing the conditioning changes the question.
 
-## 3. Reverse the conditioning with Bayes’ rule
+## 3. Reverse with Bayes’ rule
 
 \[
 P(S\mid E)=\frac{P(E\mid S)P(S)}{P(E)}
 \]
 
-\(S\) is spam and \(E\) observed evidence. The **prior** \(P(S)\) is risk before that evidence; the **posterior** \(P(S\mid E)\) is risk after it.
+\(S\): spam; \(E\): evidence. The **prior** P(S) precedes the evidence; the **posterior** P(S|E) incorporates it. The **likelihood** P(E|S) measures evidence frequency under spam.
 
-The likelihood \(P(E\mid S)\) measures how compatible the evidence is with spam.
+## 4. Keep the base rate
 
-## 4. Work a base-rate example
-
-Suppose spam prevalence is 1%, a phrase appears in 80% of spam, and in 5% of legitimate messages:
+Spam is 1% of traffic. A phrase occurs in 80% of spam and 5% of legitimate messages:
 
 ```text
-spam with phrase:       0.01 × 0.80 = 0.0080
-legitimate with phrase: 0.99 × 0.05 = 0.0495
-posterior spam risk:    0.008 / 0.0575 ≈ 13.9%
+spam + phrase:   0.01 × 0.80 = 0.0080
+legit + phrase:  0.99 × 0.05 = 0.0495
+P(spam | phrase) = 0.008 / 0.0575 ≈ 13.9%
 ```
 
-Strong relative evidence does not erase a small prior. Most phrase-bearing messages remain legitimate in this population.
+Strong evidence can coexist with a low posterior when the prior is small.
 
-## 5. Describe averages and spread
+## 5. Describe average and spread
 
-A **random variable** assigns a numeric outcome to each case. Its **expectation** is the probability-weighted average; **variance** is expected squared deviation from that average.
+A **random variable** assigns numeric outcomes. **Expectation** is their probability-weighted average; **variance** is expected squared deviation from that average.
 
-For token length \(X\) equally likely to be 1 or 3:
+For equally likely word lengths X=1 or X=3 characters:
 
 \[
 \mathbb E[X]=2,\qquad \operatorname{Var}(X)=\mathbb E[(X-2)^2]=1
 \]
 
-The expectation need not be a possible individual outcome. Continuous variables use densities and integrals instead of finite sums; density height itself is not a point probability.
+## 6. State independence assumptions
 
-## 6. Check what assumptions supply
+**Independence** means knowing one variable leaves the other’s distribution unchanged. Sentence words generally violate it.
 
-**Independence** means knowing one variable does not change the other’s distribution. Words in a sentence generally are not independent. Later models make restricted independence assumptions to obtain tractable estimates.
-
-Observed proportions also have sampling uncertainty, especially with few examples.
+Finite observed frequencies also have sampling uncertainty.
 
 ## 7. Interview reasoning
 
-**Question:** If 80% of spam contains a phrase, is a message with that phrase 80% likely spam?
+**Question:** Does “80% of spam contains this phrase” imply 80% spam risk when the phrase appears?
 
-**Answer:** No. You also need the spam prior and how often legitimate messages contain it. Bayes’ rule combines those quantities.
+**Answer:** No. Combine that likelihood with spam prevalence and the phrase’s frequency in legitimate messages.

@@ -1,59 +1,58 @@
 # Fine-tuning and parameter-efficient adaptation
 
-## 1. Adapt parameters to the required task
+## 1. Adapt a pretrained model
 
-**Fine-tuning** continues training a pretrained model on relevant task or domain examples. A **frozen** parameter remains fixed during that process.
+**Fine-tuning** continues training on relevant task or domain examples. Choose which parameters to update from data and resource constraints.
 
-The choice is which computation to adapt, with how much evidence and update capacity—not whether the model name sounds specialized.
+## 2. Compare update scope
 
-## 2. Compare update scopes
-
-| Strategy | Updated components | Main tradeoff |
+| Strategy | Updated | Tradeoff |
 |---|---|---|
-| Frozen features | New head | Cheap but limited representation adaptation |
-| Partial tuning | Selected layers or modules | Intermediate flexibility and cost |
-| Full tuning | Most or all base weights | Broad adaptation; more training state |
+| Frozen features | New head | Cheap; fixed representation |
+| Partial tuning | Selected modules | Some adaptation |
+| Full tuning | Most/all weights | Flexible; more training state |
 
-The optimizer must contain the intended trainable parameters. A frozen feature model can still supply useful inputs to a separately trained head.
+The optimizer must include the intended trainable parameters.
 
-## 3. Factor a learned update
+## 3. Learn a low-rank branch
 
-**Low-rank adaptation (LoRA)** freezes a base matrix and learns an update through two smaller matrices:
+**Low-rank adaptation (LoRA)** freezes a base matrix and learns two smaller factors:
 
 \[
 y=W_0x+sB(Ax)
 \]
 
-\(x\) is input; \(W_0\) a frozen [dout,din] matrix; \(A\) is [r,din]; \(B\) is [dout,r]; \(r\) the adapter rank; \(s\) a scale; \(y\) output.
+x is input; W₀ frozen [dout,din]; A [r,din]; B [dout,r]; s scale; y output.
+
+**Rank** counts independent matrix directions. BA has rank at most r, restricting the update.
 
 ```nlp-visual
 lora
 ```
 
-The update \(BA\) has rank at most \(r\), restricting the changes that one adapter can express.
+## 4. Count trainable values
 
-## 4. Count what becomes trainable
+Full tuning: dout×din weights. LoRA branch: r(din+dout), ignoring biases.
 
-Full matrix tuning uses \(d_{out}d_{in}\) weights; this LoRA branch uses \(r(d_{in}+d_{out})\), ignoring biases.
+| Matrix and rank | Adapter | Full |
+|---|---|---|
+| 4×4, r=1 | 8 | 16 |
+| 1,024×1,024, r=8 | 16,384 | 1,048,576 |
 
-For a 4-by-4 matrix at rank 1, that is 8 versus 16 values. At width 1,024 and rank 8, it is 16,384 versus 1,048,576.
+Base weights and forward activations remain. Total memory savings do not equal the trainable-parameter ratio.
 
-Fewer trainable parameters reduce gradient and optimizer-state storage, but base weights and forward activations remain. Total training memory does not fall by the same parameter-count ratio.
+## 5. Initialize and validate
 
-## 5. Preserve a stable starting behavior
+A common initialization makes the branch initially zero: initialize one factor appropriately and the other to zero.
 
-A common initialization makes the adapter’s initial output zero while allowing it to learn, for example by zeroing one factor and initializing the other appropriately.
+Compare with a frozen baseline. Small labelled sets can still overfit; choose update scope, rate, and rank on validation data.
 
-Use suitable learning rates and validation. New labels, formatting conventions, and domain distributions can require different adaptation, and small datasets can still overfit an adapter.
+## 6. Preserve needed capabilities
 
-## 6. Choose from measured evidence
-
-Compare the frozen baseline with increasingly flexible updates. Inspect important task slices, training cost, and the resources needed to serve the chosen model.
-
-A lower rank is a restriction, not a guarantee that only “useful” information changes. Retaining broad capabilities requires its own evaluation.
+Check target slices, retained tasks, training cost, and serving resources. A narrow update restricts capacity; it does not guarantee that only useful behavior changes.
 
 ## 7. Interview reasoning
 
-**Question:** Does freezing base weights remove the need to backpropagate through them?
+**Question:** Does freezing weights eliminate backpropagation through them?
 
-**Answer:** Not necessarily. Gradients may still need to pass through fixed computations to reach earlier trainable modules. Freezing suppresses their parameter updates, not every upstream derivative.
+**Answer:** Not necessarily. Gradients may pass through fixed computations to earlier trainable modules. Fixed parameters need no updates, but upstream derivatives may still be required.

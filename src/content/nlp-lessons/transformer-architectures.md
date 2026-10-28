@@ -1,53 +1,53 @@
 # Encoder-only, decoder-only, and encoder-decoder architectures
 
-## 1. Choose the information flow
+## 1. Choose information flow
 
-A Transformer’s architecture determines which sequence each state reads and which attention paths are legal.
+Transformer architectures organize the same attention and feature blocks around different context access.
 
-**Encoder-only**, **decoder-only**, and **encoder-decoder** designs reuse the building blocks while organizing context differently. A task name alone does not uniquely determine the architecture.
+**Encoder-only** reads an available input; **decoder-only** extends a prefix; **encoder-decoder** connects a source representation to target generation.
 
-## 2. Contextualize an available input
+## 2. Encode complete inputs
 
-An **encoder** commonly lets each valid position read both sides of a complete input. BERT is a representative encoder model.
+An encoder commonly lets each valid position read both sides. BERT is a representative model.
 
-This supports token and sentence representations for classification or extraction. If a training task asks the model to recover hidden text, that target must actually be hidden or corrupted under the objective.
+Token states support tagging; pooled states support classification. Hidden-target training must implement its declared corruption rather than freely expose answers.
 
-## 3. Extend a prefix
+## 3. Extend prefixes causally
 
-A **decoder-only model** uses causal self-attention to predict successive tokens from a prefix. GPT-style models are representative examples.
+A decoder-only model uses causal self-attention for next-token prediction. GPT-style models are examples.
 
-During teacher-forced training, all position outputs can be computed in parallel with legal masks. During ordinary autoregressive generation, each newly chosen token becomes an input to the next step.
+Teacher-forced training computes position outputs in parallel under masks. Ordinary generation chooses tokens successively because later inputs depend on earlier choices.
 
-Causal does not mean training must compute every token sequentially.
+Causal access does not require sequential training computation.
 
-## 4. Combine full source and causal target access
+## 4. Connect source and target
 
-An **encoder-decoder Transformer** encodes the source, runs causal target self-attention, and uses cross-attention to source states. T5 is a representative example.
+An encoder-decoder Transformer uses full-source encoding, causal target self-attention, and source cross-attention. T5 is an example.
 
 ```nlp-visual
 encoder-decoder
 ```
 
-To predict “sleep,” the decoder may read the full French source and target prefix “cats,” but not the future target label “sleep.”
+Predicting “sleep” can use the full French source and target prefix “cats,” but not the unseen target “sleep.”
 
-## 5. Compare the interfaces
+## 5. Match the output interface
 
-| Design | Typical available context | Useful output interface |
+| Design | Context | Typical interface |
 |---|---|---|
-| Encoder | Complete valid input | Token states or a pooled representation |
-| Causal decoder | Available prefix | Next-token distribution |
-| Encoder-decoder | Full source and target prefix | Conditional target sequence |
+| Encoder | Complete available input | Token or pooled states |
+| Causal decoder | Prefix | Next-token distribution |
+| Encoder-decoder | Full source + target prefix | Conditional sequence |
 
-These are typical uses, not exclusive capabilities. Adaptation can attach other heads or reformulate a task as text generation.
+These are common uses, not exclusive capabilities. Heads or task reformulations can change the output.
 
-## 6. Separate architecture from objective
+## 6. Separate architecture and training objective
 
-A block diagram states possible computations. The pretraining objective determines which targets and corruptions teach those computations.
+Architecture permits computations. The objective chooses targets and which information is withheld.
 
-Choose by input availability, output structure, latency, training resources, and measured quality. Avoid selecting a model solely because its family name is associated with a popular task.
+Choose using input availability, output structure, measured quality, latency, and training resources.
 
 ## 7. Interview reasoning
 
-**Question:** Why can a translation encoder read the source’s final word while the decoder cannot read the target’s final word?
+**Question:** Why can translation read the final source word but not the final target word?
 
-**Answer:** The complete source is supplied at prediction time. The completed target is the unknown output. The two sequences therefore have different availability rules.
+**Answer:** The complete source is supplied input. The target is the unknown output, so future target access leaks the answer.

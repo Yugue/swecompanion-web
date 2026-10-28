@@ -2,51 +2,53 @@
 
 ## 1. Count explicit evidence
 
-A **bag-of-words** representation assigns a coordinate to each vocabulary word and records its count or presence in a document.
+A **bag-of-words** vector assigns a coordinate to each vocabulary word and records its count or presence.
 
-**Sparse** means most coordinates are zero for any one example. A short message typically uses only a small fraction of the corpus vocabulary.
+**Sparse** means most coordinates are zero. A message uses few words relative to the full vocabulary.
 
 ## 2. Construct a vector
 
-With vocabulary [good, not, service]:
+For vocabulary [good, not, service]:
 
 ```text
-“good service”      → [1,0,1]
-“not good service”  → [1,1,1]
+“good service”     → [1,0,1]
+“not good service” → [1,1,1]
 ```
 
-These features preserve word identity and frequency. A classifier can learn a contribution for “not,” but it does not directly observe which phrase that word modifies.
+The representation records “not,” but not which phrase it modifies.
 
-## 3. See the missing order
+## 3. Restore local order
 
-“The dog chased the child” and “The child chased the dog” have the same unigram counts.
+“Dog bites man” and “man bites dog” have identical unigram counts.
 
-An **n-gram** is a contiguous sequence of \(n\) units. Word bigrams preserve pairs such as “not good”; trigrams preserve three-word windows.
+An **n-gram** is a contiguous sequence of n units. Word bigrams add coordinates such as “not good”; trigrams represent three-word windows.
 
-Adding n-grams exposes local interactions while retaining a sparse feature representation.
+A phrase coordinate lets a classifier weight that combination directly.
 
-## 4. Use character patterns
+## 4. Reuse character patterns
 
-**Character n-grams** count local character sequences. They can share evidence across “refund,” “refunded,” and some misspellings without requiring a known whole-word entry.
+**Character n-grams** count character sequences. They share fragments across “refund,” “refunded,” and some misspellings.
 
-Specify whether extraction crosses spaces or stays within word boundaries. This choice changes which patterns exist.
+Specify whether fragments cross spaces. Within-word extraction and unrestricted extraction create different features.
 
-Character features can capture morphology and identifiers, but their usefulness still depends on language, task, and training examples.
+## 5. Fit and store the feature space
 
-## 5. Fit the feature space
+Learn the vocabulary from training text. **Document frequency** counts documents containing a feature; minimum/maximum frequency rules can filter features.
 
-Build the vocabulary from designated training text. **Minimum document frequency** can remove very rare features; a maximum-frequency rule can remove widespread ones.
+For vocabulary width V, sparse storage keeps nonzero values and indices instead of V explicit entries. Model coefficients may still require storage across the vocabulary.
 
-For vocabulary width \(V\), one document has \(V\) possible coordinates. Sparse storage retains nonzero values and indices rather than a full dense vector, although the model may still need parameters for many coordinates.
+## 6. Choose lexical features deliberately
 
-## 6. Use the baseline where it fits
+| Signal | Benefit | Limitation |
+|---|---|---|
+| Binary presence | Ignores repetition | Loses occurrence counts |
+| Counts | Preserves repeated evidence | Boilerplate can dominate |
+| N-grams | Local phrase evidence | Sparse; limited context |
 
-Lexical features are useful for distinctive phrases, product codes, small labelled datasets, and inspectable errors. They can fail on paraphrases with little word overlap and on dependencies longer than the chosen windows.
-
-A **binary feature** records presence; a count feature records repetitions. Repeated boilerplate can dominate raw counts, motivating the next lesson’s weighting.
+Lexical features suit exact identifiers and distinctive phrases. Paraphrases with little overlap remain difficult.
 
 ## 7. Interview reasoning
 
-**Question:** Why can a linear model with bigram features express something a unigram linear model cannot?
+**Question:** Why can bigrams help a classifier handle “not good”?
 
-**Answer:** A bigram supplies an explicit coordinate for a combined local condition, such as “not good.” Linear weighting can then respond to that phrase rather than only its separate words.
+**Answer:** They add a coordinate for that joint phrase. Unigram coefficients only add separate contributions from “not” and “good.”

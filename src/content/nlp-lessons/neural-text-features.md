@@ -2,9 +2,9 @@
 
 ## 1. Learn intermediate features
 
-A **neural network** composes learned transformations of an input. A **neuron** computes a weighted combination followed by an optional nonlinear function.
+A **neural network** composes learned transformations. A **neuron** forms a weighted sum, optionally followed by a nonlinear function.
 
-A **hidden layer** produces intermediate features rather than the final task answer. A **multilayer perceptron (MLP)** stacks dense layers and activations.
+A **hidden layer** supplies intermediate features. A **multilayer perceptron (MLP)** stacks dense layers and activations.
 
 ## 2. Compute a dense layer
 
@@ -12,50 +12,51 @@ A **hidden layer** produces intermediate features rather than the final task ans
 z=Wx+b,\qquad h=\phi(z)
 \]
 
-\(x\) is an input vector; \(W\) learned weights; \(b\) learned offsets; \(z\) pre-activation scores; \(\phi\) an activation applied coordinate by coordinate; \(h\) the hidden output.
+\(x\): input; W: weights; b: offsets; z: pre-activation scores; phi: activation; h: hidden features.
 
-With \(d\) inputs and \(m\) outputs, \(W\) has shape [m,d]. A **dense layer** allows every output to use every input coordinate.
+A **dense layer** lets every output use every input coordinate. With d inputs and m outputs, W is [m,d].
 
-## 3. Add a nonlinearity
+## 3. Apply a nonlinearity
 
-**ReLU**, rectified linear unit, maps a scalar to \(\max(0,z)\).
+**ReLU**, rectified linear unit, maps z to max(0,z):
 
 ```text
 x=[1,2], W=[[1,−1],[2,0]], b=[0,1]
-z=[−1,3]
-h=ReLU(z)=[0,3]
+z=[−1,3] → ReLU → h=[0,3]
 ```
 
-The negative coordinate is suppressed while the positive one survives. Other activations have different shapes and gradient behavior.
+ReLU itself is fixed. Training learns the surrounding weights and offsets.
 
-## 4. Follow the complete path
+## 4. Follow the forward pass
 
 ```nlp-visual
 neural-forward
 ```
 
-A **task head** maps learned features to the required output scores: one score for a binary task, several competing class scores, or scores at every token position.
+An **output head**, also called a task head, maps hidden features to required predictions: a document category or scores at each token.
 
-The **forward pass** computes those values using the current parameters. It does not itself change them.
+The **forward pass** computes these values with current parameters; it does not update them.
 
-## 5. See why stacking linear maps is insufficient
+## 5. Explain why depth needs activation
 
-Two linear layers without a nonlinearity compose into another linear map:
+Without nonlinear activation:
 
 \[
 W_2(W_1x+b_1)+b_2=(W_2W_1)x+(W_2b_1+b_2)
 \]
 
-Subscripts 1 and 2 identify successive layers. Learned nonlinearities between layers let the composition express relationships that one weighted sum cannot.
+Subscripts identify layers. The composition is still one affine transformation: a matrix multiplication plus an offset.
 
-## 6. Match the representation to the task
+Nonlinear activations enable relationships one weighted sum cannot express.
 
-A network can combine features nonlinearly, but cannot recover distinctions entirely absent from its input. Identical bag-of-words vectors remain identical inputs even to a large MLP.
+## 6. Preserve useful inputs
 
-Training chooses parameters; inference applies them. Some layers, such as dropout, also change behavior between training and evaluation modes, so use the appropriate mode.
+An MLP receiving identical bag-of-words vectors cannot distinguish their original word orders. More layers cannot recover information already discarded.
+
+Use suitable input features as well as useful transformations.
 
 ## 7. Interview reasoning
 
-**Question:** Does adding ten dense layers guarantee sensitivity to word order?
+**Question:** Do ten dense layers guarantee word-order sensitivity?
 
-**Answer:** No. Order must be represented in the inputs or computation. Depth adds transformations, not information that the representation has already discarded.
+**Answer:** No. Order must survive in the features or computation. Depth transforms supplied evidence; it does not recreate missing evidence.

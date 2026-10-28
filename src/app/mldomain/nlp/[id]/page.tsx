@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
-import { nlpTopics, nlpTopicsById, nlpPartsById, nlpPartIdForTopic, nlpLessonNumbers, nlpReferencesByTopic } from "@/lib/nlpStudyData";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { nlpTopics, nlpTopicsById, nlpPartsById, nlpPartIdForTopic, nlpLessonNumbers } from "@/lib/nlpStudyData";
 import { NLP_PATH } from "@/lib/mlDomains";
 import { lessonExists } from "@/lib/getLessonBlocks";
 import { TopBar } from "@/components/TopBar";
@@ -35,7 +35,6 @@ export default async function NlpLessonPage({ params }: { params: Promise<{ id: 
   const index = nlpTopics.findIndex((item) => item.id === id);
   const previous = nlpTopics[index - 1];
   const next = nlpTopics[index + 1];
-  const references = nlpReferencesByTopic[id] ?? part.references;
   const jsonLd = {
     "@context": "https://schema.org", "@type": "LearningResource",
     name: topic.title, description: topic.summary, learningResourceType: "Lesson",
@@ -79,20 +78,6 @@ export default async function NlpLessonPage({ params }: { params: Promise<{ id: 
             questionCount={part.quizQuestionCount}
             className="mt-8 rounded-xl border border-outline"
           />
-        )}
-        {references.length > 0 && (
-          <section className="mt-8 border-t border-outline/55 pt-5">
-            <h2 className="mb-2 text-sm font-bold text-text">Further reading — official documentation and original papers</h2>
-            <ul className="flex flex-col gap-2">
-              {references.map((reference) => (
-                <li key={reference.url}>
-                  <a href={reference.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-[var(--accent)] hover:underline">
-                    {reference.title} <ExternalLink size={13} />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
         )}
         <nav aria-label="Lesson navigation" className="mt-8 grid gap-3 border-t border-outline/55 pt-5 sm:grid-cols-2">
           {previous ? (

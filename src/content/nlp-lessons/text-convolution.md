@@ -1,57 +1,51 @@
 # Convolutional models for text
 
-## 1. Reuse a local pattern detector
+## 1. Reuse a local detector
 
-A **text convolution** applies the same learned filter to successive token-vector windows. Each filter can detect a local pattern wherever it occurs.
+A **text convolution** applies one learned filter to successive token-vector windows. The same pattern can trigger at different positions.
 
-Neural implementations usually apply the weight window directly, technically cross-correlation rather than a flipped mathematical convolution.
+Neural implementations usually use **cross-correlation**: applying weights directly rather than flipping a mathematical convolution kernel.
 
-## 2. Combine positions and coordinates
-
-For sequence matrix \(X\), window length \(k\), and embedding width \(d\):
+## 2. Combine local positions and features
 
 \[
 r_t=b+\sum_{u=0}^{k-1}\sum_{j=1}^{d}F_{u,j}X_{t+u,j}
 \]
 
-\(F\) is one learned [k,d] filter, \(b\) its bias, and \(r_t\) its response at start position \(t\). Index \(u\) selects a window position and \(j\) a feature coordinate.
+X is the sequence; F a [k,d] filter; k window length; d feature width; b bias; r_t response at start t. Indices u,j select window position and coordinate.
 
-One response combines all coordinates in its window.
-
-## 3. Slide one toy filter
+## 3. Slide a toy filter
 
 ```nlp-visual
 text-convolution
 ```
 
-The figure uses one feature per token and filter [1,−1]. The responses [−1,3,−1] become [0,3,0] after ReLU.
+Scalar inputs [1,2,−1,0], filter [1,−1] → responses [−1,3,−1] → ReLU [0,3,0].
 
-These values illustrate a numeric operation; they are not predefined sentiment scores for real words. Training determines useful filters.
+The numbers illustrate shared computation, not predefined word meanings.
 
-## 4. Keep a strong response with pooling
+## 4. Pool responses
 
-**Max pooling** retains the largest response over selected positions. The toy sequence becomes one feature, 3.
+**Max pooling** retains the largest selected response: here 3. **Average pooling** retains the mean instead.
 
-Multiple filters produce multiple features. **Average pooling** instead summarizes average response and has a different sensitivity to repeated patterns.
+Multiple filters yield multiple features. Pooling can reduce sensitivity to exact location while losing ordering or occurrence information.
 
-Pooling can make a feature less dependent on exact location while discarding useful ordering and occurrence counts.
+## 5. Count dimensions and weights
 
-## 5. Account for dimensions and work
+**Stride** is the spacing between starts. At stride one without padding, T≥k tokens yield T−k+1 responses per filter.
 
-At stride one without padding, a sequence of \(T\ge k\) tokens produces \(T-k+1\) responses per filter.
+M filters contain M(kd+1) parameters including biases. More positions add computation, not independent weights.
 
-With \(M\) filters, the layer has \(M(kd+1)\) parameters including biases. More sequence positions add response computation, not a separate weight set at each position.
+Padding adds boundary positions; exclude invalid windows from summaries when needed.
 
-**Stride** is the spacing between window starts. Padding adds boundary positions; exclude artificial or invalid windows from later summaries as needed.
+## 6. Match the dependency
 
-## 6. Choose it for the right dependency
+Short filters suit local phrases and character patterns. Stacked layers expand the **receptive field**, the input region influencing an output.
 
-Convolution can efficiently learn local phrases and character patterns. One short window cannot directly connect widely separated tokens.
-
-Stacking layers broadens the **receptive field**, the input region able to influence an output. Global pooling alone does not recover the order of distant pattern matches.
+Global pooling alone cannot restore the order of distant matches.
 
 ## 7. Interview reasoning
 
-**Question:** How can a pooled text CNN detect a phrase anywhere but still miss who did what to whom?
+**Question:** Why detect phrases anywhere but miss who acted on whom?
 
-**Answer:** Shared filters detect local patterns, while pooling can remove their locations. The final representation may omit the global relationships needed to distinguish reversed participants.
+**Answer:** Local detectors find patterns; pooling may discard their locations. The final features can omit the relationships needed to distinguish reversed roles.

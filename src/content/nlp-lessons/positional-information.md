@@ -1,53 +1,52 @@
 # Representing position and word order
 
-## 1. Distinguish identity from placement
+## 1. Distinguish identity from position
 
-A token embedding describes token identity. A **position mechanism** supplies information about where a token occurs or how positions relate.
+A **position mechanism** represents where tokens occur or how positions relate.
 
-Without position or another order-dependent structure, unrestricted self-attention treats permuted inputs in a corresponding permuted way.
+Without order information, unrestricted self-attention rearranges its outputs when inputs are rearranged.
 
-## 2. See the missing distinction
+## 2. See the lost distinction
 
 ```nlp-visual
 positions
 ```
 
-“Dog bites man” and “man bites dog” contain the same tokens. Without a suitable order signal, permutation-equivariant token computations followed by mean pooling cannot distinguish them.
+“Dog bites man” and “man bites dog” use the same tokens.
 
-**Equivariance** means rearranging inputs rearranges outputs correspondingly; it does not mean every token output is unchanged. A causal mask itself supplies an order-dependent constraint, so the unrestricted case matters.
+**Equivariance** means input rearrangement produces corresponding output rearrangement. Mean pooling then gives the same summary for these permutations.
 
-## 3. Add absolute position coordinates
+Restricting a position to its prefix already adds order information. This example instead permits unrestricted access.
 
-An **absolute position embedding** assigns a vector to each position. One common input form is:
+## 3. Add absolute positions
+
+An **absolute position embedding** assigns a vector per index:
 
 \[
 z_t=e_t+p_t
 \]
 
-\(e_t\) is token \(t\)'s embedding, \(p_t\) its position vector, and \(z_t\) their combined representation. Both vectors have the same width.
+e_t is token embedding, p_t position vector, z_t combined input; widths match. Moving a word changes which position vector it receives.
 
-Learned tables fit position vectors from data. Sinusoidal encodings use fixed sine/cosine patterns with several frequencies. Addition is this family’s mechanism, not a universal rule for every position method.
+Learned tables fit these vectors; sinusoidal encodings use fixed sine/cosine patterns at several frequencies.
 
-## 4. Represent relationships directly
+## 4. Compare relative mechanisms
 
-**Relative position** methods make attention depend on offsets between positions, such as “two places earlier,” rather than only absolute indices.
+| Mechanism | How order enters |
+|---|---|
+| Relative position | Scores or states depend on positional offsets |
+| Rotary position embeddings (RoPE) | Position-dependent rotations of query/key coordinate pairs |
 
-The exact implementation may change scores or representations. Relative information can share a relationship across different locations but still has a trained range and modeling assumptions.
+RoPE preserves each pair’s length while changing orientation; query–key dot products depend on relative rotation. It does not simply add a position vector to input embeddings.
 
-## 5. Rotate queries and keys
+## 5. Test extrapolation
 
-**Rotary position embeddings (RoPE)** rotate pairs of query/key coordinates by position-dependent angles. Their dot products then depend on relative rotation.
+Computing an encoding at position 20,000 does not establish useful reasoning at that distance.
 
-This acts inside attention projections rather than simply adding a position vector to the input. Rotation preserves a pair’s length while changing its orientation.
+Training lengths, position rules, and retained evidence affect long-context behavior. Test tasks requiring the claimed relationship.
 
-## 6. Test longer contexts rather than assuming them
-
-A formula that can compute a position at index 20,000 does not prove the model learned to use evidence that far away.
-
-Position distributions, attention behavior, context budgets, and training examples affect extrapolation. Test tasks that require the claimed long-distance relationship.
-
-## 7. Interview reasoning
+## 6. Interview reasoning
 
 **Question:** Does a larger maximum position index guarantee better long-document understanding?
 
-**Answer:** No. It permits a representation for more positions, but useful long-range behavior also depends on training, attention, and the evidence retained within the context.
+**Answer:** It permits more positions, but useful access to distant evidence must be learned and evaluated.

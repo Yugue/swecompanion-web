@@ -2,56 +2,59 @@
 
 ## 1. Preserve meaning across languages
 
-**Machine translation** generates target-language text from a source in another language. Useful output preserves meaning while handling differences in word order, morphology, idiom, and reference.
+**Machine translation** generates target-language text from source text.
 
-A word-by-word dictionary mapping is insufficient when languages express the same relationship through different structures.
+Word order, morphology, idioms, and reference can differ. A correct dictionary word at each position does not guarantee a correct sentence.
 
-## 2. Learn from aligned sequences
+## 2. Learn corresponding examples
 
-A **parallel corpus** pairs corresponding source and target texts. Training can use the encoder-decoder objective and teacher forcing taught earlier.
+A **parallel corpus** pairs source and target sequences. Use the encoder-decoder objective and teacher forcing.
 
-Alignment here means corresponding examples, not necessarily one source token matched to one target token. A word can translate into several words or no separate word.
+Example alignment does not require one-to-one token alignment: one source word may become several target words.
 
-Mixed or incorrectly paired examples teach the wrong conditional relationship.
+## 3. Inspect multilingual slices
 
-## 3. Handle the interface carefully
+A **multilingual model** shares parameters across languages. Unequal coverage can hide regressions:
 
-Tokenization changes source coverage and target prediction units. Names, numbers, terminology, and rare scripts need targeted checks.
+| Test group | Correct before | Correct after |
+|---|---|---|
+| 100 majority-language examples | 90 | 95 |
+| 10 minority-language examples | 8 | 5 |
 
-A **multilingual model** shares parameters across languages. Shared evidence can help low-resource directions, while imbalanced training or limited capacity can disadvantage others. Evaluate each required direction rather than one aggregate.
+Global accuracy rises from 98/110 to 100/110, while minority accuracy falls from 80% to 50%.
 
-## 4. Decode for the required output
+## 4. Separate meaning and fluency
 
-Greedy or beam search applies the already learned target distribution. Output length, EOS behavior, and model-score mismatch can produce omissions or repetitions.
+**Adequacy** measures preserved source meaning; **fluency** measures natural target language.
 
-Inspect **adequacy**, meaning preserved from the source, separately from **fluency**, natural target-language form. A fluent output can omit “not” or change an amount.
+Check names, numbers, negation, omissions, repetitions, and EOS behavior under the chosen decoding policy.
 
-## 5. Understand BLEU’s mechanism
+## 5. Explain BLEU
 
-**BLEU** combines clipped n-gram precision with a brevity penalty:
+**BLEU** combines clipped n-gram precision and a brevity penalty:
 
 \[
-\operatorname{BLEU}=BP\exp\left(\sum_{n=1}^{N}w_n\log p_n\right)
+BLEU=BP\exp\left(\sum_{n=1}^{N}w_n\log p_n\right)
 \]
 
-\(p_n\) is clipped n-gram precision; \(w_n\ge0\) are weights summing to one; \(N\) is maximum n-gram order. For candidate length \(c>0\) and effective reference length \(r\), \(BP=1\) if \(c>r\), otherwise \(e^{1-r/c}\).
+p_n is clipped n-gram precision; N maximum order; nonnegative w_n sum to one. For candidate length c>0 and reference length r, BP=1 when c>r, otherwise exp(1−r/c).
 
-Clipping limits credit for repeated matches. Against reference “the cat sat,” candidate “the cat the cat” gets only two matched unigrams out of four, not full credit.
+Against “the cat sat,” “the cat the cat” earns only 2/4 unigram matches: repeated words cannot claim unlimited credit.
 
-## 6. State the evaluation convention
+## 6. Declare evaluation rules
 
-Corpus BLEU pools counts before computing the score; averaging sentence BLEU is a different procedure. Tokenization, casing, reference handling, zero-count smoothing, and scale must be specified.
+Corpus BLEU pools counts; averaging sentence BLEU differs. Specify tokenization, casing, references, smoothing, and scale.
 
-A valid alternative phrasing can have low overlap. Use representative human checks and appropriate semantic evidence alongside automatic scores, especially for omissions, names, and critical numbers.
+Valid paraphrases can score poorly. Review source adequacy alongside overlap.
 
-## 7. Improve low-resource coverage carefully
+## 7. Add coverage carefully
 
-**Back-translation** uses a reverse translator to create synthetic sources for real target-language text, then trains on those synthetic-source/real-target pairs. It can add coverage while propagating the reverse model’s errors; validate against real held-out pairs.
+**Back-translation** creates synthetic sources from real target-language text using a reverse translator. It can propagate that translator’s errors.
 
-**Code-switching** mixes languages within an input. Test genuine supported mixtures rather than assuming translation of monolingual examples reproduces them.
+**Code-switching** mixes languages within an input. Test real supported mixtures, not only translated monolingual examples.
 
 ## 8. Interview reasoning
 
-**Question:** Why can a translation with correct individual words still be wrong?
+**Question:** Why can individually correct words form a wrong translation?
 
-**Answer:** The relationships, scope, or ordering may change the proposition. Evaluate source meaning and the full generated sequence, not just isolated lexical matches.
+**Answer:** Changed relationships, ordering, or scope can change the proposition. Check the complete source meaning.

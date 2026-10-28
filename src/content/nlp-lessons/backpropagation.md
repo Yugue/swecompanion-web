@@ -1,54 +1,54 @@
 # Derivatives, the chain rule, and backpropagation
 
-## 1. Measure sensitivity
+## 1. Measure loss sensitivity
 
-A **derivative** measures how a small input change affects a function locally. A **gradient** collects derivatives of a scalar loss with respect to several parameters.
+A **derivative** measures local sensitivity. A **gradient** collects derivatives of a scalar loss with respect to parameters.
 
-**Backpropagation** computes those derivatives through a computation graph. The graph records intermediate values and their dependencies.
+**Backpropagation** computes these through a **computation graph**, which records intermediate values and dependencies.
 
 ## 2. Multiply along a path
 
-If \(u=wx\) and loss \(L\) depends on \(u\), the derivative chain rule gives:
+For u=wx and loss L depending on u:
 
 \[
 \frac{\partial L}{\partial w}=\frac{\partial L}{\partial u}\frac{\partial u}{\partial w}=\frac{\partial L}{\partial u}x
 \]
 
-\(w\) is a parameter and \(x\) its input. The first factor is an upstream loss sensitivity; the second is the local sensitivity.
+w is a weight; x its input. Multiply upstream loss sensitivity by local sensitivity.
 
-This derivative chain rule is distinct from the probability chain rule used to factor sequences.
+This derivative chain rule differs from the probability chain rule for sequences.
 
-## 3. Follow one small network
+## 3. Follow one MLP
 
 ```nlp-visual
 mlp-backprop
 ```
 
-The diagram’s two-input MLP uses ReLU and a numeric output. Its prediction is 2 for target 1, with half-squared loss \(L=\tfrac12(\hat y-1)^2=0.5\).
+Prediction 2, target 1, half-squared loss \(L=\tfrac12(2-1)^2=0.5\).
 
-For one displayed weight, the local factors multiply to \(1\times2\times1\times2=4\). The inactive ReLU branch receives zero weight gradient in this example.
+For displayed weight w₂₂, factors multiply to 1×2×1×2=4. The inactive ReLU branch receives zero weight gradient.
 
 ## 4. Add shared contributions
 
-When a parameter affects several paths or token positions, its total derivative adds their contributions. An embedding row reused three times can receive three gradient contributions.
+If one embedding row is used several times, changing it affects several paths. Its total gradient adds those contributions.
 
-**Backpropagation through time** applies this same rule to an unrolled recurrent computation. Shared recurrent weights are one parameter set used at many positions, not separate learned copies.
+A parameter used on two branches receives both contributions. A parameter outside every loss path receives no gradient from that loss.
 
-## 5. Differentiate a classification output
+## 5. Differentiate classification scores
 
-For softmax cross-entropy, the logit derivative is \(p_k-\mathbf1[k=y]\): predicted class probability minus one for the target class, or minus zero otherwise. Here \(k\) indexes classes and \(y\) is the observed class.
+Softmax cross-entropy gives logit derivative \(p_k-\mathbf1[k=y]\): predicted probability minus one for target class y, minus zero otherwise.
 
-At two equal logits with the first class correct, derivatives are [−0.5,0.5]. Shared parameter updates also depend on the features producing those logits.
+k indexes classes. Equal two-class logits with the first class correct give derivatives [−0.5,0.5].
 
-## 6. Separate differentiation from updating
+## 6. Separate gradients from updates
 
-A basic **gradient descent** step is:
+**Gradient descent** updates a weight:
 
 \[
 w_{new}=w-\eta\frac{\partial L}{\partial w}
 \]
 
-\(\eta>0\) is the learning rate. Gradient 4 with rate 0.05 subtracts 0.2 from that weight. Computing the gradient alone changes no parameter.
+\(\eta>0\): learning rate. Gradient 4 at rate 0.05 subtracts 0.2.
 
 ```python
 optimizer.zero_grad()
@@ -57,16 +57,10 @@ loss.backward()
 optimizer.step()
 ```
 
-This sketch separates clearing, prediction/loss, differentiation, and updating.
+A **detached** tensor excludes earlier history from differentiation. A frozen parameter is intentionally held fixed. Check both when updates disappear.
 
-## 7. Diagnose missing updates
+## 7. Interview reasoning
 
-A **detached** tensor has its earlier history excluded from automatic differentiation. A frozen parameter is intentionally not optimized.
+**Question:** Why add gradients at a reused embedding row?
 
-Check graph connectivity, zero local derivatives, frozen settings, optimizer membership, and whether an update is actually called. Very small gradients and finite numerical precision can also make changes hard to observe.
-
-## 8. Interview reasoning
-
-**Question:** Why does backpropagation add derivatives at a reused embedding row?
-
-**Answer:** Changing that row affects every use. The total loss sensitivity is the sum over those paths, so the shared parameter receives their combined gradient.
+**Answer:** Changing that row affects every use. The loss sensitivity sums over all those paths.

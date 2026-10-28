@@ -1,10 +1,10 @@
 # The Transformer block
 
-## 1. Mix tokens, then transform features
+## 1. Mix tokens, transform features
 
-A **Transformer block** combines attention across positions with a shared per-position neural network. Residual paths and normalization support the stacked computation.
+A **Transformer block** combines attention with a **positionwise feed-forward network (FFN)**: an MLP applied separately at each token with shared weights.
 
-Attention decides which available representations to mix; the per-position network transforms the resulting feature coordinates nonlinearly.
+A **residual connection** adds the input to its transformed result. **Layer normalization** (LN) recenters and rescales one token’s feature coordinates.
 
 ## 2. Follow a pre-normalized block
 
@@ -12,49 +12,44 @@ Attention decides which available representations to mix; the per-position netwo
 transformer-block
 ```
 
-One common **pre-normalization** form is:
+In **pre-normalization**, normalize before each learned branch:
 
 \[
-u=x+\operatorname{Attn}(\operatorname{LN}(x)),\qquad
- y=u+\operatorname{FFN}(\operatorname{LN}(u))
+u=x+\operatorname{Attn}(\operatorname{LN}(x)),\qquad y=u+\operatorname{FFN}(\operatorname{LN}(u))
 \]
 
-\(x\) is the input sequence, \(u\) an intermediate sequence, \(y\) the output; Attn is attention, LN layer normalization, and FFN the feed-forward network. All residual-added sequences have matching shapes.
+x is input sequence; u intermediate; y output. Attn means attention, LN layer normalization, FFN feed-forward network. Added tensors have matching shapes.
 
-## 3. Preserve an additive route
+## 3. Keep a residual route
 
-A **residual connection** adds an input to a learned transformation of it. The block can change useful features without rebuilding the entire representation from nothing.
+The shortcut preserves an additive information and gradient path. The learned branch supplies a correction rather than rebuilding the representation.
 
-The additive route also provides a direct gradient path. It helps train depth, but does not guarantee a useful fit or prevent every instability.
+## 4. Normalize one token’s features
 
-## 4. Normalize within a token vector
-
-**Layer normalization** uses the mean and variance of one example’s feature coordinates, with learned scale and offset.
-
-For coordinate \(j\):
+For token vector h:
 
 \[
 \operatorname{LN}(h)_j=\gamma_j\frac{h_j-\mu}{\sqrt{v+\epsilon}}+\beta_j
 \]
 
-\(h\) is a token vector; \(\mu,v\) its coordinate mean and variance; \(\gamma_j,\beta_j\) learned values; \(\epsilon>0\) numerical stabilization.
+h is token vector; j coordinate; μ,v its coordinate mean/variance; γ,β learned scale/offset; ε>0 stabilization.
 
-It is not averaging that token with unrelated examples or replacing every feature by a sentence mean.
+For h=[1,3], unit scales, zero offsets, and ignoring epsilon, output=[−1,1]. Other batch examples do not determine these statistics.
 
-## 5. Expand and recombine features
+## 5. Recombine each position’s features
 
-A **positionwise feed-forward network** is an MLP applied separately to each token using shared weights. It commonly expands width, applies a nonlinear activation, then projects back.
+The FFN commonly expands width → applies activation → projects back.
 
-It does not directly read another token. Attention supplies cross-position interaction; successive blocks alternate these complementary operations.
+It receives context already mixed by attention; it does not itself read neighboring positions.
 
-## 6. Keep architecture conventions visible
+## 6. Keep conventions consistent
 
-Other blocks normalize after residual addition or use different activations and gating. Do not mix equations from one convention with an implementation of another.
+Other variants normalize after additions or change activations and gating. Match equations, diagram, and implementation.
 
-Training can include dropout. Evaluation mode changes such stochastic behavior while preserving the learned parameter values.
+Dropout affects training/evaluation behavior, not the identity of learned weights.
 
 ## 7. Interview reasoning
 
-**Question:** If the feed-forward network processes each position separately, how can it use information from distant words?
+**Question:** How can a positionwise network use distant words?
 
-**Answer:** Its input already contains context mixed by attention. It transforms those contextual coordinates locally; later attention can then share the transformed features again.
+**Answer:** Attention has already mixed their information into its input. It transforms those contextual features locally.

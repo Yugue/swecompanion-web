@@ -1,51 +1,49 @@
 # Named-entity recognition and span extraction
 
-## 1. Predict where an entity is
+## 1. Locate and type mentions
 
 **Named-entity recognition (NER)** identifies source spans and assigns types such as person, location, or organization.
 
-The label policy defines which mentions count and what their boundaries include. An entity type alone is insufficient if the product must highlight its exact source text.
+Specify boundaries: “New York” and “York” are different extractions.
 
-## 2. Encode boundaries as token labels
+## 2. Encode boundaries
 
-**BIO encoding** uses B for an entity beginning, I for continuation, and O for outside. Types attach to B and I.
+**BIO encoding** uses B for beginning, I for continuation, and O for outside, with entity types attached.
+
+“Ada visits New York” → [B-PER,O,B-LOC,I-LOC]. New and York form one location.
+
+## 3. Align model pieces
+
+**First-piece supervision** scores one piece per source word. **All-piece supervision** labels every piece, converting repeated beginnings into continuations.
 
 ```nlp-visual
 bio-spans
 ```
 
-“Ada visits New York” becomes [B-PER, O, B-LOC, I-LOC]. New and York form one location span, not two independent location mentions.
+Copying B-PER to both pieces would falsely mark two beginnings. Scoring every piece can give heavily split words more weight; choose loss averaging deliberately.
 
-## 3. Train token predictions
+## 4. Train and reconstruct
 
-A contextual encoder can produce one class-score vector per token. Token cross-entropy trains those labels, excluding padding and any deliberately unscored positions.
+Apply token cross-entropy to aligned labels, excluding padding and deliberately ignored pieces.
 
-The output’s alignment with the source matters as much as its type vocabulary. A shifted target can make every boundary wrong while the training code still runs.
+In “Ada visits New York.”, code-point offsets [11,19) recover the location without the period. Convert indexing conventions explicitly when needed.
 
-## 4. Handle subword alignment
+## 5. Evaluate whole entities
 
-A source word can split into several model pieces. One policy supervises only the first piece; another assigns a coherent label sequence to all pieces.
+An **exact entity match** requires the same start, end, and type under the evaluation policy.
 
-Declare the convention and reconstruct source spans accordingly. Do not blindly copy a word-level B tag to every piece and then interpret each as a separate entity beginning.
+Three correct spans, four predicted spans, five gold spans → precision 0.75, recall 0.60, F1≈0.667.
 
-For ASCII source “Ada visits New York.”, the location occupies code-point offsets [11,19), excluding the period. Other indexing conventions need explicit conversion.
+Many O tokens can hide entity failures in token accuracy.
 
-## 5. Score complete entities
+## 6. Know the representation limits
 
-An **exact entity match** commonly requires the same start, end, and type. Precision and recall then count complete predicted and gold spans.
+Flat BIO assigns one label per token, so it cannot directly encode nested or overlapping spans.
 
-Three correct spans among four predictions and five gold spans give precision 0.75, recall 0.60, and F1 approximately 0.667.
-
-Token accuracy can stay high by predicting the many O positions while missing most entities.
-
-## 6. Know what BIO cannot express simply
-
-Flat BIO assigns at most one label to each token, so ordinary use cannot directly encode overlapping or nested entity spans. Span-scoring or other structured representations may fit those tasks better.
-
-Independent token decisions can also generate invalid continuations. The next lesson explains how transition-aware sequence prediction addresses that distinct issue.
+Independent predictions can also produce invalid continuations. Transition-aware decoding addresses that separate problem.
 
 ## 7. Interview reasoning
 
-**Question:** Is “York” with the right location type a correct extraction for gold span “New York”?
+**Question:** Is “York” a correct location extraction for gold “New York”?
 
-**Answer:** Not under exact span evaluation. The type is correct but the boundary is incomplete. Report the error according to the declared matching policy.
+**Answer:** Not under exact span matching. Correct type does not repair an incomplete boundary.

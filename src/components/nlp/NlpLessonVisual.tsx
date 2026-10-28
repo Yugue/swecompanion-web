@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { LessonFigure } from "@/components/lesson/LessonFigure";
 import { CvLessonVisual } from "@/components/cv/visuals/CvLessonVisual";
 import { isNlpVisualId, nlpVisuals, type NlpVisualId, type NlpVisualSpec } from "@/lib/nlpVisuals";
-import { attentionExample, attentionMixture, causalAccess, contrastiveLogits, convolutionExample, convolveText, crfExample, decodingExample, embeddingExample, lstmExample, lstmStep, pathScore, softmax, subwordSteps, teacherForcingExample, vectorExample } from "@/lib/nlpVisualMath";
+import { attentionExample, attentionQuery, attentionMixture, causalAccess, contrastiveLogits, convolutionExample, convolveText, crfExample, decodingExample, embeddingExample, lstmExample, lstmStep, nerAlignmentExample, nerFirstPieceLabels, nerAllPieceLabels, softmax, subwordSteps, teacherForcingExample, vectorExample, viterbiTrace } from "@/lib/nlpVisualMath";
 
 const fmt = (value: number) => Number(value.toFixed(3));
 const label = "text-xs font-semibold leading-relaxed text-text-muted";
@@ -56,7 +56,13 @@ function VisualContent({ id }: { id: NlpVisualId }) {
       return <div className="grid gap-3"><p className={label}>Decoder inputs</p><div className="grid grid-cols-3 gap-2">{teacherForcingExample.inputs.map((token, i) => <Box key={i}>{token}</Box>)}</div><div aria-hidden="true" className="grid grid-cols-3 text-center text-accent-blue"><span>↓</span><span>↓</span><span>↓</span></div><p className={label}>Targets predicted from those prefixes</p><div className="grid grid-cols-3 gap-2">{teacherForcingExample.labels.map((token, i) => <Box key={i} tone="blue">{token}</Box>)}</div></div>;
     case "attention": {
       const mixture = attentionMixture(attentionExample.scores, attentionExample.values);
-      return <div><Box detail="Compatibility scores for two allowed keys">[log 3, 0] → softmax</Box><Down /><div className="grid gap-3">{attentionExample.values.map((value, i) => <div key={i} className="rounded-lg border border-outline/70 p-3"><p className="mb-2 text-sm text-text">Weight {fmt(mixture.weights[i])} × value [{value.join(", ")}]</p><div className="h-3 rounded bg-surface-high"><div className="h-3 rounded bg-accent-blue" style={{ width: `${mixture.weights[i] * 100}%` }} /></div><p className={`${label} mt-2`}>Contribution [{value.map(v => fmt(v * mixture.weights[i])).join(", ")}]</p></div>)}</div><Down /><Box tone="blue" detail="Add both contributions">Output [{mixture.output.map(fmt).join(", ")}]</Box></div>;
+      return <div>
+        <Box detail="Apply the toy Wq, Wk, Wv projections">Input states [1,0] and [0,1]</Box><Down />
+        <div className="grid grid-cols-2 gap-2"><Box detail="First position’s query">q₁ = {attentionQuery}</Box><Box detail="Keys at the two positions">k = [log 3, 0]</Box></div><Down />
+        <Box detail="One key coordinate: divide by √1">q₁ × keys → [log 3, 0] → softmax</Box><Down />
+        <div className="grid gap-3">{attentionExample.values.map((value, i) => <div key={i} className="rounded-lg border border-outline/70 p-3"><p className="mb-2 text-sm text-text">Weight {fmt(mixture.weights[i])} × value [{value.join(", ")}]</p><div className="h-3 rounded bg-surface-high"><div className="h-3 rounded bg-accent-blue" style={{ width: `${mixture.weights[i] * 100}%` }} /></div><p className={`${label} mt-2`}>Contribution [{value.map(v => fmt(v * mixture.weights[i])).join(", ")}]</p></div>)}</div><Down />
+        <Box tone="blue" detail="Add both contributions">Output [{mixture.output.map(fmt).join(", ")}]</Box>
+      </div>;
     }
     case "multihead":
       return <div><Box>Input states X</Box><Down /><div className="grid grid-cols-2 gap-3"><Box tone="blue" detail="Own Q/K/V projections">Head 1 → mixture 1</Box><Box tone="green" detail="Own Q/K/V projections">Head 2 → mixture 2</Box></div><Down /><Box detail="Retain both head outputs as feature coordinates">Concatenate</Box><Down /><Box>Learned output projection</Box></div>;
@@ -75,9 +81,31 @@ function VisualContent({ id }: { id: NlpVisualId }) {
     case "decoding-tree":
       return <div><Box>Starting prefix</Box><Down /><div className="grid grid-cols-2 gap-3">{decodingExample.tokens.map((token, i) => <div key={token} className="grid gap-2"><Box tone={i ? "green" : "blue"} detail={i ? "Kept by width-2 beam" : "Greedy first choice"}>P({token}) = {decodingExample.first[i]}</Box><Down /><Box>P(EOS | {token}) = {decodingExample.end[i]}</Box><Box tone={i ? "green" : "neutral"} detail="Complete sequence probability">{(decodingExample.first[i] * decodingExample.end[i]).toFixed(2)}</Box></div>)}</div></div>;
     case "bio-spans":
-      return <div><p className="mb-3 text-sm text-text">Source: Ada visits New York.</p><div className="grid grid-cols-4 gap-1">{["Ada", "visits", "New", "York"].map((token, i) => <div key={token} className="min-w-0 text-center"><div className={`rounded-t border px-1 py-2 text-sm text-text ${i === 1 ? tones.neutral : tones.blue}`}>{token}</div><div className="border-x border-b border-outline/70 px-1 py-2 font-mono text-[10px] text-text">{["B-PER", "O", "B-LOC", "I-LOC"][i]}</div></div>)}<div className="col-start-3 col-end-5 rounded border border-accent-blue/60 px-2 py-2 text-center text-xs font-semibold text-text">One location span [11,19)</div></div></div>;
-    case "crf-path":
-      return <div className="grid gap-3">{[[0, 2], [0, 1]].map((path, i) => <Box key={i} tone={i ? "green" : "neutral"} detail={i ? "Emissions 2 + 2, transition bonus +2" : "Emissions 2 + 3, transition bonus 0"}><Tokens values={path.map(labelId => crfExample.labels[labelId])} /><p className="mt-2 font-bold">Sequence score = {pathScore(path)}</p></Box>)}<p className={`${label} text-center`}>The locally best second label O loses to the stronger complete path.</p></div>;
+      return <div>
+        <p className="mb-3 text-sm text-text">Source: {nerAlignmentExample.source}</p>
+        <div className="grid grid-cols-4 gap-1">{nerAlignmentExample.words.map((token, i) => <div key={token} className="min-w-0 text-center"><div className={`rounded-t border px-1 py-2 text-sm text-text ${i === 1 ? tones.neutral : tones.blue}`}>{token}</div><div className="border-x border-b border-outline/70 px-1 py-2 font-mono text-[10px] text-text">{nerAlignmentExample.labels[i]}</div></div>)}<div className="col-start-3 col-end-5 rounded border border-accent-blue/60 px-2 py-2 text-center text-xs font-semibold text-text">Source span [11,19)</div></div>
+        <Down /><p className={`${label} mb-2`}>Toy pieces: Ada → A + ##da</p>
+        <div className="grid grid-cols-5 gap-1">{nerAlignmentExample.pieces.map(piece => <span key={piece} className="rounded border border-outline/70 px-0.5 py-2 text-center font-mono text-[10px] text-text">{piece}</span>)}</div>
+        {[{ title: "First-piece supervision", labels: nerFirstPieceLabels }, { title: "All-piece supervision", labels: nerAllPieceLabels }].map(({ title, labels }) => <div key={title} className="mt-3"><p className={`${label} mb-1`}>{title}</p><div className="grid grid-cols-5 gap-1">{labels.map((tag, i) => <span key={i} className={`rounded border px-0.5 py-2 text-center font-mono text-[10px] text-text ${tag === "ignore" || tag === "O" ? tones.neutral : tones.blue}`}>{tag}</span>)}</div></div>)}
+        <Down /><Box detail="Join aligned pieces; preserve original boundaries">A + ##da → Ada [0,3)</Box>
+      </div>;
+    case "crf-path": {
+      const trace = viterbiTrace();
+      const y = (labelId: number) => 65 + labelId * 95;
+      return <div>
+        <svg viewBox="0 0 320 300" className="mx-auto w-full max-w-md" aria-hidden="true">
+          <text x="72" y="20" textAnchor="middle" fill="var(--color-text)" fontSize="12">Position 1</text><text x="248" y="20" textAnchor="middle" fill="var(--color-text)" fontSize="12">Position 2</text>
+          {crfExample.labels.flatMap((_, from) => crfExample.labels.map((_, to) => Number.isFinite(trace.scoresByStep[0][from] + crfExample.transitions[from][to]) && <line key={`${from}-${to}`} x1="123" y1={y(from)} x2="197" y2={y(to)} stroke="var(--color-outline)" strokeWidth="1.5" />))}
+          <line x1="123" y1={y(trace.path[0])} x2="197" y2={y(trace.path[1])} stroke="var(--color-accent-blue)" strokeWidth="4" />
+          {trace.scoresByStep.map((scores, t) => scores.map((score, k) => <g key={`${t}-${k}`}>
+            <rect x={t ? 197 : 21} y={y(k) - 25} width="102" height="50" rx="8" fill="var(--color-surface)" stroke={trace.path[t] === k ? "var(--color-accent-blue)" : "var(--color-outline)"} strokeWidth={trace.path[t] === k ? 2.5 : 1} />
+            <text x={t ? 248 : 72} y={y(k) - 5} textAnchor="middle" fill="var(--color-text)" fontSize="12">{crfExample.labels[k]}</text>
+            <text x={t ? 248 : 72} y={y(k) + 13} textAnchor="middle" fill="var(--color-text)" fontSize="12">{Number.isFinite(score) ? `best = ${score}` : "start blocked"}</text>
+          </g>))}
+        </svg>
+        <Box tone="blue" detail="Choose the highest final score, then follow its saved predecessor">Backtrack: I-PER ({trace.score}) ← B-PER (2)</Box>
+      </div>;
+    }
     case "contrastive-matrix":
       return <div><div className="grid grid-cols-4 gap-1 text-center text-xs"><span className={label}>Query ↓<br />Doc →</span>{[1, 2, 3].map(i => <span key={i} className="py-2 font-semibold text-text">d{i}</span>)}{contrastiveLogits.map((row, i) => <div key={i} className="contents"><span className="py-2 font-semibold text-text">q{i + 1}</span>{row.map((score, j) => <span key={j} className={`rounded border py-2 ${i === j ? tones.blue : tones.neutral} text-text`}>{score}</span>)}</div>)}</div><p className={`${label} mt-3 text-center`}>Row softmax: positive probability ≈ {softmax(contrastiveLogits[0])[0].toFixed(3)}</p></div>;
     case "bi-cross":

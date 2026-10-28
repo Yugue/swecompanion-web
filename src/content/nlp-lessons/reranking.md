@@ -1,49 +1,55 @@
 # Reranking and query-document interaction
 
-## 1. Spend more work on fewer candidates
+## 1. Spend detailed scoring selectively
 
-A **reranker** reorders an already retrieved candidate set using a more detailed score. It can improve ordering but cannot select evidence that never reached it.
+A **reranker** reorders retrieved candidates. It can improve ordering but cannot recover documents absent from its input set.
 
-Separate candidate coverage from ranking quality when diagnosing a failure.
+Separate candidate recall from ranking quality.
 
-## 2. Compute reusable vectors
+## 2. Reuse independent vectors
 
-A **bi-encoder** encodes the query and document independently, then compares their vectors. Its two encoders can share weights or use different parameters.
+A **bi-encoder** encodes query and document separately, then compares their vectors. Encoders may share weights or differ.
 
-The document representation can be cached across queries. This makes large-corpus retrieval practical, while restricting query-specific interaction to the final scoring interface.
+Document vectors can be cached across queries.
 
 ## 3. Read the pair jointly
 
-A **cross-encoder** processes the query and document together, allowing token-level interactions before producing a relevance score.
+A **cross-encoder** processes both texts together before scoring relevance:
 
 ```nlp-visual
 bi-cross
 ```
 
-It can inspect precise matches, contradictions, or qualifications in context. Its document states generally depend on the current query, so one fixed cached document vector cannot replace the joint computation.
+Document states depend on the query. One cached vector cannot replace those token-level interactions.
 
-## 4. Train the intended ranking comparison
+Train with relevant/irrelevant comparisons resembling actual retrieved candidates.
 
-Relevance labels can train individual scores or comparisons between candidates for one query. The negative candidates should resemble the alternatives the reranker will actually see.
+## 4. Evaluate the first useful result
 
-Do not mistake a topical similarity label for answer relevance. A passage about return policies may still state the wrong country’s conditions.
+**Reciprocal rank** is 1/(first relevant rank), or zero if missing under the cutoff. **Mean reciprocal rank (MRR)** averages across queries.
 
-## 5. Evaluate the ordering
+Ranks [1,2,missing] → MRR=(1+0.5+0)/3=0.5.
 
-**Reciprocal rank** is one divided by the rank of the first relevant result, or zero when none is found under the cutoff. **Mean reciprocal rank (MRR)** averages this across queries.
+## 5. Evaluate graded ordering
 
-First-relevant ranks [1,2,missing] give MRR \((1+0.5+0)/3=0.5\).
+**Normalized discounted cumulative gain (NDCG)** compares discounted relevance with ideal ordering. One common convention is:
 
-**Normalized discounted cumulative gain (NDCG)** sums graded relevance gains with smaller weights at later ranks, then divides by the ideal ordering’s value. It captures more of the list than the first relevant result alone.
+\[
+DCG@K=\sum_{r=1}^{K}\frac{2^{g_r}-1}{\log_2(r+1)},\qquad NDCG@K=\frac{DCG@K}{IDCG@K}
+\]
 
-## 6. Allocate the candidate budget
+r is rank; g_r relevance grade; K cutoff; IDCG is DCG of the ideal order. Later gains receive less weight.
 
-If a joint score costs 2 ms per pair in a stated serial setup, 100 pairs cost about 200 ms before other work. Batching and hardware can change the measurement, so profile the full path.
+Grades [1,3,0] score about 0.710 relative to ideal [3,1,0]. Declare gain and zero-ideal conventions.
 
-Use a fast first stage, then spend expensive interaction on a candidate set with adequate recall. Compare quality gains under the same eligible documents and query set.
+## 6. Allocate computation
+
+At 2 ms per pair in a stated serial setup, 100 pairs cost about 200 ms. Batching/hardware change actual latency.
+
+A fast first stage supplies coverage; a costly joint scorer improves ordering over a manageable set.
 
 ## 7. Interview reasoning
 
-**Question:** Should a better cross-encoder always replace the first-stage retriever?
+**Question:** Should a better cross-encoder replace first-stage retrieval?
 
-**Answer:** Not necessarily. Joint scoring over every corpus document can be too expensive. A two-stage design preserves fast candidate selection and uses detailed interaction where it can affect the result.
+**Answer:** Joint scoring over every corpus document can be too expensive. Retrieve cheaply, then apply detailed interaction where it can affect the result.

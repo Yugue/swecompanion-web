@@ -2,52 +2,52 @@
 
 ## 1. Give data three jobs
 
-A **data split** separates examples used to fit a procedure from those used to choose and assess it.
+A **data split** assigns examples to fitting, selection, and assessment:
 
 | Set | Job |
 |---|---|
-| Training | Learn parameters and preprocessing statistics |
-| Validation | Choose settings, features, and decision cutoffs |
+| Training | Fit parameters and text-preparation statistics |
+| Validation | Choose settings and decision cutoffs |
 | Test | Assess the fixed procedure |
 
-The fitted procedure includes vocabulary statistics and learned encoders, not only the final classifier.
+The procedure includes learned text preparation, not just the final classifier.
 
-## 2. Separate dependent examples
+## 2. Keep dependent examples together
 
 ```nlp-visual
 split-boundaries
 ```
 
-Messages in one conversation share names, phrasing, and context. Randomly splitting messages can let a model see a close relative of a test example during training.
+Messages within a conversation share context. Random message splits can put near-copies on both sides.
 
-Group by the unit that must be new: conversation, author, customer, or document family. Shared entities are acceptable when they match the intended prediction setting.
+Group by what must be new: conversation, customer, author, or document family.
 
-## 3. Evaluate the future with earlier evidence
+## 3. Reconstruct historical availability
 
-For future support requests, train on earlier periods and evaluate later. Reconstruct the text and metadata available at each prediction time.
+For future requests, train on earlier periods and evaluate later. Use only text, metadata, and resolved labels known at each training cutoff.
 
-If labels arrive after resolution, a historical training run can use only resolutions known by its cutoff. A later text edit or backfilled label must not be treated as already available.
+A later edit or backfilled outcome was not available merely because it exists now.
 
-## 4. Define leakage explicitly
+## 4. Recognize leakage
 
-**Data leakage** means using information unavailable in the prediction or evaluation setting being claimed. Copies, templates with target markers, future conversation turns, and target-derived metadata are common sources.
+**Data leakage** uses information unavailable in the claimed prediction or evaluation setting.
 
-Deduplicate or group near-copies before assigning splits. A suspicious score increase is a reason to inspect the process, not proof of leakage by itself.
+Examples: future replies, target-derived metadata, and duplicate documents crossing splits. Deduplicate or group near-copies before splitting.
 
-## 5. Fit preprocessing within training
+## 5. Refit learned preparation
 
-TF-IDF corpus frequencies, selected features, and learned mappings must come from the training portion of each fit.
+Learn vocabularies, word-frequency statistics, and selected features inside training.
 
-**Cross-validation** rotates development subsets through held-out evaluation, rebuilding fitted steps each time. A pretrained external tokenizer is different from a tokenizer newly trained using evaluation documents; state the actual procedure.
+**Cross-validation** rotates development subsets through held-out assessment, refitting learned steps each time. A fixed external text-segmentation procedure differs from one newly fitted on evaluation documents.
 
-## 6. Protect final assessment
+## 6. Protect the final estimate
 
-Repeatedly changing the model after reading test errors turns the test set into development evidence. Reserve a fresh assessment when an independent estimate is needed.
+Repeatedly choosing changes from test errors makes that test development evidence. Reserve fresh assessment when an independent estimate is required.
 
-Choose split sizes from outcome coverage and dependence, rather than assuming one universal percentage.
+Choose split sizes from coverage and dependence, rather than a universal percentage.
 
 ## 7. Interview reasoning
 
-**Question:** Why can a conversation-level split still fail to test new-customer generalization?
+**Question:** Why can conversation-level splitting fail to test new customers?
 
-**Answer:** The same customer may appear in several conversations across both sides. Hold customers out when the claimed deployment target is previously unseen customers.
+**Answer:** One customer may own several conversations across both sets. Hold out customers when previously unseen customers are the target population.

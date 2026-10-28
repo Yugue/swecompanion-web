@@ -1,54 +1,56 @@
 # Why language is difficult
 
-## 1. Meaning depends on more than word presence
+## 1. Read the surrounding evidence
 
-**Context** is the surrounding information used to interpret an expression. It can include nearby words, earlier messages, or the situation.
+**Context** is information used to interpret an expression: nearby words, earlier messages, or the situation.
 
-“The bank is flooded” and “the bank raised its fees” use the same spelling for different senses. **Polysemy** means one word has multiple related senses; broader lexical ambiguity also includes distinct meanings sharing a form.
+“The bank is flooded” and “the bank raised its fees” illustrate **lexical ambiguity**: one form can express different meanings.
 
-## 2. Words have internal structure
+**Polysemy** specifically concerns related senses of a word.
 
-**Morphology** studies how meaningful pieces form words. “Refund,” “refunds,” and “refunded” share a base but differ in number or grammatical role.
+## 2. Look inside words
 
-A **morpheme** is a meaning-bearing unit, such as a base or suffix. Tokenizer subwords need not align with morphemes: a learned piece is chosen by the tokenizer’s objective, not a linguistic guarantee.
+**Morphology** studies word structure. A **morpheme** is a meaning-bearing unit, such as a base or suffix.
 
-## 3. Order creates relationships
+“Refund,” “refunds,” and “refunded” share a base. Learned text pieces need not match morphemes; their boundaries follow a learning rule.
 
-**Syntax** describes how words combine into grammatical structure. Compare:
+## 3. Preserve relationships
+
+**Syntax** describes grammatical structure:
 
 ```text
 The dog chased the child.
 The child chased the dog.
 ```
 
-The word counts match while the participants’ roles reverse. A representation that discards order cannot distinguish these examples from counts alone.
+The words match; the participants’ roles reverse. Word counts alone lose this distinction.
 
-## 4. Negation and scope change the answer
+## 4. Interpret negation in scope
 
-**Semantics** concerns meaning. The **scope** of an expression is the part of the statement it affects.
+**Semantics** concerns meaning. **Scope** is the portion of a statement affected by an expression.
 
-| Text | Distinction |
+| Text | Effect |
 |---|---|
 | “The service was good” | Positive judgement |
 | “The service was not good” | Negated judgement |
-| “Not only good, but excellent” | Negation word without negative sentiment |
+| “Not only good, but excellent” | “Not” without negative sentiment |
 
-Removing “not” or judging every occurrence identically loses the mechanism.
+Removing “not” and treating every “not” identically both fail.
 
-## 5. Reference can require earlier text
+## 5. Resolve reference and purpose
 
-**Coreference** occurs when expressions refer to the same entity: “Ada ordered a laptop. She returned it.” Resolving “she” and “it” uses earlier information.
+**Coreference** links expressions referring to the same entity: “Ada ordered a laptop. She returned it.”
 
-**Pragmatics** concerns meaning in use. “Can you open the window?” usually requests an action rather than asking about physical ability.
+**Pragmatics** concerns meaning in use. “Can you open the window?” usually requests action rather than a physical-ability assessment.
 
-## 6. Translate ambiguity into a data decision
+## 6. Turn ambiguity into tests
 
-If annotators need earlier messages, provide that context or permit an ambiguous label. Disagreement may reflect missing evidence or an unclear policy, rather than careless annotation.
+Create **minimal pairs**: examples differing in one important feature. Reverse participants, add negation, or change an ambiguous word’s context.
 
-Test models with examples that change one important distinction: add negation, reverse participants, or replace an ambiguous word’s context. A successful average score can hide failure on that distinction.
+If annotators need earlier messages, supply them or permit uncertainty. Missing evidence cannot be repaired by a more confident judgement.
 
 ## 7. Interview reasoning
 
-**Question:** Why might deleting short function words hurt an NLP system?
+**Question:** Why can deleting short words hurt predictions?
 
-**Answer:** They can carry negation, relationships, and grammatical structure. Decide from the task’s required distinctions rather than treating short or frequent words as automatically irrelevant.
+**Answer:** They can express negation, relationships, and scope. Remove words only when the task can tolerate those lost distinctions.

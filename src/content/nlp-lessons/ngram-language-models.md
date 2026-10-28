@@ -1,61 +1,62 @@
 # N-gram language models and smoothing
 
-## 1. Predict with a short history
+## 1. Predict from a short history
 
-An **n-gram language model** predicts the next token from at most the previous \(n-1\) tokens.
+An **n-gram language model** uses at most n−1 earlier tokens: one for a bigram, two for a trigram.
 
-A bigram uses one previous token. A trigram uses two. This limits the context in the conditional probabilities from the sequence chain rule.
+It restricts the context in the probability chain rule.
 
-## 2. Estimate from counts
-
-For history \(h\) and next token \(w\):
+## 2. Estimate conditional counts
 
 \[
 P(w\mid h)=\frac{C(h,w)}{C(h)}
 \]
 
-\(C(h,w)\) counts that continuation; \(C(h)\) counts continuations following the history. This **maximum-likelihood estimate** fits the empirical proportions when the history has observations.
+\(h\): history; \(w\): next token; C(h,w): continuation count; C(h): total continuations after h. Require C(h)>0.
 
-For “cats” followed twice by “sleep” and once by “eat,” the estimates are 2/3 and 1/3.
+“Cats” followed twice by “sleep” and once by “eat” gives probabilities 2/3 and 1/3. This maximum-likelihood estimate fits observed proportions.
 
-## 3. Avoid zeroing unseen continuations
+## 3. Give unseen continuations support
 
-The model gives zero to any unobserved continuation, even a plausible one. A single zero makes the corresponding sequence probability zero.
+One zero factor makes sequence probability zero.
 
-**Smoothing** redistributes probability to handle missing or unreliable counts. With add-one smoothing and vocabulary [sleep, eat, EOS]:
+**Smoothing** redistributes probability to handle missing or unreliable counts. For vocabulary [sleep, eat, EOS]:
 
 ```text
-counts             [2,1,0]
-counts + 1         [3,2,1]
-probabilities      [3/6,2/6,1/6]
+counts:        [2,1,0]
+add-one:       [3,2,1]
+probabilities: [3/6,2/6,1/6]
 ```
 
-Seen continuations surrender some mass so unseen ones receive nonzero support.
+Seen events surrender some mass to unseen events.
 
-## 4. Define the smoothed distribution
+## 4. Control smoothing strength
 
-\[
-P_\alpha(w\mid h)=\frac{C(h,w)+\alpha}{C(h)+\alpha V}
-\]
+Apply the pseudo-count rule to each history h:
 
-\(\alpha>0\) is pseudo-count strength and \(V\) the supported vocabulary size. Larger strength pulls estimates toward a uniform distribution in this simple scheme.
+```text
+numerator:   continuation count + α
+denominator: all continuations after h + α×V
+```
 
-A large vocabulary can make add-one smoothing too aggressive. Smoothing does not create entries outside the declared vocabulary.
+V is vocabulary size; α>0 smoothing strength. Larger α pulls estimates toward uniform. For an unseen history, all counts are zero, giving probability 1/V per supported token.
 
-## 5. Share evidence with shorter histories
+A large vocabulary makes add-one smoothing aggressive. It still cannot create entries outside the vocabulary.
 
-**Backoff** uses a shorter history when detailed evidence is insufficient. **Interpolation** mixes several history lengths with nonnegative weights summing to one.
+## 5. Share shorter-history evidence
 
-Both address sparse long histories. Discounting and normalization must leave a valid distribution; merely appending a shorter-history probability to existing estimates can exceed total mass one.
+**Backoff** uses shorter history when detailed evidence is insufficient. **Interpolation** mixes history lengths with nonnegative weights summing to one.
 
-## 6. Know the context tradeoff
+Discount and normalize correctly; adding extra probability to a complete distribution exceeds total mass one.
 
-Higher order distinguishes more phrases but produces more sparsely observed histories. It can fit training text better while estimating future continuations worse.
+## 6. Choose order on held-out text
 
-Choose order and smoothing using held-out text. A simple count model is useful for understanding probability estimates and as a reference, even when a neural model is ultimately required.
+Higher order distinguishes more phrases but creates sparse histories. Better training fit can coexist with worse future predictions.
+
+Use held-out loss to choose order and smoothing.
 
 ## 7. Interview reasoning
 
-**Question:** Why does a model need smoothing when its training counts are correct?
+**Question:** Why smooth when the observed counts are correct?
 
-**Answer:** Correct counts describe a finite sample, not every possible future continuation. Smoothing supplies support and reduces overconfidence in those limited observations.
+**Answer:** They describe a finite sample. Smoothing reserves probability for plausible continuations absent from that sample.

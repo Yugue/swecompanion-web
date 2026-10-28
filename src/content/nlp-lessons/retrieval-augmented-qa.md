@@ -1,56 +1,60 @@
 # Retrieval-augmented question answering
 
-## 1. Supply external evidence to an answer model
+## 1. Supply external evidence
 
-**Retrieval-augmented generation (RAG)** retrieves external material and uses it as context for generation. It can make relevant evidence available without encoding every update into model weights.
+**Retrieval-augmented generation (RAG)** retrieves material and conditions generation on it. Updated documents can supply facts without changing model weights.
 
-It does not guarantee that retrieved material is correct or that the answer faithfully uses it.
+The answer can still misuse or contradict its sources.
 
-## 2. Separate indexing from answering
+## 2. Separate indexing and answering
 
 ```nlp-visual
 rag
 ```
 
-Indexing prepares searchable documents or passages. At request time, retrieval selects candidates, optional reranking improves their order, and a context-selection step chooses what the answer model actually receives.
+Indexing prepares documents/passages. A request retrieves candidates, optionally reranks them, and assembles selected context for generation.
 
-The generated answer is conditioned on the question, instructions, and selected evidence within its context budget.
+The generator sees that selected context, not the whole index.
 
-## 3. Choose useful chunks
+## 3. Keep evidence intact
 
-A **chunk** is a retrievable source segment. Small chunks can localize evidence but separate a rule from its exception. Large chunks preserve context while consuming more tokens and potentially diluting relevance.
+A **chunk** is a retrievable source segment.
 
-Overlap can preserve boundary evidence but creates duplicates. Preserve document identity, section context, and source offsets so claims can be traced back to their origin.
+| Chunk choice | Benefit | Failure |
+|---|---|---|
+| Small | Precise matching | Rule separated from exception |
+| Large | More context | Dilution; token cost |
+| Overlapping | Preserves boundary evidence | Duplicate candidates |
 
-## 4. Distinguish support from appearance
+Retain document identity, section context, and source offsets.
 
-**Grounding** ties an answer to available evidence. **Attribution** identifies which source supports a claim.
+## 4. Check support and attribution
 
-A valid-looking citation can point to a passage that does not support the sentence. The model can also combine an accurate quotation with an unsupported conclusion.
+**Grounding** ties an answer to evidence. **Attribution** identifies the supporting source.
 
-Retrieved text is evidence, not automatically a trusted instruction. A passage containing commands should not silently override the task’s answering contract.
+A citation can point to an unrelated passage. Check whether the passage supports the actual claim.
 
-## 5. Diagnose the failing stage
+Retrieved commands are source content, not permission to change the answering instructions.
 
-| Observation | Investigate |
+## 5. Locate the failed stage
+
+| Observation | Inspect |
 |---|---|
-| Required fact absent from corpus | Source coverage |
-| Fact exists but candidate missing | Chunking, retrieval, index |
-| Candidate found but excluded | Reranking and context selection |
-| Evidence supplied but answer wrong | Reading, generation, conflicts |
+| Fact absent from corpus | Source coverage |
+| Fact present; candidate missing | Chunking, retrieval, index |
+| Candidate found; evidence excluded | Reranking, context selection |
+| Evidence supplied; answer wrong | Reading, generation, conflicting sources |
 
-A strong standalone generator cannot reliably answer from evidence it never receives. More retrieved text can also introduce contradictions or hide the useful passage.
+## 6. Evaluate the components
 
-## 6. Evaluate retrieval and answers separately
+Measure evidence recall, answer correctness, claim support, and attribution.
 
-Measure evidence recall, answer correctness, claim support, source attribution, and appropriate no-answer behavior. Fix the corpus snapshot and question set when comparing pipelines.
+**Abstention** deliberately avoids asserting an unsupported answer. Test missing/conflicting evidence and compare answer coverage with error costs.
 
-Test with missing evidence, relevant distractors, and conflicting passages. **Abstention** is a deliberate refusal to assert an unsupported answer; evaluate its costs alongside answer coverage.
-
-Fine-tuning changes learned behavior; retrieval changes supplied evidence. They can be complementary interventions.
+Retrieval changes evidence; fine-tuning changes learned behavior. Both can contribute.
 
 ## 7. Interview reasoning
 
-**Question:** The correct document was retrieved, but the answer is still wrong. Has retrieval been ruled out completely?
+**Question:** Does retrieving the correct document rule out retrieval-path failures?
 
-**Answer:** No. Check whether the needed passage survived chunking, reranking, and context assembly. Only after confirming that evidence reached the model should the diagnosis focus on its use during generation.
+**Answer:** No. Confirm that the needed passage survived selection and reached the generator before diagnosing its use.

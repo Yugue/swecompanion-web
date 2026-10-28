@@ -1,28 +1,29 @@
 # Summarization and faithful generation
 
-## 1. Select important source information
+## 1. Keep important information
 
-**Summarization** produces a shorter account of source material under a stated purpose and output budget.
+**Summarization** produces a shorter account under a purpose and length budget.
 
-**Extractive summarization** selects source passages. **Abstractive summarization** generates new wording. Extraction constrains wording, but can still mislead by omitting qualifications or selecting an unrepresentative passage.
+| Method | Operation | Risk |
+|---|---|---|
+| Extractive | Select source passages | Omit qualifications |
+| Abstractive | Generate new wording | Add unsupported claims |
 
-## 2. Separate the quality requirements
+## 2. Separate quality requirements
 
-**Coverage** concerns important information retained. **Faithfulness** means claims are supported by the source. **Concision** avoids unnecessary content while meeting the task.
+**Coverage** retains important information. **Faithfulness** keeps claims supported by the source. **Concision** removes unnecessary content.
 
-A faithful account of an incorrect source is not automatically true in the wider world. Define whether the system summarizes supplied evidence or also verifies it externally.
+A faithful summary of an incorrect source can still be false in the wider world. State whether external verification is required.
 
-## 3. Learn and preserve the intended evidence
+## 3. Preserve evidence during learning
 
-An encoder-decoder or conditional decoder can learn from source-summary pairs. The target summary reflects annotation choices about importance and style.
+Source-summary pairs teach selection and style. Encoder-decoder or conditional-decoder training can model them.
 
-Long-source truncation can remove the decisive fact. Chunked or staged summaries can lose relationships across sections or compound earlier mistakes. Verify what evidence each stage receives.
+Truncation can remove decisive facts. Chunked summaries can lose cross-section relationships; later stages cannot reliably recover omitted qualifications.
 
-## 4. Measure overlap with ROUGE
+## 4. Measure reference overlap
 
-**ROUGE** is a family of reference-comparison measures. **ROUGE-N** compares n-gram overlap; **ROUGE-L** uses longest common subsequences, which need not be contiguous.
-
-State whether recall, precision, or F1 is reported, with tokenization, normalization, aggregation, and reference policy.
+**ROUGE** is a family of overlap measures. **ROUGE-N** compares n-grams; **ROUGE-L** uses longest common subsequences, which need not be contiguous.
 
 ```text
 reference: parcel arrives in Paris Friday
@@ -30,24 +31,24 @@ candidate: parcel arrives in Paris Tuesday
 ROUGE-1 recall = 4/5 = 0.8
 ```
 
-The high overlap still changes the crucial date.
+The high overlap misses a wrong date. Declare precision/recall/F1, normalization, references, and aggregation.
 
-## 5. Add semantic and factual evidence
+## 5. Add semantic evidence
 
-**BERTScore** compares contextual token representations between candidate and reference and aggregates matching similarities. It can recognize some paraphrases missed by exact overlap.
+**BERTScore** aggregates similarities between contextual candidate/reference token representations. It can recognize paraphrases missed by exact matching.
 
-Semantic similarity is not a complete factuality test: a changed person, date, or negation can leave substantial similarity.
+Similar representations can still hide changed names, quantities, or negation.
 
-A **model-based judge** uses another model to assess outputs under instructions. Its bias, consistency, and agreement with relevant human judgments need evaluation too.
+A **model-based judge** evaluates outputs using another model. Check its consistency and agreement with relevant human judgements.
 
-## 6. Inspect the errors the score misses
+## 6. Inspect facts and constraints
 
-Check unsupported claims, changed entities, quantities, attribution, omitted caveats, and duplicated content. A useful human rubric distinguishes these from grammar or style preferences.
+Review unsupported claims, attribution, omitted caveats, and duplicates separately from grammar.
 
-**Controlled generation** adds constraints such as length, format, or required fields. Satisfying a format does not establish factual support; shorter output is not always a better summary.
+**Controlled generation** imposes format, length, or field requirements. Valid format does not establish support; shorter output can omit essential content.
 
 ## 7. Interview reasoning
 
-**Question:** Why should a summary metric not reward every reduction in length?
+**Question:** Why not reward every length reduction?
 
-**Answer:** Removing important facts or qualifications can make the text shorter while less useful or misleading. Evaluate the required information and support alongside the output budget.
+**Answer:** Removing important facts or qualifications can shorten the output while making it misleading. Judge information and support alongside length.

@@ -1,57 +1,61 @@
 # Embedding tables and learned geometry
 
-## 1. Give an identifier learned coordinates
+## 1. Gather learned vectors
 
-An **embedding** is a learned vector representation. An **embedding table** stores a vector for each vocabulary entry.
+An **embedding lookup** selects table rows using token IDs. It does not multiply an ID by its numeric value.
 
-Lookup selects a row; it does not multiply a token ID by its numeric value. IDs 4 and 5 need not represent more similar tokens than IDs 4 and 900.
+> An ID chooses a row; training chooses the row’s coordinates.
 
-## 2. Track the table and output shapes
+## 2. Track the shapes
 
-For vocabulary size \(V\) and embedding width \(d\), table \(E\) has shape [V,d]. Looking up a batch of \(B\) sequences of length \(T\) produces [B,T,d].
+Vocabulary size V and width d give table E shaped [V,d], with Vd learned entries.
 
-The table has \(Vd\) learned entries. Larger vocabularies and larger widths spend parameters differently.
+B sequences of length T produce [B,T,d] after lookup.
 
 ```nlp-visual
 embedding-lookup
 ```
 
-## 3. Connect lookup to one-hot multiplication
+More vocabulary entries and wider vectors increase parameters in different ways.
 
-A **one-hot vector** has one entry equal to one and the rest zero. Selecting token \(i\)'s row equals \(u_i^\top E\), where \(u_i\) is its V-entry one-hot vector.
+## 3. Connect to one-hot multiplication
 
-Implementations gather rows directly rather than materializing every large one-hot vector.
+A **one-hot vector** selects one coordinate with value one, leaving others zero. For token i:
+
+\[
+\text{row}_i=u_i^\top E
+\]
+
+u_i has V entries. Implementations gather E’s row directly rather than construct the large one-hot vector.
 
 ```python
 embedding = torch.nn.Embedding(3, 2)
 ids = torch.tensor([[0, 2, 0]])
-vectors = embedding(ids)  # shape [1, 3, 2]
+vectors = embedding(ids)  # [1, 3, 2]
 ```
 
-## 4. Accumulate gradients at used rows
+## 4. Accumulate repeated uses
 
-With rows [1,0], [0,1], [−1,2], IDs [0,2,0] select the first, third, and first rows.
+Rows [1,0], [0,1], [−1,2] and IDs [0,2,0] select the first row twice.
 
-For the toy loss equal to the sum of selected first coordinates, row gradients are [2,0], [0,0], [1,0]. Repeated ID 0 contributes twice.
+For loss = sum of selected first coordinates, row gradients are [2,0], [0,0], [1,0]. Repeated uses add contributions.
 
-Other losses produce other gradients. Full-table output objectives or regularization can also update rows absent from the input lookup.
+Other objectives or penalties can update rows absent from the input lookup.
 
-## 5. Learn the meaning of distance
+## 5. Train the intended geometry
 
-An objective determines which vector relationships become useful. A classification objective and a retrieval objective need not produce interchangeable spaces.
+The objective determines useful relationships. Classification-trained vectors need not supply relevance distances.
 
-A **static representation** assigns the same lookup vector to a token in every occurrence. A **contextual representation** changes with surrounding evidence after further computation.
+Lookup shares a row across occurrences. Later context processing can produce different position states from that same row.
 
-## 6. Handle shared unknowns and padding
+## 6. Handle special rows
 
-An unknown-token row collapses several unseen strings into one representation unless another input path preserves their differences.
+An unknown row merges unsupported strings unless another input path preserves them.
 
-A padding row needs an explicit policy. Some embedding layers suppress its lookup gradient, but later pooling and losses still require their own exclusions.
-
-Do not infer semantic quality from a vector plot alone. Check the task and the distinctions the representation preserves.
+A padding row may suppress lookup gradients; later summaries and losses still need their own exclusions. A zero vector alone does not enforce every padding rule.
 
 ## 7. Interview reasoning
 
-**Question:** Are embedding coordinates labels supplied by people?
+**Question:** Are vector coordinates human-provided labels?
 
-**Answer:** Usually not. They are trainable parameters adjusted through the objective. People may supply task labels, while gradients determine the coordinates useful for predicting them.
+**Answer:** Usually they are learned parameters. Task labels guide the objective; gradients adjust the coordinates.

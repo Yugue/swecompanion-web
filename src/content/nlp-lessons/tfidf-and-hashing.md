@@ -1,54 +1,52 @@
 # TF-IDF and feature hashing
 
-## 1. Distinguish common words from distinctive evidence
+## 1. Weight distinctive terms
 
-**Term frequency–inverse document frequency (TF-IDF)** weights within-document evidence by how widespread a term is in a reference corpus.
+**Term frequency–inverse document frequency (TF-IDF)** combines within-document occurrence with corpus rarity.
 
-A word occurring in nearly every document often distinguishes documents less than a rarer term. This is a weighting assumption, not a rule that frequent words are useless.
+Common words receive less distinguishing weight; frequency alone does not prove irrelevance.
 
-## 2. Calculate one variant
-
-For term \(t\) in document \(d\):
+## 2. Calculate one convention
 
 \[
 w_{t,d}=\operatorname{tf}(t,d)\left(1+\log\frac{N}{\operatorname{df}(t)}\right)
 \]
 
-Here tf is term count, \(N\) the training-document count, and df the number of those documents containing the term. Logs are natural; df must be positive for this form.
+\(w_{t,d}\): term t’s weight in document d; tf: occurrence count; N: fitting-document count; df: documents containing t. Logs are natural; df must be positive.
 
-With count 2, four documents, and df 2, the weight is \(2(1+\log2)\approx3.386\).
+Count 2, N=4, df=2 gives \(2(1+\log2)\approx3.386\). Increasing df reduces rarity weight.
 
-## 3. State the convention
+## 3. State normalization
 
-Other variants use binary or logarithmic term frequency, smoothed IDF, or vector-length normalization. Library defaults need not equal the displayed unsmoothed formula.
+Variants use binary/logarithmic counts or smoothed IDF. Library defaults can differ from this unsmoothed formula.
 
-**L2 normalization** rescales a nonzero document vector to length one. Its dot product with another normalized vector equals cosine similarity; absolute document magnitude is then removed.
+**L2 normalization** divides a nonzero vector by its length. Dot products between normalized vectors equal cosine similarity, discarding absolute magnitude.
 
-## 4. Fit and reuse corpus statistics
+## 4. Reuse fitted statistics
 
-Learn the vocabulary and IDF from training or the explicitly declared indexing corpus. Apply stored values to held-out requests.
+Fit vocabulary and IDF on training text or an explicitly declared retrieval-index corpus. Reuse them for held-out queries.
 
-A word unseen in a fitted vocabulary needs a defined policy. Do not silently learn a new coordinate from each test example. When retrieval intentionally indexes a new corpus, state that different evaluation procedure.
+Unknown terms need a fixed policy; do not create new coordinates for each test request.
 
-## 5. Bound width with hashing
+## 5. Hash instead of storing names
 
-**Feature hashing** maps a feature string to a fixed coordinate using a deterministic hash. No complete string vocabulary must be stored.
+**Feature hashing** maps strings deterministically to a fixed coordinate range.
 
-Two distinct features can land in the same coordinate: a **collision**. Their evidence then combines; signed hashing can reduce systematic collision bias but can also cancel contributions.
+A **collision** maps different features to the same coordinate. **Signed hashing** assigns a stable ±1 sign to each feature before adding it to a bucket. This can reduce systematic collision distortion; contributions may cancel.
 
-Hashing itself is stateless. A later corpus-fitted weighting step still has learned statistics.
+Hashing needs no fitted vocabulary. Later corpus-based weighting still has fitted statistics.
 
-## 6. Choose by constraints and errors
+## 6. Compare costs
 
-| Approach | Strength | Limitation |
+| Choice | Benefit | Cost |
 |---|---|---|
-| Explicit vocabulary | Inspect named weights | Vocabulary storage and unseen features |
-| Hashing | Fixed width, simple streaming | Collisions and harder attribution |
+| Explicit vocabulary | Inspect named weights | Vocabulary storage; unknowns |
+| Hashing | Fixed width; streaming | Collisions; harder weight inspection |
 
-Both remain lexical representations. Weighting does not create semantic equivalence between unrelated strings or recover discarded long-range order.
+Neither creates semantic equivalence or restores discarded word order.
 
 ## 7. Interview reasoning
 
-**Question:** Why can increasing hashing width improve quality but increase serving memory?
+**Question:** Why can wider hashing improve quality but increase memory?
 
-**Answer:** It reduces collisions while increasing the possible feature coordinates and associated model parameters. Measure the resulting error and resource tradeoff.
+**Answer:** More coordinates reduce collisions while increasing possible model coefficients. Measure both the accuracy gain and storage cost.
