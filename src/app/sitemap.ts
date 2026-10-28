@@ -6,8 +6,9 @@ import { amlParts } from "@/lib/amlStudyData";
 import { agenticParts } from "@/lib/agenticStudyData";
 import { rrpParts } from "@/lib/rrpStudyData";
 import { nlpParts } from "@/lib/nlpStudyData";
+import { genaiParts } from "@/lib/genaiStudyData";
 import { cvParts } from "@/lib/cvStudyData";
-import { DEEP_LEARNING_PATH, APPLIED_ML_PATH, AGENTIC_AI_PATH, RRP_PATH, CV_PATH, NLP_PATH } from "@/lib/mlDomains";
+import { DEEP_LEARNING_PATH, APPLIED_ML_PATH, AGENTIC_AI_PATH, RRP_PATH, CV_PATH, NLP_PATH, GENAI_PATH } from "@/lib/mlDomains";
 
 export const dynamic = "force-static";
 
@@ -23,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}${RRP_PATH}`, priority: 1 },
     { url: `${siteUrl}${CV_PATH}`, priority: 1 },
     { url: `${siteUrl}${NLP_PATH}`, priority: 1 },
+    { url: `${siteUrl}${GENAI_PATH}`, priority: 1 },
   ];
 
   for (const topic of studyTopics) {
@@ -80,6 +82,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
     if (part.quizQuestionCount > 0) {
       entries.push({ url: `${siteUrl}${NLP_PATH}/${part.id}/quiz`, priority: 0.6 });
+    }
+  }
+
+  for (const part of genaiParts) {
+    for (const topic of part.topics) {
+      entries.push({ url: `${siteUrl}${GENAI_PATH}/${topic.id}`, priority: 0.8 });
+    }
+    if (part.quizQuestionCount > 0) {
+      entries.push({ url: `${siteUrl}${GENAI_PATH}/${part.id}/quiz`, priority: 0.6 });
     }
   }
 

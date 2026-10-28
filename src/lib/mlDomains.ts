@@ -14,6 +14,7 @@ export const DEEP_LEARNING_PATH = `${ML_DOMAIN_PATH}/deeplearning`;
 export const APPLIED_ML_PATH = `${ML_DOMAIN_PATH}/appliedml`;
 export const AGENTIC_AI_PATH = `${ML_DOMAIN_PATH}/agentic`;
 export const RRP_PATH = `${ML_DOMAIN_PATH}/rrp`;
+export const GENAI_PATH = `${ML_DOMAIN_PATH}/genai`;
 export const NLP_PATH = `${ML_DOMAIN_PATH}/nlp`;
 export const CV_PATH = `${ML_DOMAIN_PATH}/cv`;
 
@@ -49,7 +50,11 @@ export const ML_DOMAINS: { name: string; href?: string; summary?: string }[] = [
     href: NLP_PATH,
     summary: "Text and subwords, lexical and contextual representations, attention and Transformers, understanding and generation tasks, evaluation, and diagnosing NLP systems. No prior ML course required.",
   },
-  { name: "Generative AI" },
+  {
+    name: "Generative AI",
+    href: GENAI_PATH,
+    summary: "Standalone foundations, Transformers, model training and adaptation, reasoning, image and multimodal generation, grounding, evaluation, safety, and efficient inference. No prior ML topic required.",
+  },
   {
     name: "Recommendations / Ranking / Predictions (RRP)",
     href: RRP_PATH,

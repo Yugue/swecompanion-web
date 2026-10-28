@@ -10,10 +10,14 @@ import { RrpLessonVisual } from "@/components/rrp/visuals/RrpLessonVisual";
 
 import { NlpLessonVisual } from "@/components/nlp/NlpLessonVisual";
 
+import { GenaiLessonVisual } from "@/components/genai/GenaiLessonVisual";
+
 const NUMBERED_ITEM = /^\d+\.\s+/;
 
 export function LessonBlockView({ block }: { block: LessonBlock }) {
   switch (block.type) {
+    case "genai-visual":
+      return <GenaiLessonVisual id={block.text.trim()} />;
     case "nlp-visual":
       return <NlpLessonVisual id={block.text.trim()} />;
     case "rrp-visual":

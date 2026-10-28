@@ -1268,5 +1268,181 @@
       "The negative assumption is false for those comparisons. Training can push valid answers apart or punish a query for recognizing another relevant passage. Identify duplicate or multiple-positive relationships, exclude invalid negatives, or use a suitable multiple-positive objective. More negatives do not necessarily mean better evidence.",
       "Trace whether the exact relevant clause survives chunking, reranking, context selection, and prompt assembly. Check conflicting versions and attribution. If the right evidence reaches the model, inspect its reading and generated claims. Merely finding the document in the candidate list does not establish that the generator saw or used the needed passage."
     ]
+  },
+  "genai-foundations": {
+    "questions": [
+      "A generator repeats one attractive output for almost every random seed. Which quality dimensions would you investigate?",
+      "Multiply row vector [2,1] by matrix [[1,3],[2,0]]. What is the result and its shape?",
+      "A two-token sequence assigns probability 0.3 to the first token and 0.8 to the second given the first. What is the joint probability?",
+      "Two logits both increase by seven. What happens to their softmax probabilities, and why?",
+      "A classifier gives the observed target probability 0.01. Is low predictive entropy enough to establish a good prediction?",
+      "A weight receives loss-gradient contributions +3 and −1 through two uses. What total gradient should its optimizer receive?",
+      "Training loss is flat, and the reported gradients are exactly zero despite a nonzero loss. Name the first checks.",
+      "A held-out set contains lightly edited versions of training documents. What does a high score establish?"
+    ],
+    "answers": [
+      "Inspect diversity and coverage alongside sample fidelity. A realistic individual output can hide a generator that neglects most valid outcomes. Evaluate many samples and meaningful subgroups rather than selecting its best image.",
+      "The output is [4,6], a row vector of width two. The first output is 2×1+1×2; the second is 2×3+1×0. For a batch of B such inputs the output shape would be [B,2].",
+      "The joint is 0.3×0.8=0.24 by the probability chain rule. The second factor is conditional on the actual first token; replacing it with an unconditional frequency would introduce an independence assumption.",
+      "The probabilities remain unchanged because multiplying every exponential by the same exp(7) factor cancels between numerator and denominator. Relative logit differences determine the distribution, not the common offset.",
+      "No. It can be highly concentrated on the wrong class, giving low entropy and target cross-entropy −log(0.01), about 4.605. Entropy measures uncertainty; cross-entropy evaluates probability assigned to the observed outcome.",
+      "Contributions add to +2 because the same parameter influences the scalar loss through both paths. Backpropagation aggregates these paths before the optimizer applies its update. With rate 0.1, simple gradient descent subtracts 0.2.",
+      "Inspect whether the loss depends on the intended parameters, whether tensors were detached, whether parameters were frozen, and whether inactive activations block the path. Verify weights change on a tiny batch before increasing model capacity or training duration.",
+      "It establishes performance on that contaminated split, not reliable generalization to independent documents. Group related versions and near-duplicates together before splitting, then re-evaluate a fixed model under the intended deployment distribution."
+    ]
+  },
+  "genai-language-and-transformers": {
+    "questions": [
+      "A tokenizer produces twice as many tokens for one language at similar character counts. What resource consequences follow?",
+      "An embedding table has 20,000 rows and width 128. A batch contains 4 sequences of 30 token IDs. What are the table and lookup-output shapes?",
+      "An attention query assigns weights [0.2,0.8] to value vectors [5,0] and [0,10]. Compute its output.",
+      "Two width-three attention heads are concatenated. What width reaches the output projection, and why is averaging different?",
+      "For shifted next-token training, should a position be blocked from attending to its own input token?",
+      "How does rotary position encoding make attention sensitive to relative position?",
+      "An attention branch changes hidden width from 256 to 128 before a direct residual addition. What is wrong?",
+      "An expert layer stores eight experts and routes each token to two. Does inference need memory for only those two experts?"
+    ],
+    "answers": [
+      "Longer token sequences consume more context positions and increase processing, attention, and cache costs. Measure actual representative token counts rather than assuming equal characters imply equal computation. The model and tokenizer vocabulary must remain compatible.",
+      "The table is [20000,128] and the gathered output is [4,30,128]. Each integer ID selects one learned row. Repeated IDs reuse the same row, and their gradient contributions combine during training.",
+      "The weighted mixture is [1,8], calculated as 0.2×[5,0]+0.8×[0,10]. Queries and keys determine weights; values provide the mixed content. The output need not equal any one supplied value.",
+      "Concatenation gives width six, retaining both sets of feature coordinates before a learned projection. Averaging gives width three and merges the head representations immediately. They therefore provide different information to the next learned transformation.",
+      "Usually not. Its own input token is already known, and the supervised target is the following token. The causal mask permits the diagonal and earlier inputs while blocking future positions that could reveal the answer.",
+      "It rotates query and key coordinate pairs by position-dependent angles, making their dot product depend on relative displacement through those rotations. It changes query/key geometry rather than adding a position vector to every value. A causal mask still serves the separate access-control role.",
+      "The branch and bypass have incompatible shapes for direct addition. Project the branch back to width 256 or explicitly transform the bypass under a defined architecture. Matching shape is necessary, although appropriate scale also matters.",
+      "Not generally. The complete serving system must store or otherwise access all experts that requests may select, plus shared parameters and routing state. Active compute can be sparse while total weight memory and communication remain substantial."
+    ]
+  },
+  "genai-training-and-adaptation": {
+    "questions": [
+      "A language-model training batch uses identical input IDs and target IDs at each position. Why can its loss become misleadingly low?",
+      "What changes if response tokens are excluded from attention rather than prompt tokens excluded from supervised loss?",
+      "At fixed dense model size, what does doubling the processed token count do to the rough 6ND training-compute estimate?",
+      "You can run a microbatch of three examples and accumulate gradients for five microbatches per worker. What effective batch does one worker contribute?",
+      "Why might activation checkpointing fail to solve a training-memory problem dominated by Adam optimizer state?",
+      "A LoRA target matrix is [80,120] with rank four. How many update parameters do the two factors contain, excluding scaling and bias?",
+      "You have raw legal-domain documents but no examples of desired assistant replies. How do continued pretraining and supervised fine-tuning differ here?",
+      "A compressed student reproduces the teacher's mistakes on new real requests. What should change in the distillation workflow?"
+    ],
+    "answers": [
+      "The model can learn to reconstruct the visible current token instead of predict the next one, depending on the output contract. Shift targets correctly and apply causal attention. Confirm an input prefix predicts its subsequent token rather than a directly supplied answer.",
+      "Attention visibility and target supervision are different operations. Response-only fine-tuning normally keeps prompt context visible and supervises desired assistant targets. Altering attention instead can remove needed context or break the intended sequence objective.",
+      "It doubles that estimate because D enters linearly. This remains an approximation: context-dependent attention, architecture, and implementation affect real runtime. Repeated tokens also need not contribute the same information as equally many diverse tokens.",
+      "It contributes fifteen examples per optimizer update. Parameters must stay fixed until those gradients are combined, with correct loss normalization. Batch-dependent operations and different sequence lengths can require additional care for equivalence to one larger batch.",
+      "Checkpointing reduces stored activations by recomputing them during backward; it does not directly eliminate optimizer moments or weights. Consider state sharding, fewer trainable parameters, or an appropriate optimizer after measuring the actual memory breakdown.",
+      "The factors contain 4×120+80×4=800 parameters, versus 9600 in the full matrix. This limits update rank but does not remove base-model storage, forward computation, or activation memory during adapter training.",
+      "Raw documents directly support continued next-token pretraining on domain language. Supervised fine-tuning needs input–desired-output demonstrations or another explicit supervised construction. Do not assume exposing documents alone teaches the requested response format or evidence policy.",
+      "Add independent verification, representative real prompts, difficult cases, and appropriate human or executable feedback. Filter systematic teacher errors rather than treating all generated answers as labels. Evaluate the student independently; teacher–student agreement is not a correctness certificate."
+    ]
+  },
+  "genai-generation-and-reasoning": {
+    "questions": [
+      "A first-token branch has probability 0.7 and its best completion probability 0.2. Another starts at 0.3 with completion probability 0.9. Which complete path is more probable?",
+      "What is the difference between retaining the top three tokens and retaining enough tokens to reach cumulative probability 0.9?",
+      "A tool call parses and passes its schema, but asks for a record the user may not access. Should it execute?",
+      "A policy receives higher reward for adding polite filler to every answer. What failure does that suggest?",
+      "PPO has positive advantage 2, new/old action ratio 1.5, and clip range 0.2. What are the unclipped and clipped surrogate values?",
+      "In DPO, preferred and rejected policy/reference ratios are 3 and 1. With beta one, what is the pairwise sigmoid probability?",
+      "All responses in a GRPO prompt group receive reward one. What happens to a centered group-relative advantage?",
+      "Why can majority voting over ten generated solutions fail to improve on one solution?"
+    ],
+    "answers": [
+      "The paths score 0.14 and 0.27, so the second is more probable despite its weaker first token. Greedy commits to the first branch; a sufficiently suitable beam may retain the second, but finite beam search still offers no global guarantee.",
+      "The first is top-k with a fixed count; the second is top-p with a distribution-dependent count. Both renormalize retained candidates before sampling. The order of temperature adjustment, truncation, and penalties can change the final distribution.",
+      "No. Parsing and schema validation establish structural properties, not authority. The executor must independently check requester identity, record permissions, action scope, and destination before executing the model's proposed call.",
+      "The reward may overvalue a stylistic proxy instead of useful task completion. Inspect comparisons and high-reward failures, improve the rubric or checker, and evaluate independent correctness and concision. Stronger optimization can amplify the reward's weakness.",
+      "They are 3 and 2.4, and the minimum is 2.4. For this sample the clipped surrogate no longer rewards raising that ratio further. This is not a hard guarantee on all policy changes or a replacement for an independently configured reference penalty.",
+      "Delta is log(3)−log(1)=log(3), giving sigmoid probability 0.75. The objective compares relative policy-to-reference changes, so it does not independently guarantee that every preferred response's absolute probability increases.",
+      "Each reward equals the group mean, so every centered advantage is zero. Standard-deviation normalization needs numerical protection but does not create useful preference information from identical rewards. Broaden difficulty or sampling to obtain a discriminating signal.",
+      "Their errors can be strongly correlated, such as sharing the same misconception, so a wrong answer can win the vote. Verification quality, diversity, and the compute budget determine value. Independent executable checks can provide stronger evidence than repeated confident explanations."
+    ]
+  },
+  "genai-image-and-multimodal": {
+    "questions": [
+      "An ordinary autoencoder reconstructs training images well but creates poor outputs from Gaussian latent samples. Why is that unsurprising?",
+      "A GAN discriminator is frozen during a generator update. Must gradients through the discriminator also be disabled?",
+      "A diffusion forward marginal has signal retention 0.25. What coefficients multiply clean data and standard Gaussian noise?",
+      "Why is a diffusion denoiser trained with a timestep or noise-level input?",
+      "A latent image representation has 64×64×4 entries versus a 512×512×3 image. What is their element-count ratio?",
+      "Using guidance prediction u=[1,2], c=[3,1], and scale 2 under u+s(c−u), what is the guided result?",
+      "For the toy flow field velocity [1,−y], take one Euler step of size 0.25 from [0,1]. What state follows?",
+      "A vision–language model answers the same chart question identically after the relevant numbers are changed in the image. What does that suggest?"
+    ],
+    "answers": [
+      "Reconstruction training does not necessarily organize the entire latent space to match a Gaussian prior. A VAE explicitly regularizes encoded distributions toward its chosen prior, making prior sampling a trained objective, though good samples still require sufficient modeling and balanced regularization.",
+      "No. Its parameters should remain unchanged, but derivatives through its computation supply the learning signal to generated pixels and then generator parameters. Detaching the generated sample or disabling that path can prevent the intended generator update.",
+      "The clean-data coefficient is sqrt(0.25)=0.5 and the noise coefficient is sqrt(0.75), about 0.866. They preserve the chosen variance convention; this is not a simple 25-percent plus 75-percent weighted average.",
+      "The same noisy state can require different corrections at different corruption levels. The noise-level condition identifies the relevant prediction problem and reverse transition. Without it, the model must infer an ambiguous mixture of tasks from the noisy image alone.",
+      "The pixel tensor has 786432 entries and the latent tensor 16384, a ratio of 48 to one. This is an element-count comparison, not a guaranteed 48-fold runtime improvement; denoiser width, steps, attention, and decoder work also matter.",
+      "The result is [5,0]. Scale two extrapolates beyond the ordinary conditional prediction in this convention. Stronger guidance can improve condition adherence while reducing diversity or causing artifacts, so it should be validated rather than maximized blindly.",
+      "The velocity at that state is [1,−1], so the next point is [0.25,0.75]. Later velocities must be recalculated at later states. Integrating one fixed velocity across the whole trajectory would ignore the field's state dependence.",
+      "It suggests reliance on language priors or failure to preserve/read decisive visual evidence. Check resolution, visual encoding, projector alignment, and controlled image substitutions. Fluent output alone does not demonstrate visual grounding."
+    ]
+  },
+  "genai-grounding-and-retrieval": {
+    "questions": [
+      "Why does ordinary RAG not instantly teach permanent new knowledge to the model's weights?",
+      "An enterprise upload limit exception is separated from the general limit by chunking. What should you change or test?",
+      "Why should product codes be included in retrieval tests even when a dense retriever performs well on paraphrases?",
+      "Exact vector search finds the supporting passage, but the approximate index does not. Which component is implicated first?",
+      "Can a highly accurate cross-encoder reranker fix supporting documents absent from the first-stage candidate set?",
+      "What is an important risk of directly adding raw BM25 scores and cosine similarities?",
+      "A cited page is topically relevant but does not state the claimed deadline. What should evidence-only evaluation record?",
+      "Why is an oracle-context experiment useful when debugging incorrect grounded answers?"
+    ],
+    "answers": [
+      "Retrieval supplies evidence in the current input context. It does not normally execute an optimizer update on model parameters. Later requests need their own evidence access, unless another explicit training or persistence mechanism has been introduced.",
+      "Inspect structural boundaries, metadata, and whether each retrieved unit preserves the applicable condition. Test complete answerability of returned chunks and consider coherent structural grouping or neighboring context. A larger embedding alone cannot restore omitted text.",
+      "Exact identifiers may be rare or poorly represented in learned vector geometry while remaining easy lexical matches. Compare lexical, dense, and hybrid results on identifier slices. Aggregate semantic-query quality does not guarantee code lookup accuracy.",
+      "The ANN approximation or its settings are implicated before the encoder. Inspect index construction, search effort, filtering, and recall against exact search. If exact search also failed, embeddings, chunking, or query formulation would become stronger candidates.",
+      "No. A reranker scores only candidates it receives. Improve candidate coverage, ingestion, or access filtering first, and measure relevant-document presence before reranking separately from its final rank.",
+      "Their scales and distributions need not be comparable, so one source may dominate arbitrarily. Calibrate a combination on held-out relevance judgments or use a defined rank-fusion method. Evaluate complementary coverage and downstream answer quality.",
+      "It should record an unsupported claim and an inaccurate supporting citation even if the deadline happens to be true elsewhere. Check support at the claim and source-version level, not merely whether the cited document concerns the topic.",
+      "Supplying ideal evidence isolates the generator and prompt from retrieval errors. If answers improve strongly, retrieval or context selection is likely a bottleneck. The oracle result is diagnostic and does not itself represent achievable production retrieval."
+    ]
+  },
+  "genai-evaluation-and-safety": {
+    "questions": [
+      "A model is selected after repeatedly checking the same final test set. Why does the reported score become optimistic?",
+      "Average natural-log token loss is log(5). What is perplexity, and which comparison conditions matter?",
+      "A longer answer beats a short correct answer under one model judge. How would you investigate the judging behavior?",
+      "A grounded answer accurately repeats an outdated source. What should separate correctness and faithfulness scores show?",
+      "A generator repeats a small set of realistic images and gets an attractive visual review. What evaluation is missing?",
+      "A retrieved page contains an instruction to send all customer records to a new destination. Which layer must reject unauthorized execution?",
+      "A model refuses every request in a harmful-output test and earns a perfect safety score. Why is that incomplete?",
+      "A privacy review deletes sensitive source documents. Why should it still inspect model outputs, caches, and logs?"
+    ],
+    "answers": [
+      "The test set has become a source of selection feedback, making it function more like validation. Keep a genuinely held-out set for fixed choices and account for repeated comparisons. Group related examples so leakage does not compound the selection bias.",
+      "Perplexity is five. It is meaningful for models evaluated on compatible token units, data, and masking conventions. It does not independently measure factual correctness or instruction-following, and raw values across different tokenizers should not be compared directly.",
+      "Hold correctness and useful content constant while varying length, reverse candidate order, hide model identities, and compare expert human decisions. Inspect rubric specificity and verbosity bias rather than assuming the longer answer contains better reasoning.",
+      "It can be faithful to the supplied document but incorrect under a current-policy truth standard. Record source freshness and authority separately, and evaluate whether retrieval supplied the appropriate version. One combined score would hide the failure stage.",
+      "Diversity and coverage are missing. Review a sufficiently representative sample set, compare distribution statistics under controlled preprocessing, and inspect requested attributes. Attractive selected samples cannot establish broad generative quality or absence of memorization.",
+      "An independent executor or authorization layer must enforce the requester's actual permissions and allowed destinations. The retrieved text is untrusted evidence, not authority. Prompting can help interpretation but cannot replace the permission boundary.",
+      "The test omits allowed requests and therefore cannot measure over-refusal or usefulness. Evaluate harmful-request handling alongside legitimate task completion across relevant languages and groups. Refusal alone is not a complete safety objective.",
+      "Learned weights may retain training-specific information, and copies can persist in prompts, retrieval indexes, caches, or logs. Source deletion does not automatically remove these paths. Verify the system's actual data handling rather than promising exact removal without evidence."
+    ]
+  },
+  "genai-inference-and-diagnosis": {
+    "questions": [
+      "For a causal decoder, what makes past keys and values reusable after appending a token?",
+      "Estimate KV bytes for 16 layers, batch 2, length 1024, 4 KV heads, head width 64, and two bytes per value.",
+      "Why does FlashAttention not make ordinary full-attention arithmetic linear in sequence length?",
+      "Which KV-cache memory term changes when eight query heads share two KV heads instead of eight?",
+      "How can continuous batching improve utilization when one response is much shorter than the others?",
+      "A speculative draft proposes a token with probability 0.5 while the target assigns it 0.2. What acceptance probability preserves the stated sampling algorithm?",
+      "A prefix-cache hit uses the same visible text but a different model adapter. Can its hidden states be reused without further checks?",
+      "A candidate model is cheaper per generated token but doubles retries. What deployment comparison should decide?"
+    ],
+    "answers": [
+      "Earlier states cannot attend to the new future token, so they remain unchanged under the same model, prefix, and position convention. The new token still needs its own projections and attention computation. A changed prefix or model can invalidate reuse.",
+      "The estimate is 2×16×2×1024×4×64×2=33554432 bytes, or 32 MiB. The leading two counts keys and values. Actual deployment also needs weights, workspace, temporary activations, and allocation overhead.",
+      "It tiles and reorganizes the exact attention operation to reduce slow-memory traffic and avoid materializing the full score matrix. Full pairwise score work still scales quadratically for a full sequence, although practical runtime and memory use can improve substantially.",
+      "H_kv falls from eight to two, reducing the ideal KV storage by a factor of four at otherwise equal settings. Query computations remain distinct, and model quality or architectural compatibility must be evaluated rather than inferred from memory savings alone.",
+      "Its completed slot can accept new work while other sequences continue. This reduces idle slots but requires scheduling memory and compute across requests. Throughput improvements must be assessed alongside first-token delay, tail latency, and prefill interference.",
+      "Acceptance is min(1,0.2/0.5)=0.4. Rejected proposals require sampling from the normalized positive target-minus-draft residual distribution. Accepting every sufficiently likely token or resampling arbitrarily would generally alter the target distribution.",
+      "Not safely by text equality alone. Cache identity must include compatible model and adapter versions, tokenization, formatting, positions, and authorization boundaries. Hidden states computed under different parameters need not represent the new model's prefix.",
+      "Compare cost per successful complete request, including prompts, outputs, retrieval, tools, verification, retries, and failures. Evaluate matched quality and latency requirements on representative traffic. A per-token price or isolated throughput figure is insufficient."
+    ]
   }
 }
