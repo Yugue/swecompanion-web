@@ -52,9 +52,3 @@ Short histories share counts more easily but discard longer relationships.
 ## 6. Specify the score
 
 Total sequence probability, average token loss, and length-adjusted search scores answer different questions. Declare targets, boundaries, and termination before comparing them.
-
-## 7. Interview reasoning
-
-**Question:** Does the chain rule assume adjacent words are independent?
-
-**Answer:** No. Its full conditionals use the entire prefix. Restricted context is a separate approximation made by a model.

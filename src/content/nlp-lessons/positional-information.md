@@ -44,9 +44,3 @@ RoPE preserves each pair’s length while changing orientation; query–key dot 
 Computing an encoding at position 20,000 does not establish useful reasoning at that distance.
 
 Training lengths, position rules, and retained evidence affect long-context behavior. Test tasks requiring the claimed relationship.
-
-## 6. Interview reasoning
-
-**Question:** Does a larger maximum position index guarantee better long-document understanding?
-
-**Answer:** It permits more positions, but useful access to distant evidence must be learned and evaluated.

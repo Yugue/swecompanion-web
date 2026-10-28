@@ -50,9 +50,3 @@ Compare with a frozen baseline. Small labelled sets can still overfit; choose up
 ## 6. Preserve needed capabilities
 
 Check target slices, retained tasks, training cost, and serving resources. A narrow update restricts capacity; it does not guarantee that only useful behavior changes.
-
-## 7. Interview reasoning
-
-**Question:** Does freezing weights eliminate backpropagation through them?
-
-**Answer:** Not necessarily. Gradients may pass through fixed computations to earlier trainable modules. Fixed parameters need no updates, but upstream derivatives may still be required.

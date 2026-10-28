@@ -47,9 +47,3 @@ Validate mining, allow multiple positives, or exclude known equivalent documents
 Use the trained pooling and vector-normalization conventions. Handle empty/zero vectors explicitly.
 
 Evaluate realistic competing passages. Easy negatives can give low training loss without useful retrieval discrimination.
-
-## 7. Interview reasoning
-
-**Question:** Why can paraphrase embeddings retrieve the wrong answer?
-
-**Answer:** Similar wording is not answer relevance. Train and evaluate the query-document relationship with realistic alternatives.

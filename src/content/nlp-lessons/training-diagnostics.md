@@ -50,9 +50,3 @@ Compare the same metric and preparation on both sets.
 An **ablation** changes or removes a component to measure its contribution. Keep other conditions comparable; repeat fits when randomness matters.
 
 Record quality and cost. A lucky validation maximum still needs independent final assessment.
-
-## 7. Interview reasoning
-
-**Question:** Loss falls but accuracy stays flat. Is training broken?
-
-**Answer:** Probabilities can improve without crossing decision boundaries. Inspect scores, decisions, and labels before diagnosing failure.

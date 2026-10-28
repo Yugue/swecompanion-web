@@ -52,9 +52,3 @@ Valid paraphrases can score poorly. Review source adequacy alongside overlap.
 **Back-translation** creates synthetic sources from real target-language text using a reverse translator. It can propagate that translator’s errors.
 
 **Code-switching** mixes languages within an input. Test real supported mixtures, not only translated monolingual examples.
-
-## 8. Interview reasoning
-
-**Question:** Why can individually correct words form a wrong translation?
-
-**Answer:** Changed relationships, ordering, or scope can change the proposition. Check the complete source meaning.

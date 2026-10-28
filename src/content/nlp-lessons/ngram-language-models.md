@@ -54,9 +54,3 @@ Discount and normalize correctly; adding extra probability to a complete distrib
 Higher order distinguishes more phrases but creates sparse histories. Better training fit can coexist with worse future predictions.
 
 Use held-out loss to choose order and smoothing.
-
-## 7. Interview reasoning
-
-**Question:** Why smooth when the observed counts are correct?
-
-**Answer:** They describe a finite sample. Smoothing reserves probability for plausible continuations absent from that sample.

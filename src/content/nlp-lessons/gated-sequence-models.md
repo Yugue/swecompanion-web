@@ -51,9 +51,3 @@ There is no separate LSTM-style cell state. Update-gate formula conventions diff
 ## 6. Choose by task and cost
 
 Both remain recurrent and summarize evidence in fixed-width states. Compare quality, stability, state size, and latency on the same task.
-
-## 7. Interview reasoning
-
-**Question:** Is a near-zero forget gate always wrong?
-
-**Answer:** No. Removing stale evidence can help. Check whether the remaining memory preserves information needed for the prediction.

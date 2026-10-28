@@ -52,9 +52,3 @@ Shared key/value-head architectures change this estimate. Prefix length and conc
 Long-batch padding wastes work; truncation can remove decisive evidence. **Length bucketing** groups similar token lengths to reduce padding.
 
 Test evidence at different positions. An allowed context size does not establish reliable use of every token.
-
-## 7. Interview reasoning
-
-**Question:** Does caching remove all length-dependent generation cost?
-
-**Answer:** No. The cache grows, and each new query still reads the increasing prefix.

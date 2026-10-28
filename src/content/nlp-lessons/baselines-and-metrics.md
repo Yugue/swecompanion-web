@@ -54,9 +54,3 @@ For ordinary single-label classification over all classes, micro-F1 equals accur
 ## 6. Compare equal workloads
 
 Forty flags and four hundred flags create different review burdens. Lowering a cutoff cannot reduce recall on fixed scores, but precision can rise or fall.
-
-## 7. Interview reasoning
-
-**Question:** Can higher accuracy make filtering less useful?
-
-**Answer:** Yes. It may miss costly spam or block valuable legitimate messages. Compare error types and review workload against the current policy.

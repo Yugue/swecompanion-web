@@ -49,9 +49,3 @@ An encoder’s states may read the full input; a causal decoder’s last valid s
 Averaging can dilute one decisive word among boilerplate. A sentiment-trained summary can organize documents by attitude rather than answer relevance.
 
 Evaluate the intended comparison; the sentence-embedding lesson supplies a relationship-specific training objective.
-
-## 7. Interview reasoning
-
-**Question:** Why can averaging useful token states produce weak retrieval?
-
-**Answer:** The training signal and pooling may not make sentence distances express relevance. Test a suitable retrieval objective and inspect lost evidence.

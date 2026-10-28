@@ -165,10 +165,9 @@ for (const [chapterIndex, chapter] of nlpParts.entries()) {
     const inlineOnly = source.replace(/\\\[[\s\S]*?\\\]/g, ""); assert.equal((inlineOnly.match(/\\\(/g) ?? []).length, (inlineOnly.match(/\\\)/g) ?? []).length);
     const blocks = getLessonBlocks(topic.id, "nlp"), headings = blocks.filter(block => block.type === "heading2");
     headings.forEach((heading, i) => assert.ok(heading.text.startsWith(`${i + 1}. `), `Section order: ${topic.id}`));
-    if (headings.length < 6 || headings.length > 12) sectionReviews.push(`${topic.id}: ${headings.length} sections`);
+    if (headings.length < 5 || headings.length > 12) sectionReviews.push(`${topic.id}: ${headings.length} sections`);
     sections += headings.length; wordCounts.push(source.trim().split(/\s+/).length);
-    assert.match(headings.at(-1)!.text, /Interview reasoning/); assert.match(blocks.at(-2)!.text, /^\*\*Question:\*\*/); assert.match(blocks.at(-1)!.text, /^\*\*Answer:\*\*/);
-    assert.notEqual(blocks.at(-2)!.text.replace(/^\*\*Question:\*\* /, ""), topic.interviewPrompt, `Duplicate overview and closing probe: ${topic.id}`);
+    assert.doesNotMatch(source, /^## \d+\. Interview reasoning\s*$/m, `Closing Interview reasoning section remains: ${topic.id}`);
     for (const block of blocks) {
       if (block.type === "paragraph" || block.type === "quote") {
         const words = block.text.trim().split(/\s+/).length;
@@ -185,6 +184,7 @@ for (const [chapterIndex, chapter] of nlpParts.entries()) {
     if (built) {
       const html = fs.readFileSync(`out${NLP_PATH}/${topic.id}.html`, "utf8");
       assert.ok(html.includes("INTERVIEW-READY OVERVIEW") && html.includes("FULL LESSON") && html.includes("Interview probe:"));
+      assert.ok(!html.includes("Interview reasoning"), `Rendered Interview reasoning section remains: ${topic.id}`);
       assert.ok(html.includes(`Chapter ${chapter.number} mock interview`) && !/Part \d+ mock interview/.test(html));
       assert.ok(html.indexOf("INTERVIEW-READY OVERVIEW") < html.indexOf("FULL LESSON"));
       assert.ok(html.includes('<article aria-label="Full lesson"') && !html.includes("katex-error"));

@@ -47,9 +47,3 @@ A prompt can supply context while contributing no target loss.
 All-blocked scores have no ordinary softmax distribution. Handle that case explicitly.
 
 Check boolean direction and broadcast dimensions: APIs differ in whether true means allow or block.
-
-## 7. Interview reasoning
-
-**Question:** Does ignoring padding labels prevent padding from affecting predictions?
-
-**Answer:** It excludes loss terms only. Attention and pooling still need appropriate exclusions.

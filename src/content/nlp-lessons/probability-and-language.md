@@ -53,9 +53,3 @@ For equally likely word lengths X=1 or X=3 characters:
 **Independence** means knowing one variable leaves the other’s distribution unchanged. Sentence words generally violate it.
 
 Finite observed frequencies also have sampling uncertainty.
-
-## 7. Interview reasoning
-
-**Question:** Does “80% of spam contains this phrase” imply 80% spam risk when the phrase appears?
-
-**Answer:** No. Combine that likelihood with spam prevalence and the phrase’s frequency in legitimate messages.

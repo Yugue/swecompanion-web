@@ -44,9 +44,3 @@ Hashing needs no fitted vocabulary. Later corpus-based weighting still has fitte
 | Hashing | Fixed width; streaming | Collisions; harder weight inspection |
 
 Neither creates semantic equivalence or restores discarded word order.
-
-## 7. Interview reasoning
-
-**Question:** Why can wider hashing improve quality but increase memory?
-
-**Answer:** More coordinates reduce collisions while increasing possible model coefficients. Measure both the accuracy gain and storage cost.

@@ -52,9 +52,3 @@ Measure evidence recall, answer correctness, claim support, and attribution.
 **Abstention** deliberately avoids asserting an unsupported answer. Test missing/conflicting evidence and compare answer coverage with error costs.
 
 Retrieval changes evidence; fine-tuning changes learned behavior. Both can contribute.
-
-## 7. Interview reasoning
-
-**Question:** Does retrieving the correct document rule out retrieval-path failures?
-
-**Answer:** No. Confirm that the needed passage survived selection and reached the generator before diagnosing its use.

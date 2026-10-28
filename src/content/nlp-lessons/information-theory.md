@@ -54,9 +54,3 @@ Stable software computes log probabilities directly from scores. Clipping probab
 **Predictive entropy**, H(q), measures how concentrated the model’s own predictions are.
 
 A confident wrong prediction can have low entropy and high loss: assigning 0.01 to the actual outcome costs about 4.605 nats.
-
-## 7. Interview reasoning
-
-**Question:** Why not minimize predictive entropy instead of cross-entropy?
-
-**Answer:** Concentration alone does not identify the correct answer. Cross-entropy rewards probability on observed targets; entropy minimization alone can reward confident mistakes.

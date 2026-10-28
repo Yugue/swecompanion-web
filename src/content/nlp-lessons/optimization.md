@@ -56,9 +56,3 @@ For L(w)=(w−3)² at w=1, gradient=−4:
 **Gradient clipping** limits magnitude, for example by rescaling gradients beyond a norm bound.
 
 Check targets, rate, nonfinite values, and batch composition too. Clipping limits an update; it does not repair the wrong objective.
-
-## 7. Interview reasoning
-
-**Question:** Does doubling batch size with the same step count preserve an experiment?
-
-**Answer:** No. Data exposure and gradient noise change. Compare update count, examples/tokens seen, and learning-rate settings together.

@@ -41,9 +41,3 @@ Many O tokens can hide entity failures in token accuracy.
 Flat BIO assigns one label per token, so it cannot directly encode nested or overlapping spans.
 
 Independent predictions can also produce invalid continuations. Transition-aware decoding addresses that separate problem.
-
-## 7. Interview reasoning
-
-**Question:** Is “York” a correct location extraction for gold “New York”?
-
-**Answer:** Not under exact span matching. Correct type does not repair an incomplete boundary.

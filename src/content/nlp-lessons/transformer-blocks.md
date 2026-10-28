@@ -47,9 +47,3 @@ It receives context already mixed by attention; it does not itself read neighbor
 Other variants normalize after additions or change activations and gating. Match equations, diagram, and implementation.
 
 Dropout affects training/evaluation behavior, not the identity of learned weights.
-
-## 7. Interview reasoning
-
-**Question:** How can a positionwise network use distant words?
-
-**Answer:** Attention has already mixed their information into its input. It transforms those contextual features locally.

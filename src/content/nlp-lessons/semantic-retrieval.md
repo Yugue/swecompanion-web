@@ -43,9 +43,3 @@ Declare query aggregation and judgment coverage. Unjudged documents are not auto
 Corpus snapshot, encoder, tokenizer, normalization, and similarity rule must agree. Updating only the query encoder can make stored document vectors incompatible.
 
 Choose K using recall, downstream capacity, and latency.
-
-## 7. Interview reasoning
-
-**Question:** Why retrieve topical passages but miss an exact serial number?
-
-**Answer:** Learned similarity may ignore identifier distinctions. Inspect tokenization and index behavior, then compare lexical or hybrid retrieval.

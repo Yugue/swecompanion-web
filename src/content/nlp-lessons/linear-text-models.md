@@ -59,9 +59,3 @@ Feature scaling affects penalty strength. Choose it and the penalty using valida
 A bigram feature for “not good” adds a joint condition missing from unigram features.
 
 If reversed-role sentences have identical input vectors, no coefficient update distinguishes them. Change the representation before spending more training steps.
-
-## 7. Interview reasoning
-
-**Question:** Would training longer fix identical features assigned different meanings?
-
-**Answer:** No. Identical inputs produce identical scores. Preserve the missing distinction through features or model structure.

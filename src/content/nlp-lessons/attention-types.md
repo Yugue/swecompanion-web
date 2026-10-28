@@ -49,9 +49,3 @@ Increasing head count and head width together is a different cost experiment.
 Self-attention can use full context or only a prefix. Cross-attention can read a complete source while target self-attention remains causal.
 
 Source choice alone does not specify the mask.
-
-## 7. Interview reasoning
-
-**Question:** Can cross-attention scores form a rectangular matrix?
-
-**Answer:** Yes. Query and source lengths may differ, producing Tq-by-Tk comparisons.

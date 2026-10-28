@@ -47,9 +47,3 @@ Grades [1,3,0] score about 0.710 relative to ideal [3,1,0]. Declare gain and zer
 At 2 ms per pair in a stated serial setup, 100 pairs cost about 200 ms. Batching/hardware change actual latency.
 
 A fast first stage supplies coverage; a costly joint scorer improves ordering over a manageable set.
-
-## 7. Interview reasoning
-
-**Question:** Should a better cross-encoder replace first-stage retrieval?
-
-**Answer:** Joint scoring over every corpus document can be too expensive. Retrieve cheaply, then apply detailed interaction where it can affect the result.

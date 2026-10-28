@@ -52,9 +52,3 @@ Parameter gradients also depend on the participating vectors. Sampled negatives 
 “Hot” and “cold” share contexts despite opposite meanings. One “bank” vector mixes its senses.
 
 Averaging static vectors loses order: “dog bites man” and “man bites dog” have the same average.
-
-## 7. Interview reasoning
-
-**Question:** Does a larger context window always improve vectors?
-
-**Answer:** It changes the learning signal, often toward broader topical relationships. Evaluate the relationships your task needs.

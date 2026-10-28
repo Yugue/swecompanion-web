@@ -41,9 +41,3 @@ A **stopword** is a word selected for removal, usually for frequency. Removing â
 Use compatible preparation during training and inference. Retain offset mappings when transformations change length.
 
 Compare errors on names, numbers, punctuation, and languagesâ€”not only how clean the processed text looks.
-
-## 7. Interview reasoning
-
-**Question:** Should every pipeline strip accents?
-
-**Answer:** No. Accents can distinguish words and names. Test the intended equivalence and preserve source mappings where extraction needs them.

@@ -49,9 +49,3 @@ Clipping limits large gradients; it does not restore vanished signals.
 A **bidirectional RNN** combines forward and backward states. It suits complete-input tagging, but the backward path reveals future text in causal next-token prediction.
 
 Recurrence also limits within-layer parallelism because later states depend on earlier ones.
-
-## 7. Interview reasoning
-
-**Question:** Why can “bank” have one lookup vector but different RNN states?
-
-**Answer:** Each state combines that vector with a different preceding state, making the result context-dependent.

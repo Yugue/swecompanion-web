@@ -46,9 +46,3 @@ For vocabulary width V, sparse storage keeps nonzero values and indices instead 
 | N-grams | Local phrase evidence | Sparse; limited context |
 
 Lexical features suit exact identifiers and distinctive phrases. Paraphrases with little overlap remain difficult.
-
-## 7. Interview reasoning
-
-**Question:** Why can bigrams help a classifier handle “not good”?
-
-**Answer:** They add a coordinate for that joint phrase. Unigram coefficients only add separate contributions from “not” and “good.”

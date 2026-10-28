@@ -51,9 +51,3 @@ Check for training contamination in held-out passages; memorized text does not t
 Lower perplexity does not establish faithful summaries, correct facts, or appropriate refusal to answer.
 
 A likely continuation can remain unsupported by the supplied document.
-
-## 7. Interview reasoning
-
-**Question:** Is perplexity 8 better than 10 under different tokenizers?
-
-**Answer:** That conclusion is unsupported. Align scoring units, evidence, and targets, then evaluate the intended task.

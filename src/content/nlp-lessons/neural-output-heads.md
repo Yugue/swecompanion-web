@@ -51,9 +51,3 @@ B is batch size, T positions, C classes. Target −100 marks ignored positions. 
 Flattening batch and position axes is valid when logits and labels stay aligned and averaging is preserved. Mixing the class axis with positions changes the computation.
 
 Use stable binary-logit loss for sigmoid heads. Validate thresholds separately from fitting probabilities.
-
-## 7. Interview reasoning
-
-**Question:** Why cannot softmax assign 0.8 to two classes simultaneously?
-
-**Answer:** Its probabilities represent exclusive alternatives and sum to one. Coexisting labels need a suitable multilabel output.

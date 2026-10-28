@@ -48,9 +48,3 @@ If 100 predictions near 0.8 contain only 60 correct labels, confidence and obser
 Negation, quotations, unfamiliar names, and missing conversation context expose different failures.
 
 An unknown intent can receive a large softmax score. Calibration on known inputs does not establish unknown-intent detection; validate a review or clarification policy too.
-
-## 8. Interview reasoning
-
-**Question:** Does 0.99 maximum softmax justify routing an unfamiliar request automatically?
-
-**Answer:** No. The model must distribute probability among its known classes. Test unsupported inputs and the review policy independently.

@@ -45,9 +45,3 @@ These are common uses, not exclusive capabilities. Heads or task reformulations 
 Architecture permits computations. The objective chooses targets and which information is withheld.
 
 Choose using input availability, output structure, measured quality, latency, and training resources.
-
-## 7. Interview reasoning
-
-**Question:** Why can translation read the final source word but not the final target word?
-
-**Answer:** The complete source is supplied input. The target is the unknown output, so future target access leaks the answer.

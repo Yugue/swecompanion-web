@@ -45,9 +45,3 @@ Learn vocabularies, word-frequency statistics, and selected features inside trai
 Repeatedly choosing changes from test errors makes that test development evidence. Reserve fresh assessment when an independent estimate is required.
 
 Choose split sizes from coverage and dependence, rather than a universal percentage.
-
-## 7. Interview reasoning
-
-**Question:** Why can conversation-level splitting fail to test new customers?
-
-**Answer:** One customer may own several conversations across both sets. Hold out customers when previously unseen customers are the target population.

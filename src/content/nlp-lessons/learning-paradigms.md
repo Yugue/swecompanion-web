@@ -48,9 +48,3 @@ These choices address different constraints; they can be combined.
 With 500 reviewed messages, establish a supervised starting model. Test whether pretraining or extra text improves routing on independent routing labels.
 
 Masked-word performance alone does not answer that question.
-
-## 7. Interview reasoning
-
-**Question:** Does self-supervised training have no targets?
-
-**Answer:** It has targets constructed from the data rather than separately supplied answers. The model still minimizes a prediction cost.

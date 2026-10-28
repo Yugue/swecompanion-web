@@ -46,9 +46,3 @@ A **model-based judge** evaluates outputs using another model. Check its consist
 Review unsupported claims, attribution, omitted caveats, and duplicates separately from grammar.
 
 **Controlled generation** imposes format, length, or field requirements. Valid format does not establish support; shorter output can omit essential content.
-
-## 7. Interview reasoning
-
-**Question:** Why not reward every length reduction?
-
-**Answer:** Removing important facts or qualifications can shorten the output while making it misleading. Judge information and support alongside length.

@@ -52,9 +52,3 @@ Smoothing prevents unseen words from zeroing a product. Sum log probabilities to
 Overlapping features can count the same evidence twice.
 
 A **calibrated** probability matches observed outcome frequencies on a relevant population. Normalized Naive Bayes scores can still be overconfident when independence is badly violated.
-
-## 7. Interview reasoning
-
-**Question:** Why can “free” plus “free money” exaggerate confidence?
-
-**Answer:** Their evidence overlaps, while the model multiplies their separate likelihood contributions. Check probability reliability as well as class ordering.

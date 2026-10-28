@@ -58,9 +58,3 @@ optimizer.step()
 ```
 
 A **detached** tensor excludes earlier history from differentiation. A frozen parameter is intentionally held fixed. Check both when updates disappear.
-
-## 7. Interview reasoning
-
-**Question:** Why add gradients at a reused embedding row?
-
-**Answer:** Changing that row affects every use. The loss sensitivity sums over all those paths.

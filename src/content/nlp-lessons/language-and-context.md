@@ -48,9 +48,3 @@ Removing “not” and treating every “not” identically both fail.
 Create **minimal pairs**: examples differing in one important feature. Reverse participants, add negation, or change an ambiguous word’s context.
 
 If annotators need earlier messages, supply them or permit uncertainty. Missing evidence cannot be repaired by a more confident judgement.
-
-## 7. Interview reasoning
-
-**Question:** Why can deleting short words hurt predictions?
-
-**Answer:** They can express negation, relationships, and scope. Remove words only when the task can tolerate those lost distinctions.

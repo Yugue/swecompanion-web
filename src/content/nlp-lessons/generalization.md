@@ -46,9 +46,3 @@ Dropping a hidden feature differs from deleting “not,” which can change the 
 | Good train; poor validation | Overfitting, population change, inconsistent preparation |
 
 Representative data supplies information that a penalty cannot create.
-
-## 7. Interview reasoning
-
-**Question:** Does perfect training accuracy automatically require stronger regularization?
-
-**Answer:** Inspect validation and pipeline validity first. Stronger restrictions address some fitting problems, not missing evidence or an invalid evaluation.

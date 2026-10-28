@@ -54,9 +54,3 @@ Nonlinear activations enable relationships one weighted sum cannot express.
 An MLP receiving identical bag-of-words vectors cannot distinguish their original word orders. More layers cannot recover information already discarded.
 
 Use suitable input features as well as useful transformations.
-
-## 7. Interview reasoning
-
-**Question:** Do ten dense layers guarantee word-order sensitivity?
-
-**Answer:** No. Order must survive in the features or computation. Depth transforms supplied evidence; it does not recreate missing evidence.

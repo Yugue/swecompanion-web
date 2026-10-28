@@ -51,9 +51,3 @@ These are different objectives and training processes.
 If reviewers favor verbosity or persuasive wording, optimization can reinforce those patterns.
 
 Evaluate correctness, unsupported claims, and retained abilities separately from style preference.
-
-## 7. Interview reasoning
-
-**Question:** Why can preference training produce convincing wrong answers?
-
-**Answer:** It optimizes the supplied judgements. Weak correctness evidence can reward persuasive responses without reliable factual support.

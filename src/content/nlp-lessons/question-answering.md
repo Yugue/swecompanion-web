@@ -46,9 +46,3 @@ Partial answers can earn overlap credit while failing exact match. State alterna
 A reader cannot extract missing evidence. Long inputs may need windows; verify that the answer survives truncation and remains a valid within-window span.
 
 Extraction can still select a misleading or unrelated source phrase.
-
-## 7. Interview reasoning
-
-**Question:** Does a high start probability guarantee a correct answer?
-
-**Answer:** No. It needs a compatible end, correct source alignment, and evidence that the question is answerable.

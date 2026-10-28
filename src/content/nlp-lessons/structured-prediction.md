@@ -53,9 +53,3 @@ D_t(k) is that prefix score. Save predecessor choices, select the best final lab
 Viterbi finds one best path. Training normalization sums all permitted paths, using a stable log-sum-exp recurrence.
 
 Best-path scores alone cannot supply Z.
-
-## 7. Interview reasoning
-
-**Question:** Must decoding enumerate every possible sequence?
-
-**Answer:** No. The chain structure lets Viterbi reuse the best prefix per ending label and reconstruct the optimal permitted path.

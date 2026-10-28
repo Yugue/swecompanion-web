@@ -39,9 +39,3 @@ Group shared source sentences or document families across splits; generated pair
 A **shortcut** predicts dataset labels without capturing the intended relationship.
 
 Example: always treating negation as contradiction fails on “not only good, but excellent.” Test swapped roles, names, quantities, and negation scope.
-
-## 7. Interview reasoning
-
-**Question:** Why cannot high cosine verify a claim?
-
-**Answer:** Similarity can remain high for contradictions. Verification needs relevant evidence and a support judgement trained for that relationship.

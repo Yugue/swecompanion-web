@@ -53,9 +53,3 @@ Vocabulary training can prune pieces with little contribution to corpus likeliho
 Equal vocabulary sizes do not imply equal token lengths. Under one token cutoff, different tokenizers can expose different amounts of source text.
 
 Measure truncation and downstream errors on the languages you serve.
-
-## 7. Interview reasoning
-
-**Question:** Does equal vocabulary size imply equal context coverage?
-
-**Answer:** No. Different pieces and segmentation rules produce different lengths for the same text.

@@ -50,9 +50,3 @@ Exclude padding where required. Check whether truncation removes the answer or a
 Tokenizer rules, vocabulary IDs, and model weights must agree. Reassigning IDs selects different learned vectors.
 
 Measure token lengths across supported languages and preserve source mappings for extraction.
-
-## 7. Interview reasoning
-
-**Question:** Why can a smaller vocabulary increase inference cost?
-
-**Answer:** It may produce more tokens. Longer sequences can outweigh savings from a smaller embedding table.

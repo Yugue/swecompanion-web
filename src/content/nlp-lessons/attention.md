@@ -54,9 +54,3 @@ Dividing by √d_k moderates this growth. The toy uses d_k=1, so scaling leaves 
 Only supplied, allowed values can contribute. The output is a mixture, not necessarily one original vector.
 
 An attention weight shows internal routing; it does not alone establish a faithful explanation of the final prediction.
-
-## 7. Interview reasoning
-
-**Question:** Must the most-attended token’s embedding equal the output?
-
-**Answer:** No. Attention mixes projected values, and later transformations can change that mixture further.

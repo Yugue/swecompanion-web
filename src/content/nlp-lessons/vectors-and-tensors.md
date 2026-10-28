@@ -60,9 +60,3 @@ Doubling a candidate doubles its dot product with q while preserving cosine. Zer
 Compatible shapes permit computation. Useful features determine whether its result measures relevance, sentiment, or something else.
 
 Before multiplying, name each axis and the intended output.
-
-## 7. Interview reasoning
-
-**Question:** Can [3,4] weights multiply a four-entry vector?
-
-**Answer:** Yes. Three rows each combine four inputs, producing three outputs. A three-entry input would not match the input axis.

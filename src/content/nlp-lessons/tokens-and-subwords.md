@@ -41,9 +41,3 @@ A piece need not match a word or morpheme. It represents a useful fitted text fr
 More merges add vocabulary entries and usually shorten familiar text. Rare scripts can still fragment heavily.
 
 Inspect segmentation and length distributions on actual inputs. A vocabulary that compresses one language well may truncate another language’s evidence more often.
-
-## 7. Interview reasoning
-
-**Question:** Why keep vocabulary training separate from final evaluation text?
-
-**Answer:** Otherwise the representation adapts to held-out inputs. Declare external pretraining resources and evaluate the resulting fixed tokenizer/model procedure.

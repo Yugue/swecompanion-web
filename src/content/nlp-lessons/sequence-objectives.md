@@ -49,9 +49,3 @@ An early error changes later inputs. Evaluate complete outputs alongside referen
 One fixed-width source state can lose long-input details. Increasing width differs from letting each prediction read relevant source positions directly.
 
 The next chapter develops that direct-reading mechanism.
-
-## 7. Interview reasoning
-
-**Question:** Why can low teacher-forced loss coexist with poor translations?
-
-**Answer:** Generation uses the model’s own earlier choices. Prefix errors, stopping, and search can damage complete outputs despite good predictions under reference prefixes.

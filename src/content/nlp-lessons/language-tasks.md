@@ -42,9 +42,3 @@ Routing needs correct destinations. Extraction needs correct boundaries and type
 ## 6. Handle missing context
 
 If essential evidence is absent, allow clarification or review. Fluent output does not establish understanding or correctness.
-
-## 7. Interview reasoning
-
-**Question:** Is sentiment classification sufficient to route complaints?
-
-**Answer:** No. Attitude does not identify the requested service. Define routing labels and evaluate those predictions directly.

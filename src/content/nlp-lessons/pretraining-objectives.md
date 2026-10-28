@@ -51,9 +51,3 @@ Architecture access and corruption must match the declared objective.
 Test relevant labels, languages, lengths, and outputs after adaptation. Pretraining loss measures its constructed task, not factual support or universal downstream quality.
 
 Document pretraining resources when assessing held-out generalization.
-
-## 7. Interview reasoning
-
-**Question:** Can masked-token scores be multiplied as ordinary causal sequence probabilities?
-
-**Answer:** Not directly. Their conditionals can read right context and differ from prefix-only factors. Use a declared scoring convention.

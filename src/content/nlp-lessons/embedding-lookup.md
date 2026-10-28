@@ -53,9 +53,3 @@ Lookup shares a row across occurrences. Later context processing can produce dif
 An unknown row merges unsupported strings unless another input path preserves them.
 
 A padding row may suppress lookup gradients; later summaries and losses still need their own exclusions. A zero vector alone does not enforce every padding rule.
-
-## 7. Interview reasoning
-
-**Question:** Are vector coordinates human-provided labels?
-
-**Answer:** Usually they are learned parameters. Task labels guide the objective; gradients adjust the coordinates.

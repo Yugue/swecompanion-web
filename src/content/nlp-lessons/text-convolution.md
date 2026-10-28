@@ -43,9 +43,3 @@ Padding adds boundary positions; exclude invalid windows from summaries when nee
 Short filters suit local phrases and character patterns. Stacked layers expand the **receptive field**, the input region influencing an output.
 
 Global pooling alone cannot restore the order of distant matches.
-
-## 7. Interview reasoning
-
-**Question:** Why detect phrases anywhere but miss who acted on whom?
-
-**Answer:** Local detectors find patterns; pooling may discard their locations. The final features can omit the relationships needed to distinguish reversed roles.
