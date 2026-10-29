@@ -1444,5 +1444,161 @@
       "Not safely by text equality alone. Cache identity must include compatible model and adapter versions, tokenization, formatting, positions, and authorization boundaries. Hidden states computed under different parameters need not represent the new model's prefix.",
       "Compare cost per successful complete request, including prompts, outputs, retrieval, tools, verification, retries, and failures. Evaluate matched quality and latency requirements on representative traffic. A per-token price or isolated throughput figure is insufficient."
     ]
+  },
+  "llm-foundations": {
+    "questions": [
+      "A model reads a new policy in its prompt and answers from it. Did its parameters necessarily change?",
+      "For a two-token prefix, the first token has probability 0.3 and the second given the first has probability 0.4. What is the prefix probability?",
+      "An embedding table has shape [1000,64]. What is the shape of lookup results for a batch of eight 20-token sequences?",
+      "Logits are [log 2,0,0]. What are their probabilities and the loss when the first token is correct?",
+      "Why do two affine layers without a nonlinear activation collapse into a single affine map?",
+      "A scalar weight is 1, its loss derivative is 4, and learning rate is 0.05. What is the gradient-descent update?",
+      "How do dot product and cosine treat vectors [1,0] and [2,0] differently?",
+      "For p=[1,0] and q=[0.5,0.5], compare KL(p||q) with KL(q||p)."
+    ],
+    "answers": [
+      "No. Reading context during ordinary inference changes the available input, not stored parameters. A training update would require an objective, gradient computation, and optimizer update.",
+      "0.12 by the probability chain rule. Multiplying marginal token frequencies instead would incorrectly discard the dependence on the prefix.",
+      "[8,20,64]. Token IDs choose rows from the 1000-row table; each position receives a 64-dimensional vector.",
+      "The probabilities are [0.5,0.25,0.25]. Negative log target probability is log 2, approximately 0.693. Cross-entropy implementations generally receive raw logits rather than these probabilities.",
+      "Substitution gives W2(W1x+b1)+b2=(W2W1)x+(W2b1+b2). Nonlinear activations prevent this collapse and enable richer input-dependent transformations.",
+      "The new weight is 1−0.05×4=0.8. Backpropagation computes the derivative; the optimizer applies the update. The local derivative does not guarantee a finite large step improves loss.",
+      "Their dot product is 2, while cosine is 1 because they point in the same direction. Dot-product scoring can be affected by vector norms; cosine normalizes those norms for nonzero vectors.",
+      "KL(p||q)=log 2. The reverse divergence is infinite because q assigns positive mass to the second token where p assigns zero. KL is directional and its support requirements matter."
+    ]
+  },
+  "llm-transformers": {
+    "questions": [
+      "Attention weights are [0.75,0.25] and values are [2,0] and [0,4]. What is the output?",
+      "Why does masking a target in the loss fail to prevent another position from reading it?",
+      "What remains unchanged if RoPE rotates fixed query and key vectors by the same additional angle?",
+      "Compare LayerNorm and RMSNorm on [1,3] with unit gain and negligible epsilon.",
+      "In translation, why may a target decoder read the complete source while still needing a causal mask?",
+      "Four experts store one million parameters each, and two are selected per token. What are stored and active expert counts?",
+      "Why is masking a forbidden value vector after softmax generally different from masking its score before softmax?",
+      "A positionwise FFN expands width 4 to 12 and projects back with two bias-free matrices. Count its parameters and explain what it mixes."
+    ],
+    "answers": [
+      "[1.5,1]. Each value is multiplied by its weight and the results are added. Changing keys affects the weights; values supply the mixed content.",
+      "Loss masking controls which predictions contribute to the objective. Attention masking controls information access. A visible future token can leak its information even when its own target loss is ignored.",
+      "Their dot product is unchanged because the relative rotation is unchanged. The relative positional gap, rather than the shared absolute shift, determines that pair’s positional contribution under the stated fixed-content comparison.",
+      "LayerNorm subtracts the mean 2 and divides by standard deviation 1, producing [−1,1]. RMSNorm divides by sqrt(5) without mean subtraction, producing approximately [0.447,1.342].",
+      "The full source is available conditioning information, accessed through cross-attention. Future target tokens are unknown at generation and must remain hidden during target-side self-attention training.",
+      "Stored expert weights total four million parameters; two million expert parameters are activated per token before shared layers. A batch may use all experts, and routing communication remains a cost.",
+      "The forbidden score has already consumed probability mass during normalization. Masking the score before softmax makes the allowed weights sum to one; merely zeroing a value afterward generally does not.",
+      "There are 4×12+12×4=96 parameters. It transforms features within each position using shared weights; attention, rather than this independent FFN, mixes information across positions."
+    ]
+  },
+  "llm-pretraining": {
+    "questions": [
+      "With input [BOS,cats,sleep], which next-token targets align with its three positions?",
+      "Does adding EOS between packed documents automatically prevent cross-document attention?",
+      "A validation article is a lightly edited copy of training text. Why is a random document split insufficient?",
+      "Under C≈6ND, compare 1 billion parameters on 20 billion tokens with 2 billion on 10 billion.",
+      "Why can Adam training of one billion FP32 parameters require at least 16 decimal GB before activations?",
+      "A training run fits a tiny batch but fails on held-out tasks. What has the tiny-batch test established?",
+      "What does loss scaling do, and why should clipping happen after gradients are unscaled?",
+      "Eight GB of optimizer moments is evenly sharded over four workers. Is two GB the complete memory needed on each worker?"
+    ],
+    "answers": [
+      "[cats,sleep,EOS] for the illustrated complete example. A causal mask prevents future-target access. Check whether the training library shifts internally before applying a second external shift.",
+      "No. EOS is an input marker. Independent examples require an attention rule such as block-diagonal causal masking; an EOS marker alone does not zero cross-document attention weights.",
+      "Near-duplicates can cross the split and inflate performance. Group related or near-duplicate content before splitting and audit source lineage and evaluation-answer contamination.",
+      "Both estimate 1.2×10^20 training FLOPs. Equal estimated compute does not establish equal loss; data quality, optimization, and model size versus token allocation determine the outcome.",
+      "Weights require 4 GB, gradients 4 GB, and two FP32 Adam moment arrays 8 GB. Activations, buffers, and any additional state increase the total beyond this simplified estimate.",
+      "The tested training path can learn those examples, making some wiring failures less likely. It does not establish generalization. Inspect data mixture, contamination, overfitting, scoring consistency, and task slices.",
+      "It multiplies the loss before backward computation and divides gradients by the same scale before updating, which can prevent tiny low-precision gradients from rounding to zero. Clipping scaled gradients would apply a different effective threshold.",
+      "No. Two GB is the ideal per-worker share of that component only. Weights, gradients, activations, communication buffers, and temporary gathers can require additional memory."
+    ]
+  },
+  "llm-post-training": {
+    "questions": [
+      "What changes when prompt tokens are excluded from response-only SFT loss?",
+      "For a 100 by 100 matrix and LoRA rank 4, how many adapter parameters are added before biases?",
+      "Why initialize only one LoRA factor to zero rather than both?",
+      "How do PPO clipping and a reference KL penalty differ?",
+      "Preferred and rejected policy/reference probability ratios are 2 and 0.5. What is the DPO margin and implied comparison probability for beta one?",
+      "Contrast teaching a model from a demonstration with teaching it from a sampled response’s outcome reward.",
+      "Why does a soft teacher distribution [0.6,0.3,0.1] communicate more than choosing its first token as the only target?",
+      "Why can generating both task inputs and answers with the same teacher create apparently consistent but incorrect training data?"
+    ],
+    "answers": [
+      "Their target predictions are not directly scored, but the tokens remain available as context. Removing them from input is a different change that can destroy the conditional task.",
+      "A has 4×100 and B has 100×4 entries, totaling 800 rather than 10,000 unrestricted matrix entries. The frozen base still executes and requires storage.",
+      "One zero factor starts the added BA update at zero while a nonzero other factor enables a gradient into the zero factor. If both are zero, each factor’s gradient through the product is zero and learning stalls.",
+      "PPO clipping limits the surrogate incentive to move sampled-action probabilities relative to the policy that collected samples. Reference KL discourages distributional drift from a reference model. Neither is a universal hard update bound or a truth guarantee.",
+      "The margin is log 2−log 0.5=log 4. Sigmoid(log 4)=0.8. This relative objective need not increase the absolute probability of every preferred response.",
+      "A demonstration supplies desired token targets. An outcome reward evaluates a sampled continuation, and policy learning changes the probability of sampled actions using their estimated advantage. Both depend on the quality of their supervision.",
+      "It communicates the relative plausibility of the alternatives too. A compatible student distribution can learn those ratios, whereas one hard target discards that information.",
+      "The teacher can reproduce the same misconception in both. Validate with source evidence, calculations, execution, or independent review appropriate to the task; internal agreement is not independent verification."
+    ]
+  },
+  "llm-generation-and-grounding": {
+    "questions": [
+      "For probabilities [4/7,2/7,1/7], what does top-p sampling with p=0.8 retain?",
+      "Why can a schema-valid tool call still be unsafe or incorrect?",
+      "An 8000-token context reserves 500 for instructions, 1000 for history, and 1500 for output. How much remains for evidence?",
+      "How would you distinguish a retrieval failure from failure to use correctly retrieved evidence?",
+      "A remote write times out. Why is immediately retrying it potentially incorrect?",
+      "Should changing private policy documents primarily be learned through repeated fine-tuning?",
+      "Three independent attempts each succeed with probability 0.2. Is best-of-three deployed accuracy necessarily 0.488?",
+      "A search keeps only the highest-scoring partial path. Why can it miss the best complete path?",
+      "Why does adding a few-shot demonstration normally not change the stored parameter values?",
+      "Why can a strong reranker fail on a question containing an exact product identifier?"
+    ],
+    "answers": [
+      "The first two sorted tokens reach cumulative mass 6/7, which exceeds 0.8. After renormalization their probabilities are [2/3,1/3,0]. The result assumes probabilities were computed before this filtering step.",
+      "Schema validity checks structure and types, not resource authorization or semantic correctness. The executor must validate business rules, user permissions, and the actual referenced resource outside the model.",
+      "At most 5000 tokens before further role, separator, or tool-format overhead. Ensure the actual tokenizer and serving context-accounting convention match the estimate.",
+      "Keep question and model fixed and substitute verified evidence. Improvement points toward retrieval, chunk selection, or truncation. Continued failure points toward instructions, context use, or model capability.",
+      "The operation may have succeeded even though its response was lost. Check recorded status or use an idempotency key so a retry does not duplicate the effect.",
+      "First test authorized retrieval with freshness and source checks. It updates supplied evidence without retraining. Fine-tuning may help stable response behavior but is not a dependable mechanism for exact, rapidly changing factual access.",
+      "No. 1−0.8^3=0.488 is the probability at least one candidate succeeds under independence. A real selector must identify it; correlated mistakes, incomplete verifiers, and selection errors can lower delivered accuracy.",
+      "Conditional probabilities at later positions can reverse the ranking. An initially weaker branch can have a much stronger completion. A finite beam retains more candidates but still may prune the optimum.",
+      "It conditions the forward computation through input context. Ordinary inference has no gradient computation and optimizer update. Any model adaptation must be performed by a separate training procedure.",
+      "It can only reorder the candidate set it receives. If candidate retrieval omitted the exact supporting passage, reranking cannot recover it. Lexical or hybrid retrieval may improve coverage for identifiers."
+    ]
+  },
+  "llm-evaluation-and-safety": {
+    "questions": [
+      "A score rises from 80 to 84 correct answers out of the same 100. Why inspect changed cases?",
+      "Why is high word overlap an inadequate factuality metric for summaries?",
+      "How would you detect position bias in a pairwise model judge?",
+      "A system answers 80 of 100 requests and gets 72 right. Report coverage and answered-case accuracy.",
+      "Why is a system instruction saying “never leak data” insufficient protection for a retrieval tool?",
+      "What does deleting a private document from an index fail to guarantee?",
+      "How would you distinguish membership inference from extraction of a memorized training passage?",
+      "A model blocks every harmful test prompt by refusing every request. Which additional measurements reveal the failure?"
+    ],
+    "answers": [
+      "Four net wins can hide many regressions offset by gains. Paired inspection and important slices reveal what changed, while uncertainty estimates help judge whether the apparent gain is stable.",
+      "A short negation or changed number can reverse meaning while preserving most words. Check claim correctness and source support, using overlap only for the limited property it measures.",
+      "Randomize candidate order and repeat selected comparisons with the order swapped while hiding model identity. Inspect inconsistent judgments and validate against independent human labels under a fixed rubric.",
+      "Coverage is 80/100=0.8. Accuracy among answered requests is 72/80=0.9. Both are needed because avoiding difficult cases can inflate answered-case accuracy.",
+      "The model can be redirected or make mistakes. Enforce identity, document permissions, and outbound action checks independently of generated text; retrieved content cannot grant authorization.",
+      "It does not erase copies in caches or logs, nor remove any influence already learned in weights. Investigate each exposure route and validate the scope of any claimed deletion or unlearning.",
+      "Membership inference estimates whether an example was in training. Extraction attempts to reproduce content. They test different threats, and either must be evaluated separately from exposure through retrieval, tools, or logs.",
+      "Measure legitimate-task success and refusal appropriateness, including relevant languages and dialects. An attack-only metric hides over-refusal and uneven access to useful assistance."
+    ]
+  },
+  "llm-inference-and-serving": {
+    "questions": [
+      "After prefill of A B C selects D, what work happens when D is processed?",
+      "Compute KV storage for 32 layers, one sequence, 4096 positions, eight KV heads, width 128, and two bytes per value.",
+      "How do FlashAttention and paged cache management differ?",
+      "Two prompts share 2000 tokens and each adds 200. What is the ideal prompt-token processing saving from prefix reuse?",
+      "For speculative sampling with q=[0.8,0.2] and p=[0.6,0.4], explain acceptance and rejection correction.",
+      "TTFT is 0.2 seconds and four following token intervals each take 0.05 seconds. What is five-token response time?",
+      "Why should weight-only and KV-cache quantization be evaluated separately for long concurrent requests?"
+    ],
+    "answers": [
+      "The model computes D’s states and key/value projections, appends its cache entries, attends to the allowed prefix, and produces logits for the next token. Earlier causal states can be reused if the prefix and configuration are unchanged.",
+      "2×32×1×4096×8×128×2=536870912 bytes, or 512 MiB. The factor two counts keys and values. Weights and runtime state are additional.",
+      "FlashAttention reduces attention memory traffic by tiled computation without materializing the full score matrix. Paged caches manage where sequence KV state is allocated to reduce waste and enable reuse. Neither by itself changes the causal attention semantics.",
+      "Independent processing counts 4400 prompt tokens; ideal reuse counts 2400, a saving of 2000. Runtime savings need not match that ratio because attention, cache lookup, and scheduling have their own costs.",
+      "A is accepted with probability 0.75 and B with probability one. Rejected A draws from normalized positive p−q, which selects B. Final mass is 0.6 on A and 0.4 on B, matching the target distribution.",
+      "Approximately 0.4 seconds: 0.2+(5−1)×0.05. Real queueing, variable interval times, and tools can change the result. Diagnose first-token and subsequent-token delays separately.",
+      "They compress different state. Weight compression can help the shared model footprint but leave sequence-dependent KV growth unchanged. Quantizing the KV cache targets that growth and has its own numerical and quality effects."
+    ]
   }
 }

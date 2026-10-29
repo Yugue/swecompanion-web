@@ -10,7 +10,8 @@
     "check:nlp": "tsx scripts/checkNlpGuide.ts",
     "check:cv": "tsx scripts/checkCvGuide.ts",
     "seed:quizzes": "tsx scripts/seedQuizzes.ts",
-    "check:genai": "tsx scripts/checkGenaiGuide.ts"
+    "check:genai": "tsx scripts/checkGenaiGuide.ts",
+    "check:llm": "tsx scripts/checkLlmGuide.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

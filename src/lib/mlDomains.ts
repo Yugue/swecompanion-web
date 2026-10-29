@@ -14,6 +14,7 @@ export const DEEP_LEARNING_PATH = `${ML_DOMAIN_PATH}/deeplearning`;
 export const APPLIED_ML_PATH = `${ML_DOMAIN_PATH}/appliedml`;
 export const AGENTIC_AI_PATH = `${ML_DOMAIN_PATH}/agentic`;
 export const RRP_PATH = `${ML_DOMAIN_PATH}/rrp`;
+export const LLM_PATH = `${ML_DOMAIN_PATH}/llm`;
 export const GENAI_PATH = `${ML_DOMAIN_PATH}/genai`;
 export const NLP_PATH = `${ML_DOMAIN_PATH}/nlp`;
 export const CV_PATH = `${ML_DOMAIN_PATH}/cv`;
@@ -67,7 +68,11 @@ export const ML_DOMAINS: { name: string; href?: string; summary?: string }[] = [
     summary:
       "Tool use and function calling, planning, memory and retrieval, multi-agent systems, evaluation and safety, and running agents in production.",
   },
-  { name: "Large Language Models (LLM)" },
+  {
+    name: "Large Language Models (LLM)",
+    href: LLM_PATH,
+    summary: "Standalone foundations, Transformer architecture, pretraining, adaptation and preference learning, generation and grounding, reliable evaluation, and efficient LLM serving. No other topic required.",
+  },
   { name: "Speech / Audio" },
   { name: "Reinforcement Learning" },
   { name: "Distributed Machine Learning" },
