@@ -30,7 +30,7 @@ export function Pricing() {
           description="Install and try the companion on your own machine at no cost. Unlock unlimited use with a single subscription — cancel anytime."
         />
 
-        <div className="mt-8 flex items-center justify-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <span
             className={cn(
               'text-sm',
@@ -113,11 +113,11 @@ export function Pricing() {
                   'linear-gradient(90deg, var(--brand-blue), var(--brand-cyan))',
               }}
             />
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-mono text-xs tracking-widest text-brand-blue uppercase">
                 Pro — unlimited use
               </p>
-              <span className="rounded-full bg-brand-blue px-2.5 py-1 font-mono text-[10px] tracking-wide text-primary-foreground uppercase">
+              <span className="rounded-full bg-brand-blue px-2.5 py-1 font-mono text-base tracking-wide text-primary-foreground uppercase">
                 Most popular
               </span>
             </div>

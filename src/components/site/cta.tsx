@@ -27,7 +27,7 @@ export function Cta() {
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Button
                 size="lg"
-                className="h-11 bg-brand-blue px-5 text-[0.95rem] text-white hover:bg-brand-blue/90"
+                className="h-11 bg-brand-blue px-5 text-base text-white hover:bg-brand-blue/90"
                 render={
                   <a href="#top">
                     Download for macOS
@@ -38,7 +38,7 @@ export function Cta() {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-11 px-5 text-[0.95rem]"
+                className="h-11 px-5 text-base"
                 render={<a href="#pricing">See pricing</a>}
               />
             </div>
