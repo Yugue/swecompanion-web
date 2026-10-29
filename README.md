@@ -84,6 +84,19 @@ npm run dev
 
 Open http://localhost:3000.
 
+The Reinforcement Learning guide is available at `/mldomain/rl`: 33 standalone lessons
+across six Parts, covering probability and neural foundations, Bellman reasoning,
+value learning, policy gradients and actor–critics, models and offline data, and
+practical reward design, evaluation, and deployment. Sources live in
+`src/content/rl-lessons`; the curriculum is defined in `src/lib/rlStudyData.ts`.
+Lessons use concise numbered sections, essential equations, small worked examples,
+comparison tables, and diagrams.
+Progress is independent of other topics and supports the existing account sync.
+Run `npm run check:rl` to validate coverage, prerequisites, parsed equations and tables,
+lesson structure, short code examples, and numerical learning mechanisms.
+After building, `npm run check:rl -- --export` checks all 33 exported lesson pages,
+sequential links, canonical metadata, and sitemap entries.
+
 ## Build the static site
 
 ```bash
