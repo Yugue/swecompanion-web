@@ -119,13 +119,11 @@ export function SpeechHub() {
               chapterCount={speechParts.length}
               sectionLabel="Part"
               lessonLabel="lessons"
-              showWritersNote={false}
               quizCount={speechParts.reduce((count, part) => count + part.quizQuestionCount, 0)}
             />
 
             <p className="mb-5 text-sm leading-relaxed text-text-muted">
-              A standalone L4–L5-depth guide: 31 lessons across six Parts.
-              No separate signal-processing or deep-learning course required.
+              An L4–L5-depth guide: 31 lessons across six Parts.
             </p>
             <div className="mb-5">
               <GuideControls
@@ -139,7 +137,6 @@ export function SpeechHub() {
                   setFilter(value);
                   setCollapsedResults(new Set());
                 }}
-                placeholder="Search speech and audio concepts or interview prompts"
               />
             </div>
 

@@ -35,7 +35,7 @@ export function GuideSidebar({
       >
         <LayoutDashboard size={19} className="text-text-muted" />
         <span className="flex-1 text-sm font-semibold text-text">All topics</span>
-        <ProgressRing done={completedCount} total={uniqueProblems.length} color="#4285F4" size={38} />
+        <ProgressRing done={completedCount} total={uniqueProblems.length} color="#4285F4" size={56} strokeWidth={3} />
       </button>
 
       <div className="px-5 pb-2 pt-5 text-xs font-bold tracking-wide text-text-muted">TOPICS</div>

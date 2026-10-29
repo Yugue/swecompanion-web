@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { ProductMark } from '@/components/ProductMark'
 
 export function Wordmark({ className }: { className?: string }) {
   return (
@@ -8,9 +9,8 @@ export function Wordmark({ className }: { className?: string }) {
         className,
       )}
     >
-      <span aria-hidden className="font-mono text-brand-blue">[</span>
+      <ProductMark size={30} />
       SWECompanion
-      <span aria-hidden className="font-mono text-brand-cyan">]</span>
     </span>
   )
 }

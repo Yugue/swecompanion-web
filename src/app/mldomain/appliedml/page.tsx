@@ -115,7 +115,6 @@ export default function AppliedMlHubPage() {
                 onQueryChange={setQuery}
                 filter={filter}
                 onFilterChange={setFilter}
-                placeholder="Search applied ML concepts or interview prompts"
               />
             </div>
 

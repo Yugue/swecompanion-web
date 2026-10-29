@@ -119,13 +119,12 @@ export function DistributedHub() {
               chapterCount={distributedParts.length}
               sectionLabel="Part"
               lessonLabel="lessons"
-              showWritersNote={false}
               studyGuide
               quizCount={distributedParts.reduce((count, part) => count + part.quizQuestionCount, 0)}
             />
 
             <p className="mb-5 text-sm leading-relaxed text-text-muted">
-              A standalone L4–L5-depth guide: 28 lessons across six Parts.
+              An L4–L5-depth guide: 28 lessons across six Parts.
               Neural training, GPU computation, and distributed-systems prerequisites are introduced before use.
             </p>
             <div className="mb-5">
@@ -140,7 +139,6 @@ export function DistributedHub() {
                   setFilter(value);
                   setCollapsedResults(new Set());
                 }}
-                placeholder="Search distributed ML concepts"
               />
             </div>
 

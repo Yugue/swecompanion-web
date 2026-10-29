@@ -120,18 +120,17 @@ export function LlmHub() {
             <MlHero
               domain={LLM_DOMAIN}
               sectionLabel="Chapter"
-              showWritersNote={false}
               lessonCount={llmTopicCount}
               chapterCount={llmParts.length}
               quizCount={llmParts.reduce((count, part) => count + part.quizQuestionCount, 0)}
             />
 
             <section aria-labelledby="llm-start-here" className="mb-5 rounded-xl border border-outline/70 bg-surface p-4">
-              <h2 id="llm-start-here" className="mb-1 font-bold text-text">Start here — a standalone topic</h2>
+              <h2 id="llm-start-here" className="mb-1 font-bold text-text">Start here</h2>
               <p className="text-sm leading-relaxed text-text-muted">
                 Begin with Chapter 1. You need basic programming and school-level algebra. This guide teaches
                 its own probability, neural networks, attention, training, and reinforcement learning foundations
-                before using them. No prior ML, Deep Learning, NLP, CV, or Agentic AI topic is required.
+                before using them.
               </p>
             </section>
 
@@ -147,7 +146,6 @@ export function LlmHub() {
                   setFilter(value);
                   setCollapsedResults(new Set());
                 }}
-                placeholder="Search Large Language Models concepts or interview prompts"
               />
             </div>
 

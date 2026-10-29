@@ -41,7 +41,7 @@ export const ML_DOMAINS: { name: string; href?: string; summary?: string }[] = [
     name: "Computer Vision (CV) / Image Processing",
     href: CV_PATH,
     summary:
-      "Images and classical vision, CNNs, detection and segmentation, vision transformers and pretraining, and building and debugging real CV systems. No separate Deep Learning course required.",
+      "Images and classical vision, CNNs, detection and segmentation, vision transformers and pretraining, and building and debugging real CV systems.",
   },
   {
     name: "Applied Machine Learning → Basics of ML",
@@ -52,12 +52,12 @@ export const ML_DOMAINS: { name: string; href?: string; summary?: string }[] = [
   {
     name: "Natural Language Processing / Understanding (NLP / NLU)",
     href: NLP_PATH,
-    summary: "Text and subwords, lexical and contextual representations, attention and Transformers, understanding and generation tasks, evaluation, and diagnosing NLP systems. No prior ML course required.",
+    summary: "Text and subwords, lexical and contextual representations, attention and Transformers, understanding and generation tasks, evaluation, and diagnosing NLP systems.",
   },
   {
     name: "Generative AI",
     href: GENAI_PATH,
-    summary: "Standalone foundations, Transformers, model training and adaptation, reasoning, image and multimodal generation, grounding, evaluation, safety, and efficient inference. No prior ML topic required.",
+    summary: "Foundations, Transformers, model training and adaptation, reasoning, image and multimodal generation, grounding, evaluation, safety, and efficient inference.",
   },
   {
     name: "Recommendations / Ranking / Predictions (RRP)",
@@ -74,9 +74,9 @@ export const ML_DOMAINS: { name: string; href?: string; summary?: string }[] = [
   {
     name: "Large Language Models (LLM)",
     href: LLM_PATH,
-    summary: "Standalone foundations, Transformer architecture, pretraining, adaptation and preference learning, generation and grounding, reliable evaluation, and efficient LLM serving. No other topic required.",
+    summary: "Foundations, Transformer architecture, pretraining, adaptation and preference learning, generation and grounding, reliable evaluation, and efficient LLM serving.",
   },
-  { name: "Speech / Audio", href: SPEECH_PATH, summary: "Audio signals and features, neural foundations, recognition and alignment, speakers and sound events, generation, and practical real-time systems. No prior DSP or Deep Learning course required." },
-  { name: "Reinforcement Learning", href: RL_PATH, summary: "Sequential decisions, Bellman reasoning, value and policy learning, actor–critics, planning, offline RL, modern AI applications, and reliable training and evaluation. Standalone foundations included." },
-  { name: "Distributed Machine Learning", href: DISTRIBUTED_ML_PATH, summary: "Standalone foundations, distributed optimization, collective communication, model partitioning, memory efficiency, scaling, recovery, and inference serving." },
+  { name: "Speech / Audio", href: SPEECH_PATH, summary: "Audio signals and features, neural foundations, recognition and alignment, speakers and sound events, generation, and practical real-time systems." },
+  { name: "Reinforcement Learning", href: RL_PATH, summary: "Sequential decisions, Bellman reasoning, value and policy learning, actor–critics, planning, offline RL, modern AI applications, and reliable training and evaluation." },
+  { name: "Distributed Machine Learning", href: DISTRIBUTED_ML_PATH, summary: "Foundations, distributed optimization, collective communication, model partitioning, memory efficiency, scaling, recovery, and inference serving." },
 ];

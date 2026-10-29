@@ -4,7 +4,7 @@ import { LLM_PATH } from "@/lib/mlDomains";
 import { llmTopicCount, llmParts } from "@/lib/llmStudyData";
 export const metadata: Metadata = {
   title: "Large Language Models Interview Guide",
-  description: `${llmTopicCount} lessons across ${llmParts.length} chapters: standalone foundations, Transformer architecture, pretraining, adaptation, grounding, evaluation, safety, and efficient serving. No prior ML topic required.`,
+  description: `${llmTopicCount} lessons across ${llmParts.length} chapters: foundations, Transformer architecture, pretraining, adaptation, grounding, evaluation, safety, and efficient serving.`,
   alternates: { canonical: LLM_PATH },
 };
 export default function LlmPage() { return <LlmHub />; }

@@ -119,13 +119,11 @@ export function RlHub() {
               chapterCount={rlParts.length}
               sectionLabel="Part"
               lessonLabel="lessons"
-              showWritersNote={false}
               quizCount={rlParts.reduce((count, part) => count + part.quizQuestionCount, 0)}
             />
 
             <p className="mb-5 text-sm leading-relaxed text-text-muted">
-              A standalone L4–L5-depth guide: 33 lessons across six Parts.
-              No separate probability, optimization, or deep-learning course required.
+              An L4–L5-depth guide: 33 lessons across six Parts.
             </p>
             <div className="mb-5">
               <GuideControls
@@ -139,7 +137,6 @@ export function RlHub() {
                   setFilter(value);
                   setCollapsedResults(new Set());
                 }}
-                placeholder="Search reinforcement learning concepts or interview prompts"
               />
             </div>
 

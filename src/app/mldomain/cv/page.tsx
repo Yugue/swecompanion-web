@@ -4,7 +4,7 @@ import { CV_PATH } from "@/lib/mlDomains";
 
 export const metadata: Metadata = {
   title: "Computer Vision / Image Processing Interview Guide",
-  description: "45 standalone lessons in image processing, classical vision, CNNs, Transformers, vision tasks, and practical CV systems, with mock interview quizzes for ML interviews.",
+  description: "45 lessons in image processing, classical vision, CNNs, Transformers, vision tasks, and practical CV systems, with mock interview quizzes for ML interviews.",
   alternates: { canonical: CV_PATH },
 };
 

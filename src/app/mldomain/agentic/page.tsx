@@ -115,7 +115,6 @@ export default function AgenticAiHubPage() {
                 onQueryChange={setQuery}
                 filter={filter}
                 onFilterChange={setFilter}
-                placeholder="Search agentic AI concepts or interview prompts"
               />
             </div>
 

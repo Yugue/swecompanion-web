@@ -115,7 +115,6 @@ export default function RrpHubPage() {
                 onQueryChange={setQuery}
                 filter={filter}
                 onFilterChange={setFilter}
-                placeholder="Search ranking and recommendation concepts or interview prompts"
               />
             </div>
 

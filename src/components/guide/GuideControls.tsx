@@ -15,13 +15,11 @@ export function GuideControls({
   onQueryChange,
   filter,
   onFilterChange,
-  placeholder,
 }: {
   query: string;
   onQueryChange: (value: string) => void;
   filter: ProblemFilter;
   onFilterChange: (value: ProblemFilter) => void;
-  placeholder: string;
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -34,7 +32,8 @@ export function GuideControls({
           type="text"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder="Search this guide…"
+          aria-label="Search this guide"
           className="w-full rounded-lg border border-outline bg-surface py-3.5 pl-10 pr-4 text-sm text-text outline-none focus:border-accent-blue"
         />
       </div>

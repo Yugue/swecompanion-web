@@ -18,7 +18,6 @@ export function MlHero({
   chapterCount = mlParts.length,
   quizCount = mlQuizCount,
   sectionLabel = "Chapter",
-  showWritersNote = true,
   lessonLabel,
   studyGuide = false,
 }: {
@@ -27,7 +26,6 @@ export function MlHero({
   chapterCount?: number;
   quizCount?: number;
   sectionLabel?: "Chapter" | "Part";
-  showWritersNote?: boolean;
   lessonLabel?: "lessons" | "chapters";
   studyGuide?: boolean;
 }) {
@@ -44,12 +42,12 @@ export function MlHero({
       </p>}
       <div className="mb-3 mt-4 rounded-md border border-accent-blue/35 bg-accent-blue/10 p-4">
         <p className="text-sm font-semibold text-text-muted">
-          {studyGuide ? "This study guide covers:" : "This guide covers the ML domain interview topic:"}
+          This guide covers the ML domain interview topic:
         </p>
         <p className="mt-1 text-lg font-bold leading-snug text-accent-blue">{domain}</p>
         {summary && <p className="mt-1.5 text-sm leading-relaxed text-text-muted">{summary}</p>}
       </div>
-      {showWritersNote && <MlWritersNote />}
+      <MlWritersNote />
       <MlGuideStats lessonCount={lessonCount} chapterCount={chapterCount} quizCount={quizCount} sectionLabel={sectionLabel} lessonLabel={lessonLabel} />
 
       {!studyGuide && <MlInterviewExplanation />}

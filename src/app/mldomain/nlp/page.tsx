@@ -4,7 +4,7 @@ import { NLP_PATH } from "@/lib/mlDomains";
 import { nlpTopicCount, nlpParts } from "@/lib/nlpStudyData";
 export const metadata: Metadata = {
   title: "NLP / NLU Interview Guide",
-  description: `${nlpTopicCount} lessons across ${nlpParts.length} chapters: standalone foundations, text representations, classical models, neural learning, Transformers, understanding, retrieval, and generation. Standalone foundations; no prior ML or DL course required.`,
+  description: `${nlpTopicCount} lessons across ${nlpParts.length} chapters: foundations, text representations, classical models, neural learning, Transformers, understanding, retrieval, and generation.`,
   alternates: { canonical: NLP_PATH },
 };
 export default function NlpPage() { return <NlpHub />; }

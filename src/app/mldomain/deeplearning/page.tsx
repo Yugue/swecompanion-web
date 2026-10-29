@@ -102,7 +102,6 @@ export default function MlHubPage() {
                 onQueryChange={setQuery}
                 filter={filter}
                 onFilterChange={setFilter}
-                placeholder="Search ML concepts or interview prompts"
               />
             </div>
 

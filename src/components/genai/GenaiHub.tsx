@@ -116,18 +116,17 @@ export function GenaiHub() {
             <MlHero
               domain={GENAI_DOMAIN}
               sectionLabel="Chapter"
-              showWritersNote={false}
               lessonCount={genaiTopicCount}
               chapterCount={genaiParts.length}
               quizCount={genaiParts.reduce((count, part) => count + part.quizQuestionCount, 0)}
             />
 
             <section aria-labelledby="genai-start-here" className="mb-5 rounded-xl border border-outline/70 bg-surface p-4">
-              <h2 id="genai-start-here" className="mb-1 font-bold text-text">Start here — a standalone topic</h2>
+              <h2 id="genai-start-here" className="mb-1 font-bold text-text">Start here</h2>
               <p className="text-sm leading-relaxed text-text-muted">
                 Begin with Chapter 1. You need basic programming and school-level algebra. This guide teaches
                 its own mathematics, neural networks, reinforcement learning, and image representations
-                before using them. No prior ML, Deep Learning, NLP, CV, or Agentic AI topic is required.
+                before using them.
               </p>
             </section>
 
@@ -143,7 +142,6 @@ export function GenaiHub() {
                   setFilter(value);
                   setCollapsedResults(new Set());
                 }}
-                placeholder="Search Generative AI concepts or interview prompts"
               />
             </div>
 

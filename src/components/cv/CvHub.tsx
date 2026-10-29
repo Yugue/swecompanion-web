@@ -132,7 +132,6 @@ export function CvHub() {
                   setFilter(value);
                   setCollapsedResults(new Set());
                 }}
-                placeholder="Search CV concepts or interview prompts"
               />
             </div>
 

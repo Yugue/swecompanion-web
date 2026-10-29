@@ -158,7 +158,6 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
                 onQueryChange={setQuery}
                 filter={filter}
                 onFilterChange={setFilter}
-                placeholder="Search questions or patterns"
               />
             </div>
 

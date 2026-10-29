@@ -5,7 +5,7 @@ import { rlTopicCount, rlParts } from "@/lib/rlStudyData";
 
 export const metadata: Metadata = {
   title: "Reinforcement Learning ML Interview Study Guide",
-  description: `${rlTopicCount} standalone lessons across ${rlParts.length} Parts: foundations, value learning, policy optimization, planning, offline learning, reward design, and practical RL systems.`,
+  description: `${rlTopicCount} lessons across ${rlParts.length} Parts: foundations, value learning, policy optimization, planning, offline learning, reward design, and practical RL systems.`,
   alternates: { canonical: RL_PATH },
 };
 

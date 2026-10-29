@@ -116,18 +116,17 @@ export function NlpHub() {
             <MlHero
               domain={NLP_DOMAIN}
               sectionLabel="Chapter"
-              showWritersNote={false}
               lessonCount={nlpTopicCount}
               chapterCount={nlpParts.length}
               quizCount={nlpParts.reduce((count, part) => count + part.quizQuestionCount, 0)}
             />
 
             <section aria-labelledby="nlp-start-here" className="mb-5 rounded-xl border border-outline/70 bg-surface p-4">
-              <h2 id="nlp-start-here" className="mb-1 font-bold text-text">Start here — a standalone topic</h2>
+              <h2 id="nlp-start-here" className="mb-1 font-bold text-text">Start here</h2>
               <p className="text-sm leading-relaxed text-text-muted">
                 Begin with Chapter 1. You need basic programming and school-level algebra; this guide teaches
                 its own probability, vector operations, learning, and neural-network foundations before
-                using them. No completed ML, Deep Learning, CV, or RRP topic is assumed.
+                using them.
               </p>
             </section>
 
@@ -143,7 +142,6 @@ export function NlpHub() {
                   setFilter(value);
                   setCollapsedResults(new Set());
                 }}
-                placeholder="Search NLP concepts or interview prompts"
               />
             </div>
 
