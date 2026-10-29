@@ -8,10 +8,11 @@ import { rrpParts } from "@/lib/rrpStudyData";
 import { nlpParts } from "@/lib/nlpStudyData";
 import { llmParts } from "@/lib/llmStudyData";
 import { genaiParts } from "@/lib/genaiStudyData";
+import { distributedTopics } from "@/lib/distributedStudyData";
 import { rlTopics } from "@/lib/rlStudyData";
 import { speechTopics } from "@/lib/speechStudyData";
 import { cvParts } from "@/lib/cvStudyData";
-import { DEEP_LEARNING_PATH, APPLIED_ML_PATH, AGENTIC_AI_PATH, RRP_PATH, CV_PATH, RL_PATH, SPEECH_PATH, NLP_PATH, GENAI_PATH, LLM_PATH } from "@/lib/mlDomains";
+import { DEEP_LEARNING_PATH, APPLIED_ML_PATH, AGENTIC_AI_PATH, RRP_PATH, CV_PATH, DISTRIBUTED_ML_PATH, RL_PATH, SPEECH_PATH, NLP_PATH, GENAI_PATH, LLM_PATH } from "@/lib/mlDomains";
 
 export const dynamic = "force-static";
 
@@ -19,6 +20,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://swecompanion.web.ap
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [
+    { url: `${siteUrl}${DISTRIBUTED_ML_PATH}`, priority: 1 },
     { url: `${siteUrl}${RL_PATH}`, priority: 1 },
     { url: `${siteUrl}${SPEECH_PATH}`, priority: 1 },
     { url: `${siteUrl}/`, priority: 1 },
@@ -106,5 +108,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
   for (const topic of speechTopics) entries.push({ url: `${siteUrl}${SPEECH_PATH}/${topic.id}`, priority: 0.8 });
   for (const topic of rlTopics) entries.push({ url: `${siteUrl}${RL_PATH}/${topic.id}`, priority: 0.8 });
+  for (const topic of distributedTopics) entries.push({ url: `${siteUrl}${DISTRIBUTED_ML_PATH}/${topic.id}`, priority: 0.8 });
   return entries;
 }

@@ -97,6 +97,25 @@ lesson structure, short code examples, and numerical learning mechanisms.
 After building, `npm run check:rl -- --export` checks all 33 exported lesson pages,
 sequential links, canonical metadata, and sitemap entries.
 
+The Distributed Machine Learning guide is available at `/mldomain/distributed`: 28
+standalone lessons across six Parts, following the approved curriculum in
+`docs/distributed-ml-curriculum.md`. It introduces neural training, GPU execution,
+and distributed-systems foundations before collective communication, distributed
+optimization, memory efficiency, model partitioning, scaling, recovery, and serving.
+Lesson sources live in `src/content/distributed-lessons`; curriculum metadata and
+prerequisite links are defined in `src/lib/distributedStudyData.ts`.
+
+Each lesson has 8–9 concise sections, with worked examples, equations, comparison
+tables, and execution diagrams. Progress is independent of other topics and uses
+the existing local/account sync. This guide does not add interview-practice,
+recap, or reading-list sections.
+
+Run `npm run check:distributed` to validate curriculum coverage, dependencies,
+parsed equations/tables/diagrams, Python syntax, and independent numerical examples.
+After building, `npm run check:distributed -- --export` verifies all 28 lesson
+pages, prerequisites, sequential navigation, canonical URLs, and sitemap entries.
+GPU snippets are illustrative excerpts; the checks do not launch distributed GPU jobs.
+
 ## Build the static site
 
 ```bash
