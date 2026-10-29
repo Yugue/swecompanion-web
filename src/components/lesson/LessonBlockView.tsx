@@ -13,11 +13,14 @@ import { NlpLessonVisual } from "@/components/nlp/NlpLessonVisual";
 import { GenaiLessonVisual } from "@/components/genai/GenaiLessonVisual";
 
 import { LlmLessonVisual } from "@/components/llm/LlmLessonVisual";
+import { SpeechLessonVisual } from "@/components/speech/SpeechLessonVisual";
 
 const NUMBERED_ITEM = /^\d+\.\s+/;
 
 export function LessonBlockView({ block }: { block: LessonBlock }) {
   switch (block.type) {
+    case "speech-visual":
+      return <SpeechLessonVisual id={block.text.trim()} />;
     case "llm-visual":
       return <LlmLessonVisual id={block.text.trim()} />;
     case "genai-visual":

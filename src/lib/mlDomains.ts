@@ -17,6 +17,7 @@ export const RRP_PATH = `${ML_DOMAIN_PATH}/rrp`;
 export const LLM_PATH = `${ML_DOMAIN_PATH}/llm`;
 export const GENAI_PATH = `${ML_DOMAIN_PATH}/genai`;
 export const NLP_PATH = `${ML_DOMAIN_PATH}/nlp`;
+export const SPEECH_PATH = `${ML_DOMAIN_PATH}/speech`;
 export const CV_PATH = `${ML_DOMAIN_PATH}/cv`;
 
 /** The ML System Design track (top-bar tab), separate from the per-domain guides. */
@@ -73,7 +74,7 @@ export const ML_DOMAINS: { name: string; href?: string; summary?: string }[] = [
     href: LLM_PATH,
     summary: "Standalone foundations, Transformer architecture, pretraining, adaptation and preference learning, generation and grounding, reliable evaluation, and efficient LLM serving. No other topic required.",
   },
-  { name: "Speech / Audio" },
+  { name: "Speech / Audio", href: SPEECH_PATH, summary: "Audio signals and features, neural foundations, recognition and alignment, speakers and sound events, generation, and practical real-time systems. No prior DSP or Deep Learning course required." },
   { name: "Reinforcement Learning" },
   { name: "Distributed Machine Learning" },
 ];
