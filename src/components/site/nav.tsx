@@ -12,7 +12,7 @@ const links = [
   { label: 'How it works', href: '#how' },
   { label: 'Pricing', href: '#pricing' },
   { label: 'FAQ', href: '#faq' },
-  { label: 'Free guides', href: '/coding' },
+  { label: 'Interview Prep Guides', href: '/coding', featured: true },
 ]
 
 export function Nav() {
@@ -43,7 +43,12 @@ export function Nav() {
             <a
               key={l.href}
               href={l.href}
-              className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className={cn(
+                'rounded-md px-3 py-1.5 text-sm whitespace-nowrap transition-colors',
+                l.featured
+                  ? 'bg-primary/10 font-semibold text-primary ring-1 ring-inset ring-primary/20 hover:bg-primary/15'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
             >
               {l.label}
             </a>
@@ -74,7 +79,12 @@ export function Nav() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                className={cn(
+                  'rounded-md px-3 py-2 text-sm transition-colors',
+                  l.featured
+                    ? 'bg-primary/10 font-semibold text-primary ring-1 ring-inset ring-primary/20 hover:bg-primary/15'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                )}
               >
                 {l.label}
               </a>
