@@ -46,7 +46,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "HashMap & Top-K",
     icon: "Braces",
     color: "#4285F4",
-    note: "Count first, then organize. A frequency map turns repeated scans into direct lookups; a heap keeps only the best k candidates.",
+    note: "Look for repeated values, matching pairs, anagram groups, frequency counts, or the top k items. A hash map tracks what you have seen; a heap helps when you repeatedly need the smallest, largest, or next-best candidate.",
     problems: [
       { id: "1", title: "Two Sum", initiallyComplete: true },
       { id: "49", title: "Group Anagrams", initiallyComplete: true },
@@ -66,7 +66,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Sorting",
     icon: "ArrowDownUp",
     color: "#8AB4F8",
-    note: "For two or three groups, maintain regions with pointers. For general sorting, split, solve each half, and merge in linear time.",
+    note: "Look for a request to reorder values or group them by a property such as parity or color. Two or three groups suggest pointer partitioning in one pass; arbitrary values call for a general sorting algorithm. Practice merge sort as a fundamental algorithm to know for interviews.",
     problems: [
       { id: "905", title: "Sort Array By Parity", initiallyComplete: true, subcategory: "Two-group partitioning" },
       { id: "75", title: "Sort Colors", initiallyComplete: true, subcategory: "Three-group partitioning" },
@@ -81,7 +81,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Sliding Window",
     icon: "Columns3",
     color: "#34A853",
-    note: "Cue: a longest or shortest valid contiguous window. Expand the right side, then shrink from the left while the condition allows it.",
+    note: "Look for a contiguous substring or subarray: fixed length, longest under an 'at most' constraint, shortest covering a requirement, or counting valid ranges. Sliding window fits when adding or removing an edge updates counts or sums cheaply and the left edge can move only forward without missing solutions. Common clues: no repeated characters, at most k replacements, or all required characters.",
     problems: [
       { id: "3", title: "Longest Substring Without Repeating Characters", initiallyComplete: true },
       { id: "567", title: "Permutation in String", initiallyComplete: true },
@@ -99,7 +99,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Two Pointers",
     icon: "ArrowLeftRight",
     color: "#FFD166",
-    note: "Use two pointers when each comparison lets you safely discard one side of the search space.",
+    note: "Look for pairs in a sorted array, comparisons from both ends, or an in-place scan where one position reads and another writes. Two pointers fit when moving one pointer safely rules out candidates; slow and fast pointers also reveal cycles in a sequence.",
     problems: [
       { id: "125", title: "Valid Palindrome", initiallyComplete: true },
       { id: "15", title: "3Sum", initiallyComplete: true },
@@ -116,7 +116,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Prefix Sum",
     icon: "LineChart",
     color: "#46BDC6",
-    note: "Cue: an exact subarray sum when values may be negative. Store earlier prefix sums so the needed complement becomes a lookup.",
+    note: "Look for repeated range-sum queries, an exact subarray sum, or sums divisible by k. Prefix sums turn a range into the difference of two totals; a map of earlier totals or remainders helps count matches, even when negative values make a sliding window unreliable.",
     problems: [
       { id: "303", title: "Range Sum Query — Immutable", initiallyComplete: true },
       { id: "560", title: "Subarray Sum Equals K", initiallyComplete: true },
@@ -132,7 +132,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Stack",
     icon: "Layers",
     color: "#FBBC04",
-    note: "A monotonic stack answers next or previous greater or smaller questions by removing candidates that can no longer win.",
+    note: "Look for nested brackets, undoing the most recent unfinished step, or the next or previous greater or smaller element. Nesting suggests a stack; nearest-element queries and histogram spans suggest a monotonic stack of unresolved candidates.",
     problems: [
       { id: "20", title: "Valid Parentheses", initiallyComplete: true },
       { id: "155", title: "Min Stack", initiallyComplete: true },
@@ -149,7 +149,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Binary Search",
     icon: "Search",
     color: "#669DF6",
-    note: "Exact search uses a closed range. Boundary search uses a half-open range and keeps the first position that could still satisfy the condition.",
+    note: "Look for sorted data or an ordered answer range where a condition changes only once from false to true. Choose exact search for a matching value, bisect_left for the first value >= target, or bisect_right for the first value > target. Minimum feasible answers are boundary searches over possible answers.",
     problems: [
       { id: "704", title: "Binary Search", initiallyComplete: true },
       { id: "35", title: "Search Insert Position", initiallyComplete: true },
@@ -169,7 +169,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Intervals",
     icon: "CalendarRange",
     color: "#81C995",
-    note: "Sort by end for maximum non-overlap, use a sweep line for simultaneous events, sort by start to merge, and use two pointers for intersections.",
+    note: "Look for start/end ranges, overlapping meetings, shared availability, or capacity over time. Merging suggests sorting by start, selecting the most non-overlapping ranges suggests sorting by end, and peak simultaneous usage suggests a sweep line.",
     problems: [
       { id: "435", title: "Non-overlapping Intervals" },
       { id: "452", title: "Minimum Number of Arrows to Burst Balloons" },
@@ -189,7 +189,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Linked List",
     icon: "GitBranch",
     color: "#F28B82",
-    note: "Draw the links before changing them. Dummy nodes simplify head changes; slow and fast pointers reveal cycles and midpoints.",
+    note: "Look for nodes connected by next pointers and requests to reverse, remove, merge, or reorder them without copying values. Think link rewiring and a dummy head; finding a midpoint or cycle suggests slow and fast pointers.",
     problems: [
       { id: "206", title: "Reverse Linked List", initiallyComplete: true },
       { id: "142", title: "Linked List Cycle II", initiallyComplete: true },
@@ -206,7 +206,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "DFS",
     icon: "TreePine",
     color: "#78D9EC",
-    note: "Use tree DFS to combine values returned by children, backtracking to explore decisions, and grid DFS to traverse connected regions.",
+    note: "Look for tree answers built from child subtrees, all possible combinations or paths, or connected regions in a grid. These suggest tree DFS, backtracking through choices, or flood fill: explore one branch fully before returning to the next.",
     problems: [
       { id: "104", title: "Maximum Depth of Binary Tree", initiallyComplete: true, subcategory: "Tree DFS" },
       { id: "98", title: "Validate Binary Search Tree", initiallyComplete: true, subcategory: "Tree DFS" },
@@ -233,7 +233,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "BFS",
     icon: "Share2",
     color: "#5BB9D4",
-    note: "BFS explores one layer at a time. Use it for tree levels and unweighted shortest paths; Kahn’s algorithm applies the same queue pattern to dependencies.",
+    note: "Look for the fewest moves in a graph with equal-cost steps, the nearest reachable target, or values grouped by tree level. These suggest BFS by layers. Prerequisites and dependency ordering suggest Kahn’s topological sort, starting with nodes that have no unmet dependencies.",
     problems: [
       { id: "102", title: "Binary Tree Level Order Traversal", initiallyComplete: true, subcategory: "Tree BFS" },
       { id: "207", title: "Course Schedule", initiallyComplete: true, subcategory: "Topological sort" },
@@ -254,7 +254,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Dijkstra",
     icon: "Route",
     color: "#7BAAF7",
-    note: "Keep the best known cumulative cost and use a min-heap for the next state. Relax an edge only when it improves that cost.",
+    note: "Look for routes whose edges have different costs and a goal such as minimum total cost, minimum effort, or maximum probability. Dijkstra fits nonnegative additive costs and other path scores where extending a route cannot improve it; a stop limit also needs to be part of the state.",
     problems: [
       { id: "1514", title: "Path with Maximum Probability", initiallyComplete: true },
       { id: "1631", title: "Path With Minimum Effort", initiallyComplete: true },
@@ -270,7 +270,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Union Find",
     icon: "Combine",
     color: "#66C2A5",
-    note: "Each set points to a representative root. Path compression speeds up find; Kruskal sorts edges and unions until n − 1 edges connect the graph.",
+    note: "Look for repeated questions about whether items belong to the same connected group as connections are added. That suggests union find. Connecting every node at minimum total edge cost suggests a minimum spanning tree, often built with Kruskal’s algorithm and union find.",
     problems: [
       { id: "547", title: "Number of Provinces", initiallyComplete: true },
       { id: "990", title: "Satisfiability of Equality Equations", initiallyComplete: true },
@@ -285,7 +285,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Greedy",
     icon: "TrendingUp",
     color: "#FFC857",
-    note: "Make the locally safe choice and state why it cannot hurt a future decision. The proof matters as much as the implementation.",
+    note: "Look for a choice that can be committed to without revisiting earlier decisions, such as extending the farthest reachable position or discarding a losing starting point. Greedy fits only when you can explain why that local choice preserves an optimal solution.",
     problems: [
       { id: "53", title: "Maximum Subarray", initiallyComplete: true },
       { id: "55", title: "Jump Game", initiallyComplete: true },
@@ -301,7 +301,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Trie",
     icon: "Network",
     color: "#CE93D8",
-    note: "Walk one character per level. Store terminal markers separately from children so prefixes and complete words remain distinct.",
+    note: "Look for many words sharing prefixes, repeated starts-with queries, autocomplete, or dictionary searches with wildcard characters. A trie shares the work of matching each prefix and branches only when the next character differs.",
     problems: [
       { id: "208", title: "Implement Trie (Prefix Tree)", initiallyComplete: true },
       { id: "211", title: "Design Add and Search Words Data Structure" },
@@ -315,7 +315,7 @@ export const coreStudyTopics: StudyTopic[] = [
     shortTitle: "Data Structures",
     icon: "CircuitBoard",
     color: "#A7C7FA",
-    note: "Start with the operations and their target complexity, then combine structures so each operation has exactly the information it needs.",
+    note: "Look for a design problem that specifies operations and tight time bounds: constant-time lookup plus eviction, or insertion, deletion, and random access. These usually require combining structures, such as a hash map with a linked list or an indexed array.",
     problems: [
       { id: "146", title: "LRU Cache", initiallyComplete: true },
       { id: "380", title: "Insert Delete GetRandom O(1)", initiallyComplete: true, slug: "insert-delete-getrandom-o1" },
@@ -332,7 +332,7 @@ export const challengeTopics: StudyTopic[] = [
     shortTitle: "Mixed Practice — Round 1",
     icon: "Flag",
     color: "#81C995",
-    note: "The original mixed round, covering core array, graph, tree, heap, stack, and interval patterns.",
+    note: "Practice choosing the pattern yourself: contiguous ranges suggest a window or prefix sums; nearest greater elements suggest a stack; connectivity and fewest moves suggest graph traversal. State the cue before choosing an approach.",
     problems: [
       { id: "128", title: "Longest Consecutive Sequence", initiallyComplete: true, difficulty: "Medium" },
       { id: "973", title: "K Closest Points to Origin", initiallyComplete: true, difficulty: "Medium" },
@@ -371,7 +371,7 @@ export const challengeTopics: StudyTopic[] = [
     shortTitle: "Mixed Practice — Round 2",
     icon: "Flag",
     color: "#46BDC6",
-    note: "A mixed review of matrices, graphs, heaps, intervals, linked lists, and scanning patterns.",
+    note: "Practice spotting cues across matrices, graphs, heaps, and intervals: connected cells suggest flood fill, repeated best-candidate selection suggests a heap, and a minimum feasible capacity suggests binary search on the answer.",
     problems: [
       { id: "2658", title: "Maximum Number of Fish in a Grid", initiallyComplete: true, difficulty: "Medium" },
       { id: "199", title: "Binary Tree Right Side View", initiallyComplete: true, difficulty: "Medium" },
@@ -409,7 +409,7 @@ export const challengeTopics: StudyTopic[] = [
     shortTitle: "Mixed Practice — Round 3",
     icon: "Flag",
     color: "#CE93D8",
-    note: "A broad mixed round with extra interval scheduling, traversal, graph, and design practice.",
+    note: "Practice separating similar-looking problems: interval overlap suggests sorting or a sweep line, prerequisite ordering suggests topological sort, and custom operations with strict time bounds suggest combining data structures.",
     problems: [
       { id: "1642", title: "Furthest Building You Can Reach", initiallyComplete: true, difficulty: "Medium" },
       { id: "886", title: "Possible Bipartition", initiallyComplete: true, difficulty: "Medium" },
@@ -457,7 +457,7 @@ export const challengeTopics: StudyTopic[] = [
     shortTitle: "Mixed Practice — Round 4",
     icon: "Flag",
     color: "#FF8A65",
-    note: "A compact mixed round spanning search, graphs, trees, stacks, tries, and array techniques.",
+    note: "Practice recognizing the structure before coding: shared prefixes suggest a trie, nested or unresolved elements suggest a stack, subtree results suggest DFS, and an ordered range with a one-way condition suggests binary search.",
     problems: [
       { id: "1102", title: "Path With Maximum Minimum Value", initiallyComplete: true, difficulty: "Medium" },
       { id: "151", title: "Reverse Words in a String", initiallyComplete: true, difficulty: "Medium" },

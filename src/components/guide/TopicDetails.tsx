@@ -3,12 +3,13 @@
    module-level map, never defines a new component; this pattern reads as unsafe to the linter's
    heuristic but isn't. */
 
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 import type { StudyTopic, StudyProblem } from "@/lib/studyData";
 import { getIcon } from "@/lib/icons";
 import { ProgressRing } from "@/components/ProgressRing";
 import { chapterPath } from "@/lib/codingPaths";
 import { ProblemRow } from "./ProblemRow";
+import { BinarySearchGuide } from "./BinarySearchGuide";
 
 export function TopicDetails({
   topic,
@@ -52,9 +53,15 @@ export function TopicDetails({
           <div className="flex items-center gap-2">
             <h3 className="truncate text-lg font-bold tracking-tight text-text">{topic.title}</h3>
           </div>
-          <p className={`text-sm leading-relaxed text-text-muted ${open ? "" : "line-clamp-2"}`}>
-            {topic.note}
-          </p>
+          <div className="mt-1 flex items-start gap-1.5">
+            <span title="Pro tip: recognize this pattern" className="mt-1 shrink-0 text-accent-ink">
+              <Lightbulb size={15} aria-hidden="true" />
+            </span>
+            <p className={`min-w-0 flex-1 text-sm leading-relaxed text-text-muted ${open ? "" : "line-clamp-2"}`}>
+              <span className="sr-only">Recognition cue: </span>
+              {topic.note}
+            </p>
+          </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-2.5">
           <ProgressRing done={doneCount} total={topic.problems.length} color={topic.color} size={44} strokeWidth={3} />
@@ -63,6 +70,7 @@ export function TopicDetails({
       </summary>
 
       <div className="flex flex-col gap-6 border-t border-outline/50 px-4 pt-5 pb-5 sm:px-5">
+        {topic.slug === "binary-search" && <BinarySearchGuide />}
         {groupBySubcategory(problems).map(({ heading, rows }) => {
           // Progress is over the whole subcategory, not just the rows the current search shows.
           const group = heading ? topic.problems.filter((p) => p.subcategory === heading) : [];
