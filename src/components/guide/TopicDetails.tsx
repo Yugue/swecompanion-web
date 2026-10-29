@@ -39,7 +39,7 @@ export function TopicDetails({
       className="scroll-mt-24 overflow-hidden rounded-xl border border-outline/70 bg-surface"
       style={{ "--accent": topic.color } as React.CSSProperties}
     >
-      <summary className="flex items-start gap-3.5 px-5 py-5">
+      <summary className="grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-3 px-4 py-5 sm:px-5">
         <div
           className="flex size-11 shrink-0 items-center justify-center rounded-lg border"
           style={{
@@ -53,19 +53,23 @@ export function TopicDetails({
           <div className="flex items-center gap-2">
             <h3 className="truncate text-lg font-bold tracking-tight text-text">{topic.title}</h3>
           </div>
-          <div className="mt-1 flex items-start gap-1.5">
-            <span title="Pro tip: recognize this pattern" className="mt-1 shrink-0 text-accent-ink">
-              <Lightbulb size={15} aria-hidden="true" />
-            </span>
-            <p className={`min-w-0 flex-1 text-sm leading-relaxed text-text-muted ${open ? "" : "line-clamp-2"}`}>
-              <span className="sr-only">Recognition cue: </span>
-              {topic.note}
-            </p>
-          </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-2.5">
           <ProgressRing done={doneCount} total={topic.problems.length} color={topic.color} size={44} strokeWidth={3} />
           {open ? <ChevronUp size={20} className="text-text-muted" /> : <ChevronDown size={20} className="text-text-muted" />}
+        </div>
+        <div className="col-span-3 flex items-start gap-2.5 rounded-xl border border-outline/50 bg-surface-high/35 px-3 py-2.5">
+          <span
+            title="Pro tip: recognize this pattern"
+            className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/15 ring-1 ring-accent-yellow/30 ring-inset"
+            style={{ color: "color-mix(in srgb, var(--color-yellow) 45%, var(--color-text))" }}
+          >
+            <Lightbulb size={17} strokeWidth={2} fill="currentColor" fillOpacity={0.12} aria-hidden="true" />
+          </span>
+          <p className="min-w-0 flex-1 py-0.5 text-sm leading-relaxed text-text-muted">
+            <span className="font-semibold text-text">Pro tip:</span>{" "}
+            {topic.note}
+          </p>
         </div>
       </summary>
 
