@@ -24,6 +24,8 @@ export const CV_PATH = `${ML_DOMAIN_PATH}/cv`;
 
 /** The ML System Design track (top-bar tab), separate from the per-domain guides. */
 export const ML_SYSTEM_DESIGN_PATH = "/mlsystemdesign";
+export const NLP_SYSTEM_DESIGN_PATH = `${ML_SYSTEM_DESIGN_PATH}/nlp`;
+export const DEFAULT_ML_SYSTEM_DESIGN_PATH = NLP_SYSTEM_DESIGN_PATH;
 
 /** Where /mldomain and the top-bar ML tab land: a domain is always selected. */
 export const DEFAULT_ML_DOMAIN_PATH = DEEP_LEARNING_PATH;

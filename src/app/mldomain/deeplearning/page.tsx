@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { mlParts } from "@/lib/mlStudyData";
 import { useChapterExpansion } from "@/lib/useChapterExpansion";
 import { useProgress } from "@/lib/useProgress";
+import { useProgressSidebar } from "@/lib/useProgressSidebar";
 import { TopBar } from "@/components/TopBar";
 import { GuideControls, type ProblemFilter } from "@/components/guide/GuideControls";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -19,6 +20,7 @@ export default function MlHubPage() {
     "swe-companion:expanded-chapters:deeplearning", mlParts[0]?.id
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { sidebarCollapsed, toggleSidebar } = useProgressSidebar("ml");
   const [confirmingReset, setConfirmingReset] = useState(false);
 
   useEffect(() => {
@@ -65,16 +67,18 @@ export default function MlHubPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex flex-1">
-        <aside className="hidden w-[286px] shrink-0 lg:block">
-          <div className="sticky top-0 h-screen">
-            <MlSidebar
-              parts={mlParts}
-              completed={completed}
-              onJump={jump}
-              onResetProgress={() => setConfirmingReset(true)}
-            />
-          </div>
-        </aside>
+        {!sidebarCollapsed && (
+          <aside className="hidden w-[286px] shrink-0 lg:block">
+            <div className="sticky top-0 h-screen">
+              <MlSidebar
+                parts={mlParts}
+                completed={completed}
+                onJump={jump}
+                onResetProgress={() => setConfirmingReset(true)}
+              />
+            </div>
+          </aside>
+        )}
 
         {drawerOpen && (
           <div className="fixed inset-0 z-40 lg:hidden">
@@ -91,7 +95,7 @@ export default function MlHubPage() {
         )}
 
         <div className="min-w-0 flex-1">
-          <TopBar activeTrack="ml" onMenuPressed={() => setDrawerOpen(true)} />
+          <TopBar activeTrack="ml" onMenuPressed={() => setDrawerOpen(true)} onSidebarToggle={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
 
           <main className="mx-auto max-w-4xl px-4 py-6 sm:px-8">
             <MlHero />

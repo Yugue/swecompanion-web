@@ -2,7 +2,7 @@
 
 import { Fragment, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { DEFAULT_ML_DOMAIN_PATH, ML_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
+import { DEFAULT_ML_DOMAIN_PATH, DEFAULT_ML_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
 import { CODING_PATH } from "@/lib/codingPaths";
 
 export type Track = "leetcode" | "ml" | "mlsd";
@@ -11,7 +11,7 @@ export type Track = "leetcode" | "ml" | "mlsd";
 const TRACKS: { id: Track; label: string; shortLabel?: string; href: string }[] = [
   { id: "leetcode", label: "LeetCode", href: CODING_PATH },
   { id: "ml", label: "ML Domain", shortLabel: "ML", href: DEFAULT_ML_DOMAIN_PATH },
-  { id: "mlsd", label: "ML System Design", shortLabel: "ML SD", href: ML_SYSTEM_DESIGN_PATH },
+  { id: "mlsd", label: "ML System Design", shortLabel: "ML SD", href: DEFAULT_ML_SYSTEM_DESIGN_PATH },
 ];
 
 // Every page renders its own top bar, so switching tracks unmounts this toggle mid-slide. The

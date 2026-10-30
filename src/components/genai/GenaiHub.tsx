@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { GENAI_DOMAIN, genaiParts, genaiPartsById, genaiTopicCount } from "@/lib/genaiStudyData";
 import { useChapterExpansion } from "@/lib/useChapterExpansion";
 import { useProgress } from "@/lib/useProgress";
+import { useProgressSidebar } from "@/lib/useProgressSidebar";
 import { TopBar } from "@/components/TopBar";
 import { GuideControls, type ProblemFilter } from "@/components/guide/GuideControls";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -22,6 +23,7 @@ export function GenaiHub() {
     "swe-companion:expanded-chapters:genai", genaiParts[0]?.id
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { sidebarCollapsed, toggleSidebar } = useProgressSidebar("ml");
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [collapsedResults, setCollapsedResults] = useState<Set<string>>(() => new Set());
   const filtering = query.trim().length > 0 || filter !== "all";
@@ -73,19 +75,21 @@ export function GenaiHub() {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex flex-1">
-        <aside className="hidden w-[286px] shrink-0 lg:block">
-          <div className="sticky top-0 h-screen">
-            <MlSidebar
-              parts={genaiParts}
-              completed={completed}
-              onJump={jump}
-              onResetProgress={() => setConfirmingReset(true)}
-              domain={DOMAIN}
-              totalTopics={genaiTopicCount}
-              sectionLabel="Chapter"
-            />
-          </div>
-        </aside>
+        {!sidebarCollapsed && (
+          <aside className="hidden w-[286px] shrink-0 lg:block">
+            <div className="sticky top-0 h-screen">
+              <MlSidebar
+                parts={genaiParts}
+                completed={completed}
+                onJump={jump}
+                onResetProgress={() => setConfirmingReset(true)}
+                domain={DOMAIN}
+                totalTopics={genaiTopicCount}
+                sectionLabel="Chapter"
+              />
+            </div>
+          </aside>
+        )}
 
         {drawerOpen && (
           <div className="fixed inset-0 z-40 lg:hidden">
@@ -110,7 +114,7 @@ export function GenaiHub() {
         )}
 
         <div className="min-w-0 flex-1">
-          <TopBar activeTrack="ml" onMenuPressed={() => setDrawerOpen(true)} />
+          <TopBar activeTrack="ml" onMenuPressed={() => setDrawerOpen(true)} onSidebarToggle={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
 
           <main className="mx-auto max-w-4xl px-4 py-6 sm:px-8">
             <MlHero

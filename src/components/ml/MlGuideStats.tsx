@@ -9,7 +9,7 @@ export function MlGuideStats({
   chapterCount: number;
   quizCount: number;
   sectionLabel?: "Chapter" | "Part";
-  lessonLabel?: "lessons" | "chapters";
+  lessonLabel?: "lessons" | "chapters" | "cases";
 }) {
   return (
     <div className="mb-4 flex flex-wrap gap-2.5 text-[13px] font-medium text-text">

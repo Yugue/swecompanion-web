@@ -9,6 +9,7 @@ import {
 } from "@/lib/studyData";
 import { useChapterExpansion } from "@/lib/useChapterExpansion";
 import { useProgress } from "@/lib/useProgress";
+import { useProgressSidebar } from "@/lib/useProgressSidebar";
 import { CODING_PATH, chapterPath } from "@/lib/codingPaths";
 import { TopBar } from "@/components/TopBar";
 import { GuideSidebar } from "@/components/guide/GuideSidebar";
@@ -31,6 +32,7 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
   );
   const [focusChapter, setFocusChapter] = useState<string | null>(initialChapter ?? null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { sidebarCollapsed, toggleSidebar } = useProgressSidebar("leetcode");
   const [confirmingReset, setConfirmingReset] = useState(false);
 
   function scrollToChapter(path: string) {
@@ -113,16 +115,18 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex flex-1">
-        <aside className="hidden w-[286px] shrink-0 lg:block">
-          <div className="sticky top-0 h-screen">
-            <GuideSidebar
-              topics={studyTopics}
-              completed={completed}
-              onJump={jump}
-              onResetProgress={() => setConfirmingReset(true)}
-            />
-          </div>
-        </aside>
+        {!sidebarCollapsed && (
+          <aside className="hidden w-[286px] shrink-0 lg:block">
+            <div className="sticky top-0 h-screen">
+              <GuideSidebar
+                topics={studyTopics}
+                completed={completed}
+                onJump={jump}
+                onResetProgress={() => setConfirmingReset(true)}
+              />
+            </div>
+          </aside>
+        )}
 
         {drawerOpen && (
           <div className="fixed inset-0 z-40 lg:hidden">
@@ -139,7 +143,7 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
         )}
 
         <div className="min-w-0 flex-1">
-          <TopBar activeTrack="leetcode" onMenuPressed={() => setDrawerOpen(true)} />
+          <TopBar activeTrack="leetcode" onMenuPressed={() => setDrawerOpen(true)} onSidebarToggle={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
 
           <main id="guide-top" className="mx-auto max-w-4xl px-4 py-6 sm:px-8">
             <div className="mb-6 rounded-2xl border border-outline/70 bg-surface p-6 sm:p-8">
