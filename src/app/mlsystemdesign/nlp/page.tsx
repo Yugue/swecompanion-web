@@ -5,7 +5,7 @@ import { nlpDesignProblems } from "@/lib/nlpSystemDesignData";
 
 export const metadata: Metadata = {
   title: "NLP System Design — 8 Interview Problems",
-  description: "Eight practical NLP system design problems, following the six-stage interview delivery framework.",
+  description: "Eight beginner-friendly NLP system design problems with requirements, data, model training, evaluation, and detailed architecture diagrams.",
   alternates: { canonical: NLP_SYSTEM_DESIGN_PATH },
 };
 

@@ -43,7 +43,7 @@ export function SystemDesignHero({ topicId, caseCount }: { topicId: string; case
           <ol className="grid gap-x-5 gap-y-3 text-sm text-text-muted sm:grid-cols-2">
             {mlSystemDesignFramework.stages.map((stage, index) => <li key={stage.id}><span className="font-semibold text-text">{index + 1}. {stage.title}</span><span className="ml-1.5 text-xs">({stage.time})</span><p className="mt-1 leading-relaxed">{stage.description}</p></li>)}
           </ol>
-          <p className="mt-3 text-xs leading-relaxed text-text-muted">Timings are guides. Keep architecture discussions connected to data quality, model behavior, training, and serving; go deeper into infrastructure when the role or interviewer calls for it.</p>
+          <p className="mt-3 text-xs leading-relaxed text-text-muted">Timings are guides. Our walkthroughs explain requirements, data, model choices and training, evaluation, and operations before showing the detailed architecture diagram. Terms are explained as they arise.</p>
         </div>}
       </section>
       <div className="rounded-md border border-outline/55 bg-surface-high/40 p-4.5">

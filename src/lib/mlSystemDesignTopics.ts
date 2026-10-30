@@ -22,6 +22,16 @@ export const mlSystemDesignFramework = {
   ],
 } as const;
 
+export const mlSystemDesignProblemFlow = [
+  { id: "problem-framing", title: "Problem Framing" },
+  { id: "data-and-features", title: "Data and Features" },
+  { id: "high-level-design", title: "High-level Design" },
+  { id: "model-and-training", title: "Model and Training" },
+  { id: "evaluation", title: "Evaluation" },
+  { id: "monitoring-and-scaling", title: "Monitoring and Scaling" },
+  { id: "detailed-design", title: "Detailed Design" },
+] as const;
+
 export function systemDesignProgressId(topicId: string, caseId: string) {
   return `${topicId}:${caseId}`;
 }
