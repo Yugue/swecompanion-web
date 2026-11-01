@@ -68,17 +68,18 @@ export default async function NlpDesignProblemPage({ params }: { params: Promise
         <article aria-label="NLP system design lesson" className="space-y-8">
           <section id="problem-framing" aria-labelledby="problem-framing-title" className="scroll-mt-6">
             <StageHeading index={0} />
+            <p className="mb-4 text-base leading-relaxed text-text">{problem.conversation[0].text}</p>
             <h3 className="mb-3 text-sm font-bold text-text">Interview Q&A</h3>
             <div role="group" aria-label="Problem statement conversation" className="overflow-hidden rounded-xl border border-outline/70 bg-surface">
-              {problem.conversation.map((turn, turnIndex) => (
+              {problem.conversation.slice(1).map((turn, turnIndex) => (
                 <div key={turnIndex} className={`grid gap-1.5 p-4 sm:grid-cols-[100px_1fr] sm:gap-4 sm:p-5 ${turnIndex > 0 ? "border-t border-outline/45" : ""} ${turn.speaker === "Candidate" ? "bg-surface-high/30" : ""}`}>
                   <p className="text-sm font-bold text-text">{turn.speaker}</p>
                   <p className="text-sm leading-relaxed text-text-muted">{turn.text}</p>
                 </div>
               ))}
             </div>
-            <h3 className="mb-2 mt-5 text-sm font-bold text-text">Functional requirements</h3>
-            <p className="mb-2 text-sm leading-relaxed text-text-muted">From the interviewer’s answers, the system must:</p>
+            <p className="mb-3 mt-5 text-sm leading-relaxed text-text-muted">From the Q&A, we can deduce:</p>
+            <h3 className="mb-2 text-sm font-bold text-text">Functional requirements</h3>
             <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted">{problem.requirements.map((requirement) => <li key={requirement}>{requirement}</li>)}</ul>
             <h3 className="mb-2 mt-5 text-sm font-bold text-text">Derived objectives</h3>
             <DesignDetails items={[
@@ -97,8 +98,9 @@ export default async function NlpDesignProblemPage({ params }: { params: Promise
             <StageHeading index={1} />
             <DesignDetails items={[
               { label: "Where examples come from", text: problem.data.sources },
-              { label: "Labels and fair testing", text: problem.data.labels },
+              { label: "What counts as correct", text: problem.data.labels },
               { label: "What the model reads", text: problem.data.features },
+              { label: "How we test fairly", text: problem.data.validation },
             ]} />
             <dl className="mt-4 grid gap-3 rounded-xl border border-outline/70 bg-surface p-5 text-sm leading-relaxed sm:grid-cols-2 sm:gap-6">
               <div><dt className="font-bold text-text">One training example</dt><dd className="mt-1 text-text-muted">{problem.trainingExample.input}</dd></div>
@@ -139,11 +141,10 @@ export default async function NlpDesignProblemPage({ params }: { params: Promise
           <section id="monitoring-and-scaling" aria-labelledby="monitoring-and-scaling-title" className="scroll-mt-6">
             <StageHeading index={5} />
             <p className="mb-4 text-sm leading-relaxed text-text-muted">{problem.monitoring}</p>
-            <details className="mt-4 rounded-xl border border-outline/60 bg-surface px-5 py-4 text-sm">
-              <summary className="font-semibold text-text">Capacity and cost assumptions <span aria-hidden="true">+</span></summary>
-              <p className="mt-3 leading-relaxed text-text-muted">{problem.capacity}</p>
-              <p className="mt-2 text-xs leading-relaxed text-text-muted">Illustrative arithmetic; validate serving capacity on the actual model, hardware, and traffic.</p>
-            </details>
+            <div className="mt-4 rounded-xl border border-outline/60 bg-surface px-5 py-4 text-sm">
+              <h3 className="font-semibold text-text">Capacity planning</h3>
+              <p className="mt-2 leading-relaxed text-text-muted">{problem.capacity}</p>
+            </div>
             <p className="mt-4 text-sm leading-relaxed text-text-muted"><span className="font-semibold text-text">The tradeoff: </span>{problem.tradeoff}</p>
             <div className="mt-4 rounded-xl border border-outline/70 bg-surface p-5 sm:p-6">
               <h3 className="text-sm font-bold leading-relaxed text-text">Interviewer: {problem.followUp.question}</h3>

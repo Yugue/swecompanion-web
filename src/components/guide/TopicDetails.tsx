@@ -8,6 +8,7 @@ import type { StudyTopic, StudyProblem } from "@/lib/studyData";
 import { getIcon } from "@/lib/icons";
 import { ProgressRing } from "@/components/ProgressRing";
 import { chapterPath } from "@/lib/codingPaths";
+import { codingTopicDescriptions } from "@/lib/codingTopicDescriptions";
 import { ProblemRow } from "./ProblemRow";
 import { BinarySearchGuide } from "./BinarySearchGuide";
 
@@ -28,6 +29,8 @@ export function TopicDetails({
 }) {
   const Icon = getIcon(topic.icon);
   const doneCount = topic.problems.filter((p) => completed.has(p.id)).length;
+  const description = codingTopicDescriptions[topic.slug];
+  const showProTip = topic.slug !== "data-structures-to-know" && topic.group !== "Challenge Rounds";
 
   return (
     <details
@@ -55,7 +58,8 @@ export function TopicDetails({
         <div className="shrink-0">
           <ProgressRing done={doneCount} total={topic.problems.length} color={topic.color} size={40} strokeWidth={3} />
         </div>
-        <div className="col-span-3 flex items-start gap-2.5">
+        {description && <p className="col-span-3 text-sm leading-relaxed text-text-muted">{description}</p>}
+        {showProTip && <div className="col-span-3 flex items-start gap-2.5">
           <span
             title="Pro tip: recognize this pattern"
             className="inline-flex h-6 w-5 shrink-0 items-center justify-center"
@@ -67,7 +71,7 @@ export function TopicDetails({
             <span className="font-semibold text-text">Pro tip:</span>{" "}
             {topic.note}
           </p>
-        </div>
+        </div>}
         <div className="col-span-3 flex min-h-8 items-center justify-between gap-3 border-t border-outline/40 pt-3 text-sm font-semibold text-text-muted group-hover:text-accent-ink">
           <span>{open ? "Hide problems" : `View ${problems.length} ${problems.length === 1 ? "problem" : "problems"}`}</span>
           {open ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}

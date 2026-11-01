@@ -17,7 +17,7 @@ export type NlpDesignProblem = {
   example: { input: string; output: string };
   conversation: { speaker: "Interviewer" | "Candidate"; text: string }[];
   objectives: { business: string; ml: string };
-  data: { sources: string; labels: string; features: string };
+  data: { sources: string; labels: string; features: string; validation: string };
   highLevel: { model: string; rationale: string };
   modeling: { baseline: string; choice: string; training: string };
   inference: { serving: string; experiment: string };
@@ -83,31 +83,32 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "ml": "Because several issues can coexist, recover all applicable labels. Limit wrong labels that cause transfers, and track missed issues and review volume."
     },
     "data": {
-      "sources": "Start with historical messages and corrected agent tags. An agent’s original tag is a clue, not guaranteed truth. Humans label a small, trusted reference set covering languages, rare categories, and multi-issue messages.",
-      "labels": "An offline LLM teacher can read the category definitions and suggest labels in bulk. Agreement with rules and agent tags helps prioritize review; it does not prove correctness. Audit accepted suggestions, review disagreements, and keep the reported test set human-labeled.",
-      "features": "For short messages, feed the whole text to a multilingual tokenizer, which breaks it into pieces the model can read. Preserve negation: “not charged twice” must differ from “charged twice.” Keep customers/threads together and split by time; tune score cutoffs on a separate calibration set."
+      "sources": "Use historical messages and agent corrections. Humans review examples across all 20 languages, rare categories, and messages containing several issues.",
+      "labels": "Each message needs its complete set of categories. A large language model can suggest labels offline—this is the teacher—but people audit its answers. Keep unmatched messages as review examples, not forced category matches.",
+      "features": "Read the whole short message, preserving negation, product names, and error codes. A tokenizer breaks text into model-readable pieces. “Not charged twice” must remain different from “charged twice.”",
+      "validation": "Keep related customer threads together so copied messages do not appear in both training and testing. Use separate examples to choose models and score cutoffs; reserve a final human-labeled test set for reporting quality."
     },
     "highLevel": {
       "model": "Fine-tune a pretrained multilingual text encoder, such as XLM-R, with one yes/no output per category. “Fine-tune” means adapt a model that already reads many languages to these support labels.",
       "rationale": "The 150 categories are stable, so a compact classifier is a natural starting point. Independent outputs allow several labels at once. An LLM can help create training labels offline without being called for every live message."
     },
     "modeling": {
-      "baseline": "Compare a cheap word-weight classifier (TF–IDF + one-vs-rest logistic regression) with an LLM prompted with the category definitions. These are reference points: measure their quality, latency, and cost before adding complexity.",
-      "choice": "The encoder turns the message into a numeric summary. A small classification head produces 150 independent scores using sigmoid outputs. A softmax would wrongly force the categories to compete as if only one could apply.",
-      "training": "Train on audited human/teacher examples using binary cross-entropy: each category is a separate yes/no target. Review rare and multi-issue examples. Synthetic messages can fill gaps, but validate on real traffic. Compare models on validation data; keep final test results untouched."
+      "baseline": "Start with TF–IDF plus logistic regression: weight informative words and learn a yes/no decision for each category. Compare against a prompted language model on the same examples before choosing a more expensive approach.",
+      "choice": "The encoder turns the message into a numeric summary. A classification head produces 150 independent scores between 0 and 1 using sigmoid outputs. Several scores can be high at once, which allows multiple labels.",
+      "training": "Fine-tune the pretrained encoder on reviewed message-to-label examples. Binary cross-entropy trains each category as a separate yes/no target. Include rare categories and multi-issue messages; check real examples before trusting synthetic ones."
     },
     "inference": {
-      "serving": "Apply a separate cutoff to each category’s score. Calibrate scores against held-out outcomes so “confident” has empirical meaning. No accepted label means review, not proof that a new category exists. Add an LLM fallback only if it helps the low-confidence slice enough to justify its cost.",
-      "experiment": "Evaluate a candidate offline, run it in shadow mode without changing routing, then release to a small traffic sample (a canary). Promote only if language/category quality and queue load stay acceptable; keep the previous model ready for rollback."
+      "serving": "Accept each label only if its score exceeds that category’s cutoff. Check score reliability on held-out examples; a high score alone is not proof of correctness. If no label qualifies, return NEEDS_REVIEW.",
+      "experiment": "First run the candidate in shadow mode: log predictions without changing routing. Then use a small traffic sample, called a canary. Expand only if routing quality and review queues remain acceptable; retain the previous version for rollback."
     },
     "measure": [
       {
         "label": "Offline",
-        "text": "Precision asks “of the labels we returned, how many were right?” Recall asks “of the real issues, how many did we catch?” Report both per category/language, plus micro-F1 overall and macro-F1 so large categories do not hide rare failures. Check calibration and the review rate."
+        "text": "Precision measures how many returned labels are right; recall measures how many real issues are found. F1 balances the two. Report results by category and language, including rare categories, plus score reliability and the fraction sent for review."
       },
       {
         "label": "Live",
-        "text": "Compare agent transfers and time to resolution. Manually audit both accepted labels and reviewed messages. Measure fallback quality on the uncertain slice itself; fresh human labels are needed to know live accuracy."
+        "text": "Measure transfers between teams and time to resolution. Audit both accepted labels and reviewed messages; a smaller review queue is useful only if it does not hide more mistakes."
       }
     ],
     "monitoring": "Watch score distributions, review volume, and freshly audited errors by language/category. New products and slang may increase mistakes. Add serving replicas and batch short requests within the latency limit; retrain from reviewed new examples plus older examples so previous skills are retained.",
@@ -169,10 +170,10 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "answer": "No. It may be unclear, noisy, or an existing issue the model missed. Humans review examples first; a new category needs a clear definition and labeled examples before the classifier gains another output."
     },
     "pitfalls": [
-      "Do not call this single-label classification or force one winning category.",
-      "Teacher/rule/agent agreement can still be wrong. Human audits and an independent test set remain necessary."
+      "Forcing a single winning category loses the second issue in a multi-issue message.",
+      "Agreement between an agent tag, a rule, and a teacher model can still be wrong. Keep independent human audits."
     ],
-    "capacity": "Illustrative workload: 5,000 messages/sec × 100 input tokens = 500,000 encoder tokens/sec. A prompted LLM using 1,500 input tokens/request needs 7.5M input tokens/sec, plus output generation. A 5% fallback still handles 250 requests/sec. Convert these workloads into GPUs and dollars only using measured throughput, batching, hardware, and prices.",
+    "capacity": "Illustrative load: 5,000 messages/sec × 100 input tokens (text pieces) = 500,000 input tokens/sec. Measure throughput and response time on the chosen model, then add enough serving copies for peak traffic. Estimate teacher-labeling work separately from live requests.",
     "reference": {
       "title": "Hugging Face: XLM-RoBERTa",
       "href": "https://huggingface.co/docs/transformers/model_doc/xlm-roberta",
@@ -213,8 +214,8 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "summary": "Find tickets about the same underlying issue even when the words differ, while protecting unrelated incidents from false merges.",
     "mentalModel": "A librarian pulls a small stack of similar case files. A detective then compares them carefully. “Both mention checkout” is a reason to investigate, not permission to merge.",
     "example": {
-      "input": "New: “Checkout shows E42 after the update.” Existing: “Since version 8.2, purchases fail with E42.”",
-      "output": "Return the existing canonical ID if context confirms the same issue. A different card-decline problem stays separate; no verified match returns NOVEL."
+      "input": "New: “Version 8.2 checkout fails with E42.” Ticket T-104: “E42 blocks purchases after the 8.2 update.”",
+      "output": "Return T-104 if review-quality evidence confirms the same underlying issue. A ticket about a different checkout failure remains separate; no verified match returns NOVEL."
     },
     "conversation": [
       {
@@ -243,34 +244,35 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "ml": "Because false merges are more costly, set a strict false-merge limit first. Within that limit, find as many genuine duplicates as possible, including across languages."
     },
     "data": {
-      "sources": "Use agent-confirmed duplicate links and human-reviewed pairs. An offline LLM teacher can help label mined pairs; humans audit accepted suggestions and disagreements. Same customer or product is only a clue, never a duplicate label.",
-      "labels": "Include difficult negatives: same product and error topic, but a different cause or condition. Also review unlinked high-scoring pairs; some may be missed positives. Keep each confirmed issue group in one split and evaluate future arrivals against earlier history; calibrate thresholds separately.",
-      "features": "Use subject, body, and relevant product/version/error context. A multilingual encoder creates an embedding—a numeric address placing similar meanings nearby. Check cross-language quality rather than assuming it. Short tickets can fit whole; preserve important text if longer inputs need handling."
+      "sources": "Start with agent-confirmed duplicate links and reviewed ticket pairs. A language model can suggest extra pair labels offline, but people audit them. Sharing a customer, product, or topic is not enough to establish duplication.",
+      "labels": "Use three pair labels: DUPLICATE, RELATED_BUT_DIFFERENT, and UNRELATED. Include confusing nonduplicates, called hard negatives. Review unlinked high-scoring pairs too; an absent link does not prove two tickets are different.",
+      "features": "Read subject, body, product version, and error details. A multilingual encoder maps each ticket to an embedding—a numeric address used to find similar meanings across wording and languages.",
+      "validation": "Keep each confirmed issue group out of other training/test splits. Replay held-out tickets against history available before each arrival, then tune acceptance cutoffs on separate examples. Never let a query retrieve itself."
     },
     "highLevel": {
-      "model": "Use a bi-encoder to search for candidates, then a cross-encoder to verify pairs. The first reads tickets separately for speed; the second reads two tickets together for a more careful comparison.",
-      "rationale": "Comparing a new ticket carefully against all 100 million records is too expensive. Retrieve a small shortlist first. Begin with retrieval alone as a benchmark; add the verifier when similar-but-different tickets cause unacceptable merges."
+      "model": "Use a multilingual bi-encoder to find candidates, then a cross-encoder to verify pairs. The bi-encoder reads tickets separately for fast search; the cross-encoder reads both together to judge whether they describe the same issue.",
+      "rationale": "A careful comparison against all 100 million tickets is too costly. First retrieve a small shortlist, then spend verification work on that shortlist. Benchmark retrieval alone to learn whether the extra verifier is needed."
     },
     "modeling": {
-      "baseline": "BM25 keyword search checks exact terms cheaply. Compare its candidates with embedding retrieval. An LLM can judge a few retrieved pairs as a quality benchmark or offline teacher; measure its serving cost before using it live.",
-      "choice": "Precompute historical embeddings and use an approximate nearest-neighbor index (ANN) to find, for example, 50 candidates without scanning every record. A verifier reads the best few pairs and scores duplicate/related/unrelated. BM25 can contribute exact error-code matches.",
-      "training": "Train the retriever to bring true pairs closer and separate reviewed hard negatives: contrastive learning. Train the verifier on the three pair labels with cross-entropy. Teacher-to-student distillation means teaching a smaller serving model from audited teacher judgments; preserve a human test set."
+      "baseline": "Compare BM25 keyword search with embedding search. Keywords help with exact error codes; embeddings help with paraphrases. Judge duplicate decisions on reviewed pairs, not similarity scores alone.",
+      "choice": "Store historical embeddings in an approximate nearest-neighbor index (ANN), which quickly finds nearby vectors. Retrieve, for example, 50 candidates and verify the best few. The verifier scores duplicate, related, and unrelated separately.",
+      "training": "Train the retriever to pull true duplicates closer and push hard negatives apart: contrastive learning. Train the verifier on the three pair labels. Audited teacher-model judgments can add examples; final quality still needs human-labeled testing."
     },
     "inference": {
-      "serving": "Accept only a calibrated duplicate score above the chosen cutoff, with a clear canonical ID. Conflicting candidate groups or insufficient evidence return NOVEL or human review. NOVEL means no verified match, not proof that no duplicate exists. Prioritize verification where evaluation shows it helps.",
-      "experiment": "Replay tickets in arrival order, then shadow suggestions against agent decisions. Canary automatic merges only after passing false-merge and language checks. Record reversible merge evidence; rollback must restore compatible model and index versions."
+      "serving": "Return a canonical ID only when the duplicate score clears a tested cutoff and the evidence identifies a consistent group. Otherwise return NOVEL and optionally queue the pair for later review. NOVEL means no verified match, not certainty that no duplicate exists.",
+      "experiment": "Replay past arrivals, then show shadow suggestions without changing ticket groups. Trial suggestions with a small group of agents before wider release. Keep a decision log and compatible previous model/index versions for rollback."
     },
     "measure": [
       {
         "label": "Offline",
-        "text": "First ask whether the shortlist contains a real duplicate: retrieval Recall@K. Separately compare ANN results with exact vector search to measure approximation loss. Then measure final duplicate precision, recall, and false merges, especially on related-but-different pairs. High retrieval recall cannot excuse a bad merge gate."
+        "text": "Check whether a real duplicate appears in the top K candidates: Recall@K. Then measure the fraction of accepted matches that are correct and the fraction of true duplicates found. Test related-but-different tickets and each language separately."
       },
       {
         "label": "Live",
-        "text": "Audit agent reversals, missed duplicates, and investigation time saved. Track NOVEL rates and fresh human judgments by language. Teacher agreement is a diagnostic, not proof of correctness."
+        "text": "Audit rejected suggestions, missed duplicates, NOVEL rates, and investigation time saved. Separately compare approximate search with an exact scan on a sample to detect index-search losses."
       }
     ],
-    "monitoring": "Watch similarity scores, NOVEL volume, and fresh pair judgments after releases. Add new tickets to a small delta index immediately, search it alongside the main index, then compact later. Maintain canonical-ID mappings when groups merge; switch a new encoder and its rebuilt index together.",
+    "monitoring": "Watch similarity scores and freshly reviewed errors by language. Search a main index plus a small delta index of recent tickets; fold delta into main periodically. A new encoder changes the numeric addresses, so rebuild historical vectors and release the encoder/index together.",
     "diagram": {
       "online": [
         {
@@ -326,11 +328,11 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
         "nodes": [
           {
             "title": "New tickets",
-            "detail": "Continuous arrivals"
+            "detail": "After match decision"
           },
           {
             "title": "Keep IDs + context",
-            "detail": "Canonical mapping"
+            "detail": "Own ID / matched group"
           },
           {
             "title": "Encode once",
@@ -358,7 +360,7 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "Related, similar, and duplicate are different judgments. Never merge on a shared topic alone.",
       "Do not silently label every unlinked pair negative, or change the encoder without rebuilding compatible historical embeddings."
     ],
-    "capacity": "Illustrative workload: 500 tickets/sec × 256 tokens = 128,000 query tokens/sec. Checking five 512-token pairs for every ticket adds 1.28M pair-input tokens/sec. If a validated policy verifies 40% of requests, that becomes 512,000. Index backfill, ANN search, pair verification, and teacher labeling need separate budgets; GPU and dollar estimates require benchmarks.",
+    "capacity": "Illustrative load: 500 tickets/sec × five verified candidates = 2,500 pair comparisons/sec, in addition to query encoding and index search. Budget the one-time encoding of 100 million historical tickets separately. Measure each stage before choosing machines.",
     "reference": {
       "title": "Sentence Transformers: cross-encoder training",
       "href": "https://sbert.net/docs/cross_encoder/training_overview.html",
@@ -379,19 +381,19 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "designSteps": [
       {
         "title": "Find candidates",
-        "text": "Encode the new ticket and query the main plus delta indexes. Historical vectors are already computed; the index returns candidate ticket IDs."
+        "text": "Encode the arriving ticket and search earlier history in main plus delta. Retrieve candidate ticket IDs before adding this ticket, so it cannot match itself."
       },
       {
         "title": "Verify and decide",
-        "text": "Compare selected pairs, then return a canonical ID only with sufficient duplicate evidence. Keep ambiguous tickets separate."
+        "text": "Compare shortlisted pairs, resolve their canonical group IDs, and return one verified ID or NOVEL. Conflicting evidence stays separate."
       },
       {
         "title": "Keep history current",
-        "text": "An ingestion job embeds each new ticket into delta. Being searchable does not make it a validated duplicate group."
+        "text": "After the decision, record this ticket’s own ID and group mapping, then add its vector to delta. New tickets become searchable without retraining."
       },
       {
         "title": "Improve safely",
-        "text": "Log difficult pairs for teacher/human review, train candidates offline, and promote evaluated model/index versions through a registry."
+        "text": "Review difficult pairs, train candidate models, and evaluate on held-out arrivals. A model registry records approved versions; release each encoder with its matching index."
       }
     ]
   },
@@ -437,22 +439,23 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "ml": "Because wrong selections are costly, prioritize the correctness of accepted workflow IDs. Then increase supported-request coverage while rejecting unsupported requests."
     },
     "data": {
-      "sources": "Each workflow needs a title, plain-language purpose, example requests, required parameters, and prerequisites. Reviewed support logs provide real ways customers ask for it; teacher-generated paraphrases can supplement rare languages.",
-      "labels": "Label requests with the correct active workflow, plus examples that no workflow supports. Review confusing neighbors such as cancel-order versus cancel-subscription. Group paraphrases and use later requests for evaluation.",
-      "features": "Encode the whole request and each workflow description into comparable numeric vectors. These embeddings help different wording match. Keep authorization and mandatory prerequisites as explicit checks, not facts the similarity model must guess."
+      "sources": "Each workflow is an approved procedure with an ID, description, example requests, required inputs, and prerequisites. Use reviewed support requests to capture the different ways customers ask for it.",
+      "labels": "Pair each request with its correct active workflow, or mark it UNSUPPORTED. Include easily confused actions such as cancel-order and cancel-subscription. Audit any generated examples before using them.",
+      "features": "Convert requests and workflow descriptions into embeddings: numeric vectors that place similar meanings near one another. Keep account permissions and mandatory inputs as explicit checks in the execution service.",
+      "validation": "Group paraphrases of the same request together, then test on later requests and catalog versions. Tune acceptance cutoffs separately, with unsupported requests and newly added workflows included."
     },
     "highLevel": {
-      "model": "Use a multilingual bi-encoder: one encoder reads the request and the other reads action descriptions. Search the resulting vectors, then accept a match or reject it.",
-      "rationale": "The action catalog changes daily. Adding a searchable workflow description can be much faster than retraining a fixed output classifier. A careful pairwise verifier is optional if neighboring actions remain confusing."
+      "model": "Use a multilingual bi-encoder to read requests and workflow descriptions separately, then find matching descriptions by their embeddings. Return one active ID or UNSUPPORTED.",
+      "rationale": "A fixed-category classifier needs an output for every action. Searching descriptions lets a new workflow become searchable as soon as its description is encoded. Retraining is reserved for improving matching quality."
     },
     "modeling": {
-      "baseline": "Try keyword search and an exact vector scan first. With a small catalog, a full scan may be simpler than an approximate index. Compare quality and measured latency.",
-      "choice": "Retrieve candidate action IDs, optionally rerank request–action pairs with a cross-encoder, then apply a calibrated acceptance cutoff. Top-K means how many candidates to inspect; it is not the accept/reject rule.",
-      "training": "Learn from reviewed request–action pairs. Contrastive training makes correct pairs more similar and confusing wrong pairs less similar. Audit synthetic paraphrases and keep supported/unsupported calibration examples separate from final testing."
+      "baseline": "Try keyword search first. Next compare embedding search using an exact scan of the 20,000 workflow vectors; use an approximate index only if measured traffic and latency justify it.",
+      "choice": "Retrieve the top K candidate descriptions. If needed, a cross-encoder reads each request and candidate together to rerank them. A separate tested score cutoff decides acceptance; being first in the ranking is not enough.",
+      "training": "Train on reviewed request–workflow pairs. Contrastive learning brings correct pairs closer and separates confusing wrong ones. Include diverse unsupported requests when choosing the rejection cutoff."
     },
     "inference": {
-      "serving": "Embed edited workflows into a fresh delta index and filter retired IDs immediately. Recheck the selected active ID and prerequisites before returning it. Selection does not authorize execution.",
-      "experiment": "Shadow against reviewed requests, then canary selection with execution safeguards intact. Expand only if accepted matches remain sufficiently precise and unsupported requests are rejected reliably."
+      "serving": "Accept an active workflow only when its match score clears the cutoff; otherwise return UNSUPPORTED. A separate authorized service checks permissions, required inputs, and prerequisites before execution.",
+      "experiment": "Log candidate selections without executing them, compare with reviewed answers, then trial a small share of requests. Expand only if wrong selections and unsupported-request acceptance remain acceptable."
     },
     "measure": [
       {
@@ -464,7 +467,7 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
         "text": "Audit wrong-action selections, successful resolutions, catalog update lag, latency, and cost. Execution failures may reflect permissions or missing parameters rather than a matching mistake."
       }
     ],
-    "monitoring": "Watch unsupported requests, retired IDs, and newly confused workflows. Refresh descriptions/indexes immediately; retrain only when reviewed matching errors justify it. Add replicas to bottleneck stages using measured query and verifier throughput.",
+    "monitoring": "Watch wrong selections, unsupported requests, and the delay before workflow edits become searchable. Remove retired IDs immediately. Start with a versioned full index; add a main-plus-delta update scheme only if rebuilds cannot meet freshness needs.",
     "diagram": {
       "online": [
         {
@@ -516,7 +519,7 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "learningLoop": "Audited matches and verified hard negatives → encoder/gate evaluation; registry edits update embeddings independently.",
       "caption": "New actions enter delta directly. Retirement updates the active-ID filter immediately; do not wait for main-index compaction."
     },
-    "tradeoff": "A verifier spends latency on harder decisions. Improve retrieval first when Recall@K is low; benchmark verification when the right action is present but loses at the final gate.",
+    "tradeoff": "A longer shortlist can recover missed actions but costs more to verify. If the correct action is absent, improve search; if it is present but rejected or outranked, inspect verification and the cutoff.",
     "followUp": {
       "question": "Can UNSUPPORTED be one more vector in the index?",
       "answer": "No single vector represents every unsupported intent. Calibrate rejection on diverse supported/unsupported pairs, and apply the gate to the actual candidate score."
@@ -525,7 +528,7 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "Top-K chooses candidate volume; it does not set the accept/reject threshold.",
       "Do not cluster a curated action registry or retrain for every catalog edit."
     ],
-    "capacity": "10K QPS × 80 tokens ≈ 800K query tokens/sec. Verifying 20 candidates/request means 200K pairs/sec: measure that cost before enabling reranking. Compare exact scan and ANN at the actual registry size.",
+    "capacity": "At 10,000 requests/sec, checking 20 candidate pairs per request adds 200,000 pair comparisons/sec. Benchmark exact search, query encoding, and optional reranking separately against the 150 ms response target; shortlist size is a cost decision.",
     "reference": {
       "title": "Sentence Transformers: retrieve and rerank",
       "href": "https://www.sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html",
@@ -545,15 +548,15 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "designSteps": [
       {
         "title": "Publish the playbook",
-        "text": "Validate and embed workflow descriptions. Search a stable main index plus fresh delta records; remove retired IDs through an active-ID filter."
+        "text": "Validate descriptions and encode each active workflow with the live model. Publish versioned updates and exclude retired IDs immediately."
       },
       {
         "title": "Match and reject",
-        "text": "Encode a request, retrieve candidates, and verify only if useful. Return one ID or UNSUPPORTED using an evaluated cutoff."
+        "text": "Encode the request, search descriptions, and optionally rerank a short list. Return the accepted active ID or UNSUPPORTED; execution happens separately."
       },
       {
-        "title": "Learn from outcomes",
-        "text": "Review wrong selections and missing matches, then evaluate updated encoders and cutoffs before release."
+        "title": "Learn from reviewed outcomes",
+        "text": "Collect wrong selections and missed matches. Train an improved encoder only when useful, evaluate it on later requests, then rebuild compatible catalog vectors before release."
       }
     ]
   },
@@ -568,8 +571,8 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "summary": "Find every product mention in a message and link it to the right variant in a large catalog, or return NO_MATCH.",
     "mentalModel": "Highlight the products in a sentence, then check their identity cards. Similar names can belong to different products.",
     "example": {
-      "input": "Compare the blue 128GB Model X with the 256GB Pro.",
-      "output": "Two mention spans, each with its correct variant ID or NO_MATCH; storage and model qualifiers stay attached."
+      "input": "“The blue Model X 128GB overheats, but my Model X 256GB works.”",
+      "output": "Two product mentions linked to two distinct catalog variant IDs. If a variant cannot be identified reliably, return NO_MATCH for that mention."
     },
     "conversation": [
       {
@@ -598,22 +601,23 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "ml": "Because exact variants matter, measure both finding each product mention and linking it to the correct ID. Control false links and correctly return NO_MATCH for absent products."
     },
     "data": {
-      "sources": "Use catalog names, aliases, model numbers, and variant attributes alongside human-marked mentions and exact-ID links. Clicks can suggest links, but humans must audit them before treating them as truth.",
-      "labels": "Teach two answers: where the product mention is, and which catalog ID it means. Include absent products and near-identical variants. Hold out later catalog data and group repeated messages.",
-      "features": "Retain the mention’s surrounding sentence: “blue” and “128GB” may determine the right variant. Use embeddings for wording similarity, keyword search for exact model codes, and structured filters for hard price or storage constraints."
+      "sources": "Use catalog names, aliases, model numbers, colors, and storage sizes. Humans mark product phrases in real messages and link them to exact records. Clicks suggest candidates but are not automatically correct labels.",
+      "labels": "Teach both the mention span (its position in the text) and the exact catalog ID. Include typos, several mentions, absent products, and nearly identical variants.",
+      "features": "Read each product phrase with its sentence. Keep “blue,” “128GB,” and model codes attached to the right mention. Combine embeddings (numeric vectors representing meaning) with keyword matching and explicit variant attributes.",
+      "validation": "Group repeated messages and hold out later catalog versions. Test with human-marked spans first, then with model-detected spans, so linking errors can be separated from detection errors."
     },
     "highLevel": {
-      "model": "First use a mention detector to highlight product phrases. Then use retrieval to find catalog candidates and, when needed, a pairwise verifier to check exact identity.",
-      "rationale": "Highlighting a name and resolving its identity are different jobs. Separating them makes errors easier to diagnose and lets new catalog products become searchable without retraining the whole system."
+      "model": "Use a token classifier to highlight product phrases. A bi-encoder reads each phrase/context and catalog description separately for fast search; a cross-encoder can compare shortlisted pairs to check exact identity.",
+      "rationale": "Finding the words “Model X” and deciding which Model X record they mean are different jobs. Separating them reveals where errors happen and lets new products enter search without retraining the detector."
     },
     "modeling": {
-      "baseline": "Start with exact IDs and alias lookup, plus a pretrained mention detector. Measure which misspellings and ambiguous variants they miss.",
-      "choice": "A token tagger marks words as part of a product mention. A contextual bi-encoder finds likely catalog records; an optional cross-encoder reads mention/context and candidate together before the NO_MATCH gate.",
-      "training": "Use labeled spans for the detector and reviewed mention–ID pairs for retrieval. Train with confusing sibling products, not just random negatives. Calibrate NO_MATCH on genuinely absent products and ambiguous examples."
+      "baseline": "Start with exact model-code and alias lookup plus a pretrained mention detector. Measure which misspellings, languages, and sibling variants these simple methods miss.",
+      "choice": "The detector marks product words. Retrieval finds candidate catalog records; a cross-encoder can compare each candidate with the mention and sentence. Explicit storage/model conflicts reject a candidate even when its wording is similar.",
+      "training": "Train the detector on labeled text spans. Train retrieval and verification on reviewed mention–ID pairs, including confusing variants. Use absent and ambiguous products to choose when to return NO_MATCH."
     },
     "inference": {
-      "serving": "Preserve source offsets and qualifiers through detection and linking. Update active catalog embeddings promptly; reject retired or incompatible variants. An isolated word like “Phone” is often insufficient context.",
-      "experiment": "Evaluate with perfect human spans and with predicted spans to separate detector mistakes from linking mistakes. Canary exact-ID results before they drive downstream actions."
+      "serving": "Keep each mention’s original position and qualifiers. Return a matching active variant ID only above the acceptance cutoff; otherwise return NO_MATCH. A missing qualifier may make an exact variant impossible to identify.",
+      "experiment": "Compare human-span and detected-span results before release. Trial linked IDs with a small group of users, auditing wrong variants before allowing links to drive downstream actions."
     },
     "measure": [
       {
@@ -625,12 +629,12 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
         "text": "Audit unmatched and wrong-variant results by language/brand; watch catalog freshness, messages with many mentions, latency, and cost."
       }
     ],
-    "monitoring": "Review new aliases and sibling-product confusions. Keep catalog ingestion separate from model retraining, and scale retrieval and pair verification independently.",
+    "monitoring": "Watch wrong-variant links, unmatched mentions, and errors by language or brand. Add new catalog vectors promptly and filter retired IDs immediately. Scale mention detection, catalog search, and pair verification according to their measured loads.",
     "diagram": {
       "online": [
         {
           "title": "Text → mentions",
-          "detail": "BIO spans + offsets"
+          "detail": "Phrases + text positions"
         },
         {
           "title": "Encode with context",
@@ -663,8 +667,8 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
           "detail": "Compatible encoder"
         },
         {
-          "title": "Update + tombstone",
-          "detail": "Delta; immediate retires"
+          "title": "Update active IDs",
+          "detail": "New / retired records"
         },
         {
           "title": "Searchable catalog",
@@ -679,14 +683,14 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     },
     "tradeoff": "More candidates improve identity recall but increase pairwise cost. A verifier is useful for lookalike variants only after the right ID reaches the shortlist.",
     "followUp": {
-      "question": "Why not embed only the extracted word ‘Phone’?",
-      "answer": "That loses storage, color, and model context. Encode the surrounding phrase and apply authoritative numeric/categorical filters; embeddings cannot reliably enforce a price ceiling."
+      "question": "Why not search for just the words “Model X”?",
+      "answer": "That discards the color and storage size that distinguish variants. Keep surrounding qualifiers with each mention, and enforce explicit attribute conflicts instead of trusting similarity alone."
     },
     "pitfalls": [
       "Do not merge catalog products merely because their descriptions are similar.",
       "A correct mention span is not proof of a correct entity link."
     ],
-    "capacity": "50M vectors × 768 dimensions × 2 bytes ≈ 76.8 GB of raw FP16 embeddings, before ANN overhead, metadata, and replicas. Multi-prototype indexing increases this footprint.",
+    "capacity": "Example storage estimate: 50 million products × 768 numbers/vector × two bytes/number = 76.8 GB for raw vectors. The search index, metadata, and extra copies need more space. Measure memory and search time before choosing compression or sharding.",
     "reference": {
       "title": "Hugging Face: token classification",
       "href": "https://huggingface.co/docs/transformers/tasks/token_classification",
@@ -706,15 +710,15 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "designSteps": [
       {
         "title": "Locate each mention",
-        "text": "Highlight product phrases and retain their original text positions and surrounding qualifiers."
+        "text": "Highlight product phrases and preserve their text positions and surrounding qualifiers."
       },
       {
         "title": "Resolve identity",
-        "text": "Search active catalog records using meaning and exact attributes, then verify difficult candidates or return NO_MATCH."
+        "text": "Search active catalog records, check exact attributes, and verify difficult pairs. Return one ID or NO_MATCH for each mention."
       },
       {
-        "title": "Refresh the catalog",
-        "text": "Embed new records into delta; tombstone retired IDs immediately. Feed reviewed linking errors into model evaluation."
+        "title": "Update data and models separately",
+        "text": "Publish new catalog vectors and filter retired IDs immediately. Use reviewed span and ID corrections to train and test the failing stage; a new encoder requires compatible catalog vectors."
       }
     ]
   },
@@ -729,8 +733,8 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "summary": "Find genuinely new problems after a release, without promoting praise, copied complaints, or spam into incidents.",
     "mentalModel": "A newsroom tip desk: route familiar stories, group credible new tips, then check whether the story is real and growing.",
     "example": {
-      "input": "Many independent users report that release 8.2 makes exported PDFs blank.",
-      "output": "A reviewed new issue with evidence, growth history, and a prototype added to the known registry."
+      "input": "Independent users report: “After release 8.2, exported PDFs are blank.”",
+      "output": "A reviewed issue such as ISSUE-201, with representative reports and a growth timeline. Future matching reports attach to ISSUE-201."
     },
     "conversation": [
       {
@@ -759,22 +763,23 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "ml": "Because similarity alone does not establish a new incident, recover issue-like messages, form coherent groups, and validate novelty, persistence, and credibility before promotion."
     },
     "data": {
-      "sources": "Use known issue descriptions, raw messages, release times, and privacy-appropriate source identifiers. Historical reviewed incidents help test whether the system would have discovered them in time.",
-      "labels": "Label known matches and issue-versus-noise examples. Review accepted and rejected discoveries. Replay history in time order so future knowledge cannot leak into an earlier detection decision.",
-      "features": "Text embeddings place similar meanings nearby. Separately count distinct sources, volume, persistence, and growth. Keep copy counts for trends, but stop repeated copies from dominating the shape of a cluster."
+      "sources": "Collect messages with timestamps, release versions, and source identifiers that allow independent reports to be counted. Keep definitions and examples for the 200 known issues, plus past confirmed incidents.",
+      "labels": "Humans mark known-issue matches and distinguish problem reports from praise or spam. They also judge proposed groups: one new incident, an existing issue, unrelated reports, or noise.",
+      "features": "Use multilingual text embeddings—numeric vectors describing meaning—to group similar reports. Track distinct sources, growth, and persistence separately. Repeated copies should not count as many independent confirmations.",
+      "validation": "Replay past messages in time order using only issue definitions available then. Measure whether each real incident would have been found within an hour, including false alerts and messages wrongly filtered out."
     },
     "highLevel": {
-      "model": "Match known issues first. Filter the remaining messages for real issue-like content, group similar ones with clustering, then score and review promising new groups.",
-      "rationale": "An unmatched message may just be praise or spam. Clustering finds a family of related messages; growth and human review decide whether that family is a real emerging issue."
+      "model": "Use embedding search for known issues, a small text classifier for issue-versus-noise filtering, then clustering to group the remaining reports. Humans confirm promising new groups.",
+      "rationale": "Known-issue search only finds issues already in the library. Clustering suggests new groups; independent reports, timing, and review determine whether a group deserves an incident ID."
     },
     "modeling": {
-      "baseline": "Match known issue examples and send frequent unmatched phrases to human review.",
-      "choice": "Use multilingual embeddings with HDBSCAN, a clustering method that can leave isolated messages unassigned. Choose representative examples for each group, then check growth, novelty, and source diversity.",
-      "training": "Train the issue/noise filter on reviewed messages. Clustering itself groups unlabeled observations; it is not taught a fixed list of new issues. Tune its settings on replayed incidents and reviewed groups."
+      "baseline": "Match known issue examples and send frequent unmatched phrases to reviewers. This establishes whether automated clustering reduces review work or finds issues sooner.",
+      "choice": "Try multilingual embeddings with HDBSCAN, which groups nearby reports and can leave isolated messages unassigned. Pick representative real messages from each group, then check novelty, growth, and independent sources.",
+      "training": "Train the known-issue matcher and issue/noise filter on reviewed examples. Clustering groups observations without predefined new-issue labels. Tune its settings on past incidents and include rare-language reports in evaluation."
     },
     "inference": {
-      "serving": "Run bounded sliding-window batches over unknown issue-like text. Promote only reviewed groups; immediately add their definitions/examples to the known registry. Unknown observations and validated known records remain separate.",
-      "experiment": "Replay past releases, then shadow alerts with responders before enabling paging. Compare missed incidents, detection delay, and false alarms, not simply the number of clusters created."
+      "serving": "Assign confident known matches directly. Group unmatched issue-like messages in rolling time windows; align overlapping groups across windows to avoid duplicate alerts. Review a proposed incident before publishing its ID and examples.",
+      "experiment": "Replay historical incidents, then let responders review alerts without paging anyone. Trial notifications only after checking false alerts, missed incidents, and discovery delay."
     },
     "measure": [
       {
@@ -786,7 +791,7 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
         "text": "Track responder-confirmed alert quality, review load, source diversity, and whether newly approved issues become assignable promptly."
       }
     ],
-    "monitoring": "Watch spam-driven alerts and missed incidents. Bound clustering windows to control work; retain raw evidence for review. A growing cluster needs investigation, not automatic promotion.",
+    "monitoring": "Track missed incidents, spam-driven alerts, and reviewer workload. Keep isolated issue-like reports for later windows so weak early signals are not permanently discarded. A newly confirmed issue updates the known library immediately; model retraining can follow later.",
     "diagram": {
       "online": [
         {
@@ -816,8 +821,8 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
           "detail": "Definitions + reviews"
         },
         {
-          "title": "Build prototypes",
-          "detail": "Embed known examples"
+          "title": "Encode examples",
+          "detail": "Confirmed issue reports"
         },
         {
           "title": "Publish delta",
@@ -835,24 +840,24 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "offlineLabel": "Known registry",
       "servingLabel": "Assignment and discovery",
       "feedsStep": 1,
-      "feedLabel": "Match against validated issue prototypes",
+      "feedLabel": "Search confirmed known issues",
       "bypass": {
         "fromStep": 1,
         "label": "Known match → assign directly"
       },
-      "learningLoop": "Reviewed new cluster → canonical issue + prototypes → known registry now; supervised retraining later.",
-      "caption": "Unmatched does not mean novel. Filter nonissues before clustering; reject noisy clusters after scoring. Main/delta hold validated issues, while the unknown pool holds observations."
+      "learningLoop": "Confirmed groups receive an issue ID and searchable examples now; reviewed outcomes improve trained models in later releases.",
+      "caption": "Known matches go directly to assignment. Only plausible unmatched reports enter discovery; a reviewer confirms new issues before they join the known library."
     },
-    "tradeoff": "Waiting for persistence reduces false alerts but delays discovery. Use severity and independent-source evidence to choose promotion rules, rather than cluster size alone.",
+    "tradeoff": "Waiting for more independent reports reduces false alerts but delays detection. Let severity and source diversity influence review priority; cluster size alone should not determine promotion.",
     "followUp": {
       "question": "A cluster doubles in size. Is that an emerging issue?",
       "answer": "Check distinct sources, copying/spam, persistence, novelty against known issues, and a historical baseline. Clustering establishes similarity; temporal growth and review establish an emerging issue."
     },
     "pitfalls": [
-      "No known label can mean praise, noise, or ambiguity—not a new issue.",
-      "Do not cluster delta just because its validated records are fresh, or assume HDBSCAN automatically supplies useful centroids."
+      "An unmatched message may be praise, noise, or a missed known issue.",
+      "Do not discard every isolated report permanently, or create a fresh incident ID for the same group in every time window."
     ],
-    "capacity": "5M messages/day averages about 58/sec, but size for observed peaks. Benchmark clustering on bounded sliding windows; full-history reclustering is not required for hourly discovery.",
+    "capacity": "Illustrative load: five million messages/day averages about 58/sec, with higher peaks. Encode each message once, then cluster recent unknown reports in bounded windows. Measure the slowest window plus review delay against the one-hour discovery target.",
     "reference": {
       "title": "scikit-learn: HDBSCAN",
       "href": "https://scikit-learn.org/stable/modules/generated/sklearn.cluster.HDBSCAN.html",
@@ -871,16 +876,16 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     },
     "designSteps": [
       {
-        "title": "Route familiar reports",
-        "text": "Use the current known registry. Send only unmatched, issue-like reports into the discovery pool."
+        "title": "Separate familiar reports from candidates",
+        "text": "Search confirmed known issues first. Apply the issue/noise filter to unmatched messages and retain plausible new reports with timestamps and source counts."
       },
       {
         "title": "Group and investigate",
-        "text": "Suppress spam/copies, cluster meaning, and check whether independent reports are new, growing, and persistent."
+        "text": "Cluster recent candidates, connect repeated groups across windows, and inspect representative reports. Compare with known issues before notifying a reviewer."
       },
       {
-        "title": "Promote reviewed issues",
-        "text": "Create a canonical issue and examples only after validation; make it searchable now and retrain supervised models later."
+        "title": "Publish a confirmed issue",
+        "text": "A reviewer creates the canonical issue ID, description, and examples. Publish them to the known library now; use reviewed outcomes to improve models in a separately evaluated release."
       }
     ]
   },
@@ -892,8 +897,8 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "summary": "Give cited, grounded answers from a changing corpus, and abstain when relevant passages still do not answer the question.",
     "mentalModel": "An open-book exam: finding the right chapter is only the first step; the cited lines must actually justify the answer.",
     "example": {
-      "input": "How many vacation days can I carry over in my region?",
-      "output": "A scoped answer citing the current policy, a clarification question, or INSUFFICIENT_EVIDENCE."
+      "input": "An employee asks: “How many vacation days can I carry over?” Their region is not supplied.",
+      "output": "Ask for the region first. If the permitted current policy says five days, answer “Up to five days” with that passage cited; otherwise return INSUFFICIENT_EVIDENCE."
     },
     "conversation": [
       {
@@ -922,22 +927,23 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "ml": "Because answers need current, permitted evidence, retrieve authoritative passages and produce complete, supported claims. Clarify or abstain when evidence is insufficient or conflicts remain."
     },
     "data": {
-      "sources": "Use authoritative documents with permissions, dates, regions, and source IDs. Human experts supply example questions, correct answers, and supporting passages. Preserve text extracted from screenshots alongside links to the original.",
-      "labels": "Judge relevance and answerability separately: a page about vacation may still omit the carryover limit. Include missing-answer and conflicting-policy examples, with later snapshots reserved for evaluation.",
-      "features": "Split documents into meaningful passages with enough context to read independently. Store text embeddings for meaning, keyword matches for exact terms, and permission/version metadata as hard filters."
+      "sources": "Use company documents with access permissions, effective dates, regions, and source links. Experts provide real questions, correct answers, and the passages supporting them. Extract screenshot text while retaining links to the originals.",
+      "labels": "Judge two things separately: is a passage relevant, and does it actually answer the question? Include ambiguous questions, missing answers, and conflicting policy versions.",
+      "features": "Split documents into readable passages with headings and source pointers. Search by keywords and embeddings (vectors representing meaning). Keep permissions, dates, and region as explicit filters rather than asking the model to infer them.",
+      "validation": "Test on held-out questions and later document snapshots. Include users with different permissions, revoked access, policy changes, and no-answer cases. Humans audit any automated answer-quality scores."
     },
     "highLevel": {
-      "model": "Use retrieval-augmented generation (RAG): search permitted documents first, then ask a language model to answer using the retrieved evidence.",
-      "rationale": "Think of an open-book exam. Updating the book is easier than teaching the model every policy change. The answer must still be checked: finding a relevant passage does not prove it contains the answer."
+      "model": "Use retrieval-augmented generation (RAG): search documents the employee may access, then give the selected passages to a pretrained language model to write a cited answer.",
+      "rationale": "Policies can change in the search library without retraining the language model. Retrieval supplies evidence; the generator turns it into an answer. Relevant text still needs to contain enough information to answer the actual question."
     },
     "modeling": {
-      "baseline": "Return the best matching source excerpts without generating a new answer. Compare this with a pretrained LLM given the same evidence.",
-      "choice": "Combine keyword and embedding search; optionally rerank candidates. Check answerability, then give the generator selected passages and source IDs. A claim-support check compares each answer claim with its cited evidence.",
-      "training": "Start with a pretrained generator. Improve retrieval using reviewed question–passage pairs. If high traffic justifies a smaller generator, train it on audited question + evidence → cited-answer examples; keep retrieval in the design."
+      "baseline": "Return the best source excerpts with links. Compare this with generated answers using the same permitted evidence, so the value and risk of generation are visible.",
+      "choice": "Combine keyword and meaning-based search. A reranker can compare the question with each candidate passage more carefully. Clarify missing scope, then generate only from sufficient evidence and check each claim against its cited passage.",
+      "training": "Start with a pretrained generator and no custom training. Improve retrieval using reviewed question–passage pairs. Fine-tune only if audited errors justify it; training does not replace current evidence or access checks."
     },
     "inference": {
-      "serving": "Enforce access before document text reaches a model. Treat document instructions as untrusted content. Clarify missing scope, bound context/output size, and return sources or abstention when generation fails.",
-      "experiment": "Gate releases on expert audits and permission tests, then canary eligible users. Stop for access leaks or unsupported advice; measure answer coverage as well as accuracy so always abstaining cannot win."
+      "serving": "Filter permissions before passages reach the generator. Treat retrieved text as evidence, not instructions. If scope is unclear, ask a question; if evidence is missing or conflicts cannot be resolved, return INSUFFICIENT_EVIDENCE.",
+      "experiment": "Pass expert answer audits and permission tests, then trial a small user group. Check useful-answer coverage as well as correctness: refusing every question is not success. Keep the previous prompt/model version available."
     },
     "measure": [
       {
@@ -949,7 +955,7 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
         "text": "Audit resolved questions, unsupported claims, stale sources, latency, and cost. Inspect the first failing step: indexing, retrieval, evidence selection, or generation."
       }
     ],
-    "monitoring": "Apply document edits and deletes promptly. Track wrong/stale answers and permission failures. Budget search, language-model input processing, and generated output separately; cache only within the correct permissions and document versions.",
+    "monitoring": "Apply document edits, deletions, and permission changes promptly. Audit unsupported and stale answers. Cache only for compatible access rights and document versions; otherwise one user’s cached answer could reveal another user’s restricted source.",
     "diagram": {
       "online": [
         {
@@ -958,7 +964,7 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
         },
         {
           "title": "Hybrid retrieval",
-          "detail": "ACLs; optional reranker"
+          "detail": "Permissions + reranking"
         },
         {
           "title": "Answerability gate",
@@ -976,15 +982,15 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "offline": [
         {
           "title": "Documents + visuals",
-          "detail": "ACL; date; authority"
+          "detail": "Permissions; date; source"
         },
         {
           "title": "Parse + chunk",
-          "detail": "Text/OCR; source spans"
+          "detail": "Read text; keep sources"
         },
         {
           "title": "Embed + index",
-          "detail": "Dense + lexical"
+          "detail": "Vectors + keyword index"
         },
         {
           "title": "Delta + deletes",
@@ -1002,19 +1008,19 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
         "fromStep": 2,
         "label": "Not answerable → clarify / abstain"
       },
-      "learningLoop": "Audited retrieval and claim errors → targeted retriever/generator evaluation; human gold calibrates automated checks.",
+      "learningLoop": "Reviewed search and answer errors guide targeted changes; expert evaluation checks improvements before release.",
       "caption": "Topically relevant passages may still lack an answer. Source authority and chronology constrain conflict handling; unsupported cases bypass generation."
     },
     "tradeoff": "Extra context and verification add latency and cost. Improve evidence selection first; add stages only when audited quality gains justify their serving budget.",
     "followUp": {
-      "question": "The model cites a passage. Isn’t the answer grounded?",
-      "answer": "Check each claim against the cited source span. The citation may be relevant but not entail the claim, may be superseded, or may contradict a more authoritative policy."
+      "question": "The answer has a citation. Does that prove it is supported?",
+      "answer": "Read the cited lines and check the actual claim. A passage about vacation may not state the carryover limit, and an old policy may have been replaced. A citation is a source pointer, not proof."
     },
     "pitfalls": [
-      "Never let post-generation ACL filtering substitute for access filtering before context retrieval.",
-      "Do not mix unrelated text and image embedding spaces; use a compatible multimodal model if moving beyond text/OCR retrieval."
+      "Checking access only after generation is too late: restricted passages may already be exposed.",
+      "Automated claim checks can miss errors. Use expert audits, including unsupported answers and incorrect refusals."
     ],
-    "capacity": "Budget query encoding and reranker pairs separately from generator prefill and output decoding. Required output tokens/sec = QPS × mean generated tokens; use measured stage throughput and p95 headroom to size replicas.",
+    "capacity": "Divide the four-second target across search, reranking, and answer generation. Illustratively, 20 questions/sec × 100 generated tokens/answer = 2,000 output tokens/sec, plus reading the retrieved passages. Benchmark these stages separately and leave room for queues.",
     "reference": {
       "title": "Microsoft: design and evaluate a RAG solution",
       "href": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-solution-design-and-evaluation-guide",
@@ -1034,15 +1040,15 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "designSteps": [
       {
         "title": "Maintain the evidence library",
-        "text": "Parse documents into passages with access, authority, date, and source pointers; update searchable versions as policies change."
+        "text": "Parse documents into passages with source links, permissions, dates, and region. Index new versions and remove obsolete or inaccessible content promptly."
       },
       {
-        "title": "Find an answerable context",
-        "text": "Retrieve only permitted passages, resolve scope, and stop when evidence is missing or conflicts remain unresolved."
+        "title": "Retrieve and establish scope",
+        "text": "Use the employee’s identity and question to search permitted passages. Clarify missing details and resolve policy authority or dates before writing an answer."
       },
       {
-        "title": "Write and check",
-        "text": "Generate a short cited answer, compare claims with sources, and audit errors to improve the failing stage."
+        "title": "Answer, check, and learn",
+        "text": "Generate a short cited answer or return insufficient evidence. Check claims against sources, log reviewed errors, and evaluate changes to the failing retrieval or generation stage."
       }
     ]
   },
@@ -1054,8 +1060,8 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "summary": "Translate multilingual support messages cheaply at scale while preserving approved terminology, entities, and numbers.",
     "mentalModel": "An interpreter with a live phrasebook: terminology changes in the phrasebook immediately, without relearning the whole language.",
     "example": {
-      "input": "A customer message with a product alias, order ID, and delivery date.",
-      "output": "A faithful target-language message using the approved term, with IDs and dates intact and the original retained."
+      "input": "Spanish → English: “Mi pedido AB-42 de la Caja Pro llega el 12 de mayo.” Glossary: “Caja Pro” → “Pro Box.”",
+      "output": "“My Pro Box order AB-42 arrives on May 12.” Keep the approved product term, order ID, date, and original message."
     },
     "conversation": [
       {
@@ -1068,7 +1074,7 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       },
       {
         "speaker": "Interviewer",
-        "text": "Use brief prior conversation context when needed. Preserve meaning, names, amounts, and IDs. Apply approved product terminology from a glossary that changes weekly."
+        "text": "The client specifies the target language. Use brief prior conversation context when needed. Preserve meaning, names, amounts, and IDs. Apply approved product terminology from a glossary that changes weekly."
       },
       {
         "speaker": "Candidate",
@@ -1084,34 +1090,35 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "ml": "Because facts and glossary terms must survive, preserve meaning, terminology, names, and numbers in each language direction. Detect failed requests and provide a visible fallback."
     },
     "data": {
-      "sources": "Use professionally translated message pairs, reviewed agent corrections, and an external terminology table. Teacher-generated translations can help sparse language pairs, but require filtering and human audits.",
-      "labels": "Each training example pairs source text with an approved translation. Group repeated templates/conversations and hold out later messages. Check language, facts, and terms; translating back is only a clue, not proof of correctness.",
-      "features": "Give the model the source message, target-language marker, and only relevant prior context/glossary entries. The glossary is a live phrasebook keyed by languages and product versions, not a rewrite of the model’s vocabulary."
+      "sources": "Use professionally translated message pairs, reviewed agent corrections, and a versioned product glossary. A language model may propose extra translations, but bilingual reviewers audit them before they become training data.",
+      "labels": "For each source message, record a translation that preserves its meaning, tone, names, and numbers. Review with conversation context so “it” and other references are translated correctly.",
+      "features": "Read the source message, requested target language, brief relevant conversation context, and matching glossary entries. The glossary is a live phrasebook; it can change without changing the model’s vocabulary.",
+      "validation": "Keep repeated templates and conversations together, then test on later real messages. Evaluate each language direction separately, including glossary edits, uncommon names, and ambiguous context. Back-translation alone cannot prove correctness."
     },
     "highLevel": {
-      "model": "Benchmark a specialized multilingual encoder–decoder translator against a pretrained LLM. Use the smaller translator when it meets the language-specific quality and serving budget.",
-      "rationale": "The encoder reads the source; the decoder writes the target one piece at a time. This repeated transformation can be cheaper with a specialized model. A live glossary handles terminology changes without constant retraining."
+      "model": "Start with a pretrained multilingual encoder–decoder translator: the encoder reads the source and the decoder writes the target. Compare it with a prompted language model; choose using bilingual quality, speed, and cost.",
+      "rationale": "A specialized translator may serve repeated translation work efficiently. Supply the glossary at request time so renamed products do not require a model retraining cycle. Verify that the selected model actually supports the glossary mechanism."
     },
     "modeling": {
-      "baseline": "Compare an off-the-shelf translator and an LLM on the same human-reviewed support examples.",
-      "choice": "Condition translation on approved glossary entries. Protected placeholders or constrained decoding can help enforce exact terms; a text instruction alone is not a guarantee. Validate names, amounts, and IDs afterward.",
-      "training": "Fine-tune on reviewed source–target pairs and audited teacher examples, balancing language directions. Include glossary conditioning in training if you expect it at serving time; preserve general-language quality when adapting to product text."
+      "baseline": "Compare an off-the-shelf translator with a language model on the same reviewed messages. Include difficult language directions and product terms, not only common short sentences.",
+      "choice": "Use a model with tested glossary support. Constrained decoding restricts allowed wording; protected placeholders can preserve IDs and exact terms. Check that terms fit the sentence, and validate dates and amounts after translation.",
+      "training": "Adapt on reviewed source–target pairs only when the baseline misses the quality target. Train with glossary inputs if serving uses them, and balance languages so improvements in common pairs do not erase rarer-language quality."
     },
     "inference": {
-      "serving": "Detect the language, load relevant terms, translate, then validate. Bound batches and output length; on failure show the original with retry/help. Version caches by tenant, language pair, model, and glossary.",
-      "experiment": "Pass bilingual quality checks for every language direction, then canary conversations. Compare correction and resolution rates while guarding critical fact errors and latency."
+      "serving": "Confirm the source/target language direction, load relevant terms, translate, and check critical facts. Show the original alongside the result. Unsupported or failed requests return a visible fallback with retry or human help.",
+      "experiment": "Use bilingual review for every language direction, then trial a small share of conversations. Compare corrections and resolution time, and stop expansion if critical fact errors or response time worsen."
     },
     "measure": [
       {
         "label": "Offline",
-        "text": "Use bilingual judgments of preserved meaning and readable output, plus COMET as an automatic signal. Check terminology, numbers, entities, and context separately; report each language direction."
+        "text": "Bilingual reviewers score preserved meaning and readability. Check glossary compliance, IDs, numbers, and context separately. COMET, an automated translation-quality model, can help prioritize reviews but cannot replace them."
       },
       {
         "label": "Live",
-        "text": "Audit corrections, fallbacks, latency, and cost. A good overall average must not hide a low-volume language with frequent mistakes."
+        "text": "Track agent corrections, failed translations, response time, and cost by language direction. Audit a sample of accepted translations too; low correction rates do not necessarily mean users noticed no errors."
       }
     ],
-    "monitoring": "Update glossary entries and affected caches immediately. Retrain for recurring translation errors, not every renamed product. Measure source reading and target writing separately; long outputs may dominate latency.",
+    "monitoring": "Publish glossary changes with a version and expire affected cached translations. Separate caches by customer, language pair, model, and glossary version. Retrain for recurring translation mistakes; a renamed product normally updates the supported glossary path first.",
     "diagram": {
       "online": [
         {
@@ -1159,20 +1166,20 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       ],
       "offlineLabel": "Terminology updates",
       "feedsStep": 1,
-      "feedLabel": "Supply glossary as inference context",
-      "learningLoop": "Audited human/teacher pairs → train glossary-aware student → bilingual release gates; terminology updates separately.",
+      "feedLabel": "Use current approved terms",
+      "learningLoop": "Bilingual corrections improve candidate models; human quality checks gate releases. Glossary updates happen separately.",
       "caption": "A glossary instruction is not an exactness guarantee. Validate output and use suitable constraints or protected placeholders when terms must survive exactly."
     },
-    "tradeoff": "A smaller translator may reduce cost but lose difficult context or rare-language quality. Decide with pair-level quality and measured encoding/decoding latency, not model size alone.",
+    "tradeoff": "A smaller translator may cost less but miss context or rare-language details. A larger model is worthwhile only where measured quality gains justify its response time and cost.",
     "followUp": {
       "question": "A product is renamed today. Do we retrain?",
       "answer": "Update the external versioned glossary and invalidate affected caches. The translator must already support glossary conditioning; validate compliance and retrain later only if errors are systematic."
     },
     "pitfalls": [
-      "Do not treat glossary updates as changes to the model’s embedding dictionary.",
-      "ROUGE is not a central translation quality metric; token speed alone does not establish meaning preservation."
+      "A glossary instruction alone does not guarantee the approved term appears correctly.",
+      "Fluent output can still change an amount, omit negation, or attach a date to the wrong event."
     ],
-    "capacity": "At 10K QPS, 100 source tokens/message means 1M input tokens/sec; 80 generated tokens means 800K output tokens/sec. Benchmark encoder work, autoregressive decoding, and queue delays separately.",
+    "capacity": "At 10,000 requests/sec, an illustrative 100 source tokens and 80 output tokens per request require one million input and 800,000 output tokens/sec. Output is generated piece by piece, so benchmark reading, writing, and queue delays separately against the one-second target.",
     "reference": {
       "title": "Hugging Face: constrained beam search",
       "href": "https://huggingface.co/blog/constrained-beam-search",
@@ -1180,27 +1187,27 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     },
     "statement": "Translate high-volume customer support messages while preserving meaning, names, numbers, and approved product terminology.",
     "requirements": [
-      "Support roughly 20 language pairs.",
+      "Accept the target language and support roughly 20 language pairs.",
       "Use brief conversation context where needed.",
       "Apply a product glossary that changes weekly.",
       "Retain the original and fall back visibly on unsupported or failed requests."
     ],
     "trainingExample": {
-      "input": "A source-language message, target language, short prior context, and relevant glossary terms.",
-      "target": "A reviewed translation with the correct meaning, terminology, entities, and numbers."
+      "input": "Spanish message: “Mi pedido AB-42 llega el 12 de mayo.” Target language: English.",
+      "target": "Reviewed translation: “My order AB-42 arrives on May 12.” Include any context or glossary entries used to produce it."
     },
     "designSteps": [
       {
-        "title": "Prepare the request",
-        "text": "Detect the supported language direction and fetch just the relevant glossary/context."
+        "title": "Prepare the language request",
+        "text": "Read the requested target language, confirm a supported direction, and fetch relevant prior context and glossary entries."
       },
       {
         "title": "Translate and validate",
-        "text": "Generate the target text, restore protected facts, and check approved terms before displaying it with the original."
+        "text": "Generate the translation using the tested glossary mechanism. Restore any protected IDs, verify terms and critical facts, and display the original with the result or a visible fallback."
       },
       {
-        "title": "Improve the student",
-        "text": "Review bilingual corrections, audit any teacher data, and compare candidate versions before release."
+        "title": "Improve from corrections",
+        "text": "Review bilingual corrections and evaluate candidate models on every language direction. Release approved model versions separately from routine glossary updates."
       }
     ]
   },
@@ -1212,8 +1219,8 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
     "summary": "Produce a concise summary and structured facts from long, contradictory documents while retaining evidence for both.",
     "mentalModel": "Each chapter sends upstairs a short brief and a ledger of exact facts. The editor needs both to write a faithful final account.",
     "example": {
-      "input": "100K tokens of emails, tables, case notes, and a refund approved then reversed.",
-      "output": "A cited summary plus actions/dates/amounts/owners, with the later reversal preserved or conflict marked unresolved."
+      "input": "A long case file: Monday’s note approves a $40 refund; Tuesday’s signed decision reverses it.",
+      "output": "“The $40 refund was approved Monday and reversed Tuesday,” with both source links. Structured fields record status = reversed and amount = $40; unsupported ownership remains unknown."
     },
     "conversation": [
       {
@@ -1242,39 +1249,40 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "ml": "Because omissions and fabricated facts can break the handoff, maximize important-fact coverage and source-supported claims. Return exact structured fields and explicit unresolved conflicts."
     },
     "data": {
-      "sources": "Use original documents with layout/table structure, approved handoffs, and reviewed field-level facts. Include long cases and late reversals; tidy short files alone give misleading results.",
-      "labels": "Review summaries for missing or invented facts, and annotate important fields with source evidence. Split by case/time and group templates. Independently audit teacher-written summaries before using them for training.",
-      "features": "Keep speaker, time, source offsets, and table headers with each chunk. A chunk is simply a manageable section of the file. Preserve exact fact lists beside local summaries so compression does not erase a critical amount or reversal."
+      "sources": "Use original emails, notes, and tables alongside approved handoff summaries. Include long cases, late reversals, and conflicting notes; training only on tidy short files hides the hard cases.",
+      "labels": "Humans mark important facts and source passages, then review summaries for omissions and invented claims. Link amounts to the correct event and owner. Audit any language-model-generated training answers.",
+      "features": "Divide files into manageable sections, or chunks, while preserving dates, speakers, source positions, and table headers. Carry exact fact records alongside short summaries so repeated compression does not erase a decision.",
+      "validation": "Keep entire cases and repeated templates in one split; test on later cases. Evaluate long files, table-heavy files, and reversals separately. Review fact relationships, not just whether each word or amount appears somewhere."
     },
     "highLevel": {
-      "model": "Use a local summarizer and a fact extractor, then combine their outputs into a final account. Short files can go directly to a pretrained generator as a baseline.",
-      "rationale": "Think of each chapter sending an editor both a short brief and a ledger of exact facts. The final writer needs both; a fact discarded by every intermediate summary cannot be recovered later."
+      "model": "Use a pretrained language model to summarize each section and extract facts into named fields. Combine the section outputs, reconcile their timeline, and write a source-linked final summary. Separate models are optional.",
+      "rationale": "A long file can exceed the model’s usable input budget. Section processing bounds the work, while exact fact records protect details such as a refund amount or later reversal from being lost in shortened summaries."
     },
     "modeling": {
-      "baseline": "For short cases, compare direct generation with cited key-message excerpts. Test longer cases separately.",
-      "choice": "Process document chunks into summaries and facts in parallel. Merge duplicate facts, reconcile chronology, and generate the final summary. Stable fields can use span/rule extractors; open-ended attributes may need a generative extractor.",
-      "training": "Start with pretrained models and clear output schemas. Adapt on audited human/teacher examples if needed. Select versions using fact correctness, relationships, and important omissions rather than how similar the wording is to a reference."
+      "baseline": "Test direct summarization on files that fit the chosen model. Also try selecting key source excerpts. Compare with section-by-section processing on the same cases, including the longest files.",
+      "choice": "For each chunk, produce a short brief and structured facts: event, amount, owner, date, status, and source. Merge duplicate events, reconcile chronology and authority, then generate the final summary. Retrieve original passages when evidence is incomplete.",
+      "training": "Start with pretrained models and a clear output schema—the named fields the result must contain. Fine-tune on audited examples only if needed. Select versions by fact accuracy and important omissions, not wording similarity alone."
     },
     "inference": {
-      "serving": "Queue a versioned job, limit parallel chunk work, and retain provenance during aggregation. Verify amounts, dates, owners, and claims against original spans. Flag uncertain cases or return excerpts when checks fail.",
-      "experiment": "Replay long/conflicting files with blinded agent review, then canary draft handoffs. Compare reading time and missed actions, with invented facts and wrong ownership as guardrails."
+      "serving": "Return a job ID and process the file asynchronously. Limit parallel work, preserve source pointers, and verify the final fields and claims against original passages. Use “unknown” for unsupported fields and flag unresolved conflicts.",
+      "experiment": "Ask agents to review old-case outputs without knowing which model produced them, then trial draft handoffs on a small traffic share. Compare reading time and missed actions while checking invented facts and wrong owners."
     },
     "measure": [
       {
         "label": "Offline",
-        "text": "Check exact fields, relationships, supported/contradicted claims, and key-fact coverage. ROUGE or BERTScore measure overlap/similarity, not factual truth; calibrate automated checks with people."
+        "text": "Measure important-fact coverage, exact field correctness, and claims supported by source passages. Test whether amounts belong to the correct event and final status. Text-similarity scores such as ROUGE do not establish factual accuracy."
       },
       {
         "label": "Live",
-        "text": "Audit accepted and edited handoffs, reading time, critical omissions, and latency/cost by file length. A number appearing somewhere in the source does not prove it belongs to the generated refund."
+        "text": "Track agent edits, reading time, missed actions, and processing failures by file length. Audit accepted summaries as well as corrected ones; important omissions can pass unnoticed."
       }
     ],
-    "monitoring": "Watch long-file tails, table errors, lost reversals, and disagreements between checks. Parallel chunks improve throughput, but final aggregation remains a dependency. Keep original sources and version every parsing/generation step.",
+    "monitoring": "Watch missing reversals, table-parsing errors, and slow long-file jobs. Record parser, model, and prompt versions so failures are reproducible. Reviewed corrections improve the failing stage; retain access-controlled original evidence for verification.",
     "diagram": {
       "online": [
         {
           "title": "Parse + chunk",
-          "detail": "Layout; tables; offsets"
+          "detail": "Layout; tables; positions"
         },
         {
           "title": "Briefs + fact lists",
@@ -1282,33 +1290,33 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
         },
         {
           "title": "Aggregate + reconcile",
-          "detail": "Sources; chronology"
+          "detail": "Evidence + timeline"
         },
         {
           "title": "Generate + verify",
           "detail": "Facts ↔ original spans"
         },
         {
-          "title": "Summary + JSON",
-          "detail": "Citations; unresolved flags"
+          "title": "Summary + fields",
+          "detail": "Sources; unknowns; status"
         }
       ],
       "offline": [
         {
-          "title": "Human + teacher refs",
-          "detail": "Summaries; exact facts"
+          "title": "Reviewed examples",
+          "detail": "Summaries + exact facts"
         },
         {
           "title": "Audit evidence",
-          "detail": "Fields + relations"
+          "detail": "Fields + source evidence"
         },
         {
           "title": "Train / adapt",
           "detail": "Training split only"
         },
         {
-          "title": "Locked case audit",
-          "detail": "Long tails; reversals"
+          "title": "Held-out case checks",
+          "detail": "Long files; reversals"
         },
         {
           "title": "Versioned recipe",
@@ -1318,7 +1326,7 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "offlineLabel": "Training / evaluation",
       "servingLabel": "Asynchronous case processing",
       "feedsStep": 1,
-      "feedLabel": "Deploy evaluated extraction and summary recipe",
+      "feedLabel": "Release evaluated extraction and summary models",
       "parallelStep": {
         "index": 1,
         "branches": [
@@ -1326,19 +1334,19 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
           "Structured fact extractor"
         ]
       },
-      "learningLoop": "Audited omissions, contradictions, and field edits → targeted cases → independent regression checks.",
-      "caption": "Local summaries and structured facts are parallel outputs, both sent to aggregation. Preserve provenance and chronology instead of repeatedly compressing summaries alone."
+      "learningLoop": "Reviewed omissions and field corrections become test cases; improvements must pass independent case evaluation.",
+      "caption": "Section briefs and exact facts both reach the final writer. Preserve source pointers so uncertain claims can be checked against the original file."
     },
-    "tradeoff": "Parallel chunks improve throughput but cannot remove the final aggregation dependency or make 100K-token inputs cheap. Increase compression only while critical-fact coverage stays acceptable.",
+    "tradeoff": "Shorter section summaries cost less downstream but may discard decisive facts. Preserve exact facts and source pointers, then increase compression only while important-fact coverage remains acceptable.",
     "followUp": {
       "question": "The right amount appears somewhere in the source. Is the generated refund correct?",
       "answer": "Check that the amount belongs to that refund, person, and final decision. Verify normalized facts and relationships against original evidence; matching a number anywhere is insufficient."
     },
     "pitfalls": [
-      "A final generator cannot restore a decision that every intermediate summary dropped.",
-      "An LLM judge or source extractor is fallible; validate against original evidence and calibrated human samples."
+      "The final writer cannot recover a decision absent from every intermediate output unless it retrieves the original evidence.",
+      "A fact checker can be wrong too. Validate its flags and accepted results with human-reviewed samples."
     ],
-    "capacity": "100K tokens at 4K/chunk needs at least 25 chunks before overlap. Budget local summary/extraction work plus the aggregation critical path; measure high-length job latency and generated tokens, not just parallel worker throughput.",
+    "capacity": "Illustrative sizing: 100,000 input tokens ÷ 4,000 tokens/chunk = 25 chunks before overlap. Budget section work plus final combination and verification. If combined briefs and facts are still too long, use bounded staged merges with source pointers.",
     "reference": {
       "title": "Hugging Face: summarization",
       "href": "https://huggingface.co/docs/transformers/tasks/summarization",
@@ -1352,21 +1360,21 @@ export const nlpDesignProblems: NlpDesignProblem[] = [
       "Keep source links; asynchronous processing is acceptable."
     ],
     "trainingExample": {
-      "input": "A case excerpt showing a refund approved on Monday and reversed on Tuesday.",
-      "target": "The final status is reversed, with the correct amount/owner and links to both source events; unresolved conflicts stay explicit."
+      "input": "Monday: “Approve $40 refund.” Tuesday’s signed decision: “Reverse the refund approval.”",
+      "target": "Status = reversed; amount = $40; owner = unknown unless stated. The summary preserves the timeline and links both source events."
     },
     "designSteps": [
       {
-        "title": "Parse before compressing",
-        "text": "Retain table headings, chronology, and source positions while dividing the file into bounded chunks."
+        "title": "Parse and queue",
+        "text": "Return a job ID, extract text and tables, and divide the case at useful boundaries. Keep headers, dates, and source positions with each chunk."
       },
       {
-        "title": "Keep briefs and facts",
-        "text": "Run local summaries and extraction side by side; send both with evidence pointers to aggregation."
+        "title": "Build briefs and fact records",
+        "text": "Produce section summaries and named facts with evidence pointers. Combine them in bounded groups if needed, preserving distinct events and later corrections."
       },
       {
-        "title": "Reconcile and verify",
-        "text": "Resolve supported chronology, mark unresolved conflicts, and check the final summary/JSON against original evidence before handoff."
+        "title": "Reconcile, verify, and return",
+        "text": "Resolve chronology and source authority, mark unknowns or conflicts, and verify the summary and structured fields against originals. Publish the completed job and use reviewed edits to evaluate future versions."
       }
     ]
   }

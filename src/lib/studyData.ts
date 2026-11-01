@@ -311,7 +311,7 @@ export const coreStudyTopics: StudyTopic[] = [
   {
     slug: "data-structures-to-know",
     group: "Core Data Structures",
-    title: "Data Structures to Know",
+    title: "Important data structures to know",
     shortTitle: "Data Structures",
     icon: "CircuitBoard",
     color: "#A7C7FA",
