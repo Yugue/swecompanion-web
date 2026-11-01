@@ -7,7 +7,7 @@ import { SystemDesignCaseCompletion } from "@/components/mlsystemdesign/SystemDe
 import { TopBar } from "@/components/TopBar";
 import { SystemDesignDiagram } from "@/components/mlsystemdesign/SystemDesignDiagram";
 import { NLP_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
-import { nlpDesignFramework, nlpDesignProblems, getNlpDesignProblem } from "@/lib/nlpSystemDesignData";
+import { nlpDesignProblems, getNlpDesignProblem } from "@/lib/nlpSystemDesignData";
 import { mlSystemDesignProblemFlow } from "@/lib/mlSystemDesignTopics";
 
 function StageHeading({ index }: { index: number }) {
@@ -65,24 +65,10 @@ export default async function NlpDesignProblemPage({ params }: { params: Promise
         </Link>
         <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-text">Problem {index + 1}: {problem.title}</h1>
         <div className="mb-5"><SystemDesignCaseCompletion caseId={problem.id} accent={accent} /></div>
-        <p className="mb-6 text-base leading-relaxed text-text-muted">{problem.summary}</p>
         <article aria-label="NLP system design lesson" className="space-y-8">
-          <header>
-            <p className="text-xs leading-relaxed text-text-muted">
-              Interview Q&A → requirements and objectives → data → model choice and training → evaluation → monitoring → detailed architecture. Framework reference: <a href={nlpDesignFramework.href} target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-4">{nlpDesignFramework.title}</a>.
-            </p>
-            <nav aria-label="Interview stages" className="mt-4 flex flex-wrap gap-2">
-              {mlSystemDesignProblemFlow.map((stage, stageIndex) => (
-                <a key={stage.id} href={`#${stage.id}`} className="rounded-md border border-outline/60 bg-surface px-2.5 py-1.5 text-xs font-semibold text-text-muted hover:border-accent-blue/60 hover:text-text">
-                  {stageIndex + 1}. {stage.title}
-                </a>
-              ))}
-            </nav>
-          </header>
-
           <section id="problem-framing" aria-labelledby="problem-framing-title" className="scroll-mt-6">
             <StageHeading index={0} />
-            <h3 className="mb-3 text-sm font-bold text-text">Problem statement: interview Q&A</h3>
+            <h3 className="mb-3 text-sm font-bold text-text">Interview Q&A</h3>
             <div role="group" aria-label="Problem statement conversation" className="overflow-hidden rounded-xl border border-outline/70 bg-surface">
               {problem.conversation.map((turn, turnIndex) => (
                 <div key={turnIndex} className={`grid gap-1.5 p-4 sm:grid-cols-[100px_1fr] sm:gap-4 sm:p-5 ${turnIndex > 0 ? "border-t border-outline/45" : ""} ${turn.speaker === "Candidate" ? "bg-surface-high/30" : ""}`}>
@@ -179,11 +165,6 @@ export default async function NlpDesignProblemPage({ params }: { params: Promise
             <SystemDesignDiagram problem={problem} />
           </section>
 
-          <details className="rounded-lg border border-outline/55 px-5 py-4 text-sm">
-            <summary className="font-semibold text-text">Design reference <span aria-hidden="true">+</span></summary>
-            <p className="mt-3 text-text-muted">{problem.reference.note}</p>
-            <a href={problem.reference.href} target="_blank" rel="noreferrer" className="mt-2 inline-block font-semibold text-accent-blue underline underline-offset-4">{problem.reference.title}</a>
-          </details>
         </article>
 
         <nav aria-label="Case navigation" className="mt-8 grid gap-3 border-t border-outline/55 pt-5 sm:grid-cols-2">

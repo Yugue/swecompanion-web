@@ -36,5 +36,5 @@ export function useChapterExpansion(storageKey: string, firstChapterId?: string)
     }
   }, [storageKey, openChapters, restored]);
 
-  return [openChapters, setOpenChapters] as const;
+  return [openChapters, setOpenChapters, restored] as const;
 }

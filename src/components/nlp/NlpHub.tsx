@@ -125,15 +125,6 @@ export function NlpHub() {
               quizCount={nlpParts.reduce((count, part) => count + part.quizQuestionCount, 0)}
             />
 
-            <section aria-labelledby="nlp-start-here" className="mb-5 rounded-xl border border-outline/70 bg-surface p-4">
-              <h2 id="nlp-start-here" className="mb-1 font-bold text-text">Start here</h2>
-              <p className="text-sm leading-relaxed text-text-muted">
-                Begin with Chapter 1. You need basic programming and school-level algebra; this guide teaches
-                its own probability, vector operations, learning, and neural-network foundations before
-                using them.
-              </p>
-            </section>
-
             <div className="mb-5">
               <GuideControls
                 query={query}

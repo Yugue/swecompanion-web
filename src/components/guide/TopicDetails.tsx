@@ -36,32 +36,29 @@ export function TopicDetails({
       onToggle={(e) => {
         if (e.currentTarget.open !== open) onToggle();
       }}
-      className="scroll-mt-24 overflow-hidden rounded-xl border border-outline/70 bg-surface"
+      className="scroll-mt-24 overflow-hidden rounded-xl border border-outline/70 bg-surface transition-colors hover:border-outline"
       style={{ "--accent": topic.color } as React.CSSProperties}
     >
-      <summary className="grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-3 px-4 py-5 sm:px-5">
+      <summary className="group grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 px-4 py-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-blue sm:px-5">
         <div
-          className="flex size-11 shrink-0 items-center justify-center rounded-lg border"
+          className="flex size-10 shrink-0 items-center justify-center rounded-lg border"
           style={{
-            background: "color-mix(in srgb, var(--accent) 14%, transparent)",
+            background: "color-mix(in srgb, var(--accent) 10%, transparent)",
             borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)",
           }}
         >
-          <Icon size={22} style={{ color: "var(--accent)" }} />
+          <Icon size={20} style={{ color: "var(--accent)" }} aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="truncate text-lg font-bold tracking-tight text-text">{topic.title}</h3>
-          </div>
+          <h3 className="text-base font-bold leading-snug tracking-tight text-text sm:text-lg">{topic.title}</h3>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-2.5">
-          <ProgressRing done={doneCount} total={topic.problems.length} color={topic.color} size={44} strokeWidth={3} />
-          {open ? <ChevronUp size={20} className="text-text-muted" /> : <ChevronDown size={20} className="text-text-muted" />}
+        <div className="shrink-0">
+          <ProgressRing done={doneCount} total={topic.problems.length} color={topic.color} size={40} strokeWidth={3} />
         </div>
-        <div className="col-span-3 flex items-start gap-2.5 rounded-xl border border-outline/50 bg-surface-high/35 px-3 py-2.5">
+        <div className="col-span-3 flex items-start gap-2.5">
           <span
             title="Pro tip: recognize this pattern"
-            className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/15 ring-1 ring-accent-yellow/30 ring-inset"
+            className="inline-flex h-6 w-5 shrink-0 items-center justify-center"
             style={{ color: "color-mix(in srgb, var(--color-yellow) 45%, var(--color-text))" }}
           >
             <Lightbulb size={17} strokeWidth={2} fill="currentColor" fillOpacity={0.12} aria-hidden="true" />
@@ -70,6 +67,10 @@ export function TopicDetails({
             <span className="font-semibold text-text">Pro tip:</span>{" "}
             {topic.note}
           </p>
+        </div>
+        <div className="col-span-3 flex min-h-8 items-center justify-between gap-3 border-t border-outline/40 pt-3 text-sm font-semibold text-text-muted group-hover:text-accent-ink">
+          <span>{open ? "Hide problems" : `View ${problems.length} ${problems.length === 1 ? "problem" : "problems"}`}</span>
+          {open ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}
         </div>
       </summary>
 

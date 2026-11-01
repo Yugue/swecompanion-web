@@ -18,7 +18,7 @@ export function SystemDesignHub({ topicId, problems }: { topicId: string; proble
     <div className="flex min-h-screen flex-col">
       <TopBar activeTrack="mlsd" />
       <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-8">
-        <SystemDesignHero topicId={topicId} caseCount={problems.length} />
+        <SystemDesignHero topicId={topicId} />
         {problems.length === 0 ? (
           <section className="rounded-xl border border-outline/70 bg-surface p-6">
             <h2 className="mb-2 text-lg font-bold text-text">Coming soon</h2>
@@ -48,7 +48,6 @@ export function SystemDesignHub({ topicId, problems }: { topicId: string; proble
                         <div className="min-w-0 flex-1">
                           <h3 className={`text-base font-bold leading-snug ${isDone ? "text-text-muted line-through" : "text-text"}`}><span className="mr-2 tabular-nums text-accent-blue">{index + 1}.</span>{problem.title}</h3>
                           <p className="mt-2 text-sm leading-relaxed text-text-muted">{problem.summary}</p>
-                          <p className="mt-2 text-xs font-semibold text-text-muted">{problem.pattern}</p>
                         </div>
                         <ChevronRight size={18} className="mt-0.5 shrink-0 text-text-muted" aria-hidden="true" />
                       </Link>
