@@ -58,3 +58,5 @@ These create different learning problems. An encoder trained on hidden-token rec
 Predicting plausible text is not identical to answering a user correctly or following instructions. Post-training changes behavior; retrieval supplies current evidence.
 
 Check both held-out token loss and target-task evaluations. Improvement on one does not guarantee improvement on the other.
+
+Training targets can be successive text pieces or successive discrete media units, depending on the representation. The next-unit objective remains conditional prediction; its unit must be stated before comparing loss or output rate.

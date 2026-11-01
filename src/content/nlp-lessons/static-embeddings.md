@@ -52,3 +52,5 @@ Parameter gradients also depend on the participating vectors. Sampled negatives 
 “Hot” and “cold” share contexts despite opposite meanings. One “bank” vector mixes its senses.
 
 Averaging static vectors loses order: “dog bites man” and “man bites dog” have the same average.
+
+One static vector for “bat” must serve both animal and sports contexts. Contextual models can produce different states for those occurrences; static similarity cannot itself decide which meaning a sentence uses.

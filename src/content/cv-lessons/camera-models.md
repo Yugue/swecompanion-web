@@ -88,8 +88,6 @@ Intrinsics do not determine depth from one pixel.
 
 Calibration also does not remove blur, **rolling-shutter deformation** (different sensor rows captured at different times), or scene motion.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** What happens when focal length doubles?
-
-**Answer:** For a fixed ray, displacement from the principal point doubles. The point did not move; the ray-to-pixel mapping changed.
+Doubling an object's distance halves its projected size in an ideal pinhole camera with fixed focal length. A small image object can therefore be physically small, far away, or both; image size alone is ambiguous.

@@ -43,3 +43,5 @@ With old token probability 0.2 and new probability 0.3, the ratio is 1.5. For po
 Track held-out human judgments, factual checks, appropriate refusals, answer length, and task success. Inspect new policy samples as training changes their distribution.
 
 If reward increases while verified accuracy falls, examine the rubric and reward model before increasing optimization strength. More optimization of a flawed proxy can amplify the flaw.
+
+A preference model can reward a convincing but unsupported explanation if comparison labels favor style. Evaluate independent task outcomes rather than treating higher learned reward as proof of better answers.

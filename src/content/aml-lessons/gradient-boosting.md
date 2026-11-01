@@ -44,8 +44,6 @@ Tune learning rate, tree size, and tree count together. Early stopping chooses t
 
 Boosted trees are strong tabular candidates, but compare measured benefit and serving cost. Their additive predictions can exceed observed target ranges, yet they generally do not extrapolate trends naturally.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Does every boosting tree predict the original target?
-
-**Answer:** No. It predicts a correction derived from the current ensemble's loss. Residual fitting is the squared-error special case.
+An ensemble predicts 8 where the target is 10. Under squared loss, the next tree learns a positive correction; a learning rate of 0.1 applies only part of it. Later trees correct the updated ensemble, not the original prediction.

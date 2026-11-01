@@ -2,7 +2,7 @@
 
 ## 1. Learn a smaller update
 
-**Low-rank adaptation (LoRA)** freezes a pretrained weight matrix and learns a factored update beside it. **Rank** is the number of independent directions a matrix can represent; limiting update rank restricts its capacity.
+**Low-rank adaptation (LoRA)** learns a small factored change to frozen weights. **Rank** limits the number of independent update directions.
 
 The base model still runs during every forward pass.
 
@@ -11,7 +11,7 @@ The base model still runs during every forward pass.
 \[
 y=W_0x+\frac{\alpha}{r}BAx
 \]
-x has width d; frozen \(W_0\) has shape [h,d]; A is [r,d]; B is [h,r]; r is update rank; α controls scaling. Train r(d+h) update parameters rather than hd entries in \(W_0\).
+x has d coordinates and W₀ is [h,d]. A=[r,d] and B=[h,r] give r(d+h) trained entries; α scales their product relative to rank.
 
 ## 3. Follow both branches
 
@@ -19,7 +19,7 @@ x has width d; frozen \(W_0\) has shape [h,d]; A is [r,d]; B is [h,r]; r is upda
 lora
 ```
 
-For d=h=100 and r=4, A and B contain 800 parameters, compared with 10,000 in the original matrix. This comparison excludes other layers and biases.
+With d=h=100 and r=4, the factors store 800 entries. The base's 10,000 entries remain required for computing the adapted output.
 
 Raising rank adds capacity and storage; improvement depends on the task.
 
@@ -27,16 +27,18 @@ Raising rank adds capacity and storage; improvement depends on the task.
 
 Adapters can be attached to attention projections, feed-forward projections, or both. Placement determines which transformations can change.
 
-Initialize one factor to zero and the other nonzero to start with no change to the base output. Initializing both to zero stalls both factors’ gradients through BA. Save the adapter with its compatible base model and tokenizer.
+One zero factor preserves the base output initially; two zero factors block both learning paths. Package each adapter with its exact compatible base configuration.
 
 ## 5. Introduce QLoRA
 
-**Quantization** represents values using a smaller set of numerical levels. **QLoRA** stores the frozen base at low precision, commonly four bits, and trains LoRA adapters through computations that dequantize weights as needed.
+**Quantization** uses a restricted set of numerical levels. **QLoRA** combines low-precision frozen-base storage with trained low-rank updates, dequantizing for the required computations.
 
 Adapter weights and arithmetic are not necessarily four-bit. Base storage savings do not remove activation or adapter optimizer memory.
 
 ## 6. Choose by measured benefit
 
-Full fine-tuning provides broader update freedom; LoRA reduces trainable state; QLoRA additionally reduces base storage. Compare quality at an actual memory and time budget.
+Budget frozen weights, trained factors, optimizer state, and activations separately. A small visual-style adapter does not imply a tiny training footprint.
 
 Merging an adapter into base weights can remove the extra branch at inference, subject to representation and quantization constraints.
+
+An adapter can specialize one compatible base model for a visual style or output behavior. Its small saved file is an update recipe, not a standalone generator; deployment must retain the correct base and configuration.

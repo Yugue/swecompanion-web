@@ -49,8 +49,6 @@ Log displays, placements, outcomes, and serving-policy versions. Randomized comp
 
 > Read behavior together with the opportunity that produced it.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** A thumbnail change increases clicks. Has recommendation quality improved?
-
-**Answer:** It increased opening behavior. Check subsequent useful viewing, dissatisfaction, and a suitable experiment before claiming greater user benefit.
+A skipped video may be irrelevant, unseen below the fold, or simply crowded out. An observed click supports a different inference from an unobserved interaction; the training objective must state how missing evidence is treated.

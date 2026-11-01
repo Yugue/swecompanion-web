@@ -90,8 +90,6 @@ A **precision envelope** replaces precision at a recall value with the best prec
 
 Inspect examples before choosing a repair.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Good AP50, poor AP75—what first?
-
-**Answer:** Check box conventions, inverse resizing, annotation precision, and size-specific localization. Then compare regression, assignment, or feature-resolution changes.
+A predicted box can have the right class but insufficient overlap with the reference. At a fixed overlap threshold it is a localization failure; changing the threshold changes the evaluation contract, not the box.

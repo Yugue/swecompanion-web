@@ -77,8 +77,6 @@ Consider:
 
 Track padding and coordinate offsets for localization.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Two 3 × 3 layers, strides two then one—field?
-
-**Answer:** Start r=j=1. First gives r=3,j=2; second adds four, giving r=7. Calculate output size separately.
+Two stride-one 3×3 convolutions have a 5×5 theoretical field. Making the first stride two changes the second layer's input-space spacing and gives a 7×7 field. Kernel size alone does not determine context.

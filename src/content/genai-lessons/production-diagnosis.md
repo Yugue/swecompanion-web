@@ -39,3 +39,5 @@ A **rollback** restores a known acceptable version when a release breaches its q
 Define acceptance thresholds before the comparison, monitor representative slices and incidents, and use controlled online experiments where appropriate.
 
 Choose the simplest configuration that meets the measured quality, latency, access, and cost requirements. Record which failure modes remain and which observation would trigger rollback.
+
+Slow image generation may be dominated by repeated denoising rather than text-prompt processing. Identify the modality-specific critical path before applying a language-serving optimization to the whole system.

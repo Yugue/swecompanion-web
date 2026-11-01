@@ -39,3 +39,5 @@ Group shared source sentences or document families across splits; generated pair
 A **shortcut** predicts dataset labels without capturing the intended relationship.
 
 Example: always treating negation as contradiction fails on “not only good, but excellent.” Test swapped roles, names, quantities, and negation scope.
+
+High word overlap does not imply entailment: “all orders shipped” and “some orders shipped” differ logically. Include contrasts that test the intended relation rather than rewarding lexical matching alone.

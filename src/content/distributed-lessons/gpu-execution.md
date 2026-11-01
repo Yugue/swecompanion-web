@@ -83,3 +83,5 @@ The example also assumes time is imported. GPU events can measure device interva
 A tensor's **data type** determines bytes per element and representable values. Lower precision can reduce memory traffic and enable faster arithmetic, but accumulation and parameter-update precision may need different treatment.
 
 **Technical takeaway:** before adding devices, identify whether a single worker is limited by arithmetic, memory bandwidth, capacity, launch overhead, or data delivery.
+
+Timing only kernel submission measures how quickly the host queued work. Synchronize the relevant device work or use device events to measure completion, especially when comparing overlapping transfers and computation.

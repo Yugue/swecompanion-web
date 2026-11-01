@@ -44,8 +44,6 @@ A **slice** is a defined subset of examples. Compare by history count, item age,
 
 Track publication-to-index delay and first useful exposure. An overall average can hide complete failure for new inventory.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** A new item has a valid vector but no impressions. Is retraining the first fix?
-
-**Answer:** Trace indexing, eligibility, retrieval, and selection first. A missing route into the displayed list can explain the failure without a representation problem.
+A new item can enter retrieval through its description before behavioral evidence accumulates. That solves representation availability, but eligibility filters and exposure policies must still give it a route onto the page.

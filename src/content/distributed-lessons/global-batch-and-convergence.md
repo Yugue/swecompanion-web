@@ -77,3 +77,5 @@ It is a heuristic, not a theorem for arbitrary models, optimizers, batch sizes, 
 Suppose one setup reaches a target in 10 hours on eight devices, and another in 6 hours on 32. The second is faster but uses 192 rather than 80 accelerator-hours.
 
 **Technical takeaway:** batch size, update frequency, normalization, and learning rate must be reasoned about together when scaling training.
+
+Four workers with microbatch eight and two accumulation rounds process 64 examples per update when contributions are distinct. Throughput per second and the number of optimizer updates per example are different training quantities.

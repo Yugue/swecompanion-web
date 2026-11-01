@@ -31,3 +31,5 @@ A schema-valid answer may also omit a required factual qualification. Add task-s
 If validation fails, a targeted repair prompt can include the error and original evidence. Limit retries and measure final success, additional latency, and refusal behavior.
 
 Repeatedly asking for a valid answer can turn an honest “missing” into a fabricated value. Preserve the task’s evidence requirements throughout repair.
+
+A schema permitting a numeric amount accepts 17 even when the invoice says 71. Check parseability, required fields, and correspondence with source evidence as separate properties of the result.

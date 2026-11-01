@@ -47,8 +47,6 @@ Pure interaction methods have little evidence for unseen IDs. Use the cold-start
 
 Removing consumed items is surface-specific: appropriate for some discovery pages, wrong for resume-watching or replenishment.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Does sharing one history item justify a recommendation?
-
-**Answer:** It supplies a possible path. Check overlap support, normalization, observation bias, and later recommendation quality before trusting that path strongly.
+If users consuming A often consume B, A can provide a path to B without matching descriptions. With only one overlapping user, the same pattern is much weaker evidence than with thousands of independent histories.

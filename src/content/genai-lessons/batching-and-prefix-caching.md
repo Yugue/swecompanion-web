@@ -8,7 +8,7 @@ A serving system must balance both rather than maximize utilization alone.
 
 ## 2. Handle unequal output lengths
 
-In **static batching**, requests often enter as a group and may leave unused slots as some finish early. **Continuous batching** admits new requests when slots become available during ongoing generation.
+**Static batching** groups requests; **continuous batching** refills completed generation slots. Media inputs can make each admitted request's preprocessing cost quite different.
 
 ```genai-visual
 continuous-batching
@@ -18,7 +18,7 @@ The scheduling unit can be a decoding iteration rather than a complete group of 
 
 ## 3. Budget prompt processing too
 
-Long prefills can interfere with ongoing decoding. **Chunked prefill** divides prompt processing into smaller scheduled pieces to balance prompt ingestion and active generation.
+**Chunked prefill** divides incoming prompt work into scheduled pieces. It cannot remove every delay caused by a separate expensive media encoder.
 
 Scheduling choices affect fairness, startup delay, and inter-token timing. A single large prompt should not silently monopolize the service.
 
@@ -26,7 +26,7 @@ Scheduling choices affect fairness, startup delay, and inter-token timing. A sin
 
 **Prefix caching** reuses previously computed states for an identical compatible prefix. Model version, tokenizer, positions, and relevant formatting must agree.
 
-Two requests with an identical 2,000-token prefix and separate 200-token tails would process 4,400 prompt tokens independently. Ideal reuse processes the prefix once plus both tails: 2,400 tokens. Runtime savings also depend on attention and lookup costs.
+The example reduces ideal processed prompt tokens from 4,400 to 2,400. This accounts for matching text prefixes, not arbitrary reuse of different images.
 
 ## 5. Preserve isolation and freshness
 
@@ -36,6 +36,8 @@ Stale tool results or source versions can invalidate answer caches even when the
 
 ## 6. Report useful service metrics
 
-Measure request throughput, generated-token throughput, first-token latency, complete latency, and tail percentiles. A **tail percentile** describes slow requests, such as the 95th percentile.
+A **tail percentile** describes slow requests. Track it alongside throughput and modality-specific latency so faster text traffic cannot hide delayed media requests.
 
 Use representative lengths and arrival patterns. Saturation benchmarks with no realistic queue can hide poor user experience.
+
+Two identical instructions with different images are not the same conditioned input. A cache key must include the relevant visual state or identity; text-prefix equality alone cannot justify reusing multimodal results.

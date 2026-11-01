@@ -681,11 +681,3 @@ So there are really two optimization processes:
 \text{outer loop: choose hyperparameters}
 }
 \]
-
-### Interview takeaway
-
-If asked **how you tune hyperparameters**:
-
-> Define the validation metric first, search high-impact hyperparameters over sensible ranges—often logarithmic for quantities such as learning rate—use random or adaptive search when the space becomes large, stop clearly poor runs early, and keep the test set untouched until final evaluation.
-
-**Next topic: Model selection** — given multiple models or checkpoints, how do you decide which one should actually be used?

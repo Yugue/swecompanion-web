@@ -70,8 +70,6 @@ Under that requirement, choose B.
 
 Use validation for selection, then independent evaluation. Record hypothesis, configuration, data version, outcome, and decision.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** A detector cannot beat the baseline. What before a larger backbone?
-
-**Answer:** Audit targets, overfit trusted examples, inspect losses and gradients, then slice failures by size and capture. Test the best-supported geometry, resolution, data, or capacity hypothesis.
+Try fitting a handful of clean, fixed images with augmentation disabled. Failure there isolates basic data, loss, and optimization issues before a large experiment introduces more variability.

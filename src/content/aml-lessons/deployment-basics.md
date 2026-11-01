@@ -45,8 +45,6 @@ Specify acceptable cached age, a trained missing-input path, or a validated fall
 
 Blocking, allowing, deferring, and requesting review have different costs. A fallback model must be evaluated with the inputs it will really receive.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Offline and live features have identical names. Is that sufficient?
-
-**Answer:** No. Compare values, units, timing, category mappings, and missing-value behavior. Matching names can hide different computations.
+A feature computed as dollars during training and cents during serving has matching names but different meaning. Test a known input through both pipelines and compare intermediate values before blaming model drift.

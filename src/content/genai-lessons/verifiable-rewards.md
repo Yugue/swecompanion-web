@@ -42,3 +42,5 @@ A narrow checker can reward hardcoded outputs, test detection, or unsafe shortcu
 Evaluate on held-out problems, alternate verifiers, and tasks requiring different solution paths. Track reward alongside accuracy, output length, and resource consumption.
 
 Passing a verifier demonstrates success on its checks. It does not establish general reasoning or a faithful account of internal computation.
+
+A generated program can pass visible examples yet fail hidden cases. Verification improves the reward signal only for tested properties; keep independent checks so the model cannot succeed merely by fitting the exposed tests.

@@ -49,7 +49,3 @@ Choose repetitions using variability, desired precision, and budget. Report unce
 Use safe accounts to detect credential, permission, API, and runtime differences that mocks omit.
 
 Shadow mode can compare proposals without executing external effects.
-
-## Interview mental model
-
-> Test the mechanics directly, the decisions repeatedly, and the integration against controlled reality.

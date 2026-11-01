@@ -356,26 +356,3 @@ You've effectively started overfitting the validation set.
 That's another reason the final test set matters.
 
 ---
-
-# The mental model
-
-Think of generalization as:
-
-\[
-\boxed{
-\text{Did the model learn the underlying pattern,
-or merely properties of its training sample?}
-}
-\]
-
-And validation is your **simulation of the future**.
-
-The strongest interview principle is:
-
-> **A good validation strategy must match how the model will actually encounter unseen data in production.**
-
-For Google-level reasoning, if asked how you'd split data, don't automatically say `80/10/10`. First ask:
-
-> Are examples independent? Is there time dependence? Can the same user/entity appear multiple times? What will production data look like?
-
-That shows much stronger ML judgment.

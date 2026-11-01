@@ -67,3 +67,5 @@ Adam introduces additional state: averaging only weights does not define how loc
 | Local updates | Fewer synchronization rounds | Replica drift and changed optimization |
 
 **Technical takeaway:** reducing synchronization changes which model a gradient describes; communication savings must be evaluated against optimization behavior and ownership bottlenecks.
+
+A gradient computed at yesterday's parameter state can point differently from the gradient at today's state. Staleness is an optimization change, not merely a network delay hidden behind the same mathematical update.

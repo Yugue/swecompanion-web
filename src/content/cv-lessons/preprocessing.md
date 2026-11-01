@@ -82,8 +82,6 @@ Measure input time separately from model compute. Version interpolation and tran
 
 **Dynamic shapes** are input dimensions that can vary between requests. Test the dimensions production actually uses.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Deployed boxes are shifted, but notebook boxes are correct. What first?
-
-**Answer:** Compare orientation, resize/crop/padding, box format, and pixel versus normalized units. Verify the inverse transform with known points and overlays before retraining.
+Resizing with letterboxing changes both scale and padding offsets. To return a box in original coordinates, invert both transformations; dividing by the resize factor alone leaves a systematic localization error.

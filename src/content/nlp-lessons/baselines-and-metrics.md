@@ -54,3 +54,5 @@ For ordinary single-label classification over all classes, micro-F1 equals accur
 ## 6. Compare equal workloads
 
 Forty flags and four hundred flags create different review burdens. Lowering a cutoff cannot reduce recall on fixed scores, but precision can rise or fall.
+
+A keyword rule may solve a category defined by one explicit phrase. Test that rule on the same held-out cases before attributing a neural model's performance to contextual language understanding.

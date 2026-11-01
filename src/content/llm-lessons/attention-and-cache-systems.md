@@ -44,3 +44,5 @@ None changes the semantic causal mask by itself. Cache identity must include mod
 Measure first-token latency, inter-token latency, throughput, and peak cache occupancy at realistic lengths and concurrency.
 
 An optimization for long prefill may not help a small-batch decode workload. Verify that the intended kernel and cache strategy are active before interpreting the result.
+
+Avoiding a materialized full attention matrix reduces memory traffic without changing the mathematical attention result under the method's assumptions. Compressing or dropping cache content changes a different part of the computation.

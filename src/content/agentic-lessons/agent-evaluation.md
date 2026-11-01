@@ -69,7 +69,3 @@ A 92% average can hide a critical slice at 55%.
 Define quality floors, forbidden-effect tests, critical slices, and tail resource limits before comparing releases.
 
 Zero observed violations is useful evidence, not proof of zero future risk.
-
-## What matters most
-
-> Score what one real attempt accomplishes, then measure variability and failure costs.

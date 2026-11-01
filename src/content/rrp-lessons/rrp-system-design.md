@@ -41,8 +41,6 @@ At 10,000 requests/second, 800 candidates imply **eight million scores/second**.
 
 Version compatible components; keep eligibility-aware fallbacks and rollback. For invisible new creators, monitor publication, retrieval, and display separately.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** What changes if request volume grows tenfold?
-
-**Answer:** Recompute score and feature demand, locate the measured bottleneck, and compare caching, candidate caps, batching, or model changes with their quality costs.
+Trace one request through eligible inventory, candidate inclusion, scoring, selection, and rendering. Recording candidate IDs at each boundary reveals where a useful item was lost instead of reducing every failure to “bad ranking.”

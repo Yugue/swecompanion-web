@@ -42,3 +42,5 @@ The contrastive encoder does not itself learn a pixel-generation procedure. Alig
 Global similarity can reward shared objects while missing counts, negation, or relations. “Dog above cat” and “cat above dog” may receive similar scores.
 
 Audit false negatives, paired-data quality, and fine-grained failures. A high similarity score is not a complete semantic correctness check.
+
+A caption saying “two red cups” includes object, count, and attribute relations. Broad image–text similarity can reward “cups” while missing the other constraints; use tests that isolate those relations.

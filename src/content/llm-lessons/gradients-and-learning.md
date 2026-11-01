@@ -57,3 +57,5 @@ A training batch estimates a gradient from several examples. Gradients accumulat
 Try fitting a tiny batch when training loss stays flat. Verify targets, nonzero gradients, and actual weight changes before adding hardware.
 
 **Inference** uses learned parameters for predictions; it normally leaves them unchanged. Context-dependent behavior at inference is not evidence that a new optimizer update occurred.
+
+For a correct token assigned probability 0.2, the cross-entropy logit gradient is −0.8. A descent step pushes that logit upward, while alternative logits receive positive gradients proportional to their probabilities.

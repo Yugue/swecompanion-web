@@ -59,3 +59,5 @@ magnitude = np.abs(spectrum)
 ```
 
 Specify normalization and windowing when comparing absolute levels across frame sizes. Peaks alone do not reveal whether a tone came from speech, machinery, or recording artifacts.
+
+A steady tone produces a concentrated spectral peak; an abrupt click spreads energy across frequencies. The spectrum describes frequency content over an observation window, not the chronological order of every event inside it.

@@ -29,3 +29,5 @@ Evaluate translated or paraphrased inputs too. Passing one language's templates 
 A biased or harmful result can originate in training data, retrieval, the instruction template, a preference judge, or the surrounding workflow. Change one component at a time and re-evaluate.
 
 Check whether remediation improves the targeted harm while preserving supported, authorized assistance. Model tuning and application controls solve different parts of the problem.
+
+A system refusing every sensitive-looking query may reduce one harm measure while blocking legitimate tasks. Evaluate inappropriate compliance and inappropriate refusal on clearly defined cases rather than one undifferentiated safety score.

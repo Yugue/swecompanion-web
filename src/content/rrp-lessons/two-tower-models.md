@@ -71,8 +71,6 @@ Version encoders, preprocessing, scoring, and item index together. A new request
 
 Refresh stored vectors when required inputs or model versions change.
 
-## 9. Interview reasoning
+## 9. Work a concrete case
 
-**Question:** What makes two towers efficient, and what expressiveness is lost?
-
-**Answer:** Reusable item vectors and one request encoding permit cheap indexed scoring. Arbitrary joint candidate inputs require another scoring path.
+Compute item vectors overnight, then compute one request vector online. Cheap comparisons enable a large search, but a feature depending jointly on this user and this item cannot be precomputed independently in either tower.

@@ -68,3 +68,5 @@ First verify communication on the same topology and representative message sizes
 Keep logs attributable to rank and step. Avoid dumping full tensors; counts, shapes, bounded samples, and state fingerprints usually provide better evidence.
 
 **Technical takeaway:** identify the first violated setup, communication, or execution contract; downstream waiting is often a symptom of a failure elsewhere.
+
+One rank throwing before a collective can leave peers waiting inside it. The apparent hang location may be downstream of the actual fault; correlate earlier logs across all ranks before tuning communication parameters.

@@ -41,7 +41,3 @@ Missing shared context creates duplicate discovery or invalid results. Share the
 Isolation can lose cross-cutting clues and add traces to debug. The slowest required branch can delay completion.
 
 Use bounded checkpoints to redistribute useful findings when needed.
-
-## What matters most
-
-> Keep the worker's paperwork local; pass verified findings and unresolved gaps across the boundary.

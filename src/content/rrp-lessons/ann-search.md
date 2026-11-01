@@ -47,8 +47,6 @@ Benchmark insertions, deletions, memory, and latency under load. Filtering after
 
 Use the same eligible reference set when measuring exact-versus-approximate agreement.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Exact retrieval is good; ANN retrieval misses useful items. Retrain first?
-
-**Answer:** First inspect search breadth, partitions, filtering, and compression. Good exact results suggest the representation already contains the useful neighbors.
+Compare the index's neighbors with exact search using identical vectors, filters, and candidate counts. A missing exact neighbor points to search approximation; an irrelevant exact neighbor points toward the representation or objective.

@@ -57,8 +57,6 @@ It is a fast baseline. Scale inputs when penalties or optimization require it. A
 
 Its probabilities still need calibration checks. Model mismatch, sampling, and population changes can distort them.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why is logistic regression a classifier despite its name?
-
-**Answer:** It estimates a class probability from a linear log-odds model. A separate cutoff converts that probability into a class decision.
+A score of zero maps to probability 0.5. Adding log(3) to the score triples the odds, giving probability 0.75 from that starting point. Coefficients change log-odds linearly, not probabilities by a fixed amount.

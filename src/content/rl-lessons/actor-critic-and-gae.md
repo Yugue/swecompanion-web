@@ -72,3 +72,5 @@ Shared encoders receive gradients from both losses. Critic loss weight can there
 A critic trained too little can provide poor advantages. A critic aggressively fitted to narrow recent data can overfit or destabilize shared features. Advantage normalization can improve scale conditioning but changes finite-batch behavior and is not a proof of unbiasedness.
 
 Synchronous **Advantage Actor–Critic (A2C)** collects on-policy experience from several environments and updates with advantage estimates. Parallel collection improves throughput; it does not by itself permit unrestricted old-data replay.
+
+An advantage of +2 means the action outcome is estimated better than the state's baseline by two return units. The actor uses that comparison; the critic separately learns to improve the baseline estimate.

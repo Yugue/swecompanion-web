@@ -63,3 +63,5 @@ A gain on training-like templates may hide failure under paraphrases. Hold out t
 Record model and tokenizer versions, adaptation weights, template, evidence snapshot, sampling settings, and serving configuration. Retain a known working baseline for rollback.
 
 This lesson consolidates earlier mechanisms: choose the measured operating point that meets the task, then monitor whether that point remains valid as traffic and data change.
+
+Long time to first token with normal token spacing points toward queueing or prompt work; slow spacing points toward ongoing generation. These measurements narrow hypotheses without alone proving the bottleneck.

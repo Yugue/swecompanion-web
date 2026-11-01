@@ -90,8 +90,6 @@ clean = cv2.medianBlur(image, 3)
 
 Start with Gaussian for mild additive noise, median for impulse corruption. Compare with no filtering when tiny structures matter.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why can deblurring make an image noisier?
-
-**Answer:** It amplifies weakened frequencies, including noise. Regularize the inverse and evaluate reliable task detail, not just apparent sharpness.
+A mean filter smooths isolated noise but also smooths a real thin line. Restoration chooses which variation to suppress; compare downstream recognition or measurement, not only how pleasant the result looks.

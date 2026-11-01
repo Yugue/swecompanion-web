@@ -75,3 +75,5 @@ Speculative duplicate execution can help independent data-processing tasks, but 
 Report median and high-percentile step times as well as averages. A rare large stall can materially affect a long run, while tiny noisy differences may not justify scheduling complexity.
 
 **Technical takeaway:** balance actual critical-path work while preserving the intended data distribution, update weights, and communication participation.
+
+A synchronous step waits for its slowest required contribution. Nine fast ranks cannot average away one late rank's completion time; inspect tail behavior and repeated rank patterns, not only mean worker speed.

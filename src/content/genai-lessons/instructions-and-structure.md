@@ -48,3 +48,5 @@ A schema-valid instruction to transfer money is not authorization to do so.
 Test paraphrases, missing evidence, long contexts, and adversarial quoted content. Examples can bias the label distribution or encourage copying.
 
 If prompting reaches a stable limit, choose an intervention that matches the failure: evidence retrieval, supervised adaptation, or a deterministic operation.
+
+“Make it warmer” can refer to image color or written tone. A clear instruction states the target modality and attributes to preserve, making the intended transformation testable rather than merely suggestive.

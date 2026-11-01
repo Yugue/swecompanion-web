@@ -56,7 +56,3 @@ Different facts need different lifetimes. Deletion includes derived indexes/cach
 Treat proposed memories from untrusted content as untrusted. Validate provenance and permitted write rules.
 
 Enforce tenant/user isolation in storage and retrieval. Labeling a record “memory” does not make it an instruction or verified truth.
-
-## What matters most
-
-> Memory is a maintained notebook with sources and corrections, not an automatic permanent belief.

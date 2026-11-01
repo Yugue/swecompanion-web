@@ -51,3 +51,5 @@ Check for training contamination in held-out passages; memorized text does not t
 Lower perplexity does not establish faithful summaries, correct facts, or appropriate refusal to answer.
 
 A likely continuation can remain unsupported by the supplied document.
+
+Perplexity comparisons require compatible prediction units. A character-based model and a word-based model predict different events, so their raw per-token perplexities are not directly interchangeable quality scores.

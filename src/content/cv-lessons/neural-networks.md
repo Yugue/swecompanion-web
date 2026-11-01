@@ -90,8 +90,6 @@ Example: a classifier learns the defect camera’s watermark instead of the defe
 
 Check targets and simple inputs before interpreting complex behavior. Correct shapes alone do not imply the correct task.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** What does a hidden layer learn?
-
-**Answer:** Feature combinations useful to the eventual task. Nonlinear activations let those combinations represent nonlinear relationships; the task head maps them to required outputs.
+A layer maps image features into a new representation; its loss determines which distinctions receive learning signal. More units cannot resolve two classes whose labels are inconsistent or whose distinguishing evidence was cropped out.

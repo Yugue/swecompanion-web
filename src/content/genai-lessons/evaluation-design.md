@@ -47,3 +47,5 @@ A token’s probability is not automatically confidence that the whole answer is
 An **online experiment** compares deployed variants on real traffic with assignment rules and explicit failure limits. Offline gains can fail to transfer because requests or user behavior differ.
 
 Set failure and latency limits before exposure to traffic. Keep score confidence intervals separate from confidence assigned to individual answers.
+
+A text summary, an image edit, and a speech response can satisfy different output contracts. Define correctness and acceptable variation per task before combining results into one headline score.

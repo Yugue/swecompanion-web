@@ -29,3 +29,5 @@ Removing a document from an index prevents future retrieval through that index, 
 Test the route you intended to close: direct retrieval, cached context, tool access, logs, and model-only generation require different probes.
 
 Keep authorization and data minimization in the application as well as its model-facing prompt. A model refusing one tested query does not prove that the underlying data is absent.
+
+Removing one training document does not establish that a deployed model no longer reproduces its content. Test the relevant exposure routes and distinguish dataset deletion from verified behavior of the resulting model.

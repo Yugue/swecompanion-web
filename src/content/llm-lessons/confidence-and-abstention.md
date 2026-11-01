@@ -33,3 +33,5 @@ Missing-evidence signals, verifier results, and retrieval support may help. Agre
 Track error rate among answered requests, coverage, and appropriate escalations. Check whether confidence remains meaningful after model, prompt, or data changes.
 
 A verbal “I am certain” has no special statistical status. Treat it as a score to validate, not as authority.
+
+A constant 0.5 prediction can be calibrated in a population with half positives but cannot separate easy from hard cases. Useful abstention requires confidence that discriminates risk, not calibration alone.

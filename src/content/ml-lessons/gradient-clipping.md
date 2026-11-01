@@ -237,20 +237,3 @@ If every step is too aggressive:
 > lower the learning rate.
 
 ---
-
-## Mental model
-
-Imagine the gradient is an arrow:
-
-- direction = where to update
-- length = how strong the update should be
-
-Gradient norm clipping says:
-
-> **Keep the arrow pointing the same way, but don't allow it to become longer than some maximum.**
-
-For Google interview depth, the important answer is:
-
-> Gradient clipping prevents exploding gradients from causing huge parameter updates. Norm clipping rescales the gradient when its norm exceeds a threshold while preserving its direction, and it is applied after backpropagation but before the optimizer step.
-
-Next in the curriculum is **Regularization**.

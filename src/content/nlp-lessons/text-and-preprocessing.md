@@ -41,3 +41,5 @@ A **stopword** is a word selected for removal, usually for frequency. Removing �
 Use compatible preparation during training and inference. Retain offset mappings when transformations change length.
 
 Compare errors on names, numbers, punctuation, and languages—not only how clean the processed text looks.
+
+Lowercasing makes “US” and “us” identical. That may help a case-insensitive topic classifier while harming named-entity distinctions; preprocessing removes information and must match the task.

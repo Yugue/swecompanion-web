@@ -43,3 +43,5 @@ These solve different problems. Clipping every step can hide a persistent instab
 Log gradient norms and actual update magnitudes. A large gradient may become a moderate Adam update; a nonzero gradient can still yield negligible movement with a tiny learning rate.
 
 If clipping triggers persistently, inspect extreme batches, numerical precision, and the learning-rate schedule. Use the controlled failure checks in the validation lesson to isolate the cause.
+
+An adaptive update depends on gradient history, not just the latest gradient. Restarting optimizer state midway changes the learning dynamics even if the weights and learning-rate setting are restored exactly.

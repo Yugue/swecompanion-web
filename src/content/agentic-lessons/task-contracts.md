@@ -59,7 +59,3 @@ Success: Cause + evidence + policy.
 Limits: 8 steps, 12 seconds, read-only.
 Escalate: Conflicting policy or unavailable evidence.
 ```
-
-## What matters most
-
-> The contract describes the destination and boundaries; architecture chooses a route.

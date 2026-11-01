@@ -53,7 +53,3 @@ Trajectories reveal which flexibility matters.
 Can code express the branch reliably? Does fresh evidence require judgment? Does flexibility justify cost?
 
 Keep autonomy where evidence supports that choice.
-
-## What matters most
-
-> Put a predictable shell around the smallest useful area of autonomy.

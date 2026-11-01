@@ -43,3 +43,5 @@ Compare complete answer quality, freshness, latency, and input cost. A long cont
 Retrieve only documents the requester may access. Treat document content as evidence, not as instructions granting new permissions.
 
 Check retrieval coverage separately from evidence use by the generator. A search improvement can still produce a worse answer if it adds contradictory or distracting text.
+
+Retrieving a product manual can supply a recently changed specification without updating parameters. The answer must still use the correct product version; retrieval adds evidence, not automatic factual attribution.

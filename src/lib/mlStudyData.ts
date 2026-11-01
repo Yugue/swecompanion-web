@@ -165,7 +165,7 @@ export const mlParts: MlPart[] = [
       {
         id: "gradient-clipping",
         title: "Gradient clipping",
-        summary: "Clipping caps an update when the gradient norm becomes dangerously large.",
+        summary: "Clipping bounds the gradient norm before the optimizer turns gradients into parameter updates.",
         keyPoints: ["Norm clipping rescales the entire gradient vector only when its norm exceeds a threshold.", "It stabilizes training but does not fix the source of chronic explosions.", "Clipping is an optimization safeguard, not a regularizer whose purpose is better validation performance."],
         interviewPrompt: "Why can clipping stop NaNs but fail to improve a poorly specified model?",
         code: "torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)",

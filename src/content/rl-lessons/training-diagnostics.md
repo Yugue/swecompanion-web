@@ -56,3 +56,5 @@ Critic loss can rise when a policy first discovers useful high rewards. Entropy 
 Freeze the target network longer to probe moving-target feedback. Replace learned rewards with a trusted toy reward to isolate reward-model issues. Train on a tiny solvable task to separate implementation from task difficulty. Compare feed-forward and history-aware inputs when state aliasing is suspected.
 
 Change one mechanism, state the expected outcome, and compare matched evaluation budgets. Retain a stable baseline; otherwise normal seed variation can masquerade as a successful fix.
+
+Before interpreting rising reward as learning, run a random policy and a known simple policy through the same reward code. A broken success detector can make every algorithm appear effective.

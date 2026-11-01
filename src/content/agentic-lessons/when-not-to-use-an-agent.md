@@ -52,7 +52,3 @@ The uncertain stage earns autonomy.
 Explain control, model versus runtime, the loop, context, schemas, and scope.
 
 Then identify the decision requiring model-selected actions. If none exists, start simpler.
-
-## What matters most
-
-> Use autonomy for a demonstrated need for adaptive decisions.

@@ -66,3 +66,12 @@ for reward in reversed(rewards):
 ```
 
 Reward scale affects target magnitudes and optimization. Multiplying all rewards by a positive constant preserves an unregularized task's policy ranking, but may require retuning learning rates or regularization coefficients.
+
+```text
+time →        0       1       2
+reward:       1       2       3
+discount:     1      0.5     0.25
+contribution: 1       1      0.75
+```
+
+With discount 0.5, the start return is 2.75. Rewards remain unchanged; the objective changes how much later rewards contribute.

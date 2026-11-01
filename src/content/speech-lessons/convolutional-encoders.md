@@ -63,3 +63,5 @@ causal local filter:  past ← current
 ```
 
 A causal temporal convolution pads on the left and avoids future inputs. Symmetric “same” padding is generally noncausal. Propagate each example's valid length through strided layers; the original waveform length is no longer the encoder length.
+
+A stride-two stage halves time resolution approximately, subject to padding. Several such stages multiply their reduction factors, changing both computation and the shortest sound event the final representation can localize.

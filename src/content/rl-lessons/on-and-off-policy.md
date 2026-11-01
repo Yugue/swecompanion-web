@@ -61,3 +61,5 @@ Effective sample size is often summarized as (sum of weights)² divided by the s
 | Policy gradient over replay states | Action and state distributions can differ |
 
 One-step Q-learning can use a greedy next-action target without an explicit behavior action ratio in its tabular update. Its sampled transition is conditioned on the observed state-action pair. That does not make every replay-based gradient unbiased for a target policy's full performance objective.
+
+Experience collected by an exploratory policy can train a different greedy target policy. The mismatch concerns which action distribution generated the evidence; changing only the dataset label does not remove it.

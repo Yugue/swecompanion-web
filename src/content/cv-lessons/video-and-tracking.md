@@ -78,8 +78,6 @@ A **temporal convolution** applies a learned filter across neighboring times. **
 - Long clips can dilute a short event.
 - Clip duration and event boundaries define available evidence.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Two similar people cross behind an obstruction. How do you reduce identity switches?
-
-**Answer:** Use uncertainty-aware motion, gated global matching, appearance, and a clear retention policy. Evaluate full crossing sequences with identity metrics. Preserve ambiguity when the images cannot distinguish the people.
+A detector can find every person in every frame while repeatedly swapping their identities. Tracking evaluation must inspect identity continuity as well as detection quality; these are different failure mechanisms.

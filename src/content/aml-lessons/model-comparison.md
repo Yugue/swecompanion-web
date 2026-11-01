@@ -36,8 +36,6 @@ Measure important slices, memory, latency, reliability, and maintenance alongsid
 
 An **A/B test** randomly assigns eligible experimental units to policies and compares outcomes. Choose the unit and protective metrics to fit the product; offline prediction improvement does not establish the effect of acting differently.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** B's gain is smaller than each model's fold standard deviation. Must it be noise?
-
-**Answer:** No. Inspect paired differences and dependence-aware uncertainty. Shared fold difficulty can make individual scores fluctuate much more than their difference.
+Across the same three folds, A scores [70,80,90] and B [72,82,92]. Both vary widely with fold difficulty, while B's paired gain is consistently two points. Assess paired differences and their dependence, not separate score spreads alone.

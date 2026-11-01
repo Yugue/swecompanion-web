@@ -269,27 +269,3 @@ You still need good:
 But they provide a much cleaner path for signals and gradients.
 
 ---
-
-## What you should understand for Google
-
-If asked:
-
-> Why do residual connections help deep networks?
-
-A strong answer is:
-
-> They let each block learn a residual correction \(F(x)\) instead of the full transformation, and the identity shortcut gives gradients a direct path backward. This makes very deep networks significantly easier to optimize.
-
-The two key ideas are:
-
-\[
-\boxed{\text{learn corrections instead of entire transformations}}
-\]
-
-and
-
-\[
-\boxed{\text{provide a direct gradient path}}
-\]
-
-Next in the curriculum is **Overfitting / underfitting / bias–variance**, followed by **training diagnostics and debugging**.

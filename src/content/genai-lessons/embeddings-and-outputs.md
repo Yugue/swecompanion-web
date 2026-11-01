@@ -42,3 +42,5 @@ Sharing storage does not make the roles identical: input lookup selects one row;
 Similarity between static embeddings can reveal patterns, but it does not determine final contextual predictions. Norms, positions, and later learned transformations affect final output scores.
 
 Large vocabularies increase table storage and output-scoring work. Compare vocabulary changes under a measured sequence-length benefit.
+
+An input embedding represents an observed unit; an output projection scores possible next units. Sharing a hidden width does not imply that words, image regions, and acoustic units use the same output inventory.

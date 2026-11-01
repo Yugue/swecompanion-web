@@ -52,3 +52,5 @@ Scaling helps numerical behavior; it does not force attention to be uniform or i
 Attention can combine only supplied, allowed values. Its weighted average can be a new vector rather than one original token state.
 
 The final prediction also depends on other learned transformations. One attention map is not proof of causal reasoning or factual support.
+
+If a query is allowed to read only its prefix, increasing a future token's matching score has no legal effect: that entry must be excluded before normalization. High relevance cannot override an information-access rule.

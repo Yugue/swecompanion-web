@@ -305,22 +305,3 @@ nn.RMSNorm(hidden_dim)
 ```
 
 ---
-
-## What you should understand for Google
-
-The most important question is:
-
-> Why BatchNorm for CNNs but LayerNorm for Transformers?
-
-Good answer:
-
-> BatchNorm uses statistics across the batch, which works well for CNN training with reasonably sized batches. LayerNorm normalizes each sample independently across its feature dimension, so it doesn't depend on batch size and is more suitable for sequential models and Transformers.
-
-Also know:
-
-- BatchNorm behaves differently at train vs inference
-- LayerNorm does not depend on batch statistics
-- RMSNorm is a simpler LayerNorm-like alternative
-- Pre-Norm improves gradient flow in deep Transformers
-
-Next topic: **Residual connections**.

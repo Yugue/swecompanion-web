@@ -31,3 +31,5 @@ The vocabulary stays fixed while probability mass becomes more concentrated. Non
 Repetition penalties change scores and may discourage loops, but can also damage repeated names, code identifiers, or exact quotations. Lower temperature does not supply missing evidence.
 
 Compare task success, useful variation, repetition, and stopping behavior under fixed prompts. A fixed random seed improves reproducibility but does not make a generated claim true.
+
+After top-p filtering, retained probabilities are renormalized. A token with original probability 0.3 can therefore be sampled more than 30% of the time if enough competing probability mass was removed.

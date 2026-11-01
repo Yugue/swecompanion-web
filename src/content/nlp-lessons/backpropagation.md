@@ -58,3 +58,5 @@ optimizer.step()
 ```
 
 A **detached** tensor excludes earlier history from differentiation. A frozen parameter is intentionally held fixed. Check both when updates disappear.
+
+A word embedding used at three positions receives gradient contributions from all three uses. The shared row learns from their combined effect, not three independent copies of the same word's parameters.

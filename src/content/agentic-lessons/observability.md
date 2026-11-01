@@ -59,7 +59,3 @@ Keep aggregate metrics for all runs. Sampling only flagged failures misses silen
 ## 8. Actionable alerts
 
 Assign tool-error spikes, step increases, cache collapses, and forbidden-action attempts to owners with concrete response paths.
-
-## What matters most
-
-> A useful trace is a labeled flight recorder, not a dump of every token.

@@ -90,8 +90,6 @@ Hold data, labels, candidates, and features comparable. Measure ordering, probab
 
 The next chapter develops request history and candidate-specific summaries.
 
-## 10. Interview reasoning
+## 10. Work a concrete case
 
-**Question:** Why might shrinking the MLP barely change request latency?
-
-**Answer:** Communication, feature reads, vector lookups, or queueing may dominate. Profile the complete path before changing network size.
+An interaction layer can capture that a user's interest changes an item's effect. Increasing hidden width alone does not guarantee that the needed relationship is represented or supported by training evidence.

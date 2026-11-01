@@ -39,3 +39,5 @@ Small or uneven token groups can use devices poorly. **Tail latency** describes 
 Measure total weight memory, activated computation, communication, throughput, and task quality. **Throughput** is completed work per unit time.
 
 Sparse activation is an architectural resource tradeoff. It does not imply that experts neatly correspond to human topics or that every token costs the same wall-clock time.
+
+Routing a token to two experts means only those expert paths execute for it. Total stored parameters can be large while active work is smaller, but routing imbalance and communication still affect cost.

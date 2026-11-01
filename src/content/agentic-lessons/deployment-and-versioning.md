@@ -47,7 +47,3 @@ Current permissions and policy revocations may still require immediate enforceme
 Optional additions can be compatible; changed meanings and required fields need migration/versioning.
 
 Support old valid contracts for a defined period and measure remaining use.
-
-## What matters most
-
-> Deploy a compatible behavior bundle and know how running work survives a change.

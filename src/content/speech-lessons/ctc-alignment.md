@@ -77,3 +77,5 @@ CTC beam search aggregates compatible paths by prefix. That is why ordinary toke
 CTC offers a simple monotonic objective, parallel frame scoring, and straightforward integration with causal encoders. It constrains output length and does not natively model output-label dependencies.
 
 Forced alignment can estimate boundaries for a known transcript, but incorrect transcripts still produce misleading alignments.
+
+The paths [a,a,blank,b] and [a,blank,b,b] both collapse to “ab.” CTC sums probabilities over valid paths; choosing the most probable individual path need not produce the most probable transcript.

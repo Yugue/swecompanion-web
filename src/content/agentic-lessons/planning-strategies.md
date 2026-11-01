@@ -43,7 +43,3 @@ Cap replans. Continually rewriting a plan can become its own loop.
 Check coverage, dependencies, permissions, completion tests, and budgets.
 
 A reviewable plan should expose assumptions and unresolved inputs, especially before consequential actions.
-
-## What matters most
-
-> A plan is a map with assumptions. Update it when the terrain contradicts them.

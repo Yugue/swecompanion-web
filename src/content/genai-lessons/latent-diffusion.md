@@ -43,3 +43,5 @@ Position signals preserve grid location. Timestep and text conditioning supply t
 If reconstructing a real image already destroys small writing, a better denoiser cannot fully repair that compression limit. Inspect autoencoder reconstruction separately from generated samples.
 
 For latency, measure denoising steps and decoder time as well as latent dimensions. Compression is one part of total cost.
+
+A latent generator saves work by operating on a compressed representation, but details discarded by the encoder cannot be reconstructed exactly on demand. Evaluate compression artifacts separately from the generative model's errors.

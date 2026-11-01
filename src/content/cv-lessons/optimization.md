@@ -85,8 +85,6 @@ Compare using stated examples, updates, and compute budgets. Linear rate scaling
 
 Log actual rates and predictions.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Training oscillates after a batch/rate increase—what next?
-
-**Answer:** Check schedule units and gradient/normalization scale. Restore the previous rate in a controlled comparison before changing multiple components.
+A nearly unchanged loss could come from a tiny learning rate or disconnected gradients. Compare parameter values before and after one update: that separates an ineffective step from an update that never happened.

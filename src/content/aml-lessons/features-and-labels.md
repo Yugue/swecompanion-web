@@ -49,8 +49,6 @@ Ten observed days cannot establish a negative 30-day label.
 
 Every feature must also be available within the live decision's time budget. Today's warehouse contents do not establish historical availability.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Can a checkout ETA model use the courier's eventual arrival time at the restaurant?
-
-**Answer:** No. That future event is unavailable at checkout. Use information known then, such as historical preparation estimates.
+For a loan decision at noon, the applicant's recorded income can be a feature. Next month's repayment is a label. Writing the decision time beside each column exposes future information before any model is trained.

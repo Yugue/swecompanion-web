@@ -44,8 +44,6 @@ Kernel fitting can be expensive on many rows; serving cost depends on support-ve
 
 A decision score is not a probability. If probabilities matter, fit and assess a calibration mapping using held-out predictions.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Does increasing \(C\) guarantee better validation accuracy?
-
-**Answer:** No. It emphasizes training violations more, potentially fitting less transferable detail. Choose it with deployment-matched validation.
+Moving a point far from the decision boundary may leave a fitted margin solution unchanged. Moving a boundary-supporting point can matter much more. This is why the geometry of support vectors matters more than merely counting training points.

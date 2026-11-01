@@ -76,8 +76,6 @@ A language model cannot recover characters erased by low-resolution input. Visua
 
 Review generated annotations before treating them as training or evaluation labels.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why can zero-shot classification fail with a correct description?
-
-**Answer:** Check domain coverage, visual resolution, competing descriptions, and label semantics. Compare a probe or supervised baseline and calibrate on target data; wording cannot supply missing visual evidence.
+An image and caption can be close because they share a broad concept while disagreeing on object count. Test the precise distinction needed by the application rather than treating semantic similarity as complete factual agreement.

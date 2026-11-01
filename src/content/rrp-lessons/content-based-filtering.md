@@ -46,8 +46,6 @@ Similar descriptions need not mean similar usefulness. Ink complements a printer
 
 Use content-based methods when attributes are informative, especially for new inventory. Measure relevance and variety.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why might a content model recommend another printer instead of ink?
-
-**Answer:** It learned attribute similarity. Complementary purchasing is a different relationship, better supported by suitable purchase behavior or explicit compatibility features.
+A user liking two hiking articles yields an interest profile near hiking content. That can recover unseen articles, but also over-specialize the feed if the representation has no evidence about complementary interests.

@@ -48,8 +48,6 @@ Trust in high-ranked results and competition for attention can violate the simpl
 
 Examination is also different from **selection propensity**, the serving policy's probability of choosing an action. The next chapter uses that probability.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why not divide by observed CTR at each rank to remove bias?
-
-**Answer:** Rank CTR mixes placement with the items and audiences assigned there. Correcting examination needs evidence or assumptions that separate those effects.
+The same item may receive more clicks at rank one because more users examine it. Comparing different items at different ranks mixes attractiveness and placement; identification needs a design or assumptions that separate them.

@@ -35,3 +35,5 @@ A confident fallback from model memory can violate an evidence-only task even wh
 Move decisive evidence, add distractors, change a key fact, and test unanswerable questions. Check whether the answer follows the supplied evidence appropriately.
 
 Measure correctness, support, citation accuracy, and appropriate abstention separately. One fluent answer does not establish robust grounding.
+
+A source mentioning a drug does not support a claim about its dosage. Require evidence for the particular relation or quantity in the answer, not merely overlap between answer words and retrieved text.

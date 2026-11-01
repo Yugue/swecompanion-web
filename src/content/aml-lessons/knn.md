@@ -36,8 +36,6 @@ Brute-force prediction costs roughly \(O(nd)\) for \(n\) stored examples with \(
 
 **Approximate nearest-neighbor search** trades some retrieval accuracy for speed. Check the resulting prediction quality as well as lookup latency.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why can adding an irrelevant feature worsen k-NN?
-
-**Answer:** Its numeric differences can change the nearest examples even though it carries no useful target information. Test feature selection, scaling, or a better representation.
+Three nearest examples with targets [10,12,20] predict 14 under uniform regression averaging. A different distance scaling can change which three are nearest; there is no separate learned coefficient to repair a poor neighborhood definition.

@@ -42,8 +42,6 @@ Zero matches that reference; negative is worse. Constant targets require a zero-
 
 **Residuals** are actual minus predicted. Plot them against predictions and time to find systematic misses. Asymmetric costs may require a percentile target; the loss-functions lesson develops that choice.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Is a model with lower RMSE always preferable?
-
-**Answer:** Only if that metric matches the decision. Compare error units, costly tails, important groups, and asymmetric consequences too.
+Errors [0,0,6] give MAE 2 and RMSE about 3.46, in the target's units. RMSE emphasizes the single large miss; choosing between them depends on whether large misses deserve disproportionate cost.

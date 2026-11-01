@@ -42,3 +42,5 @@ Keep unresolved cases distinct from confirmed negatives. Review disagreements be
 An **offset** locates a source boundary under an indexing convention. Bytes, code points, and model-unit positions can differ.
 
 Retain original text and mappings when outputs must highlight evidence. Correct type plus wrong boundary remains an extraction error.
+
+A document with three labeled entities supplies one document and several target spans. Count the independent source documents separately from supervised decisions when describing how much evidence the dataset contains.

@@ -51,8 +51,6 @@ Expected-value ranking, reporting, or budgeting may rely on probability meaning.
 
 Recheck after model or population changes. The sampling correction is not a universal repair for arbitrary weighting or model error.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** NDCG is unchanged but expected-value decisions worsen. How?
-
-**Answer:** Scores can keep their order while losing probability calibration, changing calculations that depend on their numeric values.
+Scores 0.2 and 0.4 have the same order as 0.4 and 0.8, but twice the estimated expected conversions. Decisions using expected value can change even while ranking metrics remain identical.

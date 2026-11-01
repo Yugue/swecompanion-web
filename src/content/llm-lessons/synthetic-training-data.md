@@ -29,3 +29,5 @@ Retain difficult examples when their targets can be verified. Mix representative
 Compare a fixed training budget with and without the generated data on independent examples. Report changes by task, language, and difficulty, including genuine missing-information cases.
 
 If gains appear only on generator-like wording, test new templates and real requests. More fluent training text does not establish more useful supervision.
+
+Generating ten paraphrases of one seed question increases surface variation while preserving much of the same evidence. Track originating examples and split by source when evaluating transfer beyond the generation templates.

@@ -45,11 +45,3 @@ Use these to express reasoning, not as memorized slogans.
 State what you have not used, identify the underlying mechanism, and reason from its contracts.
 
 For orchestration, ask how briefs, return schemas, state, permissions, and failures are handled.
-
-## What matters most
-
-> Explain where information moves, what code enforces, and how you would verify the result.
-
-## Chapter 7 checkpoint
-
-Practice a 90-second concept explanation and an end-to-end design. Include a concrete example, measurable constraint, failure, and alternative.

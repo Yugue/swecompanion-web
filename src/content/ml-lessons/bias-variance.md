@@ -316,27 +316,3 @@ For your interview, you don't need to go deep into double descent, but avoid say
 | Val initially improves then worsens | Overfitting over time | Early stopping / regularization |
 
 ---
-
-## What you should say in an interview
-
-If asked:
-
-> Training accuracy is low and validation accuracy is low. What do you do?
-
-Think:
-
-> High bias / underfitting or optimization failure. First verify training is working, then consider more capacity or less regularization.
-
-If asked:
-
-> Training accuracy is 99%, validation is 75%.
-
-Think:
-
-> Poor generalization / high variance. Check data split/distribution first, then consider more data, augmentation, regularization, dropout, early stopping.
-
-The main interview skill is not naming "bias" or "variance." It's:
-
-> **Use train/validation behavior to identify the failure mode, then choose a fix that actually targets that failure.**
-
-Next topic: **Training diagnostics and debugging**.

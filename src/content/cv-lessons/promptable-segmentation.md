@@ -68,8 +68,6 @@ Tiny objects, low contrast, transparency, unusual textures, and specialist imagi
 
 Use detection or semantic evidence to clarify intent. Allow abstention or human correction when masks are uncertain.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** How would you use promptable segmentation for defect inspection?
-
-**Answer:** Define the defect region, test realistic prompts on held-out capture conditions, and compare refinement or fine-tuning against a supervised baseline. Measure masks, inspection outcomes, correction time, and latency.
+A point identifies a region of interest but may be ambiguous between a whole object and one part. Evaluate mask selection under the actual prompt protocol, including how additional clicks resolve ambiguity.

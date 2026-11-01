@@ -52,3 +52,5 @@ Valid paraphrases can score poorly. Review source adequacy alongside overlap.
 **Back-translation** creates synthetic sources from real target-language text using a reverse translator. It can propagate that translator’s errors.
 
 **Code-switching** mixes languages within an input. Test real supported mixtures, not only translated monolingual examples.
+
+A fluent target sentence can reverse a negation or alter a number. Evaluate meaning preservation and critical details separately from surface fluency, especially when several wordings are equally valid.

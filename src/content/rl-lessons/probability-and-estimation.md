@@ -67,3 +67,5 @@ The second line covers action probabilities only; environment and initial-state 
 | Narrow interval on biased data | Precision under the wrong sampling assumptions |
 
 A standard error describes uncertainty in an estimated mean under assumptions. It is different from the standard deviation of outcomes.
+
+Ten high-return episodes from one lucky seed provide different evidence from similar returns across many independent seeds. Separate randomness within evaluation episodes from variability in the learned policy across training runs.

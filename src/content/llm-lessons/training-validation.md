@@ -40,3 +40,5 @@ Log data version, model configuration, optimizer settings, and random seed. A **
 Use a stable set of generation prompts to inspect repetition, truncation, and task following. These probes complement token loss rather than replacing a held-out evaluation.
 
 When a change fails, isolate one component at a time. An **ablation** removes or changes one component to estimate its contribution under controlled conditions.
+
+A lower training loss with a higher held-out loss can reflect overfitting, but also a changed validation population or preprocessing mismatch. Check the evaluation contract before choosing a regularizer from the curve alone.

@@ -39,3 +39,5 @@ This explains why fitting a target distribution can minimize cross-entropy or KL
 These quantities apply whenever one distribution should match another. For instance, a model can be encouraged to remain close to its starting predictions while it learns a new behavior. State which distribution supplies the averaging weights.
 
 Low entropy alone cannot establish factual accuracy, and a low divergence only means agreement with the chosen reference. A flawed reference remains flawed.
+
+A model can assign low uncertainty to a wrong answer. Distributional concentration measures how strongly it favors its own possibilities; factual accuracy requires comparison with external task evidence.

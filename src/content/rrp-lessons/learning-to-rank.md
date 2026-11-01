@@ -67,8 +67,6 @@ Pure ordering scores have no automatic probability meaning. Expected-value decis
 
 Evaluate the whole procedure with the same candidate pool and serving budget.
 
-## 9. Interview reasoning
+## 9. Work a concrete case
 
-**Question:** Must listwise training beat a pointwise click model?
-
-**Answer:** No. Label quality, candidate protocol, model capacity, and the downstream score use matter. Compare complete procedures under the same conditions.
+Pointwise learning judges each candidate; pairwise learning compares two; listwise learning considers a list. The training unit should reflect available labels and evaluation, rather than assuming the most complex objective always wins.

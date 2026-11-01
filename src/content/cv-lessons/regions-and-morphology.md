@@ -78,8 +78,6 @@ Example: count only regions within the expected washer-area range.
 
 Test shadows, touching objects, belt texture, and changing scale. Persistent merging may require separation or a detector.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** How would you count components on a conveyor?
-
-**Answer:** Stabilize capture, threshold the foreground, remove known artifacts, and count plausible components. Evaluate item/frame counting errors, especially touching objects and shadows.
+An opening can remove isolated foreground specks, but may also erase a narrow true object. The structuring element defines the scale of shapes being preserved, so choose it in image units relevant to the task.

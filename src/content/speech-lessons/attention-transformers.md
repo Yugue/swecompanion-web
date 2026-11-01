@@ -55,3 +55,5 @@ Local or chunked attention restricts context to reduce cost. Cached keys and val
 ## 8. Failure modes
 
 Unmasked padding can influence valid outputs. Future context in preprocessing or convolution can violate streaming assumptions even with causal attention. Attention weights alone are not a reliable causal explanation of a prediction.
+
+A streaming mask must match all available context, including future samples introduced by feature windows or convolutions. Causal attention alone cannot make an otherwise look-ahead frontend causal.

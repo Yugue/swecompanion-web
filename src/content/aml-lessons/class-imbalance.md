@@ -40,8 +40,6 @@ Resample only within training folds. Keep evaluation representative of deploymen
 
 Changed class proportions or weights can distort probability estimates; follow the calibration procedure when probabilities matter. More emphasis on incorrect minority labels can amplify their errors, so audit labels and coverage too.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Does duplicating positives 50 times create 50 times more evidence?
-
-**Answer:** No. It changes their training influence, not their independent information. Evaluate whether that emphasis helps, and recheck probability meaning on representative data.
+With 100 positives and 9,900 negatives, always predicting negative gives 99% accuracy and zero recall. Report the errors the decision actually pays for, and choose thresholds using the expected deployment prevalence.

@@ -46,8 +46,6 @@ A tempting thumbnail can increase clicks while disappointing viewers. Measure us
 
 The system's displayed choices determine much of the evidence it later learns from. The feedback chapters explain that mechanism.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why is predicting ratings different from choosing six videos?
-
-**Answer:** Rating prediction evaluates individual estimates. Selection must also decide which candidates enter the list, their order, and how the whole list serves the current request.
+Choosing six videos is a set-and-order decision. Six high individual scores can still produce six near-identical clips; the objective must describe the usefulness of the resulting page, not only isolated predictions.

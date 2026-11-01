@@ -73,3 +73,5 @@ A complete distributed replica needs every required stage/shard available. Routi
 Replacement capacity should account for whole replicas and their initialization time. Share weights across independent requests where the runtime permits, but preserve per-request histories and deadlines.
 
 **Technical takeaway:** inference placement must jointly fit weights and active request state while balancing per-request communication against the capacity offered by independent replicas.
+
+A request spread over several devices completes only when its required stages succeed. Losing one shard is not equivalent to losing one independent replica; recovery and scheduling must respect the model's joint ownership.

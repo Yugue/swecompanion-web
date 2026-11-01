@@ -39,3 +39,5 @@ A new policy and its obsolete predecessor may look equally relevant. Similarity 
 Sample real questions and inspect whether individual chunks contain the complete necessary evidence. Measure boundary failures, parse corruption, and duplicated context.
 
 There is no universally optimal chunk size. Choose using retrieval coverage, answer quality, and context cost on the intended corpus.
+
+A table row without headers can turn “12” into an uninterpretable fragment. Keep units, headings, and document identity with the retrieved content so a generator can support a specific claim.

@@ -49,8 +49,6 @@ Explore within the allowed set and exposure limits. Track evidence collected, la
 
 Low placement can reduce disruption but also examination. A fresh-item slot alone is not proof of an informative experiment.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why not log 0.10 as B's propensity in this example?
-
-**Answer:** B receives only half the exploration branch and none of the greedy branch. Its actual action probability is 0.05.
+With two actions, a 10% uniformly random branch gives each action 5% probability from exploration. The greedy action also receives the 90% exploitation branch; log total action probabilities, not just the exploration rate.

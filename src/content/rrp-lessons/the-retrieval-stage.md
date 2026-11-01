@@ -40,8 +40,6 @@ Compare 200, 500, and 1,000 candidates on identical requests. Measure added usef
 
 Inspect new items and niche interests separately; an average can hide a missing group.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why can high recall@500 coexist with poor serving results?
-
-**Answer:** The reference labels may be narrow, filtering may shrink the pool, or extra candidates may add cost without useful final selections. Inspect the actual handoff.
+If ten useful eligible items exist and retrieval returns six of them within its budget, recall is 0.6. A downstream ranker can reorder those six; it cannot recover the four absent items.

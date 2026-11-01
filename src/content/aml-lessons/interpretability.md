@@ -45,8 +45,6 @@ Tree impurity importance summarizes training split gains and can favor features 
 
 If support contacts predict churn, discouraging contact is not thereby a valid retention action. Model explanations do not establish intervention effects; use experiments or a justified causal design.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Does a small permutation score prove a feature is useless?
-
-**Answer:** No. Another correlated input may substitute for it. Inspect dependence, grouped tests, the metric, and the evaluated population.
+If age and years-employed closely track each other, shuffling only age may show little loss because the other column substitutes. Low permutation importance can reflect redundancy, not absence of predictive information.

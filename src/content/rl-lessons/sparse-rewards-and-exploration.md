@@ -68,3 +68,5 @@ For a skill lasting k primitive steps, a compatible backup sums its k discounted
 | Curriculum | Reachable learning problems | Fail to transfer to full difficulty |
 | HER | Reusable goal-labeled transitions | Invalid counterfactual assumptions |
 | Skills | Coherent longer behavior | Restrict behavior to an inadequate skill set |
+
+If reward appears only after ten correct decisions, independent random moves may almost never reveal a successful trajectory. Better value estimation cannot learn from success evidence that exploration never supplies.

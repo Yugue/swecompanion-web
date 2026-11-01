@@ -43,3 +43,5 @@ Mixing representative earlier tasks, limiting updates, and monitoring broad eval
 Check unseen requests, difficult cases, and general capabilities. Compare against an unchanged model with a good prompt.
 
 If the problem is missing current documents, training may be a costly substitute for retrieval. If the problem is response format, relevant demonstrations may be enough.
+
+A response ending in valid JSON can still contain unsupported field values. Format demonstrations teach an output behavior; evaluate factual extraction and missing-evidence handling separately from structural validity.

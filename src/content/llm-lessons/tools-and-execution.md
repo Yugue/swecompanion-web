@@ -42,3 +42,5 @@ A **trust boundary** separates inputs with different authority. A page or tool r
 Measure tool selection, argument correctness, authorization handling, execution success, and final answer support separately. Limit calls and handle missing or ambiguous results.
 
 A model can invoke the right tool and still misstate its output. Final-task correctness requires checking the evidence returned and how it was used.
+
+A proposed tool call becomes an action only after runtime validation and execution. The returned operation ID and status establish what happened; generated prose saying “completed” cannot substitute for that result.

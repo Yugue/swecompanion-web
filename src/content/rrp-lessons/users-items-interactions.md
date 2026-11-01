@@ -43,8 +43,6 @@ For several displays followed by one purchase, **attribution** specifies which d
 
 Store query, device, and other relevant context. Finalize a non-click label only after its observation window and accepted arrival delay.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why keep impression IDs if user and item IDs already exist?
-
-**Answer:** The same pair can appear repeatedly under different conditions. An impression ID identifies the opportunity to which a time-bounded outcome belongs.
+A user seeing the same item twice creates two display opportunities, not two users. Link a click to its actual impression so the denominator and context of the training example remain clear.

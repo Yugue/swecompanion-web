@@ -74,8 +74,6 @@ Use shadow evaluation, limited rollout, monitoring, and rollback criteria.
 
 A faster model can still increase total load if it creates more candidates or review alerts.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Model time is 20 ms, but requests take 150 ms. How do you improve it?
-
-**Answer:** Profile every stage under realistic traffic, including queues and transfer. Fix the dominant cost, then test batching or runtime changes against tail latency. Recheck critical quality slices after precision or resolution changes.
+A fast network can still produce a slow application if decoding images or transferring tensors dominates. Measure capture-to-result latency on the target device with the same preprocessing and batch policy used in production.

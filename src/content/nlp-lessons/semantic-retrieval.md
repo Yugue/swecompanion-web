@@ -43,3 +43,5 @@ Declare query aggregation and judgment coverage. Unjudged documents are not auto
 Corpus snapshot, encoder, tokenizer, normalization, and similarity rule must agree. Updating only the query encoder can make stored document vectors incompatible.
 
 Choose K using recall, downstream capacity, and latency.
+
+A semantic match can miss an exact part number by one character. Evaluate identifier queries separately from paraphrases, and combine exact evidence with vector similarity when the task requires both.

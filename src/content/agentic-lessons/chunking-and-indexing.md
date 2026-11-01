@@ -43,7 +43,3 @@ Apply permissions throughout indexing/retrieval so unauthorized text never reach
 Is the answer in the corpus? Is its context preserved? Is it searchable? Was it retrieved? Was it ranked highly? Did generation use it?
 
 Fix the earliest failing stage.
-
-## Interview mental model
-
-> A chunk is a page torn from a book: it needs enough surrounding meaning to remain useful.

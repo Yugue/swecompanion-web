@@ -54,3 +54,5 @@ Stable software computes log probabilities directly from scores. Clipping probab
 **Predictive entropy**, H(q), measures how concentrated the model’s own predictions are.
 
 A confident wrong prediction can have low entropy and high loss: assigning 0.01 to the actual outcome costs about 4.605 nats.
+
+For an observed correct class, assigning probability 0.5 costs log(2) nats, while 0.25 costs log(4). Halving the correct probability adds log(2) loss, regardless of where the remaining probability goes.

@@ -74,7 +74,3 @@ Emergency truncation can remove the original goal.
 Was the needed fact **present, findable, current, and trustworthy**?
 
 Measure evidence recall, constraint retention, and unnecessary tokens.
-
-## What matters most
-
-> Supply the smallest complete set of information needed for the next decision.

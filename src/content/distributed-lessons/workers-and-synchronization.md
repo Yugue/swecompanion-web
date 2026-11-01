@@ -71,3 +71,5 @@ A **straggler** is a participant that completes useful work later than its peers
 For each tensor, record its producer, owner, consumers, and lifetime. For each communication step, record the group and completion dependency. This turns an opaque multi-process program into an explicit dataflow.
 
 **Technical takeaway:** rank identity, state ownership, and matching dependencies are the minimum vocabulary for reasoning about any distributed ML mechanism.
+
+A rank that finishes computing cannot safely overwrite a communication buffer still being read. Readiness, operation completion, and safe reuse are separate events even when the arithmetic has finished.

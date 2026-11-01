@@ -39,3 +39,5 @@ With roughly constant inter-token time d, an N-token output takes approximately 
 Cache storage increases with active sequences, context length, layers, and key/value width. A request can exhaust memory during generation even if its prompt initially fits.
 
 Compare caching benefits under the actual prompt/output distribution. A tiny example hides the costs of long contexts and concurrent users.
+
+The first generated token is selected from logits produced by processing the prompt. Its own key/value entries are created when that selected token is subsequently processed; token selection and cache insertion are different moments.

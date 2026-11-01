@@ -70,8 +70,6 @@ A **saliency map** visualizes input regions estimated to influence a model outpu
 
 Remove the watermark, change the background, or test another camera while preserving relevant evidence. See whether predictions change as hypothesized.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Overall AP improves but nighttime performance worsens. Would you ship?
-
-**Answer:** Check nighttime evidence, uncertainty, severity, prevalence, and slice requirements. Isolate the failing stage. A critical slice regression needs a targeted repair and controlled reevaluation before rollout.
+If small objects dominate misses, compare errors by object pixel size rather than only class. Resolution, output stride, and labeling uncertainty then become testable explanations instead of guesses about architecture.

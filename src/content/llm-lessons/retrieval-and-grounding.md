@@ -33,3 +33,5 @@ A citation’s presence does not establish support. Check the cited span, entity
 Provide verified evidence directly: if the answer improves, inspect retrieval, chunking, reranking, and truncation. If it stays wrong, inspect instructions and evidence use.
 
 **Oracle evidence** is an ideal or manually verified evidence set used diagnostically. It estimates what better retrieval could enable; it is not a production retrieval method.
+
+Finding a relevant document is not enough if the needed clause is outside the supplied chunk. Trace the answer through document selection, passage selection, and claim support to locate the missing evidence.

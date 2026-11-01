@@ -40,3 +40,5 @@ A **hallucination** is generated content presented as factual without adequate s
 A **baseline** is a simple reference solution. For extracting one known field, start with a parser or small classifier if it solves the task. LLMs help when inputs vary, instructions matter, or multiple language operations must be composed.
 
 Measure correctness, **latency** (elapsed time per request), and complete request cost before choosing a larger model. Parameter count alone does not establish fitness for a task.
+
+A model completing “the total is” predicts text from its learned patterns and supplied context. That output is not a database lookup or a verified calculation unless another part of the system supplies and checks those facts.

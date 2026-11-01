@@ -39,7 +39,3 @@ Each boundary can lose constraints, hide gaps, or amplify errors. Debug the whol
 Start with a capable single-agent/workflow baseline. Locate the bottleneck, split along a useful boundary, and compare quality, latency, and cost.
 
 Keep the split only if evidence supports it.
-
-## What matters most
-
-> Add a second desk when separation helps the work, then budget the handoff between desks.

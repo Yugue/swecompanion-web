@@ -42,8 +42,6 @@ Zero clicks differs from a failed lookup. Set maximum accepted age, missing indi
 
 Monitor arrival delay, feature age, nulls, coverage, and timeouts. Train and evaluate the fallback states the model will actually receive.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Is a 13:59 event always valid for a 14:00 feature?
-
-**Answer:** No. It must have arrived and been published by 14:00. Its occurrence timestamp alone does not establish availability.
+A purchase occurring at 13:59 but arriving at 14:03 was unavailable to a 14:00 decision. Historical feature reconstruction must respect arrival and publication time, not only the event timestamp.

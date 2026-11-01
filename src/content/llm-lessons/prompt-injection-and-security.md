@@ -33,3 +33,5 @@ Measure unauthorized call attempts, actual executed operations, data exposure, a
 Input screening and model training may reduce attacks; authorization, sandboxed execution, and data isolation constrain consequences. **Sandboxing** restricts what an executed operation can access or change.
 
 No single successful test establishes universal robustness. Re-run representative attacks when tools, templates, or retrieval sources change.
+
+A retrieved document can contain an instruction to disclose another user's records. Treat that sentence as untrusted document content; tool authorization must use the actual user and task, independent of persuasive wording.

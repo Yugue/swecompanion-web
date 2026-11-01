@@ -481,21 +481,3 @@ or explode:
 That is the fundamental challenge of BPTT.
 
 ---
-
-## Google-interview answer
-
-If asked:
-
-> What is Backpropagation Through Time?
-
-A strong answer:
-
-> Backpropagation Through Time unrolls an RNN across its sequence steps and applies ordinary backpropagation through the resulting computation graph. Because the same recurrent weights are shared across time, gradient contributions from every time step accumulate into those shared parameters. Long sequences create long chains of derivatives, which makes vanilla RNNs susceptible to vanishing and exploding gradients. In practice, truncated BPTT can limit how far gradients propagate to reduce memory and computational cost.
-
-Minimal implementation-wise, modern frameworks do BPTT automatically:
-
-```python
-loss.backward()
-```
-
-The next topic, **Long Short-Term Memory (LSTM) and Gated Recurrent Unit (GRU)**, is the natural follow-up: we'll see exactly how **gates create a better memory path** so useful information and gradients can survive for much longer.

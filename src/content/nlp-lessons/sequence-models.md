@@ -49,3 +49,5 @@ Clipping limits large gradients; it does not restore vanished signals.
 A **bidirectional RNN** combines forward and backward states. It suits complete-input tagging, but the backward path reveals future text in causal next-token prediction.
 
 Recurrence also limits within-layer parallelism because later states depend on earlier ones.
+
+Reading “not” should change how later sentiment evidence is interpreted. A recurrent state carries preceding context, while its finite size and learning dynamics limit which distinctions remain accessible.

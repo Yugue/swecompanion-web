@@ -2,7 +2,7 @@
 
 ## 1. Draft cheaply and verify together
 
-**Speculative decoding** uses a cheaper draft model to propose several next tokens and a target model to verify them in one causal forward pass.
+**Speculative decoding** drafts autoregressive units cheaply and verifies them with a target model. It does not describe every multi-step generation process.
 
 It exploits parallel verification while retaining the target model’s intended output behavior under the appropriate correction procedure.
 
@@ -12,9 +12,9 @@ It exploits parallel verification while retaining the target model’s intended 
 speculative-block
 ```
 
-The draft proposes A, B, C, D using compatible token IDs. The target evaluates each proposed position conditioned on its draft prefix. Accept proposals in order; the first rejection discards later draft tokens.
+Verify draft A B C D against the target's conditional predictions. Rejecting B invalidates C and D because they were proposed under B.
 
-If every proposal is accepted, the target can also supply a bonus next token from the block-end distribution. Stop appropriately if an end token is accepted.
+A fully accepted block can yield an additional target token. An accepted end marker still stops output; speed optimization does not change termination semantics.
 
 ## 3. Preserve stochastic sampling
 
@@ -22,7 +22,7 @@ For a proposed token a, acceptance probability is:
 \[
 \min\left(1,\frac{p(a)}{q(a)}\right)
 \]
-p and q are the target and draft sampling distributions, including temperature/filtering, under the same accepted prefix. A proposal with q(a)=0.8 and p(a)=0.6 is accepted with probability 0.75.
+p is the target and q the draft distribution under one accepted prefix. The example's 0.6/0.8 ratio gives acceptance 0.75.
 
 ## 4. Correct a rejection
 
@@ -39,12 +39,14 @@ Greedy verification instead requires a match with each target choice; it uses a 
 
 ## 5. Estimate useful speedup
 
-Benefit depends on accepted tokens per block, draft cost, target verification cost, and hardware utilization. A fast but inaccurate draft can waste most of its work.
+A multimodal draft must use compatible conditioning and token units. A cheaper model ignoring decisive image content may propose blocks that seldom pass verification.
 
-The target still processes multiple positions; verification is not free. Speculation can lose on short outputs or unfavorable batch sizes.
+Compare saved sequential target work with draft, verification, and media-processing costs. A bottleneck outside token decoding limits overall speedup.
 
 ## 6. Validate the implementation
 
-Test output-distribution correctness for stochastic decoding and matched outputs for deterministic settings. Include end tokens, rejection paths, temperature changes, and cache updates.
+Test conditional output distributions as well as throughput. Include media changes, rejected blocks, stop markers, and cache-state recovery.
 
-An approximate acceptance shortcut may be useful under another contract, but it should not be described as exact target sampling.
+Any simplified verification must state its accuracy contract. “Faster” does not establish exact sampling from the target distribution.
+
+Draft-and-verify applies when output units are generated autoregressively and compatible distributions can be checked. A denoising image sampler does not gain the same guarantee merely by using a cheaper model for some steps.

@@ -62,3 +62,5 @@ Keep stage-specific logs and evaluation so a formatting regression is not blamed
 Compare greedy, small-beam, and larger-beam outputs on the same examples. Record latency and substitution/deletion/insertion changes, not just one accuracy number.
 
 If a larger beam worsens recognition, inspect length bias, language-model weight, end-of-sequence behavior, and poorly supported hypotheses before increasing it again.
+
+A language model may prefer a common word over a correctly heard rare name. Compare acoustic evidence and decoding weights on named entities; more linguistically plausible text is not necessarily more faithful recognition.

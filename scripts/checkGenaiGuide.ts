@@ -166,7 +166,7 @@ const firstDefinitions: [string, RegExp, string][] = [
   ["reinforcement-learning", /\breinforcement learning\b/i, "**Reinforcement learning (RL)**"],
   ["training-resources", /\bloss scaling\b/i, "**loss scaling**"],
   ["rlhf", /\bsycophancy\b/i, "**sycophancy**"],
-  ["latent-diffusion", /\bpatch(?:es)?\b/i, "**patches**"],
+  ["self-attention", /\bpatch(?:es)?\b/i, "**patches**"],
   ["autoencoders-and-vaes", /\bautoencoder\b/i, "**autoencoder**"],
   ["image-text-alignment", /\bcontrastive learning\b/i, "**Contrastive learning**"],
   ["knowledge-and-rag", /\bretrieval-augmented generation\b/i, "**Retrieval-augmented generation (RAG)**"],

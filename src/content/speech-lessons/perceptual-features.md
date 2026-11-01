@@ -57,3 +57,5 @@ Statistics fitted on training data must not include held-out data. Whole-utteran
 Record sample rate, window, hop, transform size, frequency bounds, number of bands, power versus magnitude, Mel convention, log base, floor, and normalization.
 
 Two libraries can both return “80-bin log-Mel” while producing materially different values. Compare a fixed waveform numerically before diagnosing the neural model.
+
+A log-mel feature summarizes energy in perceptually spaced bands. Two waveforms can have similar band energies but different fine phase structure; feature extraction deliberately discards information and cannot guarantee exact waveform reconstruction.

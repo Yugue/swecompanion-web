@@ -81,3 +81,5 @@ Update data ownership and communication groups together. Changing the number of 
 For a small deterministic case, save at an update boundary, continue for several steps, reload into a fresh process group, and compare the continuation. Also test interruption during a save and rejection of incomplete generations.
 
 **Technical takeaway:** reliable recovery needs a consistent snapshot, durable all-shard commitment, and an explicit policy for data progress and changed worker layouts.
+
+Restoring weights but restarting the data stream and optimizer history changes the continuation. A recovery test should compare state and subsequent behavior, not merely demonstrate that the checkpoint file can be read.

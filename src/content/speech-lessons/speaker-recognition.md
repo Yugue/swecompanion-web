@@ -54,3 +54,5 @@ Train and evaluate across different words, sessions, microphones, noise, and dur
 Replay, synthesis, and voice conversion can resemble an enrolled voice. A speaker verifier answers a similarity question; anti-spoofing and liveness checks address different evidence.
 
 For consequential authentication, evaluate attacks and fallback procedures explicitly. Do not present an embedding match as sufficient identity assurance.
+
+A verification threshold trades false accepts against false rejects. Similarity between two recordings is evidence under a system and population, not a universal proof that they contain the same live speaker.

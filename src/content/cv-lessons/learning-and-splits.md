@@ -77,8 +77,6 @@ Estimate uncertainty at the video/session level. Keep stable holdouts for compar
 
 > More observations are useful when they add independent, relevant evidence.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Great random-frame accuracy, poor new-video performance—why?
-
-**Answer:** Check source leakage and background shortcuts. Hold out whole videos/sessions, evaluate deployment conditions, and compare a simple baseline before changing architecture.
+Adjacent video frames share lighting, background, and objects. Holding out random frames can test near-duplicates; holding out recordings or capture sessions better probes whether the learned pattern transfers to independent scenes.

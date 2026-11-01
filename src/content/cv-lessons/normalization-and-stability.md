@@ -81,8 +81,6 @@ Clip after backward, before step; undo loss scaling on mixed-precision gradients
 
 Inspect inputs, activations, and gradient norms. Constant clipping suggests a deeper issue.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why GroupNorm with tiny segmentation batches?
-
-**Answer:** Its per-example statistics avoid small-batch peer dependence and running-statistic mismatch. Compare actual quality and cost; input standardization remains a separate contract.
+BatchNorm's output for one image can depend on other training-batch images. At evaluation it normally uses stored statistics. A train/eval mismatch can therefore change predictions even when model weights are identical.

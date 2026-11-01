@@ -35,3 +35,5 @@ Oversampling can improve an underserved domain, but excessive reuse can overfit 
 **Provenance** records where data came from and how it was transformed. Retain source versions, filter settings, and mixture weights so a training regression can be investigated.
 
 Compare candidate mixtures under similar compute. A better average can conceal a severe decline on an important minority slice.
+
+A caption paired with the wrong image gives a misleading cross-modal training relationship even if both files are individually valid. Data checks must validate pair identity and alignment, not just remove corrupt files.

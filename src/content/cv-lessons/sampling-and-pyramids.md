@@ -85,8 +85,6 @@ Keep interpolation and coordinate conventions consistent between training and in
 
 **Tiling** splits a large image into smaller crops processed separately. It keeps local detail but needs coordinate restoration and merging of duplicate predictions in overlaps. Choose resolution using object size and serving cost.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why does shrinking a striped shirt create new bands?
-
-**Answer:** Fine frequencies become aliases on the smaller grid. Low-pass filter before downsampling; sharpening afterward cannot determine the original pattern.
+Shrinking alternating black and white stripes without filtering can turn them into false wider bands. Blur removes unsupported high-frequency detail before downsampling; interpolation after the damage cannot reliably undo the aliasing.

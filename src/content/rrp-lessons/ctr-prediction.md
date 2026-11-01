@@ -107,8 +107,6 @@ Compare against training-rate or training-mean baselines on representative held-
 
 Exposure and position affect logged clicks. Non-click downsampling changes class proportions; its probability correction belongs in the calibration chapter. Model-family choices follow in “Choosing a ranking model.”
 
-## 11. Interview reasoning
+## 11. Work a concrete case
 
-**Question:** Why is 99% accuracy unconvincing at 1% CTR?
-
-**Answer:** A model can achieve it by predicting no clicks. Compare probability quality and useful ranking against a credible reference.
+Twenty clicks from 1,000 recorded displays give observed CTR 0.02. Counting two click events per clicked display without correcting duplicates would change the target definition and inflate the estimate.

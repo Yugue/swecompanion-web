@@ -41,8 +41,6 @@ Predefine critical slices and confirm newly discovered ones; searching hundreds 
 
 Check who bears false alarms and misses. Removing a sensitive input cannot guarantee equal outcomes because other features may act as substitutes. Repeated tuning against the same errors also consumes their independence.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Overall quality improves while a small group's recall falls. What evidence is needed?
-
-**Answer:** Examine its counts, uncertainty, error consequences, and representative examples. Confirm the regression and test a targeted fix before choosing whether to deploy.
+If twenty of fifty errors involve truncated text, test longer inputs on those same cases and on a representative validation set. Fixing the inspected examples alone does not show that the intervention generalizes.

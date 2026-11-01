@@ -53,7 +53,3 @@ Ensure the file remains accessible and versioned. Moving a payload preserves det
 Check constraints, open/completed tasks, artifact references, approvals, and budget.
 
 Keep the original record. If checks fail, rebuild from it rather than compressing the faulty summary again.
-
-## What matters most
-
-> Pack away old paperwork while keeping the current checklist and exact receipts.

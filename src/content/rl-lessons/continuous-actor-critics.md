@@ -78,3 +78,5 @@ Let the smoothed successor action have target critic values 8 and 5, reward=1, g
 | Twin target minimum | Reduce optimistic targets | Can introduce underestimation |
 | Delayed actor updates | Improve critic before exploiting it | More critic work per policy update |
 | Target smoothing | Reduce exploitation of narrow peaks | Sensitive to action scale and bounds |
+
+A continuous actor can choose an action without enumerating infinitely many possibilities. Its update uses the critic's local action-value slope, so critic errors can guide the actor toward unsupported actions.

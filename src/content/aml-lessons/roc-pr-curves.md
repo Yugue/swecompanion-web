@@ -50,8 +50,6 @@ p>\frac{C_{FP}}{C_{FP}+C_{FN}}
 
 Higher false-alarm cost raises the cutoff. Capacity limits or other action costs require a different policy.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Can a high AUC model overwhelm reviewers?
-
-**Answer:** Yes. Overall ordering quality does not guarantee a useful threshold. Inspect the relevant curve region, absolute flag counts, and performance at the available capacity.
+At 1% prevalence, a 1% false-positive rate flags roughly as many negatives as there are positives overall. A favorable-looking ROC point can therefore produce a crowded review queue; inspect actual counts and precision.

@@ -74,7 +74,3 @@ reserve inventory ✓ → charge fails → release reservation
 ```
 
 Define compensation or human recovery in advance. It may not fully undo every external effect.
-
-## What matters most
-
-> Retry safety depends on the operation and observed state, not just the error wording.

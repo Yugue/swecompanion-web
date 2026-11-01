@@ -63,3 +63,5 @@ A simulator with attractive graphics can still have wrong control dynamics. Eval
 Importance-weight diagnostics, fitted-value estimates, and model agreement can reveal concerns before interaction. They do not replace direct validation when assumptions about support or dynamics are weak.
 
 Document the remaining gap between logged evidence, simulation, and deployment. A staged rollout can then test a concrete uncertainty rather than merely repeat an aggregate benchmark.
+
+A policy can memorize fixed start states or simulator layouts. Hold out meaningful environment variations and report independent training runs, separating robustness of one trained policy from reliability of training.

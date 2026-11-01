@@ -61,3 +61,5 @@ These constraints can change feasible baselines: an on-device solution may be ne
 Version the data split, label policy, preprocessing, checkpoint, decoding settings, thresholds, and evaluation script. Keep the final test set out of routine tuning.
 
 Report the model and full pipeline configuration. Without that record, an apparent architecture improvement may actually be a changed scoring normalization.
+
+Randomly separating clips from one recording can preserve the same microphone and background in both sets. Hold out sessions or speakers according to the deployment claim before comparing model scores.

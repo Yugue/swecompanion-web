@@ -470,16 +470,3 @@ So the training loop is:
 prediction \rightarrow loss \rightarrow gradients \rightarrow update
 }
 \]
-
-### What you should really master
-
-The important concepts are:
-
-- why regression uses a different loss than classification
-- why cross-entropy works
-- logits vs probabilities
-- why BCE/CE usually operate directly on logits
-- loss vs metric
-- relationship between cross-entropy and maximum likelihood
-
-Next topic is **Forward propagation**.

@@ -49,3 +49,5 @@ Increasing head count and head width together is a different cost experiment.
 Self-attention can use full context or only a prefix. Cross-attention can read a complete source while target self-attention remains causal.
 
 Source choice alone does not specify the mask.
+
+A target word querying encoded source words uses cross-attention. Source words querying other source words use self-attention. The distinction is which streams supply the vectors, not whether the operation uses dot products.

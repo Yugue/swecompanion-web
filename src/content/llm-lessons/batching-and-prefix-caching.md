@@ -39,3 +39,5 @@ An **answer cache** stores final responses; unlike a KV prefix cache, it must al
 Measure request throughput, generated-token throughput, first-token latency, complete latency, and tail percentiles. A **tail percentile** describes slow requests, such as the 95th percentile.
 
 Use representative lengths and arrival patterns. Saturation benchmarks with no realistic queue can hide poor user experience.
+
+Two matching text prefixes are insufficient for reuse if model version or position conventions differ. Reuse requires the same relevant computational state, not merely a familiar-looking string.

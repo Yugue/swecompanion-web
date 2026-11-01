@@ -33,3 +33,10 @@ Prompt tokens may be visible but not directly supervised in instruction tuning. 
 A suddenly excellent training loss after removing the mask often indicates target leakage, not better reasoning. Check which input position predicts which target.
 
 Padding errors may create batch-length-dependent behavior. Compare a sequence alone and in padded batches before blaming model capacity.
+
+| Prompt position | May supply context? | Must contribute loss? |
+|---|---|---|
+| Instruction prefix | Yes | Not in response-only training |
+| Supervised answer token | Under the causal rule | Yes |
+
+Attention access controls available evidence. A loss mask independently selects supervised predictions.

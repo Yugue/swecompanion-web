@@ -61,3 +61,5 @@ Include source-domain validation if retaining the earlier capability matters.
 Tune augmentation on validation data, compare clean and corrupted slices, and inspect failure categories. A gain on synthetic noise with a regression on natural quiet speech may be unacceptable.
 
 Use multiple seeds or uncertainty estimates when small improvements drive decisions. Ablate one coherent change at a time so the mechanism remains interpretable.
+
+Mixing one clean utterance with many noises creates varied conditions but not many independent speakers. Track both the source recordings and augmentation variants when describing dataset size and independence.

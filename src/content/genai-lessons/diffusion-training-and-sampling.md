@@ -51,3 +51,5 @@ This illustrates one training target, not a complete sampling loop.
 Compare prompt adherence, detail, artifacts, and diversity at matched time or denoiser-call budgets. A faster scheduler is useful only if quality remains adequate.
 
 Do not assume an arbitrary one-step replacement preserves a model trained for iterative denoising.
+
+Training can sample one noise level for an example, while generation traverses a sequence of levels. Fewer inference steps change the numerical procedure and must be evaluated at matched quality, not assumed equivalent.

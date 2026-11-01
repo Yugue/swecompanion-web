@@ -54,3 +54,5 @@ Discount and normalize correctly; adding extra probability to a complete distrib
 Higher order distinguishes more phrases but creates sparse histories. Better training fit can coexist with worse future predictions.
 
 Use held-out loss to choose order and smoothing.
+
+A trigram model conditions on two preceding tokens. It cannot distinguish long-range contexts that share that suffix, even with unlimited counts; smoothing addresses sparse counts rather than extending the context length.

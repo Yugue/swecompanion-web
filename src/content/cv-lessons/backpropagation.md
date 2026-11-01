@@ -95,8 +95,6 @@ optimizer.step()  # change weights
 
 Check presence, scale, and destination of gradients.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Explain training without hiding behind autograd (automatic differentiation software).
-
-**Answer:** Forward computes predictions/loss. Backward combines local derivatives, adding shared-path contributions. The optimizer then updates weights using those gradients.
+If one filter is applied at many image locations, its weight gradient adds contributions from all those uses. Weight sharing reduces parameter count; it does not mean learning from only one selected patch.

@@ -70,3 +70,5 @@ Models may operate in a learned compact representation instead of raw observatio
 | Distill a planner into a policy | Pay planning during data creation | Smaller policy evaluation later |
 
 If a control deadline permits only milliseconds, an expensive planner may be infeasible even when sample efficient. Distillation trades some planner flexibility for a faster policy.
+
+A learned dynamics model can be accurate for ordinary moves but poor for a long imagined sequence. Repeatedly feeding its own predictions back can compound error, making planning horizon a model-trust decision.

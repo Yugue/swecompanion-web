@@ -51,3 +51,5 @@ B is batch size, T positions, C classes. Target −100 marks ignored positions. 
 Flattening batch and position axes is valid when logits and labels stay aligned and averaging is preserved. Mixing the class axis with positions changes the computation.
 
 Use stable binary-logit loss for sigmoid heads. Validate thresholds separately from fitting probabilities.
+
+A document classifier needs one decision for the sequence; an entity tagger needs decisions at token positions. Choose the head and target shape together, rather than forcing both into one pooled output.

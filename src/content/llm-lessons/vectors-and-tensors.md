@@ -29,3 +29,5 @@ A **dot product** multiplies matching coordinates and sums them. Vector length i
 A transformation intended for feature width should not accidentally mix batch examples. Check the named axes before reshaping or reducing.
 
 **Padding** adds filler positions to align sequence lengths in a batch. Exclude those positions when computing an average intended to represent actual text.
+
+A batch of four eight-token inputs with hidden width sixteen has shape [4,8,16]. Vocabulary size is a separate dimension that appears when hidden states are mapped to next-token scores.

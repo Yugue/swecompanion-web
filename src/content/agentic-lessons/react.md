@@ -55,7 +55,3 @@ Parallelize only ready independent work. Avoid returning large raw payloads.
 If every successful run follows the same known sequence, encode that sequence as a workflow.
 
 Use interleaving when fresh observations can materially affect the path.
-
-## What matters most
-
-> Navigate with the latest observation while keeping the destination visible.

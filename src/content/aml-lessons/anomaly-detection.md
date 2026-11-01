@@ -39,8 +39,6 @@ Measure known-positive recall and reviewed-alert precision, acknowledging select
 
 Synthetic anomalies test specific mechanisms, not total real-world quality. New reviewed labels can support a supervised model, but the reviewed sample may be unrepresentative.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Does a contamination setting of 0.1% guarantee 0.1% false alarms?
-
-**Answer:** No. It helps select a score cutoff under a reference distribution. False alarms require outcome labels; future traffic can also change the flag rate.
+A rare holiday purchase may be unusual but legitimate; a common low-value fraud pattern may look ordinary. An anomaly score measures departure from a reference pattern, so labels are still needed to assess fraud detection.

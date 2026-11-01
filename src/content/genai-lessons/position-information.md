@@ -2,21 +2,21 @@
 
 ## 1. Make order available
 
-**Position information** tells a sequence model where tokens occur. Without position signals or other order-sensitive structure, unmasked self-attention treats reordered inputs as a reordered set of states.
+**Position information** represents location. Text uses sequence positions; image and video inputs may require spatial and temporal distinctions.
 
 “Dog bites man” and “man bites dog” contain the same words but express different events.
 
 ## 2. Attach absolute positions
 
-An **absolute position embedding** assigns a vector to each index. Adding it to the token embedding makes the input depend on both token identity and location.
+An **absolute position embedding** adds an index-specific vector. Flattened image inputs need a defined correspondence between indices and spatial layout.
 
-The added vectors must have compatible widths. Learned absolute tables need a defined strategy for indices beyond their trained range.
+Compatible feature widths permit addition; they do not make a learned position table valid at unseen image resolutions or sequence lengths.
 
 ## 3. Rotate query and key pairs
 
-**Rotary position encoding (RoPE)** rotates coordinate pairs in queries and keys by position-dependent angles. A **rotation** turns a two-coordinate vector without changing its length.
+**Rotary position encoding (RoPE)** applies position-dependent query/key rotations. A **rotation** changes a coordinate pair's direction while preserving its length.
 
-Each coordinate pair uses its own rotation rate. RoPE changes query/key comparisons rather than adding a position vector to every value.
+Coordinate pairs use different angular rates. For media inputs, any extension to multiple position axes must specify how those axes enter rotations.
 
 ## 4. See the relative gap
 
@@ -27,22 +27,24 @@ q_m&=R_{m\omega}q,\quad k_n=R_{n\omega}k\\
 q_m^\top k_n&=q^\top R_{(n-m)\omega}k
 \end{aligned}
 \]
-q and k are unrotated content vectors; m and n their positions; ω a rotation rate; \(R_a\) rotates by angle a. Their comparison depends on the relative gap n−m.
+Rₐ denotes rotation by a; q and k are content vectors, m and n positions, and ω angular rate. The resulting comparison depends on n−m.
 
 ```genai-visual
 rotary-relative
 ```
 
-Rotating both arrows together preserves their angle. Changing the gap changes their angle and therefore the dot product. The comparison holds the content vectors fixed.
+The two-arrow figure isolates relative position with fixed content. Real visual patches also change their content descriptors, so position alone does not determine similarity.
 
 ## 5. Distinguish masks from position signals
 
 A causal mask defines legal information access. Position encoding represents location within that access pattern.
 
-Both can encode aspects of order, but they perform different jobs. A position signal cannot make an otherwise illegal future token safe to read.
+A location representation does not override an access mask. For example, adding time coordinates cannot authorize future frames in a causal streaming task.
 
 ## 6. Test longer contexts
 
 A **context window** is the supported number of input and generated positions under a model’s configuration. Extrapolating beyond trained lengths can distort relative-position behavior and retrieval quality.
 
-Test evidence at different locations and distances. Accepting a long prompt is weaker evidence than using its relevant details correctly.
+Test changed resolutions, longer clips, and displaced evidence separately. More accepted positions do not establish useful generalization across those changes.
+
+Image patches have row and column locations; video also adds time. A useful position design must distinguish the relevant axes rather than flattening them and assuming sequence distance fully describes their relationship.

@@ -53,7 +53,3 @@ Real steps are correlated, so this is illustrative. Reduce unnecessary decisions
 - Invalid argument: schema or semantics.
 - Unauthorized execution: permission enforcement.
 - False completion: success validation.
-
-## What matters most
-
-> Use flexible judgment alongside authoritative data, exact operations, and enforcement.

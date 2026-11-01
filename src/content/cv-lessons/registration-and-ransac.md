@@ -85,8 +85,6 @@ Three pixels is illustrative. Check coverage, residuals, overlap, and plausible 
 
 Use the simplest adequate model.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Can one homography align a street?
-
-**Answer:** A plane or pure camera rotation can support it. Camera translation creates depth-dependent parallax, so inspect residuals before accepting one global transform.
+One wrong correspondence can severely distort an ordinary fit. RANSAC fits small candidate subsets and counts consistent matches; it succeeds only if enough samples contain valid geometry rather than degenerate or incorrect pairs.

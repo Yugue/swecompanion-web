@@ -45,3 +45,5 @@ p is the reference distribution and q the comparison. Reversing them generally c
 loss = torch.nn.functional.cross_entropy(logits, targets)
 ```
 Here logits are raw class scores and targets are integer class IDs. This operation combines log-softmax and target selection; applying softmax first changes the intended input.
+
+Raising the correct class probability from 0.25 to 0.5 lowers its log loss by log(2). The loss rewards probability assigned to observed evidence, rather than fluency of a separately sampled output.

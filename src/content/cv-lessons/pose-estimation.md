@@ -71,8 +71,6 @@ Inspect errors by joint, person size, crowding, and left/right swaps.
 
 Small joints need sufficient crop and output resolution. Compare compact coordinate heads when memory is tight. Temporal smoothing can help, but a wrong identity can carry errors forward.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Heatmaps or coordinates for small, occluded joints?
-
-**Answer:** Start with heatmaps to inspect spatial ambiguity. Test crop resolution, output stride, visibility masks, and offsets. Compare a coordinate head under the same scale-sensitive evaluation and deployment budget.
+An occluded wrist may be uncertain rather than absent. Specify whether supervision marks visibility, location, or both, so the model is not penalized for confusing missing evidence with a confidently wrong coordinate.

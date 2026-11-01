@@ -55,8 +55,6 @@ Normalize to address the relationship you want, then evaluate candidate quality 
 
 Minimum-support rules improve stability but can suppress useful rare pairs.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why do the same bestsellers appear beside every item?
-
-**Answer:** Raw counts may reward reach rather than specific association. Compare normalized scores and support, then measure whether the resulting recommendations improve.
+Items A and B with 100 shared users may be less specifically associated than A and C with 20 if B reaches nearly everyone. Normalize for reach and keep support counts visible.

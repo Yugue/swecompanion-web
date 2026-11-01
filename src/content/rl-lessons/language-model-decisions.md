@@ -66,3 +66,5 @@ Evaluate hidden checks, held-out workflows, action validity, unnecessary tool us
 Use validated tool schemas, explicit action availability, controlled execution environments, and task-appropriate fallback behavior. A learned cost penalty alone does not enforce a tool permission boundary or an irreversible-action constraint.
 
 Log policy version, tool version, observations, decisions, outcomes, and budget use. Changes in tool behavior can shift the environment even when the model stays fixed.
+
+A tool-using policy may receive reward after a complete interaction rather than after each generated token. Define action, observation, termination, and reward carefully before applying an RL algorithm to language behavior.

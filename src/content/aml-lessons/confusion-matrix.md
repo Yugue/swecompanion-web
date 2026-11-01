@@ -50,8 +50,6 @@ F_1=\frac{2TP}{2TP+FP+FN}
 
 For ordinary single-label classification over all classes, micro-F1 equals accuracy. Keep class-level results when a rare class matters.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why can recall improve while precision worsens?
-
-**Answer:** A lower threshold can catch more fraud while adding proportionally more false alarms. The two metrics use different denominators.
+Among ten flagged transactions, six are fraud; four frauds were missed. Precision is 6/10 and recall is 6/(6+4). The equal numbers here are coincidental: the denominators describe different populations.

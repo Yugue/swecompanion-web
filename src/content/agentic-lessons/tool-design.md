@@ -65,7 +65,3 @@ The runtime enforces them; descriptions help the model plan.
 ## 8. Evolve compatibly
 
 Version changed meanings or arguments. Record the schema version and preserve contracts used by active runs.
-
-## What matters most
-
-> A tool is a labeled control with a clear input, effect, and observation.

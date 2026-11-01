@@ -58,3 +58,5 @@ Combine targeted failure collection with representative audits. Keep the fixed r
 For a new microphone failure, first verify preprocessing and capture changes. For new names, test vocabulary context and labeled examples. For overlap failures, inspect segmentation and separation.
 
 Prefer the smallest change addressing the measured mechanism, then re-evaluate quality, slices, operational constraints, and rollback readiness.
+
+A captioning system must connect capture, buffering, recognition, text revision, and display. A fast partial transcript that is repeatedly rewritten may be less usable than slightly later stable text; evaluate the interaction.

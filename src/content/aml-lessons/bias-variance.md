@@ -49,8 +49,6 @@ The first may be too restricted; the second may be sample-sensitive. Shift, weak
 
 The diagnosis lesson develops the curve-based checks. More complexity cannot create absent information.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Does a large train/validation gap directly measure variance?
-
-**Answer:** No. It is a clue. Check split validity, population changes, preprocessing, and repeated-fit behavior before attributing it to sample sensitivity.
+Fit the same procedure to several resampled datasets. If predictions at one fixed input swing widely, that demonstrates instability across samples. One train–validation gap alone cannot reveal that behavior directly.

@@ -46,3 +46,5 @@ Dropping a hidden feature differs from deleting “not,” which can change the 
 | Good train; poor validation | Overfitting, population change, inconsistent preparation |
 
 Representative data supplies information that a penalty cannot create.
+
+A classifier trained on one publisher may learn its footer rather than article meaning. Hold out sources or remove the footer experimentally to test whether the apparent language skill transfers.

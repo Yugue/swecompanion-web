@@ -75,3 +75,5 @@ These mechanisms reduce overhead but do not remove link capacity, ordering requi
 Use the latency–bandwidth model to distinguish plausible costs from impossible expectations. Measure message sizes, worker count, topology, and concurrent traffic representative of the target application.
 
 **Technical takeaway:** communication cost depends on message count, payload, placement, and shared resources; a device count alone cannot predict scaling.
+
+Two GPUs connected through a slower shared host path can exchange less effectively than a directly connected pair. A logical all-to-all pattern says who communicates; physical topology determines which links contend.

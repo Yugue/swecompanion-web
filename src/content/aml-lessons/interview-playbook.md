@@ -39,8 +39,6 @@ Probabilities 0.9 and 0.1 cost approximately 0.105 and 2.303. This explains the 
 
 These apply earlier mechanisms; adding model names does not strengthen the argument.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** The candidate beats rules offline. What remains before broad deployment?
-
-**Answer:** Confirm independent evaluation, important slices, costs, and complete serving behavior. Roll out with a supported fallback and monitoring; measure the policy's effect where appropriate.
+A useful proposal can fit on one chain: decision → information available now → baseline → held-out comparison → rollout → outcomes. A missing link identifies an unanswered system question, even when the model choice is sophisticated.

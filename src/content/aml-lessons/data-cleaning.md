@@ -38,8 +38,6 @@ An accidental duplicate adds unintended weight and can contaminate evaluation ac
 
 Genuine repeated purchases are separate events when purchases are the prediction unit. Matching visible values alone does not justify deletion.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Should you fill missing income with zero?
-
-**Answer:** Only if zero has that intended meaning. Otherwise compare a fitted imputation strategy and an absence indicator, checking that live missingness behaves similarly.
+“Temperature = 999” may be a sensor's missing-value code rather than extreme heat. Treating it as a measurement changes averages and fitted relationships. Check the recording convention before clipping, imputing, or deleting it.

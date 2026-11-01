@@ -39,8 +39,6 @@ Catalogue-wide coverage can rise while some users still receive repetitive pages
 
 Report per-user and provider-group results with counts. Retrieval must admit candidates before list selection can improve their opportunity.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Coverage rose. Does that prove every user's list became more diverse?
-
-**Answer:** No. Coverage aggregates exposure across inventory; diversity describes each list. Inspect both at their intended scopes.
+One user's list can be diverse while the catalogue's overall exposure stays concentrated. List diversity and catalogue coverage use different aggregation units; report the one that matches the intended improvement.

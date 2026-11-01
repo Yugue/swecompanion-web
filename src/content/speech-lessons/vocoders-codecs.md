@@ -71,3 +71,5 @@ Semantic tokens can lose speaker, prosody, and background detail. Codec tokens n
 A decoder can produce audio quickly while requiring future latent frames. Encoder windows, quantizer blocks, decoder receptive field, packet buffering, and overlap handling all contribute delay.
 
 Test reconstruction quality, intelligibility, level, artifacts, unseen sounds, actual bitrate, and end-to-end delay at each supported operating point.
+
+A codec's discrete symbol represents an acoustic unit at its trained rate, not necessarily a word. Losing or delaying a code can affect reconstructed timing and sound even when semantic content remains recognizable.

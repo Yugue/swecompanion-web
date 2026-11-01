@@ -68,3 +68,5 @@ Logged rewards may themselves be proxies. An offline policy can exploit their mi
 Behavior cloning copies observed actions without needing reward labels. Offline RL uses rewards and sequential structure to seek improvement within the evidence. Online RL can collect new evidence but pays interaction cost and risk.
 
 Start with behavior cloning and a no-change baseline. Seek independent policy evaluation, uncertainty analysis, and limited controlled validation before trusting improvement predicted by the training critic.
+
+An offline dataset may contain no examples of a proposed action in a state region. A high learned value there can be extrapolation error; online trial-and-error evidence is unavailable during offline training.

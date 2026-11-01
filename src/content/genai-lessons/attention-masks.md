@@ -38,3 +38,5 @@ A low training loss after a masking mistake can reflect leakage rather than bett
 Libraries can interpret boolean masks differently. Verify the documented meaning of true, broadcast dimensions, and whether causal masking is applied separately.
 
 Avoid a query row with no allowed keys: softmax over all negative infinities can produce non-finite values.
+
+A permitted future image patch and a forbidden future text token can require different access patterns. Choose the mask from the generation objective rather than assuming every modality uses the same causal ordering.

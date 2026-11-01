@@ -45,3 +45,5 @@ These are common uses, not exclusive capabilities. Heads or task reformulations 
 Architecture permits computations. The objective chooses targets and which information is withheld.
 
 Choose using input availability, output structure, measured quality, latency, and training resources.
+
+An encoder can use the full input for a tagging decision. A causal generator cannot use future generated tokens. This information-access difference determines suitable objectives before any comparison of task scores.

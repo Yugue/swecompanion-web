@@ -50,3 +50,5 @@ Exclude padding where required. Check whether truncation removes the answer or a
 Tokenizer rules, vocabulary IDs, and model weights must agree. Reassigning IDs selects different learned vectors.
 
 Measure token lengths across supported languages and preserve source mappings for extraction.
+
+A new product name may split into several known pieces instead of one unknown symbol. This preserves representability but lengthens the input; vocabulary coverage and sequence cost must be considered together.

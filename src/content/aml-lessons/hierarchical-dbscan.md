@@ -51,8 +51,6 @@ A single radius struggles with strongly varying density. Irrelevant dimensions c
 
 For GPS data, choose an appropriate geographic distance and units. Treating longitude and latitude as ordinary Cartesian coordinates everywhere distorts neighborhoods.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Can a chain of sparse border points join two DBSCAN clusters?
-
-**Answer:** Border points alone cannot extend connectivity. Expansion requires a chain of core neighborhoods; this is why the core/border distinction matters.
+Imagine two dense islands separated by a few isolated points. DBSCAN can leave those points unassigned; a core-point chain can connect islands. A sparse border-only chain cannot propagate the expansion.

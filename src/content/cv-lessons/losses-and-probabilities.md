@@ -85,8 +85,6 @@ Coefficients balance classification and regression. Equal coefficients do not me
 
 Inspect each branch and task metric.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why not optimize accuracy directly?
-
-**Answer:** Accuracy changes discretely and provides little local gradient signal. Cross-entropy gives a useful slope; still choose thresholds and evaluate the actual decision metric independently.
+For a binary target of one, predicting 0.9 receives much lower log loss than 0.1. The gradient encourages useful probability movement; a later threshold controls decisions and need not equal 0.5.

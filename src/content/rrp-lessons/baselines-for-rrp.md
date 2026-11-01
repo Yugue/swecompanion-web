@@ -45,8 +45,6 @@ Check uncertainty, important user groups, latency, and maintenance. A small reli
 
 A cached reference can also serve during an outage, with current eligibility checks and an expiration rule.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Is a two-point recall gain worth deploying?
-
-**Answer:** Compare against the strongest relevant baseline, estimate uncertainty, and weigh useful outcomes against serving and maintenance costs. The size alone cannot decide.
+A popularity baseline can be strong for anonymous visitors and weak for established users. Report both slices: a population average can hide where personalization provides its actual gain.

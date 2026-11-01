@@ -77,8 +77,6 @@ Version the encoder, preprocessing, normalization, and gallery vectors together.
 
 Choose thresholds using realistic normal prevalence and defect types. Retrieval also needs an “unmatched” policy; the nearest item may still be wrong.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why does a classifier retrieve the wrong SKU?
-
-**Answer:** Category training may discard within-category differences. Define SKU relevance, test retrieval metrics and meaningful hard negatives, then measure index recall separately. Check query and gallery version compatibility.
+A nearest neighbor always exists in a nonempty index, even for an unrelated input. A similarity cutoff or rejection policy is needed when “no suitable match” is a valid outcome.

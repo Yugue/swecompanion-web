@@ -51,8 +51,6 @@ Shared representations can help sparse tasks or create competition for capacity.
 
 A **guardrail** is a predefined acceptable limit, such as complaint rate. Hard eligibility cannot be traded away by another task's score.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why not use serving utility weights as training loss weights automatically?
-
-**Answer:** Loss scale and parameter learning differ from the units and tradeoffs of selecting items. Tune and validate those roles separately.
+A shared representation might predict both clicks and purchases. Training balances predictive errors; serving balances product outcomes. Those weights have different units and should not be copied between the two decisions without validation.

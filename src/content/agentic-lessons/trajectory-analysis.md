@@ -57,7 +57,3 @@ A skipped policy check suggests a targeted precondition, not merely a broader pr
 ## 8. Keep regressions
 
 Preserve minimal inputs, observations, expected invariants, and configuration. Reevaluate fixes repeatedly.
-
-## Interview mental model
-
-> Follow the failed outcome back to the first unsupported transition.

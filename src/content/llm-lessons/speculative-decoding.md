@@ -48,3 +48,5 @@ The target still processes multiple positions; verification is not free. Specula
 Test output-distribution correctness for stochastic decoding and matched outputs for deterministic settings. Include end tokens, rejection paths, temperature changes, and cache updates.
 
 An approximate acceptance shortcut may be useful under another contract, but it should not be described as exact target sampling.
+
+Accepted draft tokens advance the prefix; the first rejected token invalidates later proposals conditioned on it. Verification must therefore proceed with the correct accepted-prefix logic, even when target scores were computed together.

@@ -43,3 +43,5 @@ When accumulating gradients, weight by intended token counts. Incorrect normaliz
 **Exposure bias** is the mismatch between training on true prefixes and generation from the model's own imperfect outputs. An early mistake can send later predictions into unfamiliar contexts.
 
 A lower teacher-forced loss is useful but not sufficient. Inspect free-running continuations, end behavior, and repeated-token failures too.
+
+For input “A B C,” shifted supervision predicts B from A and C from A B. Predicting a token from a position already containing that same token would evaluate a different, potentially trivial task.

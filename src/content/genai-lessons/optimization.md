@@ -17,7 +17,7 @@ A **learning rate** controls step size. A step that is too large can overshoot; 
 
 Batches estimate the loss gradient. **Stochastic gradient descent** uses sampled batches rather than the complete dataset per update.
 
-Larger batches can reduce gradient noise while increasing memory. An **epoch** is one pass through the dataset; an update is one optimizer step.
+An **epoch** visits the training dataset once. Batch size determines how many updates occur during that visit, not just memory use.
 
 ## 4. Understand AdamW
 
@@ -25,13 +25,13 @@ Larger batches can reduce gradient noise while increasing memory. An **epoch** i
 \[
 \theta_{new}=(1-\eta\lambda)\theta-\eta\frac{\hat m}{\sqrt{\hat v}+\epsilon}
 \]
-θ is a parameter; η the learning rate; λ decay strength; m̂ and v̂ bias-corrected averages of gradients and squared gradients; ε a small positive stabilizer. Operations are coordinatewise.
+For each parameter θ, η controls step size and λ weight decay. The bias-corrected histories m̂ and v̂ track gradients and squared gradients; ε stabilizes division.
 
-Adding a squared-weight penalty to an Adam loss is generally not equivalent: its gradient is adaptively rescaled along with other gradients.
+In Adam, a penalty gradient undergoes adaptive scaling; decoupled decay applies shrinkage separately. They need not produce the same update.
 
 ## 5. Control the update schedule
 
-**Warmup** gradually raises the learning rate early in training. **Decay** reduces it later. **Gradient clipping** limits the gradient norm to reduce unusually large updates.
+**Warmup** increases early learning rates; **decay** lowers later rates. **Gradient clipping** caps raw gradient norm; adaptive updates still need inspection.
 
 These solve different problems. Clipping every step can hide a persistent instability rather than fix it.
 
@@ -40,3 +40,5 @@ These solve different problems. Clipping every step can hide a persistent instab
 If loss stays flat, check targets, loss wiring, nonzero gradients, and whether weights actually change. Try fitting a tiny batch before enlarging the model.
 
 If loss becomes non-finite, inspect learning rate, activation magnitudes, numerical precision, and extreme inputs. More training data will not repair a disconnected gradient.
+
+A batch can contain many images but few independent subjects if all are crops of one photograph. Gradient noise and data coverage depend on actual examples and weighting, not only the nominal batch count.

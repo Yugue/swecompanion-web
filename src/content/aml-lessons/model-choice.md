@@ -39,8 +39,6 @@ For 50,000 tabular rows, compare a linear pipeline and a tree ensemble on shared
 
 Require concrete explanations: readable global rules and local attributions are different needs. Prefer the candidate whose useful gain justifies its cost; there is no universal dataset-size cutoff determining the winner.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** A larger model gains slightly but requires expensive live features. What decides?
-
-**Answer:** Assess the gain's uncertainty, important slices, and complete serving cost. Choose it only if the benefit meets the actual constraints and justifies the dependency.
+A tree using ten available columns may beat a neural model needing expensive live lookups after end-to-end latency is included. Compare complete prediction pipelines under one quality and operating contract.

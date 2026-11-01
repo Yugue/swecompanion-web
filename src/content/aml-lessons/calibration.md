@@ -42,8 +42,6 @@ Fit using held-out or out-of-fold predictions, then assess separately on the int
 
 Recalibration cannot repair lost ranking signal. For expected fraud cost, risk 0.25 times a $500 loss gives $125; reporting risk 0.8 would give $400.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Does perfect ranking guarantee accurate expected-loss estimates?
-
-**Answer:** No. Expected loss uses probability magnitude, so calibration matters even when every case remains correctly ordered.
+Two hundred cases scored near 0.3 should produce roughly sixty positives if calibrated in that population. Ordering those cases perfectly is a separate property; calibration checks probability magnitudes against observed frequencies.

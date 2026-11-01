@@ -34,8 +34,6 @@ Thirty configurations with five-fold CV cost roughly 150 fits, plus a final refi
 
 Log data version, folds, settings, score, and runtime. Search complete pipelines; use the independent testing or nested-CV strategy already established. More trials also create more opportunities to select a lucky validation score.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** You have six settings and only 30 total fits. How would you start?
-
-**Answer:** Narrow to influential settings and try a small randomized budget. Account for folds and refitting explicitly, then assess the selected procedure independently.
+Eight configurations with five folds require 40 fits before the final refit. A ten-fit budget cannot support that design. Reduce configurations or change the evaluation budget before interpreting an incomplete comparison as a search result.

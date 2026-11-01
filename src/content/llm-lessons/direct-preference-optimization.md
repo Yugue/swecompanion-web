@@ -46,3 +46,5 @@ Fixed data is simpler but can miss new failure modes produced after adaptation.
 Length, formatting, annotator bias, and mislabeled pairs can shape the update. Compare against the starting policy on independent tasks and inspect losses by response length.
 
 Preference optimization teaches what wins the comparisons; it does not guarantee truth, reliable uncertainty estimates, or robust safety.
+
+The reference-relative comparison asks how much the policy favors the preferred response beyond its reference baseline. Simply raising both sequence probabilities equally in relative terms does not improve their comparison gap.

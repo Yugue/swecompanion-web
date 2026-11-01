@@ -60,3 +60,5 @@ Doubling a candidate doubles its dot product with q while preserving cosine. Zer
 Compatible shapes permit computation. Useful features determine whether its result measures relevance, sentiment, or something else.
 
 Before multiplying, name each axis and the intended output.
+
+For 20 documents padded to 100 tokens with width 64, the representation shape is [20,100,64]. Padding creates storage positions, not real words; lengths or masks preserve that distinction in later operations.

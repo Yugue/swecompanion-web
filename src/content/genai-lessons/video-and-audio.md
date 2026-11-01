@@ -35,3 +35,5 @@ For synchronized audio and video, both streams must align in time. High audio qu
 **Streaming** emits partial output before the complete sequence is ready. It limits future context and introduces startup delay, buffering, and continuity requirements.
 
 Measure intelligibility, timing, stability, and end-to-end latency. Repeatedly generating disconnected chunks can create audible or visible boundaries.
+
+A video can look plausible frame by frame while an object changes identity over time. Temporal consistency and audio synchronization require evaluation across time, beyond the quality of individual frames.

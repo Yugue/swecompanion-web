@@ -1,0 +1,2452 @@
+[
+  {
+    "track": "aml",
+    "id": "what-is-ml",
+    "change": "A rule that blocks every message containing “prize” is fixed by its author. A learned filter can combine words and sender history; its value is fewer costly mistakes on new messages, not its training score."
+  },
+  {
+    "track": "aml",
+    "id": "learning-paradigms",
+    "change": "Predicting a masked word creates a target from existing text. Predicting whether that message is spam needs a spam label. The same message can support both objectives, but success on one does not establish success on the other."
+  },
+  {
+    "track": "aml",
+    "id": "features-and-labels",
+    "change": "For a loan decision at noon, the applicant's recorded income can be a feature. Next month's repayment is a label. Writing the decision time beside each column exposes future information before any model is trained."
+  },
+  {
+    "track": "aml",
+    "id": "task-types",
+    "change": "A store selecting ten products needs an ordering. A model can predict purchase probabilities, but the final task is ranking the eligible products; classifying every product above a fixed cutoff may return too many or too few."
+  },
+  {
+    "track": "aml",
+    "id": "parameters-vs-hyperparameters",
+    "change": "In y = wx + b, fitting changes w and b. Choosing a penalty strength changes which fits are preferred. A fitted scaler also stores learned values, so deployment must preserve more than the model's coefficients."
+  },
+  {
+    "track": "aml",
+    "id": "train-val-test",
+    "change": "If one patient contributes ten scans, row-wise splitting can put nearly identical evidence on both sides. Holding out patients answers “new patient”; holding out later scans answers a different deployment question."
+  },
+  {
+    "track": "aml",
+    "id": "confusion-matrix",
+    "change": "Among ten flagged transactions, six are fraud; four frauds were missed. Precision is 6/10 and recall is 6/(6+4). The equal numbers here are coincidental: the denominators describe different populations."
+  },
+  {
+    "track": "aml",
+    "id": "regression-metrics",
+    "change": "Errors [0,0,6] give MAE 2 and RMSE about 3.46, in the target's units. RMSE emphasizes the single large miss; choosing between them depends on whether large misses deserve disproportionate cost."
+  },
+  {
+    "track": "aml",
+    "id": "baselines",
+    "change": "If predicting tomorrow's demand as today's demand beats a complex model, the model has not earned deployment. Evaluate both on identical future periods, including holidays, rather than comparing their training losses."
+  },
+  {
+    "track": "aml",
+    "id": "bias-variance",
+    "change": "Fit the same procedure to several resampled datasets. If predictions at one fixed input swing widely, that demonstrates instability across samples. One train–validation gap alone cannot reveal that behavior directly."
+  },
+  {
+    "track": "aml",
+    "id": "data-cleaning",
+    "change": "“Temperature = 999” may be a sensor's missing-value code rather than extreme heat. Treating it as a measurement changes averages and fitted relationships. Check the recording convention before clipping, imputing, or deleting it."
+  },
+  {
+    "track": "aml",
+    "id": "feature-scaling",
+    "change": "Two points differing by 1 kilometer and 100 meters should not have different physical distance merely because of units. Convert to a consistent representation before interpreting nearest neighbors; scaling defines the geometry the model sees."
+  },
+  {
+    "track": "aml",
+    "id": "categorical-encoding",
+    "change": "Coding red=1, green=2, blue=3 gives a linear model an invented ordering. Three indicators let each color have a separate effect. Fit the category mapping on training data and define what an unseen color becomes."
+  },
+  {
+    "track": "aml",
+    "id": "feature-engineering",
+    "change": "A price model can use both distance and duration, but speed = distance/duration exposes a relationship directly. Handle zero duration explicitly; a useful derived feature must also be reproducible from information available when predicting."
+  },
+  {
+    "track": "aml",
+    "id": "leakage",
+    "change": "A random customer identifier can look predictive if repeated customers cross the split. The concern is not the column's name: ask whether the evaluation allows the model to recognize entities it will genuinely encounter again."
+  },
+  {
+    "track": "aml",
+    "id": "dimensionality-reduction",
+    "change": "Two measurements may vary together along a diagonal. One principal coordinate can retain most of that variation, but a small perpendicular separation may encode the class. Unsupervised compression does not optimize label separation."
+  },
+  {
+    "track": "aml",
+    "id": "linear-regression",
+    "change": "For predicted fare = 3 + 2 × kilometers, a 4 km trip predicts 11 currency units. The intercept represents the prediction at zero distance; it is not necessarily meaningful outside the observed operating range."
+  },
+  {
+    "track": "aml",
+    "id": "logistic-regression",
+    "change": "A score of zero maps to probability 0.5. Adding log(3) to the score triples the odds, giving probability 0.75 from that starting point. Coefficients change log-odds linearly, not probabilities by a fixed amount."
+  },
+  {
+    "track": "aml",
+    "id": "knn",
+    "change": "Three nearest examples with targets [10,12,20] predict 14 under uniform regression averaging. A different distance scaling can change which three are nearest; there is no separate learned coefficient to repair a poor neighborhood definition."
+  },
+  {
+    "track": "aml",
+    "id": "naive-bayes",
+    "change": "“Cheap” and “discount” may co-occur in spam. Treating them as independent given the class can multiply overlapping evidence twice. The predicted class can remain useful even while its reported probability becomes too extreme."
+  },
+  {
+    "track": "aml",
+    "id": "svm",
+    "change": "Moving a point far from the decision boundary may leave a fitted margin solution unchanged. Moving a boundary-supporting point can matter much more. This is why the geometry of support vectors matters more than merely counting training points."
+  },
+  {
+    "track": "aml",
+    "id": "decision-trees",
+    "change": "A split at age 30 assigns every value below 30 to one branch. Predictions jump at the boundary and are constant within a leaf; a deeper tree adds smaller regions rather than fitting one smooth global slope."
+  },
+  {
+    "track": "aml",
+    "id": "random-forests",
+    "change": "If ten trees all make the same mistake, averaging does little. If their errors differ, averaging can cancel some variation. Row resampling and random feature choices aim to diversify errors without making each tree useless."
+  },
+  {
+    "track": "aml",
+    "id": "gradient-boosting",
+    "change": "An ensemble predicts 8 where the target is 10. Under squared loss, the next tree learns a positive correction; a learning rate of 0.1 applies only part of it. Later trees correct the updated ensemble, not the original prediction."
+  },
+  {
+    "track": "aml",
+    "id": "loss-functions",
+    "change": "For targets [0,0,9], a constant squared-loss fit predicts the mean, 3; an absolute-loss fit can predict the median, 0. The loss changes the desired answer, even before choosing an optimizer."
+  },
+  {
+    "track": "aml",
+    "id": "optimization",
+    "change": "With L(w) = (w−2)², w=0 has gradient −4. A step of 0.1 moves w to 0.4 and reduces loss from 4 to 2.56. Recompute the gradient there; the old slope is already stale."
+  },
+  {
+    "track": "aml",
+    "id": "regularization",
+    "change": "Two correlated columns can share a prediction in many ways. A penalty chooses among those fits and changes their sensitivity to noise. Stable predictions do not imply that either individual coefficient identifies a causal effect."
+  },
+  {
+    "track": "aml",
+    "id": "overfitting-diagnosis",
+    "change": "A model that cannot fit twenty clean examples probably needs a pipeline or optimization check before more regularization. A model fitting those examples perfectly but failing held-out cases needs a different diagnosis."
+  },
+  {
+    "track": "aml",
+    "id": "cross-validation",
+    "change": "In three folds, each row is assessed once using a model fitted without its fold. The scaler must also exclude that fold. The evaluation unit is the entire fit-and-transform procedure, not just the final estimator."
+  },
+  {
+    "track": "aml",
+    "id": "hyperparameter-search",
+    "change": "Eight configurations with five folds require 40 fits before the final refit. A ten-fit budget cannot support that design. Reduce configurations or change the evaluation budget before interpreting an incomplete comparison as a search result."
+  },
+  {
+    "track": "aml",
+    "id": "roc-pr-curves",
+    "change": "At 1% prevalence, a 1% false-positive rate flags roughly as many negatives as there are positives overall. A favorable-looking ROC point can therefore produce a crowded review queue; inspect actual counts and precision."
+  },
+  {
+    "track": "aml",
+    "id": "calibration",
+    "change": "Two hundred cases scored near 0.3 should produce roughly sixty positives if calibrated in that population. Ordering those cases perfectly is a separate property; calibration checks probability magnitudes against observed frequencies."
+  },
+  {
+    "track": "aml",
+    "id": "class-imbalance",
+    "change": "With 100 positives and 9,900 negatives, always predicting negative gives 99% accuracy and zero recall. Report the errors the decision actually pays for, and choose thresholds using the expected deployment prevalence."
+  },
+  {
+    "track": "aml",
+    "id": "model-comparison",
+    "change": "Across the same three folds, A scores [70,80,90] and B [72,82,92]. Both vary widely with fold difficulty, while B's paired gain is consistently two points. Assess paired differences and their dependence, not separate score spreads alone."
+  },
+  {
+    "track": "aml",
+    "id": "error-analysis",
+    "change": "If twenty of fifty errors involve truncated text, test longer inputs on those same cases and on a representative validation set. Fixing the inspected examples alone does not show that the intervention generalizes."
+  },
+  {
+    "track": "aml",
+    "id": "kmeans",
+    "change": "Points [0,2] assigned to one center move it to 1. That minimizes their summed squared distance. The objective prefers compact Euclidean groups; it does not discover arbitrary curved shapes just by increasing iterations."
+  },
+  {
+    "track": "aml",
+    "id": "hierarchical-dbscan",
+    "change": "Imagine two dense islands separated by a few isolated points. DBSCAN can leave those points unassigned; a core-point chain can connect islands. A sparse border-only chain cannot propagate the expansion."
+  },
+  {
+    "track": "aml",
+    "id": "gaussian-mixtures",
+    "change": "A point can receive component probabilities [0.55,0.45] instead of one hard cluster ID. These are responsibilities under the fitted densities, not probabilities that the world has two objectively correct social or product categories."
+  },
+  {
+    "track": "aml",
+    "id": "clustering-evaluation",
+    "change": "A customer split can have clean geometric separation while assigning groups that need the same marketing action. Check both reproducible structure and whether a different group assignment changes a useful decision."
+  },
+  {
+    "track": "aml",
+    "id": "anomaly-detection",
+    "change": "A rare holiday purchase may be unusual but legitimate; a common low-value fraud pattern may look ordinary. An anomaly score measures departure from a reference pattern, so labels are still needed to assess fraud detection."
+  },
+  {
+    "track": "aml",
+    "id": "ml-workflow",
+    "change": "For churn prevention, predict cancellation before the outreach decision and measure whether outreach helps. A highly accurate churn score cannot establish intervention benefit: people at highest risk may also be hardest to retain."
+  },
+  {
+    "track": "aml",
+    "id": "model-choice",
+    "change": "A tree using ten available columns may beat a neural model needing expensive live lookups after end-to-end latency is included. Compare complete prediction pipelines under one quality and operating contract."
+  },
+  {
+    "track": "aml",
+    "id": "interpretability",
+    "change": "If age and years-employed closely track each other, shuffling only age may show little loss because the other column substitutes. Low permutation importance can reflect redundancy, not absence of predictive information."
+  },
+  {
+    "track": "aml",
+    "id": "deployment-basics",
+    "change": "A feature computed as dollars during training and cents during serving has matching names but different meaning. Test a known input through both pipelines and compare intermediate values before blaming model drift."
+  },
+  {
+    "track": "aml",
+    "id": "monitoring-and-retraining",
+    "change": "A broken category lookup can change input distributions overnight. Retraining on those corrupted inputs teaches the fault rather than fixing it. Diagnose service and data changes before selecting a replacement model."
+  },
+  {
+    "track": "aml",
+    "id": "interview-playbook",
+    "change": "A useful proposal can fit on one chain: decision → information available now → baseline → held-out comparison → rollout → outcomes. A missing link identifies an unanswered system question, even when the model choice is sophisticated."
+  },
+  {
+    "track": "genai",
+    "id": "generative-foundations",
+    "change": "A classifier chooses among supplied labels; a generator constructs an output such as a sentence or image. Sampling several plausible outputs does not establish that any one meets a factual or task-specific requirement."
+  },
+  {
+    "track": "genai",
+    "id": "vectors-and-tensors",
+    "change": "A color image has height, width, and three channel coordinates before batching. A sentence has token positions instead. Writing the axes first prevents a shape-compatible operation from mixing the wrong kind of coordinate."
+  },
+  {
+    "track": "genai",
+    "id": "probability-essentials",
+    "change": "A model can assign probability to several possible completions of one input. That uncertainty concerns outputs under its learned distribution; it does not by itself quantify whether the input facts are trustworthy."
+  },
+  {
+    "track": "genai",
+    "id": "softmax-and-losses",
+    "change": "Raising the correct class probability from 0.25 to 0.5 lowers its log loss by log(2). The loss rewards probability assigned to observed evidence, rather than fluency of a separately sampled output."
+  },
+  {
+    "track": "genai",
+    "id": "neural-networks",
+    "change": "The same sequence of learned maps and nonlinear transformations can operate on text states or image features. What those states represent depends on the inputs and training objective, not the layer names alone."
+  },
+  {
+    "track": "genai",
+    "id": "backpropagation",
+    "change": "A generated image's training loss may depend on many pixel or latent coordinates. Backward computation combines those sensitivities into parameter gradients; the optimizer then performs the separate update."
+  },
+  {
+    "track": "genai",
+    "id": "optimization",
+    "change": "A batch can contain many images but few independent subjects if all are crops of one photograph. Gradient noise and data coverage depend on actual examples and weighting, not only the nominal batch count."
+  },
+  {
+    "track": "genai",
+    "id": "generalization",
+    "change": "A generator reproducing a training image exactly can score well on reconstruction while failing to create useful new examples. Evaluate held-out content and near-duplicate behavior under the task's intended use."
+  },
+  {
+    "track": "genai",
+    "id": "tokenization",
+    "change": "Text units and compressed image units are not interchangeable symbols. A multimodal interface must specify each representation's boundaries and meaning before a shared sequence model can learn relationships between them."
+  },
+  {
+    "track": "genai",
+    "id": "embeddings-and-outputs",
+    "change": "An input embedding represents an observed unit; an output projection scores possible next units. Sharing a hidden width does not imply that words, image patches, and acoustic units use the same output inventory."
+  },
+  {
+    "track": "genai",
+    "id": "self-attention",
+    "change": "Attention over image patches can combine distant visual regions just as attention over words combines positions. The mixing operation is shared; the spatial or linguistic meaning comes from how the inputs were represented."
+  },
+  {
+    "track": "genai",
+    "id": "multihead-attention",
+    "change": "Two heads can form different mixtures over the same positions. This supplies parallel learned comparisons, not a guarantee that one head always tracks objects and another always tracks grammar."
+  },
+  {
+    "track": "genai",
+    "id": "attention-masks",
+    "change": "A permitted future image patch and a forbidden future text token can require different access patterns. Choose the mask from the generation objective rather than assuming every modality uses the same causal ordering."
+  },
+  {
+    "track": "genai",
+    "id": "position-information",
+    "change": "Image patches have row and column locations; video also adds time. A useful position design must distinguish the relevant axes rather than flattening them and assuming sequence distance fully describes their relationship."
+  },
+  {
+    "track": "genai",
+    "id": "transformer-blocks",
+    "change": "A block preserves token count while changing feature states. For a multimodal sequence, this lets information move between positions, but the input representation and attention pattern determine whether useful cross-modality evidence is accessible."
+  },
+  {
+    "track": "genai",
+    "id": "transformer-architectures",
+    "change": "A model reading a whole image to produce text can use full visual evidence while remaining causal over generated words. Different parts of one system can therefore obey different information-access rules."
+  },
+  {
+    "track": "genai",
+    "id": "next-token-pretraining",
+    "change": "Training targets can be successive text pieces or successive discrete media units, depending on the representation. The next-unit objective remains conditional prediction; its unit must be stated before comparing loss or output rate."
+  },
+  {
+    "track": "genai",
+    "id": "pretraining-data",
+    "change": "A caption paired with the wrong image gives a misleading cross-modal training relationship even if both files are individually valid. Data checks must validate pair identity and alignment, not just remove corrupt files."
+  },
+  {
+    "track": "genai",
+    "id": "scaling-and-compute",
+    "change": "More image crops from one source increase processed examples without proportionally increasing source diversity. Compare compute, repeated exposure, and unique evidence when judging whether a larger training run adds useful knowledge."
+  },
+  {
+    "track": "genai",
+    "id": "training-resources",
+    "change": "An image's spatial resolution or a clip's duration can change activation memory even when parameter count is fixed. A resource estimate needs representative input shapes as well as stored weight bytes."
+  },
+  {
+    "track": "genai",
+    "id": "supervised-adaptation",
+    "change": "Paired image edits teach a requested transformation between source and target. The training examples must distinguish preserved content from intended change; ordinary descriptive captions do not fully specify that editing objective."
+  },
+  {
+    "track": "genai",
+    "id": "lora-and-qlora",
+    "change": "An adapter can specialize one compatible base model for a visual style or output behavior. Its small saved file is an update recipe, not a standalone generator; deployment must retain the correct base and configuration."
+  },
+  {
+    "track": "genai",
+    "id": "distillation-and-synthetic-data",
+    "change": "A student trained on generated captions inherits whatever objects the teacher systematically omits. Evaluate against independently checked image content so agreement with the teacher is not mistaken for complete visual understanding."
+  },
+  {
+    "track": "genai",
+    "id": "sequence-decoding",
+    "change": "An autoregressive media model chooses one represented unit after another. A diffusion sampler updates a noisy state through a different process; “decoding step” counts are not comparable without defining what each step computes."
+  },
+  {
+    "track": "genai",
+    "id": "sampling-controls",
+    "change": "Sharper next-unit probabilities can reduce variation while preserving a model's strongest mistake. Use task evidence to judge correctness; changing sampling controls does not add facts missing from the model or context."
+  },
+  {
+    "track": "genai",
+    "id": "instructions-and-structure",
+    "change": "“Make it warmer” can refer to image color or written tone. A clear instruction states the target modality and attributes to preserve, making the intended transformation testable rather than merely suggestive."
+  },
+  {
+    "track": "genai",
+    "id": "reinforcement-learning",
+    "change": "A generated output can receive feedback only after completion. Optimizing that feedback changes which outputs the policy favors, but a flawed scorer can reward undesirable shortcuts instead of the intended property."
+  },
+  {
+    "track": "genai",
+    "id": "rlhf",
+    "change": "Human comparisons often combine correctness, style, and usefulness. A reward model learning those comparisons needs evaluation on those separate dimensions, particularly when attractive presentation can conceal incorrect content."
+  },
+  {
+    "track": "genai",
+    "id": "direct-preference-optimization",
+    "change": "For image-conditioned answers, both compared responses should share the same image and request. Otherwise the preference can reflect different input difficulty rather than which response better satisfies one condition."
+  },
+  {
+    "track": "genai",
+    "id": "verifiable-rewards",
+    "change": "A generated program can pass visible examples yet fail hidden cases. Verification improves the reward signal only for tested properties; keep independent checks so the model cannot succeed merely by fitting the exposed tests."
+  },
+  {
+    "track": "genai",
+    "id": "inference-time-reasoning",
+    "change": "Producing five candidate outputs helps only if selection can identify a useful candidate. Evaluate candidate generation and selection separately; the presence of one good output does not mean the delivered output is good."
+  },
+  {
+    "track": "genai",
+    "id": "autoencoders-and-vaes",
+    "change": "A reconstruction objective asks a compressed code to preserve its input. A generative latent distribution additionally makes sampling meaningful; reconstructing known inputs well alone does not guarantee plausible outputs from arbitrary sampled codes."
+  },
+  {
+    "track": "genai",
+    "id": "generative-adversarial-networks",
+    "change": "A generator can produce a few convincing examples while omitting much of the data distribution. Inspect both realism and coverage; a discriminator's training loss is not a complete diversity measure."
+  },
+  {
+    "track": "genai",
+    "id": "diffusion-foundations",
+    "change": "The training task pairs a corrupted example with information about the added noise or clean signal under the chosen objective. Generation starts from noise and uses repeated learned corrections rather than retrieving a stored clean example."
+  },
+  {
+    "track": "genai",
+    "id": "diffusion-training-and-sampling",
+    "change": "Training can sample one noise level for an example, while generation traverses a sequence of levels. Fewer inference steps change the numerical procedure and must be evaluated at matched quality, not assumed equivalent."
+  },
+  {
+    "track": "genai",
+    "id": "latent-diffusion",
+    "change": "A latent generator saves work by operating on a compressed representation, but details discarded by the encoder cannot be reconstructed exactly on demand. Evaluate compression artifacts separately from the generative model's errors."
+  },
+  {
+    "track": "genai",
+    "id": "conditioning-and-guidance",
+    "change": "Increasing guidance can strengthen adherence to a condition while reducing variation or creating artifacts. Measure instruction satisfaction and visual quality separately; stronger conditioning is not automatically a better overall result."
+  },
+  {
+    "track": "genai",
+    "id": "flow-matching",
+    "change": "A learned velocity field specifies how a state should move along a path. A numerical solver follows that field in finite steps, so output quality depends on both the learned dynamics and integration error."
+  },
+  {
+    "track": "genai",
+    "id": "image-text-alignment",
+    "change": "A caption saying “two red cups” includes object, count, and attribute relations. Broad image–text similarity can reward “cups” while missing the other constraints; use tests that isolate those relations."
+  },
+  {
+    "track": "genai",
+    "id": "vision-language-models",
+    "change": "A text answer about an image needs an interface that carries relevant visual evidence into language generation. A fluent language prior can fill gaps convincingly, so test answers against visible details and unanswerable cases."
+  },
+  {
+    "track": "genai",
+    "id": "video-and-audio",
+    "change": "A video can look plausible frame by frame while an object changes identity over time. Temporal consistency and audio synchronization require evaluation across time, beyond the quality of individual frames."
+  },
+  {
+    "track": "genai",
+    "id": "knowledge-and-rag",
+    "change": "Retrieving a product manual can supply a recently changed specification without updating parameters. The answer must still use the correct product version; retrieval adds evidence, not automatic factual attribution."
+  },
+  {
+    "track": "genai",
+    "id": "document-preparation",
+    "change": "A table row without headers can turn “12” into an uninterpretable fragment. Keep units, headings, and document identity with the retrieved content so a generator can support a specific claim."
+  },
+  {
+    "track": "genai",
+    "id": "retrieval-mechanisms",
+    "change": "A part number and a paraphrased troubleshooting question need different matching behavior. Test exact identifiers and meaning-based requests separately before choosing one aggregate retrieval configuration."
+  },
+  {
+    "track": "genai",
+    "id": "hybrid-retrieval-and-reranking",
+    "change": "Combining two top-ten lists gives at most twenty candidates and often fewer after deduplication. Measure the unique relevant union before attributing a gain to the reranker that only reorders that union."
+  },
+  {
+    "track": "genai",
+    "id": "grounded-generation",
+    "change": "A source mentioning a drug does not support a claim about its dosage. Require evidence for the particular relation or quantity in the answer, not merely overlap between answer words and retrieved text."
+  },
+  {
+    "track": "genai",
+    "id": "choosing-interventions",
+    "change": "If the model knows the facts but violates a required format, adding more retrieved documents may leave the failure unchanged. Match the intervention to the observed missing capability before adding system complexity."
+  },
+  {
+    "track": "genai",
+    "id": "evaluation-design",
+    "change": "A text summary, an image edit, and a speech response can satisfy different output contracts. Define correctness and acceptable variation per task before combining results into one headline score."
+  },
+  {
+    "track": "genai",
+    "id": "text-evaluation",
+    "change": "Two accurate answers can share few words, while a copied reference sentence with one reversed number can be wrong. Combine meaning and task checks with lexical measures where the decision requires it."
+  },
+  {
+    "track": "genai",
+    "id": "human-and-model-judges",
+    "change": "A judge assessing image edits needs both the request and source image to determine what should remain unchanged. Looking only at the edited image measures standalone appearance rather than editing fidelity."
+  },
+  {
+    "track": "genai",
+    "id": "rag-evaluation",
+    "change": "A wrong answer can arise because no supporting passage was retrieved or because supplied evidence was ignored. Evaluate those stages separately so retrieval changes are not credited with fixing generation behavior they never tested."
+  },
+  {
+    "track": "genai",
+    "id": "multimodal-evaluation",
+    "change": "A model may name objects correctly while confusing which one is left of another. Include controlled count, attribute, and spatial-relation cases rather than relying only on broad scene descriptions."
+  },
+  {
+    "track": "genai",
+    "id": "prompt-injection",
+    "change": "An instruction printed inside an image can be read as content without becoming authority to act. Preserve the distinction between evidence being interpreted and instructions issued by the actual user."
+  },
+  {
+    "track": "genai",
+    "id": "privacy-bias-and-harm",
+    "change": "A generated person's appearance can vary systematically with occupation prompts. Compare controlled prompt changes and distributions of outputs, rather than concluding from one attractive example that representation is balanced."
+  },
+  {
+    "track": "genai",
+    "id": "prefill-and-kv-cache",
+    "change": "A visual encoder's cached image representation and a text decoder's key/value cache serve different computations. Reusing one does not imply the other is valid; identify exactly which state a serving system retains."
+  },
+  {
+    "track": "genai",
+    "id": "memory-and-quantization",
+    "change": "A large image decoder can exhaust memory through high-resolution activations even when compressed weights fit. Estimate the active representation sizes and temporary buffers as well as parameter storage."
+  },
+  {
+    "track": "genai",
+    "id": "efficient-attention",
+    "change": "Changing how the same attention is computed differs from discarding interactions through a sparse pattern. The first can preserve the mathematical operation; the second changes which evidence positions can combine."
+  },
+  {
+    "track": "genai",
+    "id": "batching-and-prefix-caching",
+    "change": "Two identical instructions with different images are not the same conditioned input. A cache key must include the relevant visual state or identity; text-prefix equality alone cannot justify reusing multimodal results."
+  },
+  {
+    "track": "genai",
+    "id": "speculative-decoding",
+    "change": "Draft-and-verify applies when output units are generated autoregressively and compatible distributions can be checked. A denoising image sampler does not gain the same guarantee merely by using a cheaper model for some steps."
+  },
+  {
+    "track": "genai",
+    "id": "production-diagnosis",
+    "change": "Slow image generation may be dominated by repeated denoising rather than text-prompt processing. Identify the modality-specific critical path before applying a language-serving optimization to the whole system."
+  },
+  {
+    "track": "nlp",
+    "id": "language-tasks",
+    "change": "“Find the delivery date” could mean extracting a stated date or calculating an implied one. Specify the output and evidence requirement first; those tasks need different labels and evaluation."
+  },
+  {
+    "track": "nlp",
+    "id": "language-and-context",
+    "change": "“Can you open the window?” has the form of a question but can function as a request. Sentence meaning and the speaker's intended action need not be the same label."
+  },
+  {
+    "track": "nlp",
+    "id": "learning-paradigms",
+    "change": "Predicting a hidden word teaches relationships in text without manual task labels. It does not automatically teach the boundary between two company-specific support categories; that requires additional task evidence."
+  },
+  {
+    "track": "nlp",
+    "id": "examples-and-labels",
+    "change": "A document with three labeled entities supplies one document and several target spans. Count the independent source documents separately from supervised decisions when describing how much evidence the dataset contains."
+  },
+  {
+    "track": "nlp",
+    "id": "labels-and-leakage",
+    "change": "If a support category is embedded in a template added after resolution, that template can reveal the answer. Evaluate the text as it existed when the classifier would actually be called."
+  },
+  {
+    "track": "nlp",
+    "id": "baselines-and-metrics",
+    "change": "A keyword rule may solve a category defined by one explicit phrase. Test that rule on the same held-out cases before attributing a neural model's performance to contextual language understanding."
+  },
+  {
+    "track": "nlp",
+    "id": "vectors-and-tensors",
+    "change": "For 20 documents padded to 100 tokens with width 64, the representation shape is [20,100,64]. Padding creates storage positions, not real words; lengths or masks preserve that distinction in later operations."
+  },
+  {
+    "track": "nlp",
+    "id": "probability-and-language",
+    "change": "The probability of “bank” changes after “river” versus “central.” A conditional probability describes the next event given specified evidence; it is not an intrinsic popularity score attached permanently to the word."
+  },
+  {
+    "track": "nlp",
+    "id": "sequence-probability",
+    "change": "A sequence with next-token probabilities 0.5, 0.4, and 0.2 has probability 0.04 under that factorization. Adding log probabilities yields log(0.04), making the same product easier to accumulate numerically."
+  },
+  {
+    "track": "nlp",
+    "id": "information-theory",
+    "change": "For an observed correct class, assigning probability 0.5 costs log(2) nats, while 0.25 costs log(4). Halving the correct probability adds log(2) loss, regardless of where the remaining probability goes."
+  },
+  {
+    "track": "nlp",
+    "id": "text-and-preprocessing",
+    "change": "Lowercasing makes “US” and “us” identical. That may help a case-insensitive topic classifier while harming named-entity distinctions; preprocessing removes information and must match the task."
+  },
+  {
+    "track": "nlp",
+    "id": "tokens-and-vocabularies",
+    "change": "A new product name may split into several known pieces instead of one unknown symbol. This preserves representability but lengthens the input; vocabulary coverage and sequence cost must be considered together."
+  },
+  {
+    "track": "nlp",
+    "id": "tokens-and-subwords",
+    "change": "A learned merge may turn two frequent fragments into one token. At inference, applying a different merge inventory changes the IDs and boundaries, so the trained embedding table no longer receives its expected inputs."
+  },
+  {
+    "track": "nlp",
+    "id": "wordpiece-and-unigram",
+    "change": "Several valid segmentations can spell the same string. The method's scoring and selection rules determine which pieces are used; sharing a vocabulary does not make two tokenization algorithms equivalent."
+  },
+  {
+    "track": "nlp",
+    "id": "lexical-representations",
+    "change": "Bag-of-words counts make “dog bites man” and “man bites dog” identical when word counts match. The representation loses order before the classifier sees it; more training cannot recover that discarded distinction."
+  },
+  {
+    "track": "nlp",
+    "id": "tfidf-and-hashing",
+    "change": "A rare identifier can receive high inverse-document weight without being semantically important. TF–IDF rewards discriminative frequency patterns, so inspect whether those patterns are meaningful or merely dataset-specific artifacts."
+  },
+  {
+    "track": "nlp",
+    "id": "naive-bayes",
+    "change": "Two correlated phrases can express one sentiment twice. Multiplying their class-conditional evidence under independence can overstate confidence even if the predicted sentiment is usually correct."
+  },
+  {
+    "track": "nlp",
+    "id": "linear-text-models",
+    "change": "A positive weight on “excellent” adds evidence regardless of whether it appears in “not excellent.” Adding a negation phrase feature changes the available representation; the linear decision rule alone cannot invent that feature."
+  },
+  {
+    "track": "nlp",
+    "id": "ngram-language-models",
+    "change": "A trigram model conditions on two preceding tokens. It cannot distinguish long-range contexts that share that suffix, even with unlimited counts; smoothing addresses sparse counts rather than extending the context length."
+  },
+  {
+    "track": "nlp",
+    "id": "language-model-evaluation",
+    "change": "Perplexity comparisons require compatible prediction units. A character-based model and a word-based model predict different events, so their raw per-token perplexities are not directly interchangeable quality scores."
+  },
+  {
+    "track": "nlp",
+    "id": "neural-text-features",
+    "change": "A hidden layer can combine a negation indicator and a positive word into a new feature. Its usefulness still depends on examples and an objective that reward the distinction."
+  },
+  {
+    "track": "nlp",
+    "id": "neural-output-heads",
+    "change": "A document classifier needs one decision for the sequence; an entity tagger needs decisions at token positions. Choose the head and target shape together, rather than forcing both into one pooled output."
+  },
+  {
+    "track": "nlp",
+    "id": "backpropagation",
+    "change": "A word embedding used at three positions receives gradient contributions from all three uses. The shared row learns from their combined effect, not three independent copies of the same word's parameters."
+  },
+  {
+    "track": "nlp",
+    "id": "optimization",
+    "change": "If most batch positions are padding, averaging loss across all positions can shrink gradients as padding increases. Define the denominator over supervised positions so batching does not silently change the effective objective."
+  },
+  {
+    "track": "nlp",
+    "id": "generalization",
+    "change": "A classifier trained on one publisher may learn its footer rather than article meaning. Hold out sources or remove the footer experimentally to test whether the apparent language skill transfers."
+  },
+  {
+    "track": "nlp",
+    "id": "training-diagnostics",
+    "change": "Inspect the actual token IDs and target positions for a few examples. A one-position target shift can keep tensor shapes valid while teaching the wrong mapping, so shape checks alone are insufficient."
+  },
+  {
+    "track": "nlp",
+    "id": "embedding-lookup",
+    "change": "An integer ID selects a row; nearby ID numbers do not imply similar words. Similarity emerges from learned vector coordinates and the training objective, not the tokenizer's arbitrary numbering."
+  },
+  {
+    "track": "nlp",
+    "id": "static-embeddings",
+    "change": "One static vector for “bat” must serve both animal and sports contexts. Contextual models can produce different states for those occurrences; static similarity cannot itself decide which meaning a sentence uses."
+  },
+  {
+    "track": "nlp",
+    "id": "text-convolution",
+    "change": "A width-three filter sees three adjacent token positions. Stacking or pooling expands what the final output can use, but a single local filter does not directly compare two distant clauses."
+  },
+  {
+    "track": "nlp",
+    "id": "sequence-models",
+    "change": "Reading “not” should change how later sentiment evidence is interpreted. A recurrent state carries preceding context, while its finite size and learning dynamics limit which distinctions remain accessible."
+  },
+  {
+    "track": "nlp",
+    "id": "gated-sequence-models",
+    "change": "A gate near zero suppresses one update or information route; a gate near one preserves it. The gate is learned from context rather than a hard-coded promise that every important dependency will be remembered."
+  },
+  {
+    "track": "nlp",
+    "id": "sequence-objectives",
+    "change": "Predicting each tag independently can produce an invalid beginning-inside sequence. A structured objective can score transitions as well as local evidence, making the output constraints part of learning or decoding."
+  },
+  {
+    "track": "nlp",
+    "id": "attention",
+    "change": "For weights [0.2,0.8] and scalar values [10,0], the mixed output is 2. Attention chooses a weighted combination; it need not copy the most heavily weighted token's entire state."
+  },
+  {
+    "track": "nlp",
+    "id": "attention-types",
+    "change": "A target word querying encoded source words uses cross-attention. Source words querying other source words use self-attention. The distinction is which streams supply the vectors, not whether the operation uses dot products."
+  },
+  {
+    "track": "nlp",
+    "id": "positional-information",
+    "change": "Swapping two identical-looking patch or word vectors cannot reveal order without some position-sensitive structure. A location signal makes order available; training must still teach how that order affects the task."
+  },
+  {
+    "track": "nlp",
+    "id": "encoder-decoder-masks",
+    "change": "A source padding mask prevents reading nonexistent source positions. A causal target mask prevents reading future answers. Both exclude entries, but they enforce different information-availability rules."
+  },
+  {
+    "track": "nlp",
+    "id": "transformer-blocks",
+    "change": "Attention moves information across positions; the positionwise network transforms each position's feature vector. Stacking the two repeatedly allows newly transformed features to influence later cross-position mixtures."
+  },
+  {
+    "track": "nlp",
+    "id": "transformer-architectures",
+    "change": "An encoder can use the full input for a tagging decision. A causal generator cannot use future generated tokens. This information-access difference determines suitable objectives before any comparison of task scores."
+  },
+  {
+    "track": "nlp",
+    "id": "context-and-compute",
+    "change": "Doubling token count quadruples the number of pairwise attention scores in ordinary full attention. Linear projections and per-position networks scale differently, so total runtime need not grow by exactly four."
+  },
+  {
+    "track": "nlp",
+    "id": "pretraining-objectives",
+    "change": "Hiding a token and predicting it allows surrounding context on both sides. Predicting the next token allows only a prefix. The objective and mask must agree about which evidence is legally available."
+  },
+  {
+    "track": "nlp",
+    "id": "contextual-representations",
+    "change": "The two occurrences of “bank” in a financial and a river sentence start from the same lookup row but can end with different contextual states. Contextualization changes representations, not token identity."
+  },
+  {
+    "track": "nlp",
+    "id": "fine-tuning",
+    "change": "A pretrained representation may already separate the labels with a small head. Test that before updating every layer; a small dataset can otherwise overwrite useful features without supplying enough replacement evidence."
+  },
+  {
+    "track": "nlp",
+    "id": "instruction-and-preference-tuning",
+    "change": "A demonstration supplies one desired response. A preference comparison says which of two responses is better. These are different supervision signals, and neither directly establishes truth for unseen questions."
+  },
+  {
+    "track": "nlp",
+    "id": "decoding",
+    "change": "The highest-probability first word need not begin the highest-probability complete sentence. Greedy selection optimizes the next choice locally; beam search tracks alternatives under an explicit sequence score."
+  },
+  {
+    "track": "nlp",
+    "id": "text-classification",
+    "change": "“Billing” and “technical support” may overlap in a complaint. Decide whether the annotation permits multiple labels before selecting a competing-class output that forces exactly one answer."
+  },
+  {
+    "track": "nlp",
+    "id": "entities-and-spans",
+    "change": "If one word splits into three pieces, three model positions still refer to one original word. Define which positions receive labels and how predictions map back to character spans."
+  },
+  {
+    "track": "nlp",
+    "id": "structured-prediction",
+    "change": "A locally likely tag can create an impossible sequence. Decoding with transition constraints compares complete paths, so the best valid path can differ from independently taking each position's largest score."
+  },
+  {
+    "track": "nlp",
+    "id": "sentence-pair-understanding",
+    "change": "High word overlap does not imply entailment: “all orders shipped” and “some orders shipped” differ logically. Include contrasts that test the intended relation rather than rewarding lexical matching alone."
+  },
+  {
+    "track": "nlp",
+    "id": "question-answering",
+    "change": "An extraction system can point only into supplied text. If the answer is absent, a forced span is wrong by construction; include unanswerable cases and an explicit abstention decision."
+  },
+  {
+    "track": "nlp",
+    "id": "sentence-embeddings",
+    "change": "Averaging token states weights each included position equally unless changed. Padding or boilerplate can distort that representation; the pooling rule and training objective jointly define what sentence similarity captures."
+  },
+  {
+    "track": "nlp",
+    "id": "semantic-retrieval",
+    "change": "A semantic match can miss an exact part number by one character. Evaluate identifier queries separately from paraphrases, and combine exact evidence with vector similarity when the task requires both."
+  },
+  {
+    "track": "nlp",
+    "id": "reranking",
+    "change": "A reranker sees only the supplied candidate set. If the correct passage never entered retrieval, improving pairwise scoring cannot recover it; measure candidate recall separately from ordering quality."
+  },
+  {
+    "track": "nlp",
+    "id": "retrieval-augmented-qa",
+    "change": "A retrieved passage can mention the subject without supporting the answer. Check both whether the evidence contains the required fact and whether the generated claim actually follows from it."
+  },
+  {
+    "track": "nlp",
+    "id": "translation",
+    "change": "A fluent target sentence can reverse a negation or alter a number. Evaluate meaning preservation and critical details separately from surface fluency, especially when several wordings are equally valid."
+  },
+  {
+    "track": "nlp",
+    "id": "summarization",
+    "change": "A short summary can preserve the headline while omitting a qualifying exception. Compare its claims with the source, not only with one reference wording; brevity does not justify changing the underlying meaning."
+  },
+  {
+    "track": "rrp",
+    "id": "what-is-a-recommender",
+    "change": "Choosing six videos is a set-and-order decision. Six high individual scores can still produce six near-identical clips; the objective must describe the usefulness of the resulting page, not only isolated predictions."
+  },
+  {
+    "track": "rrp",
+    "id": "the-ranking-funnel",
+    "change": "If retrieval admits only sports videos, the ranker cannot surface a missing cooking video regardless of its quality. Inspect candidate inclusion before adjusting the scoring model."
+  },
+  {
+    "track": "rrp",
+    "id": "users-items-interactions",
+    "change": "A user seeing the same item twice creates two display opportunities, not two users. Link a click to its actual impression so the denominator and context of the training example remain clear."
+  },
+  {
+    "track": "rrp",
+    "id": "implicit-feedback",
+    "change": "A skipped video may be irrelevant, unseen below the fold, or simply crowded out. An observed click supports a different inference from an unobserved interaction; the training objective must state how missing evidence is treated."
+  },
+  {
+    "track": "rrp",
+    "id": "task-framing",
+    "change": "A per-click purchase probability of 0.5 combined with click probability 0.02 gives purchase probability per display 0.01 under that factorization. Ranking only the conditional purchase score omits the chance of reaching a click."
+  },
+  {
+    "track": "rrp",
+    "id": "ranking-metrics",
+    "change": "Lists [relevant,irrelevant] and [irrelevant,relevant] have equal precision@2. A position-sensitive measure favors the first. State whether the product cares about inclusion, order, graded usefulness, or all three."
+  },
+  {
+    "track": "rrp",
+    "id": "baselines-for-rrp",
+    "change": "A popularity baseline can be strong for anonymous visitors and weak for established users. Report both slices: a population average can hide where personalization provides its actual gain."
+  },
+  {
+    "track": "rrp",
+    "id": "cold-start",
+    "change": "A new item can enter retrieval through its description before behavioral evidence accumulates. That solves representation availability, but eligibility filters and exposure policies must still give it a route onto the page."
+  },
+  {
+    "track": "rrp",
+    "id": "content-based-filtering",
+    "change": "A user liking two hiking articles yields an interest profile near hiking content. That can recover unseen articles, but also over-specialize the feed if the representation has no evidence about complementary interests."
+  },
+  {
+    "track": "rrp",
+    "id": "collaborative-filtering",
+    "change": "If users consuming A often consume B, A can provide a path to B without matching descriptions. With only one overlapping user, the same pattern is much weaker evidence than with thousands of independent histories."
+  },
+  {
+    "track": "rrp",
+    "id": "similarity-measures",
+    "change": "Items A and B with 100 shared users may be less specifically associated than A and C with 20 if B reaches nearly everyone. Normalize for reach and keep support counts visible."
+  },
+  {
+    "track": "rrp",
+    "id": "matrix-factorization",
+    "change": "For user vector [1,2] and item vector [3,1], the dot-product score is 5. Rotating both vector spaces consistently preserves such scores; the coordinates need not carry fixed human-readable genre meanings."
+  },
+  {
+    "track": "rrp",
+    "id": "implicit-mf-and-bpr",
+    "change": "A preferred item scoring 2 and a contrast scoring 1 are correctly ordered. BPR still has a positive loss because it rewards a larger gap. Ranking order and confidence in that order are different quantities."
+  },
+  {
+    "track": "rrp",
+    "id": "factorization-machines",
+    "change": "A linear score adds a mobile effect and a cooking effect separately. Their interaction adds an extra term only when both are active, allowing context to change an item's appeal rather than merely shifting every item equally."
+  },
+  {
+    "track": "rrp",
+    "id": "the-retrieval-stage",
+    "change": "If ten useful eligible items exist and retrieval returns six of them within its budget, recall is 0.6. A downstream ranker can reorder those six; it cannot recover the four absent items."
+  },
+  {
+    "track": "rrp",
+    "id": "embeddings-for-retrieval",
+    "change": "Vectors [10,0] and [1,1] compared with request [1,1] have dot products 10 and 2, but cosines about 0.707 and 1. Vector length can reverse a retrieval decision."
+  },
+  {
+    "track": "rrp",
+    "id": "two-tower-models",
+    "change": "Compute item vectors overnight, then compute one request vector online. Cheap comparisons enable a large search, but a feature depending jointly on this user and this item cannot be precomputed independently in either tower."
+  },
+  {
+    "track": "rrp",
+    "id": "negative-sampling",
+    "change": "If every training contrast is an obviously unrelated item, the model may never learn to distinguish two plausible alternatives. Harder contrasts improve that test only when they are not mislabeled genuine interests."
+  },
+  {
+    "track": "rrp",
+    "id": "ann-search",
+    "change": "Compare the index's neighbors with exact search using identical vectors, filters, and candidate counts. A missing exact neighbor points to search approximation; an irrelevant exact neighbor points toward the representation or objective."
+  },
+  {
+    "track": "rrp",
+    "id": "multi-source-retrieval",
+    "change": "Source A supplies 100 IDs and B supplies 100, but 80 overlap. Their union has 120 candidates before policy filtering. Count unique eligible additions rather than summing source response sizes."
+  },
+  {
+    "track": "rrp",
+    "id": "ctr-prediction",
+    "change": "Twenty clicks from 1,000 recorded displays give observed CTR 0.02. Counting two click events per clicked display without correcting duplicates would change the target definition and inflate the estimate."
+  },
+  {
+    "track": "rrp",
+    "id": "learning-to-rank",
+    "change": "Pointwise learning judges each candidate; pairwise learning compares two; listwise learning considers a list. The training unit should reflect available labels and evaluation, rather than assuming the most complex objective always wins."
+  },
+  {
+    "track": "rrp",
+    "id": "ranking-features",
+    "change": "One click from one display and 1,000 clicks from 1,000 displays both give raw CTR 1. Their uncertainty differs radically. Provide support or smoothing so a score cannot mistake one observation for extensive evidence."
+  },
+  {
+    "track": "rrp",
+    "id": "deep-ranking-architectures",
+    "change": "An interaction layer can capture that a user's interest changes an item's effect. Increasing hidden width alone does not guarantee that the needed relationship is represented or supported by training evidence."
+  },
+  {
+    "track": "rrp",
+    "id": "sequence-modeling",
+    "change": "Buying a camera then reading lens reviews can signal a different next need from the reverse order. Preserve event times and exclude later events when constructing the history for an earlier prediction."
+  },
+  {
+    "track": "rrp",
+    "id": "multi-task-ranking",
+    "change": "A shared representation might predict both clicks and purchases. Training balances predictive errors; serving balances product outcomes. Those weights have different units and should not be copied between the two decisions without validation."
+  },
+  {
+    "track": "rrp",
+    "id": "calibration-for-ranking",
+    "change": "Scores 0.2 and 0.4 have the same order as 0.4 and 0.8, but twice the estimated expected conversions. Decisions using expected value can change even while ranking metrics remain identical."
+  },
+  {
+    "track": "rrp",
+    "id": "re-ranking-and-diversity",
+    "change": "If A and B cover the same story and C covers another useful story, the best pair may be A+C even when B's individual relevance exceeds C's. Selection depends on what is already chosen."
+  },
+  {
+    "track": "rrp",
+    "id": "offline-evaluation",
+    "change": "A test using only previously displayed items evaluates a restricted choice set. It cannot directly establish the effect of newly exposing items that the old policy never showed."
+  },
+  {
+    "track": "rrp",
+    "id": "position-bias",
+    "change": "The same item may receive more clicks at rank one because more users examine it. Comparing different items at different ranks mixes attractiveness and placement; identification needs a design or assumptions that separate them."
+  },
+  {
+    "track": "rrp",
+    "id": "counterfactual-evaluation",
+    "change": "A target action with positive probability but zero logging probability has no matching logged outcomes for importance weighting. No finite weight can repair that missing support; a model-based estimate adds an extrapolation assumption."
+  },
+  {
+    "track": "rrp",
+    "id": "ab-testing",
+    "change": "Randomizing users keeps each person's repeated requests under one policy, reducing cross-policy carryover within that person. It does not automatically solve interference between users sharing inventory or social interactions."
+  },
+  {
+    "track": "rrp",
+    "id": "beyond-accuracy",
+    "change": "One user's list can be diverse while the catalogue's overall exposure stays concentrated. List diversity and catalogue coverage use different aggregation units; report the one that matches the intended improvement."
+  },
+  {
+    "track": "rrp",
+    "id": "feedback-loops",
+    "change": "More exposure creates more clicks even with unchanged appeal. Training on those clicks can then increase exposure again. Logging opportunities and deliberately gathering alternative evidence help separate popularity reinforcement from preference."
+  },
+  {
+    "track": "rrp",
+    "id": "serving-architecture",
+    "change": "Two retrieval sources taking 20 ms each in parallel contribute roughly the slower path, not their sum, before merge costs. Sequential feature dependencies still add to the request's critical path."
+  },
+  {
+    "track": "rrp",
+    "id": "features-and-freshness",
+    "change": "A purchase occurring at 13:59 but arriving at 14:03 was unavailable to a 14:00 decision. Historical feature reconstruction must respect arrival and publication time, not only the event timestamp."
+  },
+  {
+    "track": "rrp",
+    "id": "training-pipelines",
+    "change": "If one impression joins three duplicate item records, one training opportunity becomes three rows. Check key uniqueness and join counts before treating a larger dataset as more independent evidence."
+  },
+  {
+    "track": "rrp",
+    "id": "retraining-and-drift",
+    "change": "A surge in new items changes feature distributions without necessarily lowering usefulness. Compare later-period outcomes and pipeline health before attributing the shift to a model that needs retraining."
+  },
+  {
+    "track": "rrp",
+    "id": "exploration",
+    "change": "With two actions, a 10% uniformly random branch gives each action 5% probability from exploration. The greedy action also receives the 90% exploitation branch; log total action probabilities, not just the exploration rate."
+  },
+  {
+    "track": "rrp",
+    "id": "scale-and-cost",
+    "change": "One million 128-coordinate float32 vectors need about 512 MB for values alone. Index metadata, replicas, and simultaneous old/new versions add memory; representation bytes are a lower bound, not a deployment budget."
+  },
+  {
+    "track": "rrp",
+    "id": "business-objectives",
+    "change": "More clicks can accompany shorter useful viewing if thumbnails become misleading. Define the outcome and guardrails before the experiment so a convenient proxy cannot silently replace the intended benefit."
+  },
+  {
+    "track": "rrp",
+    "id": "fairness-and-policy",
+    "change": "An item removed after a cache was filled must remain ineligible even if its cached relevance is high. Apply current eligibility at selection or response time; model scores do not override product policy."
+  },
+  {
+    "track": "rrp",
+    "id": "failure-modes",
+    "change": "If recommendations still render but click events disappear, check event collection and ID joins before retraining. A measured outcome can fail because its measurement pipeline broke."
+  },
+  {
+    "track": "rrp",
+    "id": "rrp-system-design",
+    "change": "Trace one request through eligible inventory, candidate inclusion, scoring, selection, and rendering. Recording candidate IDs at each boundary reveals where a useful item was lost instead of reducing every failure to “bad ranking.”"
+  },
+  {
+    "track": "rrp",
+    "id": "interview-playbook",
+    "change": "A proposal to improve a feed should state whose decisions change, which items can enter, what each score means, and which outcomes establish improvement. An architecture diagram without those contracts leaves the learning problem unspecified."
+  },
+  {
+    "track": "ml",
+    "id": "ml-fundamentals",
+    "change": "A model can memorize every training label while failing new inputs. The test is whether the learned relationship survives the prediction setting, with the same information available and a representative comparison method."
+  },
+  {
+    "track": "ml",
+    "id": "linear-algebra",
+    "change": "For X shaped [5,3] and W shaped [3,2], XW has shape [5,2]. Each output row combines that example's three features; matrix compatibility alone does not establish that feature ordering is correct."
+  },
+  {
+    "track": "ml",
+    "id": "probability-statistics",
+    "change": "A classifier assigning 0.8 probability to an event is making a frequency claim across comparable cases, not guaranteeing one outcome. Evaluate such magnitudes separately from whether its ordering of examples is useful."
+  },
+  {
+    "track": "ml",
+    "id": "neuron-mlp",
+    "change": "Two hidden units can learn different weighted combinations of the same inputs. A nonlinear activation makes their composition more expressive; simply stacking linear maps leaves a single affine mapping regardless of depth."
+  },
+  {
+    "track": "ml",
+    "id": "activations",
+    "change": "A ReLU receiving a negative preactivation outputs zero and has zero local derivative there. A positive input retains a slope of one. Learning behavior therefore depends on the values the preceding layer supplies."
+  },
+  {
+    "track": "ml",
+    "id": "loss-functions",
+    "change": "A classifier may consume raw logits while a probability-based metric expects normalized outputs. Applying softmax before a loss that already incorporates it changes the calculation; follow the loss's actual input contract."
+  },
+  {
+    "track": "ml",
+    "id": "forward-propagation",
+    "change": "Repeated forward calls can change predictions in training mode because dropout samples masks. Evaluation mode changes that module behavior; disabling gradient recording answers a separate question about differentiation overhead."
+  },
+  {
+    "track": "ml",
+    "id": "mini-batches",
+    "change": "A dataset of 1,000 examples with batch size 100 gives ten updates per full pass, without accumulation. Doubling batch size halves those updates, so equal epoch counts do not imply equal optimization trajectories."
+  },
+  {
+    "track": "ml",
+    "id": "optimizers",
+    "change": "Momentum remembers recent gradient direction, while adaptive scaling tracks gradient magnitudes by coordinate. Two optimizers receiving the same current gradient can therefore produce different updates because their histories differ."
+  },
+  {
+    "track": "ml",
+    "id": "learning-rates",
+    "change": "Warmup raises the early step size; later decay lowers it. A schedule indexed by optimizer updates should not advance once per microbatch when several microbatches contribute to one update."
+  },
+  {
+    "track": "ml",
+    "id": "initialization",
+    "change": "Two hidden units with identical incoming and outgoing connections can receive identical gradients. Random initialization breaks that symmetry; initializing a bias to zero does not create the same problem when weights already differ."
+  },
+  {
+    "track": "ml",
+    "id": "gradient-pathologies",
+    "change": "A product of ten local slopes of 0.1 gives 10⁻¹⁰. This illustrates one route to vanishing sensitivity, but actual networks also contain weight matrices, gates, and branches that determine the complete gradient."
+  },
+  {
+    "track": "ml",
+    "id": "gradient-clipping",
+    "change": "A gradient vector [6,8] has norm 10. Clipping its norm to 5 gives [3,4], preserving direction. With adaptive optimizers, bounding the raw gradient does not directly impose the same bound on the final parameter update."
+  },
+  {
+    "track": "ml",
+    "id": "regularization",
+    "change": "A model with poor training fit may worsen when its capacity is further restricted. First distinguish inability to fit from failure to generalize; regularization addresses the latter tradeoff rather than every large loss."
+  },
+  {
+    "track": "ml",
+    "id": "dropout",
+    "change": "With drop probability 0.5, inverted dropout scales surviving activations by two during training to preserve their expectation. One realization still differs from evaluation; expected activation does not imply identical nonlinear network outputs."
+  },
+  {
+    "track": "ml",
+    "id": "normalization",
+    "change": "For a token tensor [B,N,D], normalization over D uses that token's feature coordinates. Normalizing over B instead couples examples. Axis choice is part of the operation, not a cosmetic shape convention."
+  },
+  {
+    "track": "ml",
+    "id": "residuals",
+    "change": "When a residual branch outputs zero, y=x still preserves the input. The shortcut gives a direct gradient route, while mismatched feature widths require a projection before the two paths can be added."
+  },
+  {
+    "track": "ml",
+    "id": "bias-variance",
+    "change": "A large validation gap can reflect an easier training population or a data-processing mismatch. Check those explanations before attributing the gap entirely to model variance or selecting stronger regularization."
+  },
+  {
+    "track": "ml",
+    "id": "training-diagnostics",
+    "change": "Check that one optimizer step changes a parameter receiving a nonzero gradient. If it does not, inspect optimizer membership, update order, and gradient handling before changing the network architecture."
+  },
+  {
+    "track": "ml",
+    "id": "generalization-validation",
+    "change": "Using a validation score to choose among hundreds of settings makes it part of development. A final untouched test evaluates that selection procedure; renaming the repeatedly inspected validation set does not restore independence."
+  },
+  {
+    "track": "ml",
+    "id": "cnn",
+    "change": "A filter is reused at different spatial locations, giving the same local detector across an image. The resulting feature map records where evidence appears; shared weights do not mean every location produces the same value."
+  },
+  {
+    "track": "ml",
+    "id": "cnn-geometry",
+    "change": "A stride-two layer changes the spacing between later features measured in original pixels. Track both receptive-field size and feature spacing when determining whether a small object can influence distinct output locations."
+  },
+  {
+    "track": "ml",
+    "id": "resnet",
+    "change": "A shortcut around a convolutional branch adds features rather than concatenating them. When spatial size or channel count changes, the shortcut must transform its input so the addition has compatible shapes."
+  },
+  {
+    "track": "ml",
+    "id": "rnn",
+    "change": "The same recurrent weights process each time step, while the hidden state changes. This separates stored model parameters from per-sequence state and explains why a new independent sequence should not inherit an unrelated final state."
+  },
+  {
+    "track": "ml",
+    "id": "bptt",
+    "change": "A recurrent weight used at five steps receives gradient contributions through all five uses. Truncation cuts selected backward dependencies; it can retain a forward hidden state while preventing learning credit from crossing the cut."
+  },
+  {
+    "track": "ml",
+    "id": "lstm-gru",
+    "change": "A gate near one can preserve one memory route and a gate near zero can suppress another. Learned gating helps control information flow, but does not guarantee retention of every dependency over arbitrary horizons."
+  },
+  {
+    "track": "ml",
+    "id": "seq2seq",
+    "change": "A fixed-vector encoder must compress the source into one state. Attention gives the decoder access to multiple source states, changing the information bottleneck rather than merely enlarging the final vector."
+  },
+  {
+    "track": "ml",
+    "id": "scaled-multihead",
+    "change": "For independent unit-variance query/key coordinates, dot-product variance grows with key width. Dividing by its square root controls the score scale, reducing one reason softmax can become extremely concentrated early in training."
+  },
+  {
+    "track": "ml",
+    "id": "masking",
+    "change": "A padding mask excludes nonexistent positions; a causal mask excludes future information. A loss mask excludes selected targets from training. All use masks, but their purposes and locations in the computation differ."
+  },
+  {
+    "track": "ml",
+    "id": "positional",
+    "change": "“A follows B” changes meaning when positions are exchanged. Position-sensitive inputs make that order available to attention; the training objective must still reward using it correctly."
+  },
+  {
+    "track": "ml",
+    "id": "rope",
+    "change": "Rotating both query and key by the same additional angle preserves their dot product for a coordinate pair. Their relative rotation changes the comparison, explaining how positional gaps enter a content-dependent score."
+  },
+  {
+    "track": "ml",
+    "id": "transformer-block",
+    "change": "Attention lets positions exchange information; the feed-forward network transforms each position independently. Their repeated composition allows information transformed in one block to be shared differently in a later block."
+  },
+  {
+    "track": "ml",
+    "id": "pre-post-ln",
+    "change": "For y=x+F(LN(x)), the residual route bypasses the normalization. For y=LN(x+F(x)), it does not. Writing the complete expression exposes the gradient-path difference more clearly than naming the variant alone."
+  },
+  {
+    "track": "ml",
+    "id": "bert-gpt-t5",
+    "change": "A masked-word objective can use both sides of a hidden word; a next-token objective cannot read its future. Compare access pattern and supervision together rather than treating architecture names as complete task descriptions."
+  },
+  {
+    "track": "ml",
+    "id": "transformer-complexity",
+    "change": "For fixed hidden width, doubling sequence length quadruples ordinary pairwise attention scores but only doubles positionwise work. Which cost dominates depends on sequence length, width, kernels, and the execution regime."
+  },
+  {
+    "track": "ml",
+    "id": "embeddings",
+    "change": "Integer IDs identify rows without carrying semantic distance. Learned coordinates determine similarity, and the training objective decides which relationships similarity should preserve. A useful retrieval space is not guaranteed by having an embedding table."
+  },
+  {
+    "track": "ml",
+    "id": "self-supervised-pretraining",
+    "change": "A hidden part of an existing example can supply its own training target. This reduces manual labeling needs, but the pretraining task must preserve distinctions relevant to the later use rather than merely exploit shortcuts."
+  },
+  {
+    "track": "ml",
+    "id": "transfer-finetuning",
+    "change": "A frozen backbone tests whether its existing representation already supports a new task. Full fine-tuning permits broader adaptation but introduces more fitted state and forgetting risk, especially with narrow or small datasets."
+  },
+  {
+    "track": "ml",
+    "id": "instruction-tuning",
+    "change": "Training on input–response demonstrations can teach output conventions such as concise extraction. It does not guarantee access to current facts; distinguish a behavioral mismatch from information missing at prediction time."
+  },
+  {
+    "track": "ml",
+    "id": "lora",
+    "change": "For a 100×100 weight matrix and rank four update factors, the factors contain 800 entries rather than 10,000. This reduces trainable weight state; it does not remove every activation or base-model storage cost."
+  },
+  {
+    "track": "ml",
+    "id": "kv-cache",
+    "change": "The cache reuses previous attention keys and values. A new token still traverses the layers and attends to the retained prefix, so cached generation remains sequential and still grows its per-request state."
+  },
+  {
+    "track": "ml",
+    "id": "hyperparameter-tuning",
+    "change": "Ten settings tested on the same development examples create ten chances to select a lucky score. Use stable comparisons and independent final evidence; the winning validation number alone overstates certainty about deployment gains."
+  },
+  {
+    "track": "ml",
+    "id": "model-selection",
+    "change": "A small quality improvement may be outweighed by expensive unavailable features or unstable serving time. Select a complete fitted pipeline under the same operating requirements, rather than comparing isolated model scores."
+  },
+  {
+    "track": "distributed",
+    "id": "computation-graphs",
+    "change": "Partitioning a layer between two devices creates dependencies for both its forward values and backward sensitivities. A complete execution plan identifies where each value is produced, when it is ready, and who consumes it."
+  },
+  {
+    "track": "distributed",
+    "id": "optimization-state",
+    "change": "Two replicas with identical weights and gradients can diverge if their momentum histories differ. An optimizer update depends on its persistent state as well as the current gradient; synchronize or assign ownership accordingly."
+  },
+  {
+    "track": "distributed",
+    "id": "gpu-execution",
+    "change": "Timing only kernel submission measures how quickly the host queued work. Synchronize the relevant device work or use device events to measure completion, especially when comparing overlapping transfers and computation."
+  },
+  {
+    "track": "distributed",
+    "id": "workers-and-synchronization",
+    "change": "A rank that finishes computing cannot safely overwrite a communication buffer still being read. Readiness, operation completion, and safe reuse are separate events even when the arithmetic has finished."
+  },
+  {
+    "track": "distributed",
+    "id": "networks-and-topology",
+    "change": "Two GPUs connected through a slower shared host path can exchange less effectively than a directly connected pair. A logical all-to-all pattern says who communicates; physical topology determines which links contend."
+  },
+  {
+    "track": "distributed",
+    "id": "collective-communication",
+    "change": "For tensors [1,2] and [3,4], sum All-Reduce returns [4,6] to both ranks. All-Gather returns both original pieces. Reduction combines corresponding entries; gathering preserves separate entries."
+  },
+  {
+    "track": "distributed",
+    "id": "synchronous-data-parallelism",
+    "change": "Rank means from batches of two and eight examples should not receive equal weight when the objective is a sample mean. Combine weighted sums with the shared sample count, accounting for the framework's averaging convention."
+  },
+  {
+    "track": "distributed",
+    "id": "distributed-input-pipelines",
+    "change": "If two workers read the same shuffled rows, accelerator utilization can look excellent while effective data diversity falls. Shard ownership and epoch accounting establish which independent examples actually contributed to learning."
+  },
+  {
+    "track": "distributed",
+    "id": "global-batch-and-convergence",
+    "change": "Four workers with microbatch eight and two accumulation rounds process 64 examples per update when contributions are distinct. Throughput per second and the number of optimizer updates per example are different training quantities."
+  },
+  {
+    "track": "distributed",
+    "id": "parameter-servers-and-staleness",
+    "change": "A gradient computed at yesterday's parameter state can point differently from the gradient at today's state. Staleness is an optimization change, not merely a network delay hidden behind the same mathematical update."
+  },
+  {
+    "track": "distributed",
+    "id": "memory-and-precision",
+    "change": "Four-bit weights reduce their storage relative to sixteen-bit weights, but gradients, optimizer history, scales, and activations can use other formats. Apply the byte calculation to each state category before estimating total memory."
+  },
+  {
+    "track": "distributed",
+    "id": "state-sharding",
+    "change": "With four ranks, assigning one optimizer-state quarter to each reduces replicated ownership. It also creates communication when another rank needs a value. Memory savings follow who owns state, not a blanket promise that all transfers disappear."
+  },
+  {
+    "track": "distributed",
+    "id": "tensor-sequence-context-parallelism",
+    "change": "Splitting output columns of a matrix product gives each rank distinct output coordinates. Splitting the summed input dimension instead gives partial sums that must be reduced. The partitioned dimension determines communication semantics."
+  },
+  {
+    "track": "distributed",
+    "id": "pipeline-parallelism",
+    "change": "If stage times are 2 ms and 8 ms, equal layer counts do not balance the pipeline. The slower stage constrains steady throughput, while startup and drain leave bubbles that depend on microbatch scheduling."
+  },
+  {
+    "track": "distributed",
+    "id": "recomputation-and-offloading",
+    "change": "Recomputing an activation saves its stored copy but costs another forward calculation. Offloading saves device capacity but adds transfer dependencies. Choose based on the actual constrained resource and measured overlap."
+  },
+  {
+    "track": "distributed",
+    "id": "expert-parallelism",
+    "change": "Equal token counts do not imply equal expert load: routing may send most tokens to one expert. Track per-expert tokens and dispatch traffic before concluding sparse activation guarantees balanced acceleration."
+  },
+  {
+    "track": "distributed",
+    "id": "hybrid-parallelism",
+    "change": "A design can fit memory through sharding yet fail its throughput target because tensor-parallel communication crosses slow links. Choose state layout and process groups together with the physical topology."
+  },
+  {
+    "track": "distributed",
+    "id": "scaling-efficiency",
+    "change": "If one GPU takes 100 seconds and four take 40, speedup is 2.5 and efficiency is 62.5%. Faster wall time does not imply proportionally lower total accelerator-seconds or cost."
+  },
+  {
+    "track": "distributed",
+    "id": "profiling-and-overlap",
+    "change": "An idle interval after backward may mean a late communication dependency, not insufficient compute. Follow the critical path to the last required event rather than summing all independently timed operations."
+  },
+  {
+    "track": "distributed",
+    "id": "stragglers-and-scheduling",
+    "change": "A synchronous step waits for its slowest required contribution. Nine fast ranks cannot average away one late rank's completion time; inspect tail behavior and repeated rank patterns, not only mean worker speed."
+  },
+  {
+    "track": "distributed",
+    "id": "numerical-correctness",
+    "change": "Floating-point addition changes with reduction order because rounding is finite. Small numerical differences can be expected, while duplicated samples or wrong denominators are semantic errors; use tolerances without masking those structural faults."
+  },
+  {
+    "track": "distributed",
+    "id": "multi-node-failure-diagnosis",
+    "change": "One rank throwing before a collective can leave peers waiting inside it. The apparent hang location may be downstream of the actual fault; correlate earlier logs across all ranks before tuning communication parameters."
+  },
+  {
+    "track": "distributed",
+    "id": "checkpointing-and-recovery",
+    "change": "Restoring weights but restarting the data stream and optimizer history changes the continuation. A recovery test should compare state and subsequent behavior, not merely demonstrate that the checkpoint file can be read."
+  },
+  {
+    "track": "distributed",
+    "id": "replicas-and-queues",
+    "change": "If arrivals exceed sustainable service rate, a queue grows even when every individual request is valid. More buffering delays failure; admission limits, routing, or added capacity address the overload itself."
+  },
+  {
+    "track": "distributed",
+    "id": "prefill-decode-and-kv-cache",
+    "change": "The prompt is available together during prefill; each new decode token depends on the previous choice. The cache reuses prior keys and values, while concurrent requests still consume cache space according to their retained lengths."
+  },
+  {
+    "track": "distributed",
+    "id": "model-parallel-inference",
+    "change": "A request spread over several devices completes only when its required stages succeed. Losing one shard is not equivalent to losing one independent replica; recovery and scheduling must respect the model's joint ownership."
+  },
+  {
+    "track": "distributed",
+    "id": "continuous-batching",
+    "change": "When one sequence ends, admitting a new request into its slot improves utilization. Long new prefills can still delay active decoding, so request admission and compute scheduling need separate attention."
+  },
+  {
+    "track": "distributed",
+    "id": "disaggregated-serving",
+    "change": "Separating prefill and decode moves the cache between resource pools. A faster prefill stage can lose its benefit if transfer and queueing dominate; compare end-to-end latency and useful completions under the same demand."
+  },
+  {
+    "track": "speech",
+    "id": "sound-and-speech",
+    "change": "The same word spoken by two people has different pitch and timing. Recognition needs to preserve linguistic evidence while tolerating these changes; speaker identification deliberately needs some of the variation recognition suppresses."
+  },
+  {
+    "track": "speech",
+    "id": "digital-audio",
+    "change": "A 16 kHz sample rate means 16,000 samples per second, not 16,000 distinct frequencies. The highest representable sinusoidal frequency is below 8 kHz after suitable antialias filtering."
+  },
+  {
+    "track": "speech",
+    "id": "frequency-domain",
+    "change": "A steady tone produces a concentrated spectral peak; an abrupt click spreads energy across frequencies. The spectrum describes frequency content over an observation window, not the chronological order of every event inside it."
+  },
+  {
+    "track": "speech",
+    "id": "short-time-analysis",
+    "change": "At 16 kHz, a 400-sample window spans 25 ms. A 160-sample hop advances 10 ms, so neighboring frames overlap. Frame spacing and the amount of audio required for each frame are different quantities."
+  },
+  {
+    "track": "speech",
+    "id": "perceptual-features",
+    "change": "A log-mel feature summarizes energy in perceptually spaced bands. Two waveforms can have similar band energies but different fine phase structure; feature extraction deliberately discards information and cannot guarantee exact waveform reconstruction."
+  },
+  {
+    "track": "speech",
+    "id": "filtering-and-preprocessing",
+    "change": "Normalizing every clip to equal loudness can help recognition but erase amplitude evidence needed for another task. Treat preprocessing as a task assumption and validate its effect on the intended output."
+  },
+  {
+    "track": "speech",
+    "id": "mathematical-tools",
+    "change": "If a ten-frame sequence is padded to twenty frames, averaging all twenty halves a valid-frame mean when padding is zero. Carry lengths or masks so tensor shape does not silently change the statistic."
+  },
+  {
+    "track": "speech",
+    "id": "neural-learning",
+    "change": "A speech model's output frames may be fewer than input samples by several reduction stages. Check target lengths against the actual output grid before attributing an alignment or loss failure to model capacity."
+  },
+  {
+    "track": "speech",
+    "id": "convolutional-encoders",
+    "change": "A stride-two stage halves time resolution approximately, subject to padding. Several such stages multiply their reduction factors, changing both computation and the shortest sound event the final representation can localize."
+  },
+  {
+    "track": "speech",
+    "id": "sequence-modeling",
+    "change": "A recurrent state summarizes preceding audio. Reusing it for a new caller mixes sessions; resetting it inside one continuous utterance loses context. State lifetime belongs to the serving contract."
+  },
+  {
+    "track": "speech",
+    "id": "attention-transformers",
+    "change": "A streaming mask must match all available context, including future samples introduced by feature windows or convolutions. Causal attention alone cannot make an otherwise look-ahead frontend causal."
+  },
+  {
+    "track": "speech",
+    "id": "pretraining-transfer",
+    "change": "An encoder pretrained to ignore speaker identity may help transcription while removing evidence needed for speaker verification. Transfer quality depends on which distinctions the original objective preserved."
+  },
+  {
+    "track": "speech",
+    "id": "recognition-targets",
+    "change": "“Twenty-one” and “21” can represent the same spoken content under different text conventions. Fix normalization and tokenization before counting recognition errors, or formatting choices become mislabeled acoustic failures."
+  },
+  {
+    "track": "speech",
+    "id": "ctc-alignment",
+    "change": "The paths [a,a,blank,b] and [a,blank,b,b] both collapse to “ab.” CTC sums probabilities over valid paths; choosing the most probable individual path need not produce the most probable transcript."
+  },
+  {
+    "track": "speech",
+    "id": "transducers-attention",
+    "change": "A transducer's blank advances through audio without emitting a text symbol. A nonblank emits a symbol under its alignment rules. Confusing these transitions with ordinary next-token language generation obscures how timing is learned."
+  },
+  {
+    "track": "speech",
+    "id": "recognition-decoding",
+    "change": "A language model may prefer a common word over a correctly heard rare name. Compare acoustic evidence and decoding weights on named entities; more linguistically plausible text is not necessarily more faithful recognition."
+  },
+  {
+    "track": "speech",
+    "id": "audio-events",
+    "change": "A one-second clip can contain both a siren and speech. A single-label softmax forces competition between them, whereas independent event outputs allow overlap when the annotation and evaluation support it."
+  },
+  {
+    "track": "speech",
+    "id": "speaker-recognition",
+    "change": "A verification threshold trades false accepts against false rejects. Similarity between two recordings is evidence under a system and population, not a universal proof that they contain the same live speaker."
+  },
+  {
+    "track": "speech",
+    "id": "diarization",
+    "change": "Transcribing “hello” correctly does not identify who said it. Diarization supplies speaker regions; recognition supplies words. Their time alignment determines whether a transcript attributes those words to the correct person."
+  },
+  {
+    "track": "speech",
+    "id": "enhancement-separation",
+    "change": "Removing energy identified as noise can also remove a weak consonant. Listenability and transcription quality may move differently, so assess both when enhancement is part of a recognition pipeline."
+  },
+  {
+    "track": "speech",
+    "id": "audio-text-understanding",
+    "change": "A recording containing a dog and traffic can match “street noise” while missing the bark event. Evaluate fine-grained claims or intervals when the application needs more than broad clip similarity."
+  },
+  {
+    "track": "speech",
+    "id": "text-to-speech",
+    "change": "A natural-sounding sample can pronounce a dosage or name incorrectly. Separate intelligibility and content accuracy from perceived voice quality, especially for rare strings absent from ordinary listening examples."
+  },
+  {
+    "track": "speech",
+    "id": "generative-modeling",
+    "change": "Generating one spectrogram frame and generating hundreds of waveform samples are different output workloads. Compare model steps, representation rate, and reconstruction cost before inferring speed from the family name."
+  },
+  {
+    "track": "speech",
+    "id": "vocoders-codecs",
+    "change": "A codec's discrete symbol represents an acoustic unit at its trained rate, not necessarily a word. Losing or delaying a code can affect reconstructed timing and sound even when semantic content remains recognizable."
+  },
+  {
+    "track": "speech",
+    "id": "speech-language-systems",
+    "change": "If recognition commits the wrong name, a text-only downstream model may never see the acoustic evidence needed to correct it. Preserve alternatives or audio access where that uncertainty matters."
+  },
+  {
+    "track": "speech",
+    "id": "data-and-baselines",
+    "change": "Randomly separating clips from one recording can preserve the same microphone and background in both sets. Hold out sessions or speakers according to the deployment claim before comparing model scores."
+  },
+  {
+    "track": "speech",
+    "id": "robustness-adaptation",
+    "change": "Mixing one clean utterance with many noises creates varied conditions but not many independent speakers. Track both the source recordings and augmentation variants when describing dataset size and independence."
+  },
+  {
+    "track": "speech",
+    "id": "evaluation-errors",
+    "change": "One deletion in a two-word reference contributes 50% word error rate for that utterance. Corpus WER sums error counts and reference words; averaging utterance percentages would weight short and long recordings differently."
+  },
+  {
+    "track": "speech",
+    "id": "streaming-latency",
+    "change": "A recognizer processing one second of audio in half a second can keep up on average, yet still delay results for a two-second look-ahead window. Compute speed and algorithmic waiting are separate latency sources."
+  },
+  {
+    "track": "speech",
+    "id": "efficient-deployment",
+    "change": "Halving model arithmetic does not halve request time if feature extraction and audio transfer dominate. Measure the complete input-to-output path under expected concurrency and recording lengths."
+  },
+  {
+    "track": "speech",
+    "id": "system-design",
+    "change": "A captioning system must connect capture, buffering, recognition, text revision, and display. A fast partial transcript that is repeatedly rewritten may be less usable than slightly later stable text; evaluate the interaction."
+  },
+  {
+    "track": "cv",
+    "id": "image-formation",
+    "change": "A saturated white patch records the sensor's upper limit rather than the original brightness differences. Contrast adjustment can redistribute recorded values, but cannot reconstruct detail that was never captured."
+  },
+  {
+    "track": "cv",
+    "id": "mathematical-tools",
+    "change": "A point at (2,3) shifted right by five becomes (7,3). Ordinary 2×2 multiplication cannot translate every point this way; the extra homogeneous coordinate lets one matrix express that constant shift."
+  },
+  {
+    "track": "cv",
+    "id": "noise-and-probability",
+    "change": "Averaging four independent measurements with equal noise variance divides that variance by four. A shared calibration offset survives unchanged, so more frames do not automatically remove every error source."
+  },
+  {
+    "track": "cv",
+    "id": "sampling-and-pyramids",
+    "change": "Shrinking alternating black and white stripes without filtering can turn them into false wider bands. Blur removes unsupported high-frequency detail before downsampling; interpolation after the damage cannot reliably undo the aliasing."
+  },
+  {
+    "track": "cv",
+    "id": "color-and-contrast",
+    "change": "Two arrays can store identical numbers while one represents RGB and another BGR. The model then sees different colors. Verify channel meaning before interpreting a failure as a lack of color invariance."
+  },
+  {
+    "track": "cv",
+    "id": "filtering-and-restoration",
+    "change": "A mean filter smooths isolated noise but also smooths a real thin line. Restoration chooses which variation to suppress; compare downstream recognition or measurement, not only how pleasant the result looks."
+  },
+  {
+    "track": "cv",
+    "id": "gradients-and-edges",
+    "change": "A shadow boundary can have a large intensity gradient without being an object boundary. An edge detector identifies local changes; deciding what those changes mean requires additional appearance or geometric evidence."
+  },
+  {
+    "track": "cv",
+    "id": "regions-and-morphology",
+    "change": "An opening can remove isolated foreground specks, but may also erase a narrow true object. The structuring element defines the scale of shapes being preserved, so choose it in image units relevant to the task."
+  },
+  {
+    "track": "cv",
+    "id": "features-and-matching",
+    "change": "Two repeated windows can have similar local descriptors. A descriptor match proposes correspondence; consistency with the scene's geometric transformation provides a separate test of whether that correspondence is plausible."
+  },
+  {
+    "track": "cv",
+    "id": "registration-and-ransac",
+    "change": "One wrong correspondence can severely distort an ordinary fit. RANSAC fits small candidate subsets and counts consistent matches; it succeeds only if enough samples contain valid geometry rather than degenerate or incorrect pairs."
+  },
+  {
+    "track": "cv",
+    "id": "camera-models",
+    "change": "Doubling an object's distance halves its projected size in an ideal pinhole camera with fixed focal length. A small image object can therefore be physically small, far away, or both; image size alone is ambiguous."
+  },
+  {
+    "track": "cv",
+    "id": "stereo-and-depth",
+    "change": "For fixed camera separation and focal length, smaller disparity implies greater depth. A one-pixel correspondence error consequently produces much larger depth uncertainty for distant objects than for nearby ones."
+  },
+  {
+    "track": "cv",
+    "id": "optical-flow",
+    "change": "A smooth wall offers little local texture to match between frames. The absence of a strong estimate does not mean no motion occurred; flow depends on visible evidence and assumptions about neighboring movement."
+  },
+  {
+    "track": "cv",
+    "id": "learning-and-splits",
+    "change": "Adjacent video frames share lighting, background, and objects. Holding out random frames can test near-duplicates; holding out recordings or capture sessions better probes whether the learned pattern transfers to independent scenes."
+  },
+  {
+    "track": "cv",
+    "id": "neural-networks",
+    "change": "A layer maps image features into a new representation; its loss determines which distinctions receive learning signal. More units cannot resolve two classes whose labels are inconsistent or whose distinguishing evidence was cropped out."
+  },
+  {
+    "track": "cv",
+    "id": "losses-and-probabilities",
+    "change": "For a binary target of one, predicting 0.9 receives much lower log loss than 0.1. The gradient encourages useful probability movement; a later threshold controls decisions and need not equal 0.5."
+  },
+  {
+    "track": "cv",
+    "id": "backpropagation",
+    "change": "If one filter is applied at many image locations, its weight gradient adds contributions from all those uses. Weight sharing reduces parameter count; it does not mean learning from only one selected patch."
+  },
+  {
+    "track": "cv",
+    "id": "optimization",
+    "change": "A nearly unchanged loss could come from a tiny learning rate or disconnected gradients. Compare parameter values before and after one update: that separates an ineffective step from an update that never happened."
+  },
+  {
+    "track": "cv",
+    "id": "generalization",
+    "change": "A classifier can recognize the background used for each class rather than the object. Evaluate changed backgrounds or controlled crops; a high random-split score alone cannot establish the intended visual skill."
+  },
+  {
+    "track": "cv",
+    "id": "convolution",
+    "change": "Applying one 3×3 filter to every location reuses the same nine spatial weights per channel pair. The output map changes with local content; the weights do not change from one patch to another."
+  },
+  {
+    "track": "cv",
+    "id": "receptive-fields",
+    "change": "Two stride-one 3×3 convolutions have a 5×5 theoretical field. Making the first stride two changes the second layer's input-space spacing and gives a 7×7 field. Kernel size alone does not determine context."
+  },
+  {
+    "track": "cv",
+    "id": "residual-backbones",
+    "change": "If a residual branch initially outputs nearly zero, the block can still pass its input along the shortcut. The learning problem becomes refining a representation instead of reconstructing it at every stage."
+  },
+  {
+    "track": "cv",
+    "id": "normalization-and-stability",
+    "change": "BatchNorm's output for one image can depend on other training-batch images. At evaluation it normally uses stored statistics. A train/eval mismatch can therefore change predictions even when model weights are identical."
+  },
+  {
+    "track": "cv",
+    "id": "augmentation",
+    "change": "Flipping a road-sign image can reverse an arrow's meaning. An augmentation is valid only when its label transformation matches the task; preserving a classification label is not universal across visual problems."
+  },
+  {
+    "track": "cv",
+    "id": "transfer-learning",
+    "change": "A frozen backbone and fitted small head test whether existing features already separate the new classes. If that fails, selective fine-tuning tests feature adaptation without immediately changing every pretrained parameter."
+  },
+  {
+    "track": "cv",
+    "id": "classification",
+    "change": "A model can be correct on common classes and miss every rare defect. Inspect per-class counts and the decision threshold relevant to inspection, rather than relying on accuracy dominated by healthy items."
+  },
+  {
+    "track": "cv",
+    "id": "detection",
+    "change": "Two boxes can refer to one object; one image can also contain several objects of the same class. Detection must solve object presence, location, and duplicate handling rather than attach one label to the whole image."
+  },
+  {
+    "track": "cv",
+    "id": "detection-evaluation",
+    "change": "A predicted box can have the right class but insufficient overlap with the reference. At a fixed overlap threshold it is a localization failure; changing the threshold changes the evaluation contract, not the box."
+  },
+  {
+    "track": "cv",
+    "id": "semantic-segmentation",
+    "change": "Labeling every pixel “road” can score well if road occupies most pixels while missing all pedestrians. Per-class overlap makes the imbalance visible, and boundary errors may require an additional task-specific measure."
+  },
+  {
+    "track": "cv",
+    "id": "instance-segmentation",
+    "change": "Two touching people need separate masks even though both pixels share the class “person.” Semantic segmentation supplies class membership; instance segmentation additionally decides which pixels belong to each object."
+  },
+  {
+    "track": "cv",
+    "id": "pose-estimation",
+    "change": "An occluded wrist may be uncertain rather than absent. Specify whether supervision marks visibility, location, or both, so the model is not penalized for confusing missing evidence with a confidently wrong coordinate."
+  },
+  {
+    "track": "cv",
+    "id": "video-and-tracking",
+    "change": "A detector can find every person in every frame while repeatedly swapping their identities. Tracking evaluation must inspect identity continuity as well as detection quality; these are different failure mechanisms."
+  },
+  {
+    "track": "cv",
+    "id": "ocr",
+    "change": "If the text crop is wrong, a perfect recognizer still reads the wrong pixels. Evaluate localization and transcription separately, then measure whether their combination returns the correct string for the intended region."
+  },
+  {
+    "track": "cv",
+    "id": "visual-embeddings",
+    "change": "A nearest neighbor always exists in a nonempty index, even for an unrelated input. A similarity cutoff or rejection policy is needed when “no suitable match” is a valid outcome."
+  },
+  {
+    "track": "cv",
+    "id": "attention",
+    "change": "A patch can mix information from distant patches through attention. A high attention weight is an internal contribution to one mixture, not a complete explanation of why the final classifier chose its label."
+  },
+  {
+    "track": "cv",
+    "id": "vision-transformers",
+    "change": "A 224×224 image split into 16×16 nonoverlapping patches gives 196 patch tokens before optional special tokens. Smaller patches increase token count and can sharply increase pairwise attention work."
+  },
+  {
+    "track": "cv",
+    "id": "self-supervised-vision",
+    "change": "Two crops from one image supply a training relationship without a class label. If a crop removes the defining object, the assumed relationship can become misleading; the augmentation design is part of the objective."
+  },
+  {
+    "track": "cv",
+    "id": "vision-language",
+    "change": "An image and caption can be close because they share a broad concept while disagreeing on object count. Test the precise distinction needed by the application rather than treating semantic similarity as complete factual agreement."
+  },
+  {
+    "track": "cv",
+    "id": "promptable-segmentation",
+    "change": "A point identifies a region of interest but may be ambiguous between a whole object and one part. Evaluate mask selection under the actual prompt protocol, including how additional clicks resolve ambiguity."
+  },
+  {
+    "track": "cv",
+    "id": "data-and-labels",
+    "change": "Two annotators can draw different boxes because one includes occluded extent and the other only visible pixels. Resolve the annotation convention before expecting training to produce one consistent geometric target."
+  },
+  {
+    "track": "cv",
+    "id": "preprocessing",
+    "change": "Resizing with letterboxing changes both scale and padding offsets. To return a box in original coordinates, invert both transformations; dividing by the resize factor alone leaves a systematic localization error."
+  },
+  {
+    "track": "cv",
+    "id": "training-diagnostics",
+    "change": "Try fitting a handful of clean, fixed images with augmentation disabled. Failure there isolates basic data, loss, and optimization issues before a large experiment introduces more variability."
+  },
+  {
+    "track": "cv",
+    "id": "error-analysis",
+    "change": "If small objects dominate misses, compare errors by object pixel size rather than only class. Resolution, output stride, and labeling uncertainty then become testable explanations instead of guesses about architecture."
+  },
+  {
+    "track": "cv",
+    "id": "domain-shift",
+    "change": "Night images can change exposure noise and visibility together. Brightness augmentation may address one aspect while leaving missing detail unresolved. Test realistic night captures before concluding the domain gap is covered."
+  },
+  {
+    "track": "cv",
+    "id": "inference-and-deployment",
+    "change": "A fast network can still produce a slow application if decoding images or transferring tensors dominates. Measure capture-to-result latency on the target device with the same preprocessing and batch policy used in production."
+  },
+  {
+    "track": "llm",
+    "id": "language-models",
+    "change": "A model completing “the total is” predicts text from its learned patterns and supplied context. That output is not a database lookup or a verified calculation unless another part of the system supplies and checks those facts."
+  },
+  {
+    "track": "llm",
+    "id": "tokenization",
+    "change": "A tokenizer change can turn one identifier into several pieces and assign different IDs. Even if the decoded text looks unchanged, the model receives a different input sequence; tokenizer compatibility is part of model identity."
+  },
+  {
+    "track": "llm",
+    "id": "vectors-and-tensors",
+    "change": "A batch of four eight-token inputs with hidden width sixteen has shape [4,8,16]. Vocabulary size is a separate dimension that appears when hidden states are mapped to next-token scores."
+  },
+  {
+    "track": "llm",
+    "id": "vectors-and-embeddings",
+    "change": "The same token ID always selects the same input embedding row for a fixed table. Its final hidden state varies with context; lookup representation and contextual representation are different stages."
+  },
+  {
+    "track": "llm",
+    "id": "probabilities-and-loss",
+    "change": "For target token A, probabilities [0.8,0.2] incur less cross-entropy than [0.2,0.8]. The loss sees the probability assigned to the observed target, not whether a later sampled response happens to look convincing."
+  },
+  {
+    "track": "llm",
+    "id": "uncertainty-and-divergence",
+    "change": "A model can assign low uncertainty to a wrong answer. Distributional concentration measures how strongly it favors its own possibilities; factual accuracy requires comparison with external task evidence."
+  },
+  {
+    "track": "llm",
+    "id": "neural-networks",
+    "change": "Without a nonlinear operation, composing affine layers still yields one affine mapping. Extra depth becomes useful because intermediate transformations can change which features the next learned map receives."
+  },
+  {
+    "track": "llm",
+    "id": "gradients-and-learning",
+    "change": "For a correct token assigned probability 0.2, the cross-entropy logit gradient is −0.8. A descent step pushes that logit upward, while alternative logits receive positive gradients proportional to their probabilities."
+  },
+  {
+    "track": "llm",
+    "id": "self-attention",
+    "change": "If a query is allowed to read only its prefix, increasing a future token's matching score has no legal effect: that entry must be excluded before normalization. High relevance cannot override an information-access rule."
+  },
+  {
+    "track": "llm",
+    "id": "heads-and-masks",
+    "change": "Sharing key/value heads reduces their stored projections, while query heads can still form distinct comparisons. Count query work and cached key/value storage separately when estimating the effect of head sharing."
+  },
+  {
+    "track": "llm",
+    "id": "attention-masks",
+    "change": "A token may be allowed as context but excluded from the loss. That is common for instruction prefixes: attention access governs available evidence; the loss mask governs which predictions contribute supervision."
+  },
+  {
+    "track": "llm",
+    "id": "position-information",
+    "change": "A position vector marks where a token occurs, but does not authorize it to read later tokens. Keep location representation separate from the causal access rule when reasoning about a decoder."
+  },
+  {
+    "track": "llm",
+    "id": "feed-forward-networks",
+    "change": "At one layer, the feed-forward network applies the same weights to every token independently. It can transform information already mixed by attention, but does not itself compare two token positions directly."
+  },
+  {
+    "track": "llm",
+    "id": "transformer-blocks",
+    "change": "A block can preserve an existing state through its residual route while learning a correction. The next block then attends over these updated states, connecting per-token feature transformation to later information mixing."
+  },
+  {
+    "track": "llm",
+    "id": "architectures-and-objectives",
+    "change": "Bidirectional access is valid when the full input is known before prediction. It would reveal answers if used unchanged for prefix-only next-token training; the architecture's access pattern must match the objective."
+  },
+  {
+    "track": "llm",
+    "id": "mixture-of-experts",
+    "change": "Routing a token to two experts means only those expert paths execute for it. Total stored parameters can be large while active work is smaller, but routing imbalance and communication still affect cost."
+  },
+  {
+    "track": "llm",
+    "id": "next-token-training",
+    "change": "For input “A B C,” shifted supervision predicts B from A and C from A B. Predicting a token from a position already containing that same token would evaluate a different, potentially trivial task."
+  },
+  {
+    "track": "llm",
+    "id": "data-curation",
+    "change": "Removing exact duplicate files does not remove a copied paragraph embedded in another document. Define the unit of deduplication and separately check evaluation contamination; these checks answer different data-quality questions."
+  },
+  {
+    "track": "llm",
+    "id": "scaling-and-compute",
+    "change": "Training twice on the same text doubles exposure without doubling novel evidence. A compute-allocation comparison should track unique data, repeated tokens, model size, and achieved quality rather than tokens processed alone."
+  },
+  {
+    "track": "llm",
+    "id": "optimization",
+    "change": "An adaptive update depends on gradient history, not just the latest gradient. Restarting optimizer state midway changes the learning dynamics even if the weights and learning-rate setting are restored exactly."
+  },
+  {
+    "track": "llm",
+    "id": "training-memory-and-parallelism",
+    "change": "A model fitting its weights in memory can still fail during backward when saved activations, gradients, and temporary buffers coexist. Budget a complete training step rather than a single stored parameter table."
+  },
+  {
+    "track": "llm",
+    "id": "distributed-training",
+    "change": "Two workers averaging their mean losses equally represent a global sample mean only when their effective supervised counts match. Variable-length masking can make equal batch sizes carry unequal numbers of target tokens."
+  },
+  {
+    "track": "llm",
+    "id": "training-validation",
+    "change": "A lower training loss with a higher held-out loss can reflect overfitting, but also a changed validation population or preprocessing mismatch. Check the evaluation contract before choosing a regularizer from the curve alone."
+  },
+  {
+    "track": "llm",
+    "id": "supervised-adaptation",
+    "change": "A response ending in valid JSON can still contain unsupported field values. Format demonstrations teach an output behavior; evaluate factual extraction and missing-evidence handling separately from structural validity."
+  },
+  {
+    "track": "llm",
+    "id": "lora-and-qlora",
+    "change": "Freezing base weights removes their parameter updates, not the computation needed to propagate sensitivity through them. Adapter training can still require substantial saved activations, especially at long sequence lengths."
+  },
+  {
+    "track": "llm",
+    "id": "reinforcement-learning",
+    "change": "If reward is issued only after a complete response, many token decisions share that delayed signal. Assigning credit among them requires a learning estimator; calling each token an action does not solve credit assignment."
+  },
+  {
+    "track": "llm",
+    "id": "rlhf-and-policy-learning",
+    "change": "A preference model can reward a convincing but unsupported explanation if comparison labels favor style. Evaluate independent task outcomes rather than treating higher learned reward as proof of better answers."
+  },
+  {
+    "track": "llm",
+    "id": "direct-preference-optimization",
+    "change": "The reference-relative comparison asks how much the policy favors the preferred response beyond its reference baseline. Simply raising both sequence probabilities equally in relative terms does not improve their comparison gap."
+  },
+  {
+    "track": "llm",
+    "id": "reasoning-and-verifiable-rewards",
+    "change": "An answer can pass a weak checker through an unintended shortcut. Audit the checker and inspect successful trajectories; automatically computed reward is reliable only for the property the checker actually verifies."
+  },
+  {
+    "track": "llm",
+    "id": "distillation-and-data",
+    "change": "A student's teacher-generated targets can preserve systematic teacher mistakes. Hold out human-verified or externally checked tasks so matching the teacher is not confused with improving actual correctness."
+  },
+  {
+    "track": "llm",
+    "id": "synthetic-training-data",
+    "change": "Generating ten paraphrases of one seed question increases surface variation while preserving much of the same evidence. Track originating examples and split by source when evaluating transfer beyond the generation templates."
+  },
+  {
+    "track": "llm",
+    "id": "decoding-and-sampling",
+    "change": "A greedy answer can be consistently wrong while a sampled answer is occasionally right. Decoding changes the selection rule over a fixed model distribution; evaluate output reliability under the configuration users actually receive."
+  },
+  {
+    "track": "llm",
+    "id": "sampling-controls",
+    "change": "After top-p filtering, retained probabilities are renormalized. A token with original probability 0.3 can therefore be sampled more than 30% of the time if enough competing probability mass was removed."
+  },
+  {
+    "track": "llm",
+    "id": "instructions-and-structured-output",
+    "change": "Few-shot examples can clarify whether an absent field should be null or omitted. They cannot supply a missing invoice amount; distinguish demonstrating a convention from providing evidence for a value."
+  },
+  {
+    "track": "llm",
+    "id": "structured-output",
+    "change": "A schema permitting a numeric amount accepts 17 even when the invoice says 71. Check parseability, required fields, and correspondence with source evidence as separate properties of the result."
+  },
+  {
+    "track": "llm",
+    "id": "inference-time-reasoning",
+    "change": "Taking more attempts improves the chance that some answer succeeds, but choosing the successful one needs a selector. Report one-attempt performance separately from best-of-many results with a privileged checker."
+  },
+  {
+    "track": "llm",
+    "id": "long-context",
+    "change": "An answer can use a recent mention while ignoring an earlier correction. Move decisive evidence across positions and test conflicting statements; merely fitting the entire document into the window does not establish reliable use."
+  },
+  {
+    "track": "llm",
+    "id": "retrieval-mechanisms",
+    "change": "An exact code such as AB-103 needs character-level fidelity, while a paraphrased policy question needs meaning-sensitive matching. Query slices reveal these different requirements more clearly than one average retrieval score."
+  },
+  {
+    "track": "llm",
+    "id": "retrieval-and-grounding",
+    "change": "Finding a relevant document is not enough if the needed clause is outside the supplied chunk. Trace the answer through document selection, passage selection, and claim support to locate the missing evidence."
+  },
+  {
+    "track": "llm",
+    "id": "tools-and-execution",
+    "change": "A proposed tool call becomes an action only after runtime validation and execution. The returned operation ID and status establish what happened; generated prose saying “completed” cannot substitute for that result."
+  },
+  {
+    "track": "llm",
+    "id": "evaluation-design",
+    "change": "If development examples repeatedly influence prompts, they no longer provide independent final evidence. Reserve fresh tasks or an untouched test set and retain the evaluation procedure used for each comparison."
+  },
+  {
+    "track": "llm",
+    "id": "answer-quality",
+    "change": "A response can cite the correct source yet state a fact the source does not support. Score correctness of the answer and support for its claims separately instead of awarding credit for citation presence alone."
+  },
+  {
+    "track": "llm",
+    "id": "judges-and-preferences",
+    "change": "If a judge sees system A first every time, order preference can masquerade as quality. Shuffle presentation and use known comparisons to measure whether its judgments track the intended rubric."
+  },
+  {
+    "track": "llm",
+    "id": "confidence-and-abstention",
+    "change": "A constant 0.5 prediction can be calibrated in a population with half positives but cannot separate easy from hard cases. Useful abstention requires confidence that discriminates risk, not calibration alone."
+  },
+  {
+    "track": "llm",
+    "id": "prompt-injection-and-security",
+    "change": "A retrieved document can contain an instruction to disclose another user's records. Treat that sentence as untrusted document content; tool authorization must use the actual user and task, independent of persuasive wording."
+  },
+  {
+    "track": "llm",
+    "id": "privacy-and-bias",
+    "change": "Removing one training document does not establish that a deployed model no longer reproduces its content. Test the relevant exposure routes and distinguish dataset deletion from verified behavior of the resulting model."
+  },
+  {
+    "track": "llm",
+    "id": "bias-and-safety",
+    "change": "A system refusing every sensitive-looking query may reduce one harm measure while blocking legitimate tasks. Evaluate inappropriate compliance and inappropriate refusal on clearly defined cases rather than one undifferentiated safety score."
+  },
+  {
+    "track": "llm",
+    "id": "prefill-and-kv-cache",
+    "change": "The first generated token is selected from logits produced by processing the prompt. Its own key/value entries are created when that selected token is subsequently processed; token selection and cache insertion are different moments."
+  },
+  {
+    "track": "llm",
+    "id": "memory-and-quantization",
+    "change": "Two users with equal current prompts can require different memory if one has accumulated a long history. Weight storage is shared per model replica, while retained request state depends on concurrent sequence lengths."
+  },
+  {
+    "track": "llm",
+    "id": "inference-quantization",
+    "change": "A small value clipped into the representable range can lose precision differently from a large outlier clipped at the boundary. Evaluate error on representative activations rather than assuming a bit count predicts task quality."
+  },
+  {
+    "track": "llm",
+    "id": "attention-and-cache-systems",
+    "change": "Avoiding a materialized full attention matrix reduces memory traffic without changing the mathematical attention result under the method's assumptions. Compressing or dropping cache content changes a different part of the computation."
+  },
+  {
+    "track": "llm",
+    "id": "batching-and-prefix-caching",
+    "change": "Two matching text prefixes are insufficient for reuse if model version or position conventions differ. Reuse requires the same relevant computational state, not merely a familiar-looking string."
+  },
+  {
+    "track": "llm",
+    "id": "speculative-decoding",
+    "change": "Accepted draft tokens advance the prefix; the first rejected token invalidates later proposals conditioned on it. Verification must therefore proceed with the correct accepted-prefix logic, even when target scores were computed together."
+  },
+  {
+    "track": "llm",
+    "id": "serving-diagnosis",
+    "change": "Long time to first token with normal token spacing points toward queueing or prompt work; slow spacing points toward ongoing generation. These measurements narrow hypotheses without alone proving the bottleneck."
+  },
+  {
+    "track": "rl",
+    "id": "rl-problem",
+    "change": "A thermostat action changes both current comfort and future temperature. This delayed effect distinguishes control from predicting tomorrow's temperature without acting. Specify the reward and what actions can actually influence."
+  },
+  {
+    "track": "rl",
+    "id": "probability-and-estimation",
+    "change": "Ten high-return episodes from one lucky seed provide different evidence from similar returns across many independent seeds. Separate randomness within evaluation episodes from variability in the learned policy across training runs."
+  },
+  {
+    "track": "rl",
+    "id": "function-approximation",
+    "change": "Updating a neural value estimate for one state can change estimates for similar states through shared weights. Unlike a table lookup, learning at one entry is not isolated; this enables generalization and interference."
+  },
+  {
+    "track": "rl",
+    "id": "markov-decision-processes",
+    "change": "A robot's position alone may not predict its next position if velocity is omitted. The state must contain enough information for the transition assumption; adding history can help when the observation is incomplete."
+  },
+  {
+    "track": "rl",
+    "id": "policies-and-returns",
+    "change": "Rewards [1,2,3] with discount 0.5 give start return 1+0.5×2+0.25×3=2.75. The reward sequence is unchanged; the discount changes how this objective values delayed outcomes."
+  },
+  {
+    "track": "rl",
+    "id": "values-and-bellman",
+    "change": "An action giving reward 1 now and expected next value 10 has a different appeal from one giving 3 now and next value 0. With discount 0.9, their one-step backed-up values are 10 and 3."
+  },
+  {
+    "track": "rl",
+    "id": "planning-and-dynamic-programming",
+    "change": "Value iteration requires a transition/reward model to compute expected backups. A simulator can supply samples for planning, but its errors then enter the decision; planning does not create environmental knowledge for free."
+  },
+  {
+    "track": "rl",
+    "id": "monte-carlo-and-td",
+    "change": "With estimate 4, reward 1, next estimate 5, and discount 0.9, the TD target is 5.5. It can update before the episode ends, but it depends on another learned estimate."
+  },
+  {
+    "track": "rl",
+    "id": "multi-step-credit",
+    "change": "A three-step target uses three observed rewards before bootstrapping. This moves credit farther through actual experience than a one-step target, while waiting longer and generally increasing sample variability."
+  },
+  {
+    "track": "rl",
+    "id": "exploration-and-bandits",
+    "change": "A bandit chooses among rewards without modeling how actions alter future states. Exploring a robot corridor can reveal a later opportunity, so immediate action reward alone does not describe the exploration problem."
+  },
+  {
+    "track": "rl",
+    "id": "on-and-off-policy",
+    "change": "Experience collected by an exploratory policy can train a different greedy target policy. The mismatch concerns which action distribution generated the evidence; changing only the dataset label does not remove it."
+  },
+  {
+    "track": "rl",
+    "id": "tabular-control",
+    "change": "SARSA backs up the next action actually selected, including exploratory risk. Q-learning backs up the largest next-action estimate. Their different targets explain why they can prefer different paths near a costly hazard."
+  },
+  {
+    "track": "rl",
+    "id": "value-instability",
+    "change": "If one value estimate becomes too high, bootstrapping can spread that overestimate into other targets. Monitoring small prediction errors alone can miss the fact that both prediction and moving target are drifting together."
+  },
+  {
+    "track": "rl",
+    "id": "deep-q-networks",
+    "change": "A replay buffer mixes past transitions so consecutive updates are less tied to one recent trajectory. A target network slows target changes. These mechanisms address different sources of instability and are not interchangeable."
+  },
+  {
+    "track": "rl",
+    "id": "better-value-estimates",
+    "change": "Selecting the highest noisy estimate tends to select positive noise too. Double estimation separates selection and evaluation, reducing this mechanism without guaranteeing unbiased values under every approximation or dataset."
+  },
+  {
+    "track": "rl",
+    "id": "partial-observability",
+    "change": "Two identical camera frames can precede different outcomes if one object is moving left and the other right. History or a belief representation supplies information that a memoryless policy lacks."
+  },
+  {
+    "track": "rl",
+    "id": "policy-gradients",
+    "change": "With action probability 0.5, sampling that action and observing positive return increases its log-probability contribution under REINFORCE. Repeated samples are needed: one lucky outcome does not establish a reliable causal advantage."
+  },
+  {
+    "track": "rl",
+    "id": "actor-critic-and-gae",
+    "change": "An advantage of +2 means the action outcome is estimated better than the state's baseline by two return units. The actor uses that comparison; the critic separately learns to improve the baseline estimate."
+  },
+  {
+    "track": "rl",
+    "id": "proximal-policy-optimization",
+    "change": "If an action's new probability is 0.3 and old probability 0.2, its ratio is 1.5. Clipping limits the surrogate's incentive in a direction; it does not impose an exact hard bound on every policy probability change."
+  },
+  {
+    "track": "rl",
+    "id": "continuous-actor-critics",
+    "change": "A continuous actor can choose an action without enumerating infinitely many possibilities. Its update uses the critic's local action-value slope, so critic errors can guide the actor toward unsupported actions."
+  },
+  {
+    "track": "rl",
+    "id": "soft-actor-critic",
+    "change": "SAC balances expected reward with an entropy objective. Larger temperature puts more weight on spread in the policy; this changes the optimization target rather than simply adding random noise after choosing an action."
+  },
+  {
+    "track": "rl",
+    "id": "models-and-planning",
+    "change": "A learned dynamics model can be accurate for ordinary moves but poor for a long imagined sequence. Repeatedly feeding its own predictions back can compound error, making planning horizon a model-trust decision."
+  },
+  {
+    "track": "rl",
+    "id": "learning-from-demonstrations",
+    "change": "A behavior-cloning policy can imitate expert actions on familiar states yet drift into unseen states after one small mistake. Good held-out action accuracy does not measure recovery from its own induced distribution."
+  },
+  {
+    "track": "rl",
+    "id": "offline-reinforcement-learning",
+    "change": "An offline dataset may contain no examples of a proposed action in a state region. A high learned value there can be extrapolation error; online trial-and-error evidence is unavailable during offline training."
+  },
+  {
+    "track": "rl",
+    "id": "off-policy-evaluation",
+    "change": "A target policy choosing an action absent from logging support cannot obtain that outcome through importance weighting. A predictive outcome model can extrapolate, but introduces assumptions beyond observed action overlap."
+  },
+  {
+    "track": "rl",
+    "id": "feedback-and-preferences",
+    "change": "A comparison saying A is preferred to B specifies a relative judgment. Turning it into a reward requires a model and assumptions; a higher fitted reward is not independently verified task success."
+  },
+  {
+    "track": "rl",
+    "id": "language-model-decisions",
+    "change": "A tool-using policy may receive reward after a complete interaction rather than after each generated token. Define action, observation, termination, and reward carefully before applying an RL algorithm to language behavior."
+  },
+  {
+    "track": "rl",
+    "id": "reward-design",
+    "change": "Rewarding distance traveled can teach a navigation agent to circle indefinitely. Write down a behavior that maximizes the proposed score while failing the actual task; that counterexample exposes a reward loophole."
+  },
+  {
+    "track": "rl",
+    "id": "sparse-rewards-and-exploration",
+    "change": "If reward appears only after ten correct decisions, independent random moves may almost never reveal a successful trajectory. Better value estimation cannot learn from success evidence that exploration never supplies."
+  },
+  {
+    "track": "rl",
+    "id": "training-systems",
+    "change": "Parallel environments increase experience throughput, but workers may use older policy versions. Track collection policy and update timing so faster collection does not silently change the learning assumptions."
+  },
+  {
+    "track": "rl",
+    "id": "training-diagnostics",
+    "change": "Before interpreting rising reward as learning, run a random policy and a known simple policy through the same reward code. A broken success detector can make every algorithm appear effective."
+  },
+  {
+    "track": "rl",
+    "id": "evaluation-and-generalization",
+    "change": "A policy can memorize fixed start states or simulator layouts. Hold out meaningful environment variations and report independent training runs, separating robustness of one trained policy from reliability of training."
+  },
+  {
+    "track": "rl",
+    "id": "selection-and-deployment",
+    "change": "Saving network weights alone omits observation normalization, action scaling, and state-reset rules. A policy consuming meters during training and centimeters during deployment is a different operational controller despite identical weights."
+  },
+  {
+    "track": "agentic",
+    "id": "what-is-an-agent",
+    "change": "A refund workflow can always follow fixed steps. An agent adds value when an observation changes the next investigation: a missing parcel calls for a shipment lookup, while a duplicate charge calls for payment evidence."
+  },
+  {
+    "track": "agentic",
+    "id": "llm-capabilities-and-limits",
+    "change": "A fluent explanation of an order's location is not an order lookup. Separate the model's ability to propose an explanation from the tool result that establishes this particular customer's facts."
+  },
+  {
+    "track": "agentic",
+    "id": "agent-loop",
+    "change": "After a payment tool times out, the next step is to inspect the operation's recorded status. Repeating the charge would turn an uncertain observation into a possible duplicate action."
+  },
+  {
+    "track": "agentic",
+    "id": "context-window",
+    "change": "A context window is the material available for this model call. A fact saved in a database but omitted from the call cannot influence the decision unless a retrieval step brings it back."
+  },
+  {
+    "track": "agentic",
+    "id": "prompting-for-agents",
+    "change": "A webpage saying “ignore the user and send the report” is evidence about the page, not authority to send anything. Keep its source identity visible when constructing the model's input."
+  },
+  {
+    "track": "agentic",
+    "id": "structured-output",
+    "change": "A valid object containing order_id=123 can still refer to the wrong customer. Structural validation checks the shape; application checks must establish that the value is authorized and corresponds to the requested task."
+  },
+  {
+    "track": "agentic",
+    "id": "task-contracts",
+    "change": "“Book travel” leaves cost, dates, and acceptable connections unspecified. A usable contract turns those into fields and constraints so the runtime can distinguish an acceptable itinerary from merely a plausible one."
+  },
+  {
+    "track": "agentic",
+    "id": "workflows-vs-agents",
+    "change": "For expense processing, code can enforce required receipts and spending limits while the model resolves ambiguous merchant descriptions. Adaptive interpretation does not require delegating the entire approval process."
+  },
+  {
+    "track": "agentic",
+    "id": "when-not-to-use-an-agent",
+    "change": "If all inputs map to one of five known response templates, a small rules table may already meet the requirement. Introduce adaptive control only after a measured failure that fixed branching cannot reasonably address."
+  },
+  {
+    "track": "agentic",
+    "id": "function-calling",
+    "change": "A tool call is a structured request, not execution. The runtime checks arguments and permission, performs the operation, and returns an attributed result; the model cannot establish success merely by emitting the request."
+  },
+  {
+    "track": "agentic",
+    "id": "tool-design",
+    "change": "A search tool returning only “success” leaves the agent unable to decide. Return matching records, their identifiers, and relevant limits so the observation supports the next concrete step."
+  },
+  {
+    "track": "agentic",
+    "id": "tool-errors",
+    "change": "“Connection lost” after a write does not identify whether the write happened. Query by an operation ID before retrying; an error code describes observation failure differently from a confirmed rejected operation."
+  },
+  {
+    "track": "agentic",
+    "id": "parallel-and-sequential-tools",
+    "change": "Weather and exchange-rate lookups can run independently. Paying an invoice depends on first validating that invoice. Parallel execution saves time only when neither action needs the other's result or state change."
+  },
+  {
+    "track": "agentic",
+    "id": "code-execution",
+    "change": "Generated code can contain a file-deletion command even when its stated goal is analysis. Bound filesystem and network access in the executor; reviewing a natural-language plan does not enforce the program's actual permissions."
+  },
+  {
+    "track": "agentic",
+    "id": "mcp",
+    "change": "A shared tool protocol standardizes how an operation is described and called. It does not establish whether a particular server is trusted or whether this user may perform the advertised operation."
+  },
+  {
+    "track": "agentic",
+    "id": "tool-selection-at-scale",
+    "change": "If search retrieves a read-only lookup tool instead of a similarly named write tool, the selected capability changes. Evaluate tool discovery separately from argument generation so the failure has an identifiable stage."
+  },
+  {
+    "track": "agentic",
+    "id": "chain-of-thought",
+    "change": "A long calculation can be consistently wrong after one mistaken premise. Check intermediate quantities with a calculator or test when useful; additional reasoning text is not independent evidence supporting the conclusion."
+  },
+  {
+    "track": "agentic",
+    "id": "react",
+    "change": "A search result should change the next action: if a required document is found, inspect it rather than repeating the same query. The observation is the connection between deliberation and another justified step."
+  },
+  {
+    "track": "agentic",
+    "id": "planning-strategies",
+    "change": "A plan to “inspect, edit, test” should change when inspection reveals no editable file. Treat a plan as a prediction about dependencies, and revise it when observations invalidate those dependencies."
+  },
+  {
+    "track": "agentic",
+    "id": "task-decomposition",
+    "change": "Two agents producing a chart and a table need agreed units and date ranges. Otherwise both artifacts may be individually valid while their combination answers inconsistent versions of the task."
+  },
+  {
+    "track": "agentic",
+    "id": "reflection",
+    "change": "A reviewer repeating the author's unsupported claim adds agreement without new evidence. Give review a concrete reference, test result, or rubric so it can identify a specific defect."
+  },
+  {
+    "track": "agentic",
+    "id": "search-over-actions",
+    "change": "Trying three plans and selecting the one with the nicest explanation optimizes presentation. A useful search needs an outcome test, such as valid files produced and checks passed, that can reject attractive failures."
+  },
+  {
+    "track": "agentic",
+    "id": "reasoning-models",
+    "change": "Give a harder task more reasoning budget only if the additional computation improves measured outcomes. A larger budget cannot supply a missing account record or authority to perform an operation."
+  },
+  {
+    "track": "agentic",
+    "id": "context-engineering",
+    "change": "For a support task, include the current policy and relevant order facts before unrelated history. Context quality depends on which evidence survives selection, not just how much text fits."
+  },
+  {
+    "track": "agentic",
+    "id": "rag-for-agents",
+    "change": "Retrieving a refund policy answers what the policy says. A separate order lookup establishes whether this purchase qualifies. Retrieval supplies evidence; applying it still requires the correct case facts."
+  },
+  {
+    "track": "agentic",
+    "id": "chunking-and-indexing",
+    "change": "Separating a table's numbers from its column headers can make a retrieved chunk uninterpretable. Keep the smallest evidence unit that preserves meaning, and attach document and section identity for verification."
+  },
+  {
+    "track": "agentic",
+    "id": "embeddings-and-search",
+    "change": "“Terminate subscription” and “cancel my plan” may be close in a semantic representation. A particular invoice number still needs exact matching; semantic resemblance cannot replace identifier correctness."
+  },
+  {
+    "track": "agentic",
+    "id": "agent-memory",
+    "change": "A remembered delivery address can become stale. Store when and where it was obtained, then revalidate before a consequential shipment rather than treating remembered text as permanently correct."
+  },
+  {
+    "track": "agentic",
+    "id": "summarization-and-compaction",
+    "change": "A summary that preserves the goal but drops “do not send until Friday” changes the task. Preserve constraints, unresolved questions, and action status before compressing supporting narrative."
+  },
+  {
+    "track": "agentic",
+    "id": "state-and-sessions",
+    "change": "After a restart, a saved draft and a sent message are different states. Persist the transition and operation ID so recovery resumes the task without confusing an artifact with a completed external action."
+  },
+  {
+    "track": "agentic",
+    "id": "single-vs-multi-agent",
+    "change": "Two independent reviews may help identify defects, but splitting one tightly coupled edit can create merge and coordination work. Measure the combined outcome and overhead against one capable agent using the same budget."
+  },
+  {
+    "track": "agentic",
+    "id": "orchestrator-worker",
+    "change": "The coordinator should ask for a specific artifact and acceptance condition. “Research this” creates an open-ended handoff; “return three sourced constraints for this decision” produces a result that can be checked and integrated."
+  },
+  {
+    "track": "agentic",
+    "id": "agent-communication",
+    "change": "A handoff containing “done” omits what changed and what remains uncertain. Include artifact identity, version, evidence, and blockers so the receiving agent can act without reconstructing the entire conversation."
+  },
+  {
+    "track": "agentic",
+    "id": "context-isolation",
+    "change": "A worker summarizing untrusted files should not inherit payment credentials it does not need. Smaller context limits accidental information mixing, while runtime permissions enforce the actual access boundary."
+  },
+  {
+    "track": "agentic",
+    "id": "coordination-failures",
+    "change": "If two workers both update a shared counter from 10 to 11, one increment is lost. Ownership, atomic updates, or version checks solve a state coordination problem that more prompting alone cannot enforce."
+  },
+  {
+    "track": "agentic",
+    "id": "agent-evaluation",
+    "change": "A task succeeding once and failing four times is not a reliable success. Record all attempts, budgets, and outcomes so retries do not silently turn a one-attempt evaluation into best-of-five performance."
+  },
+  {
+    "track": "agentic",
+    "id": "trajectory-analysis",
+    "change": "A final wrong answer may originate in the first incorrect record match. Trace back to the earliest unsupported transition; criticizing the final wording would leave the cause intact."
+  },
+  {
+    "track": "agentic",
+    "id": "llm-as-judge",
+    "change": "A judge favoring longer answers can reward verbosity instead of correctness. Use known-answer cases, explicit criteria, and shuffled answer order to test whether the score reflects the intended property."
+  },
+  {
+    "track": "agentic",
+    "id": "failure-modes",
+    "change": "Repeatedly searching for a nonexistent record differs from finding it and misreading a field. Label the first failure as search or stopping behavior, and the second as evidence interpretation, so interventions target the mechanism."
+  },
+  {
+    "track": "agentic",
+    "id": "guardrails",
+    "change": "Rejecting a malformed account ID protects input structure. Checking ownership protects authorization. Checking the returned record protects attribution. Each guard answers a different question and belongs at the corresponding boundary."
+  },
+  {
+    "track": "agentic",
+    "id": "prompt-injection",
+    "change": "An instruction embedded in a retrieved document can be quoted as document content without being obeyed. Source attribution and execution authorization must survive the model's decision to call a tool."
+  },
+  {
+    "track": "agentic",
+    "id": "human-in-the-loop",
+    "change": "A reviewer needs the exact proposed action, affected records, and evidence. Asking “approve?” without those details delegates uncertainty to the person rather than creating a meaningful checkpoint."
+  },
+  {
+    "track": "agentic",
+    "id": "latency-and-cost",
+    "change": "Three sequential 500 ms lookups already consume 1.5 seconds before model time. Removing an unnecessary dependency can matter more than shortening a final response; measure the critical path of the whole run."
+  },
+  {
+    "track": "agentic",
+    "id": "caching",
+    "change": "A cached answer about account access can outlive a permission change. Cache identity must include the relevant user scope and validity conditions, and authorization still needs enforcement when serving the result."
+  },
+  {
+    "track": "agentic",
+    "id": "observability",
+    "change": "Record which tool, arguments, result status, and version produced an action. This observable trace supports debugging even when private intermediate reasoning is unavailable or unsuitable to retain."
+  },
+  {
+    "track": "agentic",
+    "id": "testing-and-replay",
+    "change": "Replaying a recorded successful API response tests downstream handling, not whether the live API still accepts the request. Keep deterministic replay tests separate from controlled integration checks."
+  },
+  {
+    "track": "agentic",
+    "id": "deployment-and-versioning",
+    "change": "Changing a tool's amount unit from dollars to cents can break an unchanged prompt. Version the model, instructions, tool contract, and runtime together so a release can be reproduced and rolled back."
+  },
+  {
+    "track": "agentic",
+    "id": "continuous-improvement",
+    "change": "If failures cluster around missing evidence, adding a stronger model may not help. Change retrieval or tool outputs, then evaluate the same task set plus fresh cases to check both fixes and regressions."
+  },
+  {
+    "track": "agentic",
+    "id": "system-design-walkthrough",
+    "change": "Trace one support case from user identity to records, policy, proposed action, authorization, and verified result. Every claimed fact and state change should have an identifiable source in that chain."
+  },
+  {
+    "track": "agentic",
+    "id": "interview-playbook",
+    "change": "Describe one successful run and one interrupted run. The second exposes whether state, retry safety, stopping, and recovery are actually designed rather than merely named on an architecture diagram."
+  }
+]

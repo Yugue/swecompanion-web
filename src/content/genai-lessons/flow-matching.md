@@ -45,3 +45,5 @@ The families have mathematical connections. Neither name alone specifies archite
 Straight training interpolations do not guarantee straight trajectories under the learned aggregate field. Finite model capacity and coarse integration create error.
 
 One very large Euler step can fail even if training loss is low. Evaluate sample quality and condition adherence at the chosen solver budget.
+
+A learned velocity field specifies how a state should move along a path. A numerical solver follows that field in finite steps, so output quality depends on both the learned dynamics and integration error.

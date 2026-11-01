@@ -39,3 +39,5 @@ For continuous variables, probability belongs to intervals; a density value is n
 A **logarithm** turns multiplication into addition. Sequence log probability is the sum of conditional log probabilities, avoiding tiny floating-point products.
 
 **Likelihood** fixes the observed data and compares parameter choices by the probability they assign to it. Maximizing log likelihood is equivalent to maximizing likelihood. Formulas here use natural logarithms.
+
+A model can assign probability to several possible completions of one input. That uncertainty concerns outputs under its learned distribution; it does not by itself quantify whether the input facts are trustworthy.

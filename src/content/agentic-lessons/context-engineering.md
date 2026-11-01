@@ -57,7 +57,3 @@ A fetched policy and customer attachment are different kinds of evidence. Labels
 Measure required-evidence recall, tool availability, distractors, constraint retention, and headroom.
 
 If the fact never entered context, test retrieval/assembly before changing the model.
-
-## What matters most
-
-> Arrange the desk for the next decision, keeping the assignment and necessary evidence visible.

@@ -228,20 +228,3 @@ optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01)
 and dropout inside the model.
 
 ---
-
-## Mental model
-
-Dropout says:
-
-> **Don't let the network rely too heavily on any one activation path.**
-
-The important interview points are:
-
-- only active during training
-- randomly zeros activations
-- reduces co-adaptation and overfitting
-- typical \(p\) is around `0.1–0.5`
-- too much causes underfitting
-- inference uses the full network
-
-For Google depth, that is enough. Next should be **BatchNorm / LayerNorm / RMSNorm**.

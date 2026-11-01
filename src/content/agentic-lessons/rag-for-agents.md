@@ -52,7 +52,3 @@ A real citation can still be misinterpreted. Verify contradictory evidence and i
 Stop when required claims have adequate evidence, a definitive missing-data result appears, or the search budget ends.
 
 Return unresolved questions explicitly. Repeating near-identical searches is not completion.
-
-## What matters most
-
-> Search to close a named evidence gap, then reassess the gap.

@@ -38,3 +38,5 @@ An MoE model needs separate total-parameter, active-compute, and communication a
 Measure several model/data sizes, fit trends cautiously, and validate predicted gains with a larger run. Track token loss and downstream behavior separately.
 
 Scaling does not fix label leakage, missing evidence, or an incorrect objective. Resolve those before buying a larger training run.
+
+More image crops from one source increase processed examples without proportionally increasing source diversity. Compare compute, repeated exposure, and unique evidence when judging whether a larger training run adds useful knowledge.

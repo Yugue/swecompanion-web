@@ -52,8 +52,6 @@ A first hit at rank 3 contributes 1/3. Later useful results do not change it.
 
 Fix labels, candidate construction, gains, cutoff, and request/user weighting. A test with easy sampled distractors differs from full-catalogue retrieval.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Precision@4 is unchanged while NDCG@4 rises. What happened?
-
-**Answer:** The hit count stayed fixed, but useful items moved to positions with greater discounted gain.
+Lists [relevant,irrelevant] and [irrelevant,relevant] have equal precision@2. A position-sensitive measure favors the first. State whether the product cares about inclusion, order, graded usefulness, or all three.

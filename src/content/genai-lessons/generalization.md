@@ -43,3 +43,5 @@ Dropout is disabled during ordinary inference. Stronger regularization can worse
 A **baseline** is a simple reference evaluated under the same conditions. Compare its errors with the model’s, then inspect train/validation curves and examples before changing capacity.
 
 A single average can hide rare failures. Track important groups and difficult cases under the same data contract.
+
+A generator reproducing a training image exactly can score well on reconstruction while failing to create useful new examples. Evaluate held-out content and near-duplicate behavior under the task's intended use.

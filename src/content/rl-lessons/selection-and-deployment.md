@@ -70,3 +70,5 @@ train → evaluate independently → diagnose → stage deployment → monitor
 Track real completion, constraint violations, input shifts, action saturation, intervention rates, and latency. Learned Q-values and reward-model scores are internal diagnostics, not independent success evidence.
 
 Preserve data lineage when retraining. Changes to reward definitions, tools, sensors, or environment dynamics require renewed evaluation because they change the effective decision problem.
+
+Saving network weights alone omits observation normalization, action scaling, and state-reset rules. A policy consuming meters during training and centimeters during deployment is a different operational controller despite identical weights.

@@ -71,8 +71,6 @@ Keep **score, NMS-overlap, and evaluation-overlap thresholds** distinct.
 
 Choose using object sizes, crowding, labels, metrics, and full-pipeline latency.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Which detector for crowded scenes under a deadline?
-
-**Answer:** Measure a practical baseline’s crowded/small-object recall, localization, duplicates, and latency. Compare assignment/suppression failures before choosing another family.
+Two boxes can refer to one object; one image can also contain several objects of the same class. Detection must solve object presence, location, and duplicate handling rather than attach one label to the whole image.

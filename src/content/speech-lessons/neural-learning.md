@@ -72,3 +72,5 @@ Training mode enables behaviors such as dropout; evaluation mode changes those b
 | Training loss never falls | Wrong labels, scale, loss, learning rate, or masks? |
 | Training improves, validation worsens | Leakage-resistant split, overfitting, or shift? |
 | Both improve, product fails | Wrong objective, threshold, population, or pipeline? |
+
+A speech model's output frames may be fewer than input samples by several reduction stages. Check target lengths against the actual output grid before attributing an alignment or loss failure to model capacity.

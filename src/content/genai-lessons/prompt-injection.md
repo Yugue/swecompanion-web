@@ -39,3 +39,5 @@ Use controlled test data and restricted tools. An attack success rate needs an e
 Combine input handling, restricted tools, validation, output checks, and human approval for actions that require it under the product’s permission model.
 
 A stronger prompt or more instruction tuning can reduce failures, but neither replaces access control. Track false alarms as well as missed attacks.
+
+An instruction printed inside an image can be read as content without becoming authority to act. Preserve the distinction between evidence being interpreted and instructions issued by the actual user.

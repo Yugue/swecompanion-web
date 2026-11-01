@@ -44,3 +44,5 @@ RoPE preserves each pair’s length while changing orientation; query–key dot 
 Computing an encoding at position 20,000 does not establish useful reasoning at that distance.
 
 Training lengths, position rules, and retained evidence affect long-context behavior. Test tasks requiring the claimed relationship.
+
+Swapping two identical-looking patch or word vectors cannot reveal order without some position-sensitive structure. A location signal makes order available; training must still teach how that order affects the task.

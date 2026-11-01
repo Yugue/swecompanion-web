@@ -52,3 +52,5 @@ Shared key/value-head architectures change this estimate. Prefix length and conc
 Long-batch padding wastes work; truncation can remove decisive evidence. **Length bucketing** groups similar token lengths to reduce padding.
 
 Test evidence at different positions. An allowed context size does not establish reliable use of every token.
+
+Doubling token count quadruples the number of pairwise attention scores in ordinary full attention. Linear projections and per-position networks scale differently, so total runtime need not grow by exactly four.

@@ -54,3 +54,5 @@ Recognize that silence can indicate a pause rather than a finished turn. When in
 Measure semantic success, acoustic correctness, intelligibility, speaker/style consistency, first-response delay, interruption behavior, and failures under noise or overlapping speech.
 
 Keep content and audio test cases separate enough to diagnose causes, then test realistic full conversations. A strong single-turn voice sample does not establish reliable dialogue behavior.
+
+If recognition commits the wrong name, a text-only downstream model may never see the acoustic evidence needed to correct it. Preserve alternatives or audio access where that uncertainty matters.

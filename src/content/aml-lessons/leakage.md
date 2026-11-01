@@ -41,8 +41,6 @@ After a sudden score jump, inspect joins, timestamps, copies, target-derived col
 
 For target encoding, check inner fold restrictions too. Excluding a row's label still leaks when future labels influence its input.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Does a feature have to cause the outcome to be valid?
-
-**Answer:** No. It must be available and evaluated honestly for the intended use. Causality matters when claiming that changing it would change the outcome.
+A random customer identifier can look predictive if repeated customers cross the split. The concern is not the column's name: ask whether the evaluation allows the model to recognize entities it will genuinely encounter again.

@@ -86,8 +86,6 @@ Restoration can use these measures:
 
 MAX is the declared intensity range. Pixel fidelity, visual appeal, and downstream usefulness can disagree.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** High pixel accuracy, useless masks—why?
-
-**Answer:** Background may dominate. Check per-class IoU/Dice, boundaries, and product outcomes, then verify labels/alignment before changing loss or resolution.
+Labeling every pixel “road” can score well if road occupies most pixels while missing all pedestrians. Per-class overlap makes the imbalance visible, and boundary errors may require an additional task-specific measure.

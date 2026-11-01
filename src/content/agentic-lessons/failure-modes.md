@@ -53,7 +53,3 @@ Use freshness checks, revalidation before consequential actions, and version-che
 Compare requested items with per-item outcomes.
 
 Report succeeded, failed, unknown, and retryable items separately. Do not replay completed effects.
-
-## Interview mental model
-
-> Detect the symptom, validate the evidence, and fix the earliest failing mechanism.

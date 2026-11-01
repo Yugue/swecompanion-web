@@ -74,3 +74,5 @@ Recomputation and tiling can therefore complement one another: one changes retai
 | Smaller microbatches | Activation capacity | Potentially less efficient kernels |
 
 **Technical takeaway:** choose memory optimizations from tensor lifetimes and the resource you can afford to spend, then remeasure the entire step.
+
+Recomputing an activation saves its stored copy but costs another forward calculation. Offloading saves device capacity but adds transfer dependencies. Choose based on the actual constrained resource and measured overlap.

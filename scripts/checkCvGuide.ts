@@ -35,8 +35,14 @@ for (const topic of cvTopics) {
   words += wordCount;
   assert.ok(source.startsWith(`# ${cvLessonNumbers[topic.id]} ${topic.title}\n`), `${topic.id}: title/number mismatch`);
   assert.ok(blocks.filter((block) => block.type === "heading2").length >= 6, `${topic.id}: missing conceptual sections`);
-  assert.match(source, /\*\*Question:\*\*/);
-  assert.match(source, /\*\*Answer(?: structure)?:\*\*/);
+  if (source.includes("Work a concrete case")) {
+    const lastHeading = blocks.findLastIndex(block => block.type === "heading2");
+    assert.match(blocks[lastHeading].text, /^\d+\. Work a concrete case$/);
+    assert.ok(blocks.slice(lastHeading + 1).some(block => block.type === "paragraph" && block.text.split(/\s+/).length >= 15), `${topic.id}: missing concrete explanation`);
+  } else {
+    assert.match(source, /\*\*Question:\*\*/);
+    assert.match(source, /\*\*Answer(?: structure)?:\*\*/);
+  }
   assert.equal((source.match(/^```/gm) ?? []).length % 2, 0, `${topic.id}: unclosed code fence`);
   assert.equal((source.match(/^\\\[$/gm) ?? []).length, (source.match(/^\\\]$/gm) ?? []).length, `${topic.id}: unclosed math`);
   for (const prerequisite of topic.prerequisites) {

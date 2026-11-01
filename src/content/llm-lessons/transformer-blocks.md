@@ -49,3 +49,5 @@ decoder-pipeline
 The block stack preserves token count and hidden width. Its final vocabulary projection changes each position's width from d to vocabulary size V; softmax normalizes those V scores.
 
 During generation, the final prompt position predicts the next token. Earlier positions are also scored during training; their states do not each predict a separate future answer.
+
+A block can preserve an existing state through its residual route while learning a correction. The next block then attends over these updated states, connecting per-token feature transformation to later information mixing.

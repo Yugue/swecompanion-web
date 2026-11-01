@@ -45,8 +45,6 @@ Logistic regression develops log loss for probabilities; SVMs develop hinge loss
 
 **Class weights** multiply selected training losses. A threshold instead changes actions after fitting. Accuracy and F1 are discontinuous in thresholded outputs, so gradient methods commonly train a useful **surrogate**, or substitute objective, then tune decisions separately.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why can a model with lower squared loss overpredict the typical outcome?
-
-**Answer:** Squared loss targets a mean pulled upward by rare large values. If the decision needs a typical central outcome, compare a median or another appropriate percentile.
+For targets [0,0,9], a constant squared-loss fit predicts the mean, 3; an absolute-loss fit can predict the median, 0. The loss changes the desired answer, even before choosing an optimizer.

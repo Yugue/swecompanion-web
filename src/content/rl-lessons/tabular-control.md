@@ -70,3 +70,5 @@ q[state, action] += learning_rate * (target - q[state, action])
 ```
 
 These tabular guarantees do not automatically apply after replacing entries with a neural network.
+
+SARSA backs up the next action actually selected, including exploratory risk. Q-learning backs up the largest next-action estimate. Their different targets explain why they can prefer different paths near a costly hazard.

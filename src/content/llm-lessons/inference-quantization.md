@@ -40,3 +40,5 @@ Lower precision can reduce memory without improving latency if hardware kernels 
 Weight-only quantization targets model storage and weight traffic. Activation quantization affects intermediate computation; KV quantization targets the state that grows with concurrency and length.
 
 Compare long-context correctness, structured outputs, rare inputs, and latency at the intended workload. More compression can save memory while moving errors into the task-critical cases.
+
+A small value clipped into the representable range can lose precision differently from a large outlier clipped at the boundary. Evaluate error on representative activations rather than assuming a bit count predicts task quality.

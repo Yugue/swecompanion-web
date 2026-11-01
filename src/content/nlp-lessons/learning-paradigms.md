@@ -48,3 +48,5 @@ These choices address different constraints; they can be combined.
 With 500 reviewed messages, establish a supervised starting model. Test whether pretraining or extra text improves routing on independent routing labels.
 
 Masked-word performance alone does not answer that question.
+
+Predicting a hidden word teaches relationships in text without manual task labels. It does not automatically teach the boundary between two company-specific support categories; that requires additional task evidence.

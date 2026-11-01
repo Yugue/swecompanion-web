@@ -80,8 +80,6 @@ Use joint image/target transforms for structured labels.
 
 Map boxes/masks back before merging. Extra views cost extra inference and may hide disagreement; compare under the same latency budget.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Which augmentations would you reject for OCR?
-
-**Answer:** Reversed text, unlabeled truncation, and unrealistic symbol distortion. Test plausible perspective, lighting, and blur using recognition and exact-field outcomes.
+Flipping a road-sign image can reverse an arrow's meaning. An augmentation is valid only when its label transformation matches the task; preserving a classification label is not universal across visual problems.

@@ -71,3 +71,5 @@ Begin with a representative single-worker compute and memory ledger. Add the min
 Changing one degree affects other choices: more pipeline stages reduce per-stage parameters but add boundaries; more tensor workers shrink matrix shards but can worsen communication-to-compute ratio.
 
 **Technical takeaway:** a hybrid design is an explicit mesh of tensor ownership, data replicas, communication groups, and schedules—not a list of parallelism features.
+
+A design can fit memory through sharding yet fail its throughput target because tensor-parallel communication crosses slow links. Choose state layout and process groups together with the physical topology.

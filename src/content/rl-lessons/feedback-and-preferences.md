@@ -77,3 +77,5 @@ Keep held-out human judgments, task-grounded checks, and failure categories sepa
 | Objective executable success checks | Verified-outcome reward with coverage audits |
 
 These are starting points, not universal rankings. Evaluate the actual deployment task and budget.
+
+A comparison saying A is preferred to B specifies a relative judgment. Turning it into a reward requires a model and assumptions; a higher fitted reward is not independently verified task success.

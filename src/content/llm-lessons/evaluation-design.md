@@ -38,3 +38,5 @@ Keep tool, corpus, template, and model versions alongside results. Otherwise a m
 Choose minimum quality by important slice plus latency and cost limits. Do not offset a serious authorization failure with improvements on easy formatting tasks.
 
 Use offline results to qualify a candidate, then monitor real task outcomes under an appropriate rollout. Record failures for a separate development set without silently rewriting the final test.
+
+If development examples repeatedly influence prompts, they no longer provide independent final evidence. Reserve fresh tasks or an untouched test set and retain the evaluation procedure used for each comparison.

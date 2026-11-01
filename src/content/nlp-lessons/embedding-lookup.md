@@ -53,3 +53,5 @@ Lookup shares a row across occurrences. Later context processing can produce dif
 An unknown row merges unsupported strings unless another input path preserves them.
 
 A padding row may suppress lookup gradients; later summaries and losses still need their own exclusions. A zero vector alone does not enforce every padding rule.
+
+An integer ID selects a row; nearby ID numbers do not imply similar words. Similarity emerges from learned vector coordinates and the training objective, not the tokenizer's arbitrary numbering.

@@ -43,3 +43,5 @@ Padding adds boundary positions; exclude invalid windows from summaries when nee
 Short filters suit local phrases and character patterns. Stacked layers expand the **receptive field**, the input region influencing an output.
 
 Global pooling alone cannot restore the order of distant matches.
+
+A width-three filter sees three adjacent token positions. Stacking or pooling expands what the final output can use, but a single local filter does not directly compare two distant clauses.

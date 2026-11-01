@@ -59,7 +59,3 @@ Observable traces support this review; private reasoning is not required.
 Version judge and rubric. Revalidate after changes and sample production disagreements.
 
 Multiple judges with correlated errors can reinforce the same mistake.
-
-## What matters most
-
-> A judge is a calibrated reviewer, not a source of ground truth.

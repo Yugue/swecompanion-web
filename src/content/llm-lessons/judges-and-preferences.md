@@ -33,3 +33,5 @@ Version the judge model and prompt. A judge update can move reported quality eve
 Compare judge decisions against an independently labeled set, including concise correct answers, polished wrong ones, missing evidence, and adversarial text inside candidates.
 
 Inspect disagreement by error type. Agreement on easy examples can conceal failure on the rare cases that matter most.
+
+If a judge sees system A first every time, order preference can masquerade as quality. Shuffle presentation and use known comparisons to measure whether its judgments track the intended rubric.

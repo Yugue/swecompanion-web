@@ -68,3 +68,5 @@ value += learning_rate * td_error
 ```
 
 This tabular snippet assumes continuation_value already handles the episode boundary. Neural updates instead change shared parameters through a loss.
+
+With estimate 4, reward 1, next estimate 5, and discount 0.9, the TD target is 5.5. It can update before the episode ends, but it depends on another learned estimate.

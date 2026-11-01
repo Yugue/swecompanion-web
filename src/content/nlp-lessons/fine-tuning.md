@@ -50,3 +50,5 @@ Compare with a frozen baseline. Small labelled sets can still overfit; choose up
 ## 6. Preserve needed capabilities
 
 Check target slices, retained tasks, training cost, and serving resources. A narrow update restricts capacity; it does not guarantee that only useful behavior changes.
+
+A pretrained representation may already separate the labels with a small head. Test that before updating every layer; a small dataset can otherwise overwrite useful features without supplying enough replacement evidence.

@@ -55,7 +55,3 @@ A critic cannot establish an unavailable authoritative fact by agreement alone.
 Review code before merge, a report before delivery, or a proposal before execution.
 
 After an external action, focus on detection and defined recovery.
-
-## What matters most
-
-> A critique is useful when it identifies a checkable issue and can still change the result.

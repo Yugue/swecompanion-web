@@ -46,3 +46,5 @@ Both can encode aspects of order, but they perform different jobs. A position si
 A **context window** is the supported number of input and generated positions under a model’s configuration. Extrapolating beyond trained lengths can distort relative-position behavior and use of distant evidence.
 
 Test evidence at different locations and distances. Accepting a long prompt is weaker evidence than using its relevant details correctly.
+
+A position vector marks where a token occurs, but does not authorize it to read later tokens. Keep location representation separate from the causal access rule when reasoning about a decoder.

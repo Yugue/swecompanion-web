@@ -41,3 +41,5 @@ Embedding-based metrics compare learned representations rather than exact words.
 Several valid references can reduce penalties for legitimate variation. They still cannot enumerate every acceptable answer in an open-ended task.
 
 Combine inexpensive automatic metrics with targeted human checks and failure slices. Explain what each reported score establishes and what it leaves unresolved.
+
+Two accurate answers can share few words, while a copied reference sentence with one reversed number can be wrong. Combine meaning and task checks with lexical measures where the decision requires it.

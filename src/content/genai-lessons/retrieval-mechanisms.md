@@ -35,3 +35,5 @@ If negatives are actually relevant, training can punish useful similarity. Pair 
 Compare exact vector search with ANN on a sample. If exact search succeeds and ANN fails, tune the index. If both fail, inspect embeddings, chunking, or the query.
 
 Increasing k can improve coverage while adding latency and irrelevant context. Measure downstream answer quality as well as retrieval scores.
+
+A part number and a paraphrased troubleshooting question need different matching behavior. Test exact identifiers and meaning-based requests separately before choosing one aggregate retrieval configuration.

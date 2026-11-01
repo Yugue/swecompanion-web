@@ -51,3 +51,5 @@ These are different objectives and training processes.
 If reviewers favor verbosity or persuasive wording, optimization can reinforce those patterns.
 
 Evaluate correctness, unsupported claims, and retained abilities separately from style preference.
+
+A demonstration supplies one desired response. A preference comparison says which of two responses is better. These are different supervision signals, and neither directly establishes truth for unseen questions.

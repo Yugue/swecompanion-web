@@ -64,7 +64,3 @@ generate → parse → validate meaning → authorize → execute
 ```
 
 Use trusted session state for permissions. Valid structure cannot grant access.
-
-## What matters most
-
-> Schemas protect structure; evidence and application checks protect meaning.

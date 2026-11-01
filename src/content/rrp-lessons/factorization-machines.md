@@ -46,8 +46,6 @@ With \(m\) active features and \(d\) coordinates, work is roughly \(O(md)\), ins
 
 A second-order FM does not directly express arbitrary three-way interactions. Its raw score needs a task-appropriate loss and output transformation.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** How can an FM score an unseen user–category pair?
-
-**Answer:** It shares each feature's vector across other observed pairs. That gives a transferable estimate, whose reliability still depends on supporting data.
+A linear score adds a mobile effect and a cooking effect separately. Their interaction adds an extra term only when both are active, allowing context to change an item's appeal rather than merely shifting every item equally.

@@ -79,8 +79,6 @@ Panoptic output assigns each included pixel a category and applicable instance I
 
 Richer output adds labeling and serving cost.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Count people and label the road—what output?
-
-**Answer:** Person instances plus road semantics. Use panoptic output if complete pixel assignments matter; boxes plus a road mask may satisfy the decision more cheaply.
+Two touching people need separate masks even though both pixels share the class “person.” Semantic segmentation supplies class membership; instance segmentation additionally decides which pixels belong to each object.

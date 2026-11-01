@@ -499,29 +499,3 @@ Meanwhile:
 > **Stride** controls how far we jump.  
 > **Pooling** deliberately downsamples.  
 > **Receptive field** tells us how much of the original input a neuron can use.
-
-### Interview-level rule of thumb
-
-For a typical CNN:
-
-\[
-\boxed{\text{3×3 kernel, stride 1, padding 1}}
-\]
-
-is a very common feature-extraction block because it preserves spatial size.
-
-To downsample:
-
-\[
-\boxed{\text{stride 2}}
-\]
-
-or pooling.
-
-And as layers accumulate:
-
-\[
-\boxed{\text{receptive field grows}}
-\]
-
-The next topic is **ResNet as a CNN architecture**. Since you've already learned residual connections, we won't repeat their mechanics—we'll focus specifically on **why ResNet changed CNN design and how a ResNet block is structured**.

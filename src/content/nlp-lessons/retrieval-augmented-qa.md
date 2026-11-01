@@ -52,3 +52,5 @@ Measure evidence recall, answer correctness, claim support, and attribution.
 **Abstention** deliberately avoids asserting an unsupported answer. Test missing/conflicting evidence and compare answer coverage with error costs.
 
 Retrieval changes evidence; fine-tuning changes learned behavior. Both can contribute.
+
+A retrieved passage can mention the subject without supporting the answer. Check both whether the evidence contains the required fact and whether the generated claim actually follows from it.

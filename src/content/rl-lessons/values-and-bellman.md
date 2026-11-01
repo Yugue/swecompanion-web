@@ -70,3 +70,5 @@ An action can incur an immediate cost yet have positive advantage by opening a v
 | Advantage | How does this action compare with that behavior's average? |
 
 A high predicted value can reflect optimism rather than actual success. Always distinguish the mathematical quantity from its learned estimate.
+
+An action giving reward 1 now and expected next value 10 has a different appeal from one giving 3 now and next value 0. With discount 0.9, their one-step backed-up values are 10 and 3.

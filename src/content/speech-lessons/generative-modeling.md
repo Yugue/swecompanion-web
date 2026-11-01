@@ -72,3 +72,5 @@ Greater guidance may improve adherence while reducing diversity or creating arti
 | Flow matching | Numerical integration steps | Solver and step-budget sensitivity |
 
 Token rate, codec levels, chunk size, and hardware determine actual latency; family names alone do not.
+
+Generating one spectrogram frame and generating hundreds of waveform samples are different output workloads. Compare model steps, representation rate, and reconstruction cost before inferring speed from the family name.

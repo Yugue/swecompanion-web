@@ -76,3 +76,5 @@ Only route to a distributed replica when all required partitions are ready. Cach
 Compare colocated, chunked-prefill, and disaggregated designs using representative prompts, output lengths, burstiness, failures, and latency objectives. Include cache movement and queueing rather than reporting isolated kernels.
 
 **Technical takeaway:** distribute serving stages when saved interference and better capacity allocation exceed the costs of moving state, coordinating queues, and maintaining recoverable requests.
+
+Separating prefill and decode moves the cache between resource pools. A faster prefill stage can lose its benefit if transfer and queueing dominate; compare end-to-end latency and useful completions under the same demand.

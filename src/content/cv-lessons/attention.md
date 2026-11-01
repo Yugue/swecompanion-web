@@ -85,8 +85,6 @@ A **fused attention implementation** combines operations in a hardware-efficient
 
 Attention weights alone are not a causal explanation. Global context can also introduce background shortcuts.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Explain attention shapes for image tokens.
-
-**Answer:** Project \(B\times N\times D\) features into queries, keys, and values. Form an \(N\times N\) score matrix per head, normalize over keys, then combine values. Explain positions, masks, and quadratic pair growth.
+A patch can mix information from distant patches through attention. A high attention weight is an internal contribution to one mixture, not a complete explanation of why the final classifier chose its label.

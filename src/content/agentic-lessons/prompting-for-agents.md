@@ -53,7 +53,3 @@ forbidden    → report unavailable access
 ```
 
 Use examples for recurring mistakes. Large happy-path catalogues consume context.
-
-## What matters most
-
-> Make the next correct action clear and testable.

@@ -49,7 +49,3 @@ Cap candidate count, tool usage, and elapsed time.
 Five near-identical candidates are not five independent chances.
 
 Vary approaches where useful. Stop when a sufficiently trusted check passes or the budget ends.
-
-## What matters most
-
-> Search buys more chances; verification determines which chances you can safely accept.

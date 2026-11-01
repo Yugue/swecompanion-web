@@ -79,8 +79,6 @@ For 500 labeled images:
 
 Check pretraining/test overlap.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** What would you try with 500 new-camera images?
-
-**Answer:** Start with correct preprocessing and a frozen pretrained backbone plus new head. Compare limited unfreezing using smaller backbone updates; collect representative data if capture differs strongly.
+A frozen backbone and fitted small head test whether existing features already separate the new classes. If that fails, selective fine-tuning tests feature adaptation without immediately changing every pretrained parameter.

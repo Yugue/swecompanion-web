@@ -42,3 +42,5 @@ Strong guidance can cause oversaturation, artifacts, and reduced diversity. It i
 Text alone can struggle with exact layouts. Edges, depth, or keypoint conditions provide explicit spatial information when supported by the trained model.
 
 Evaluate both edit quality and unintended changes outside the requested region. A plausible new image can still be an unsuccessful edit.
+
+Increasing guidance can strengthen adherence to a condition while reducing variation or creating artifacts. Measure instruction satisfaction and visual quality separately; stronger conditioning is not automatically a better overall result.

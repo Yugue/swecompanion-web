@@ -69,3 +69,5 @@ Longer backups are especially useful when rewards arrive late and the continuati
 Reset traces at genuine episode boundaries. At a rollout truncation, bootstrap correctly but do not let a recursion flow into an unrelated reset trajectory.
 
 A multi-step target observed under a different behavior policy also includes that policy's intervening actions. Unlike a single optimality backup, it may require off-policy correction or an appropriate specialized target. Increasing backup length can therefore worsen policy mismatch as well as variance.
+
+A three-step target uses three observed rewards before bootstrapping. This moves credit farther through actual experience than a one-step target, while waiting longer and generally increasing sample variability.

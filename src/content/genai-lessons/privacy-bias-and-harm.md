@@ -35,3 +35,5 @@ Evaluate both. A model that refuses everything can appear safe under a narrow ha
 Adaptation, quantization, data updates, and decoding changes can affect privacy and safety alongside quality. Re-run targeted evaluations after material changes.
 
 Use incident review and monitored failure rates to improve the system. Do not infer broad safety from success on a small public benchmark.
+
+A generated person's appearance can vary systematically with occupation prompts. Compare controlled prompt changes and distributions of outputs, rather than concluding from one attractive example that representation is balanced.

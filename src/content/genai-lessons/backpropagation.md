@@ -45,3 +45,5 @@ loss.backward()
 optimizer.step()
 ```
 Gradients normally accumulate between backward calls. A **detached** tensor breaks earlier differentiation history; a frozen parameter is intentionally excluded from updates. Inspect both when learning disappears.
+
+A generated image's training loss may depend on many pixel or latent coordinates. Backward computation combines those sensitivities into parameter gradients; the optimizer then performs the separate update.

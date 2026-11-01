@@ -42,8 +42,6 @@ A weekly queue may suit batch serving. Keep a supported fallback and rollback.
 
 High churn risk does not imply high benefit from calling. Use an appropriate experiment to measure the intervention, since decisions can change observed outcomes.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** What would you postpone in a new churn project?
-
-**Answer:** Large model searches and real-time serving until the label, decision, baseline, and evaluation are credible. Those establish what complexity would need to improve.
+For churn prevention, predict cancellation before the outreach decision and measure whether outreach helps. A highly accurate churn score cannot establish intervention benefit: people at highest risk may also be hardest to retain.

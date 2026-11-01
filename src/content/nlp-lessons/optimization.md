@@ -56,3 +56,5 @@ For L(w)=(w−3)² at w=1, gradient=−4:
 **Gradient clipping** limits magnitude, for example by rescaling gradients beyond a norm bound.
 
 Check targets, rate, nonfinite values, and batch composition too. Clipping limits an update; it does not repair the wrong objective.
+
+If most batch positions are padding, averaging loss across all positions can shrink gradients as padding increases. Define the denominator over supervised positions so batching does not silently change the effective objective.

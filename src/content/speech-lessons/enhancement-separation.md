@@ -67,3 +67,5 @@ near-end speech ────────────────────┼�
 Suppression can introduce musical noise, remove weak speech, or alter speaker cues. Source-separation models can swap output identities across chunks. Testing only simulated mixtures may miss real channel and noise behavior.
 
 Evaluate speech preservation, nonspeech segments, overlap, unseen sources, delay, and downstream recognition.
+
+Removing energy identified as noise can also remove a weak consonant. Listenability and transcription quality may move differently, so assess both when enhancement is part of a recognition pipeline.

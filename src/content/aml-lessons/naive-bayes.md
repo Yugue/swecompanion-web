@@ -48,8 +48,6 @@ P(\text{word }j\mid y)=\frac{N_{jy}+\alpha}{N_y+\alpha V}
 
 Sum log-probabilities to avoid numerical underflow from tiny products.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why can this fast text baseline produce extreme confidence?
-
-**Answer:** Correlated features can count the same evidence repeatedly under the independence assumption. Validate class quality and calibrate probabilities when decisions need them.
+“Cheap” and “discount” may co-occur in spam. Treating them as independent given the class can multiply overlapping evidence twice. The predicted class can remain useful even while its reported probability becomes too extreme.

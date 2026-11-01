@@ -46,3 +46,5 @@ A **model-based judge** evaluates outputs using another model. Check its consist
 Review unsupported claims, attribution, omitted caveats, and duplicates separately from grammar.
 
 **Controlled generation** imposes format, length, or field requirements. Valid format does not establish support; shorter output can omit essential content.
+
+A short summary can preserve the headline while omitting a qualifying exception. Compare its claims with the source, not only with one reference wording; brevity does not justify changing the underlying meaning.

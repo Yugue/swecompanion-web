@@ -47,8 +47,6 @@ Withhold the hidden answer from the input. The learned **representation**, or re
 
 These approaches can be combined. Check whether the available signal actually supports the intended task.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** You have millions of sessions but only 2,000 reviewed outcomes. Must you use unsupervised learning?
-
-**Answer:** No. Start with a supervised baseline on the reviewed data; consider self-supervised representations or semi-supervised learning, and evaluate on trustworthy held-out outcomes.
+Predicting a masked word creates a target from existing text. Predicting whether that message is spam needs a spam label. The same message can support both objectives, but success on one does not establish success on the other.

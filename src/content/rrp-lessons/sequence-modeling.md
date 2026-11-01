@@ -59,8 +59,6 @@ A nightly summary misses today's actions. Compare long-term-only, session-only, 
 
 Check arrival delay, truncation, and missing-history behavior. Extra history can add context or stale noise.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Is bidirectional attention always leakage in recommendations?
-
-**Answer:** No. It can summarize an entirely observed past history. Leakage occurs when a prediction uses information unavailable at its decision time.
+Buying a camera then reading lens reviews can signal a different next need from the reverse order. Preserve event times and exclude later events when constructing the history for an earlier prediction.

@@ -63,8 +63,6 @@ Inspect nearest neighbors, then evaluate with the intended retrieval task.
 
 First evaluate exact search with the intended vectors. Poor exact matches suggest representation or objective issues; poor approximation of good exact matches suggests an index issue.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why can cosine and dot product select different items?
-
-**Answer:** Dot product includes vector lengths. Cosine compares direction after removing length, which can reverse the preferred candidate.
+Vectors [10,0] and [1,1] compared with request [1,1] have dot products 10 and 2, but cosines about 0.707 and 1. Vector length can reverse a retrieval decision.

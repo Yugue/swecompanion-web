@@ -78,3 +78,5 @@ Rollout length affects advantage quality and temporal context. Batch size and le
 PPO's batch comes from a recent policy, and the update approximates a local improvement around that policy. Reusing that batch within a bounded update procedure differs from unrestricted replay across a long history of behavior policies.
 
 Clipping ratios limits some incentives but does not solve arbitrary support gaps or state-distribution shift. A common practical safeguard is early stopping when measured KL grows too large.
+
+If an action's new probability is 0.3 and old probability 0.2, its ratio is 1.5. Clipping limits the surrogate's incentive in a direction; it does not impose an exact hard bound on every policy probability change.

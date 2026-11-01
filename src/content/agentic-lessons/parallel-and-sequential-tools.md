@@ -58,7 +58,3 @@ search_tickets ────────┼→ summarize
 ```
 
 Start **get_user** and **search_tickets** together. Start orders after the ID arrives. Summarize after required evidence is ready.
-
-## What matters most
-
-> Dependencies decide ordering; ready independent work decides concurrency.

@@ -47,7 +47,3 @@ Tune tool breadth, run length, and write permissions separately. Expand a bounda
 Evaluate accuracy, recovery, cost, and safety.
 
 A loop can repeat a mistake as easily as correct it. Useful autonomy needs evidence, understandable tools, and observable completion.
-
-## What matters most
-
-> Delegated control chooses the next step. The runtime keeps authority over execution.

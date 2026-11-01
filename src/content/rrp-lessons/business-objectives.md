@@ -41,8 +41,6 @@ Short-term lift does not establish improved retention. Delayed outcomes can stil
 
 Use a test suited to the intended cumulative effect and interference.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Engagement rises 5% while seller variety falls 20%. Launch?
-
-**Answer:** Apply the declared outcome contract and guardrails, inspect affected groups and uncertainty, and test whether the short-term gain represents the intended value.
+More clicks can accompany shorter useful viewing if thumbnails become misleading. Define the outcome and guardrails before the experiment so a convenient proxy cannot silently replace the intended benefit.

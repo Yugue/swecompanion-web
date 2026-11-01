@@ -46,3 +46,5 @@ Partial answers can earn overlap credit while failing exact match. State alterna
 A reader cannot extract missing evidence. Long inputs may need windows; verify that the answer survives truncation and remains a valid within-window span.
 
 Extraction can still select a misleading or unrelated source phrase.
+
+An extraction system can point only into supplied text. If the answer is absent, a forced span is wrong by construction; include unanswerable cases and an explicit abstention decision.

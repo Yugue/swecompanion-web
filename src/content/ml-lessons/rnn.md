@@ -626,15 +626,3 @@ h_t=f(x_t,h_{t-1})
 \]
 
 And the **same function and weights** are reused at every time step.
-
-### Google-interview answer
-
-If asked:
-
-> What is an RNN and why use one?
-
-A strong concise answer is:
-
-> A Recurrent Neural Network processes a sequence one element at a time while maintaining a hidden state that summarizes previous inputs. The same weights are shared across time, allowing variable-length sequences to be processed. Vanilla RNNs are good at modeling sequential dependencies but struggle with long-range dependencies because gradients must propagate through many recurrent steps, which can cause vanishing or exploding gradients.
-
-That's essentially everything I'd expect you to know before moving into **Backpropagation Through Time (BPTT)**.

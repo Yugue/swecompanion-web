@@ -42,8 +42,6 @@ Keep rules when they meet the requirement and added modelling does not justify i
 
 Failure to beat a trivial reference warrants investigation. Weak available signal can also be the explanation.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** A complex model beats the majority class. Is that enough?
-
-**Answer:** Compare it with the current process and a credible simple model at the same decision constraints. A trivial reference alone sets too low a bar.
+If predicting tomorrow's demand as today's demand beats a complex model, the model has not earned deployment. Evaluate both on identical future periods, including holidays, rather than comparing their training losses.

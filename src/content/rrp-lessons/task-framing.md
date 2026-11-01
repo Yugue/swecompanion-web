@@ -49,8 +49,6 @@ A **request group** contains candidates competing for one decision. Preserve it 
 
 **Leakage** uses information unavailable at prediction time: tomorrow's purchase cannot be an input to today's recommendation.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why can a strong post-click purchase model choose a weak feed?
-
-**Answer:** It conditions on clicking. Feed selection also needs the probability of reaching that condition and the intended per-display outcome.
+A per-click purchase probability of 0.5 combined with click probability 0.02 gives purchase probability per display 0.01 under that factorization. Ranking only the conditional purchase score omits the chance of reaching a click.

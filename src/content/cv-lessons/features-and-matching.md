@@ -81,8 +81,6 @@ Fit a plausible transform and inspect:
 
 Many matches in one tiny corner can still give an unstable full-image alignment.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why isn’t nearest-neighbor matching enough?
-
-**Answer:** A nearest candidate exists even without a true match. Filter ambiguous descriptors, then test agreement with the scene’s geometry.
+Two repeated windows can have similar local descriptors. A descriptor match proposes correspondence; consistency with the scene's geometric transformation provides a separate test of whether that correspondence is plausible.

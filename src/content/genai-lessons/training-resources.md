@@ -38,3 +38,5 @@ It does not directly shrink optimizer state or model weights. Recomputation must
 Longer sequences increase activation and attention costs. A larger optimizer state instead points toward state sharding or a different adaptation strategy.
 
 Measure peak memory, utilization, and communication time. Saving memory can still slow training enough to miss the compute budget.
+
+An image's spatial resolution or a clip's duration can change activation memory even when parameter count is fixed. A resource estimate needs representative input shapes as well as stored weight bytes.

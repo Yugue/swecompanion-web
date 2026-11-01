@@ -44,8 +44,6 @@ Larger `alpha` commonly strengthens regularization; smaller `C` does so in estim
 
 Tree depth limits and early stopping impose related restrictions outside coefficient penalties. Excessive restriction underfits.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why might lasso choose a different feature after a small data change?
-
-**Answer:** Correlated inputs can substitute for one another. Similar predictive value does not guarantee stable individual selection; compare ridge or elastic net and repeated fits.
+Two correlated columns can share a prediction in many ways. A penalty chooses among those fits and changes their sensitivity to noise. Stable predictions do not imply that either individual coefficient identifies a causal effect.

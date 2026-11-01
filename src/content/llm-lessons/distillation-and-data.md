@@ -29,3 +29,5 @@ Imitating one chosen answer loses information about alternatives. Matching full 
 Compare accuracy and robustness on held-out cases, including where the teacher fails. Track retries, output length, and escalation to a larger model.
 
 A student costing half as much per call but requiring three attempts per solved task can lose the cost advantage. Distillation should be judged at the application’s quality and latency target.
+
+A student's teacher-generated targets can preserve systematic teacher mistakes. Hold out human-verified or externally checked tasks so matching the teacher is not confused with improving actual correctness.

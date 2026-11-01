@@ -370,29 +370,3 @@ loss = F.cross_entropy(logits, target)
 That's an important practical rule.
 
 ---
-
-# Practical summary
-
-The most useful mental model is:
-
-| Activation | Main use |
-|---|---|
-| **ReLU** | Default hidden activation for MLP/CNN |
-| **Leaky ReLU** | Avoid dead ReLU |
-| **Sigmoid** | Binary output / gates |
-| **Tanh** | Mainly recurrent models |
-| **GELU** | Transformers |
-
-The most important thing to understand is not the formulas. It's the tradeoff:
-
-> Good activations preserve useful gradients while adding nonlinearity.
-
-For your interview, you should be able to explain:
-- why nonlinear activation is necessary
-- why sigmoid/tanh can cause vanishing gradients
-- why ReLU trains better
-- what dead ReLU means
-- why GELU is common in Transformers
-- why output activations depend on the task
-
-Next topic: **Loss functions**.

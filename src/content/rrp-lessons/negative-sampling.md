@@ -43,8 +43,6 @@ Keep evaluation candidates fixed across models. One positive among 99 easy distr
 
 Refresh mined hard negatives as the model changes and inspect false negatives.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why can harder negatives make a model worse?
-
-**Answer:** High-scoring alternatives may be real interests rather than errors. Sampling can also change the training objective or overemphasize an unrepresentative competition set.
+If every training contrast is an obviously unrelated item, the model may never learn to distinguish two plausible alternatives. Harder contrasts improve that test only when they are not mislabeled genuine interests.

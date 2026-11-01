@@ -52,3 +52,5 @@ Smoothing prevents unseen words from zeroing a product. Sum log probabilities to
 Overlapping features can count the same evidence twice.
 
 A **calibrated** probability matches observed outcome frequencies on a relevant population. Normalized Naive Bayes scores can still be overconfident when independence is badly violated.
+
+Two correlated phrases can express one sentiment twice. Multiplying their class-conditional evidence under independence can overstate confidence even if the predicted sentiment is usually correct.

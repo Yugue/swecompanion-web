@@ -50,3 +50,5 @@ Compare the same metric and preparation on both sets.
 An **ablation** changes or removes a component to measure its contribution. Keep other conditions comparable; repeat fits when randomness matters.
 
 Record quality and cost. A lucky validation maximum still needs independent final assessment.
+
+Inspect the actual token IDs and target positions for a few examples. A one-position target shift can keep tensor shapes valid while teaching the wrong mapping, so shape checks alone are insufficient.

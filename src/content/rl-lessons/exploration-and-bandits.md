@@ -62,3 +62,5 @@ RL: choose action → reach another state → unlock later choices → maybe rew
 Random action noise may never produce a coherent sequence required to open a door. An action with low immediate reward may be essential for reaching informative states. Bandit confidence bonuses do not solve long-horizon exploration by themselves.
 
 Changing traffic also breaks a stationary bandit assumption. Recent-window estimates or explicit nonstationarity models may be needed instead of averaging all historical outcomes equally.
+
+A bandit chooses among rewards without modeling how actions alter future states. Exploring a robot corridor can reveal a later opportunity, so immediate action reward alone does not describe the exploration problem.

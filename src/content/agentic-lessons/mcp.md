@@ -47,7 +47,3 @@ Standard connectivity does not solve tool selection.
 Reusable integrations across applications favor a shared server interface.
 
 One stable private function may need only a direct wrapper. Compare operational and maintenance costs.
-
-## What matters most
-
-> A standard socket connects systems; the host still decides which connections and operations are allowed.

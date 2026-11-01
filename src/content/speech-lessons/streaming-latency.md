@@ -63,3 +63,5 @@ An average below one does not prevent queue growth during bursts or tail-latency
 On interruption, stop playback, cancel obsolete work where possible, clear or update stream state, and preserve the intended conversation boundary.
 
 A stale generated response arriving later must not be played merely because its request eventually completed. Associate outputs with stream and turn identifiers.
+
+A recognizer processing one second of audio in half a second can keep up on average, yet still delay results for a two-second look-ahead window. Compute speed and algorithmic waiting are separate latency sources.

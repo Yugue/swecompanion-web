@@ -40,3 +40,5 @@ A short exact record can be more useful than a long narrative memory. Re-evaluat
 Compare task correctness, evidence position sensitivity, input cost, first-token latency, and peak memory at realistic lengths.
 
 A successful single-fact lookup is insufficient evidence for multi-document synthesis. Increasing the window can add both helpful information and more opportunities for distraction.
+
+An answer can use a recent mention while ignoring an earlier correction. Move decisive evidence across positions and test conflicting statements; merely fitting the entire document into the window does not establish reliable use.

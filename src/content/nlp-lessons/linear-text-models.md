@@ -59,3 +59,5 @@ Feature scaling affects penalty strength. Choose it and the penalty using valida
 A bigram feature for “not good” adds a joint condition missing from unigram features.
 
 If reversed-role sentences have identical input vectors, no coefficient update distinguishes them. Change the representation before spending more training steps.
+
+A positive weight on “excellent” adds evidence regardless of whether it appears in “not excellent.” Adding a negation phrase feature changes the available representation; the linear decision rule alone cannot invent that feature.

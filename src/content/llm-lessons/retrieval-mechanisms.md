@@ -27,3 +27,5 @@ Do not directly add unrelated score scales without validation; use calibrated co
 **Recall@k** is the fraction of relevant items found in the top k candidates under a defined relevance set. If three relevant passages exist and two are retrieved, recall is 2/3.
 
 Use both judged relevance and actual answer-support coverage. Ten passages on the same subject can still omit the one fact needed for the answer.
+
+An exact code such as AB-103 needs character-level fidelity, while a paraphrased policy question needs meaning-sensitive matching. Query slices reveal these different requirements more clearly than one average retrieval score.

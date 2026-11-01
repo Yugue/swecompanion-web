@@ -486,3 +486,5 @@ Think:
 That distinction is much more useful than memorizing dozens of possible fixes.
 
 The next topic is **Generalization and validation**.
+
+Check that one optimizer step changes a parameter receiving a nonzero gradient. If it does not, inspect optimizer membership, update order, and gradient handling before changing the network architecture.

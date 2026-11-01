@@ -34,3 +34,5 @@ h is a column hidden state of width d; W has shape [V,d]; bias b has V entries. 
 **Pooling** combines token states into one sequence vector, for example by averaging valid positions. Exclude padding.
 
 A next-token model's pooled states are not automatically effective search vectors. Evaluate the representation and training objective on actual query–document pairs.
+
+The same token ID always selects the same input embedding row for a fixed table. Its final hidden state varies with context; lookup representation and contextual representation are different stages.

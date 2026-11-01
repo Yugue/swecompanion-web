@@ -42,3 +42,5 @@ Strong single-frame or short-clip scores do not establish long-sequence coherenc
 Use the same request set, generation budgets, preprocessing, and sample counts. Include human perceptual review for aspects automatic metrics miss.
 
 Report failure slices and uncertainty. A small improvement in one aggregate score should not conceal degraded requested structure or accessibility.
+
+A model may name objects correctly while confusing which one is left of another. Include controlled count, attribute, and spatial-relation cases rather than relying only on broad scene descriptions.

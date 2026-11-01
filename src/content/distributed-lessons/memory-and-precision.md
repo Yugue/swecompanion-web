@@ -84,3 +84,5 @@ Distinguish live allocated bytes from allocator-reserved bytes. Reserved memory 
 Measure representative sequence lengths, accumulation boundaries, gathers, and optimizer steps. Leave headroom for variation and runtime buffers rather than targeting the exact device limit.
 
 **Technical takeaway:** memory efficiency and numerical safety require an explicit tensor-lifetime ledger and a precision policy for every state role.
+
+Four-bit weights reduce their storage relative to sixteen-bit weights, but gradients, optimizer history, scales, and activations can use other formats. Apply the byte calculation to each state category before estimating total memory.

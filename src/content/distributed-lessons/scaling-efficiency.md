@@ -81,3 +81,10 @@ If accelerators differ in price or capability, raw device-hours are insufficient
 | Training value | Target quality | Time, cost, failure overhead |
 
 **Technical takeaway:** scale for a clearly defined objective—fixed work, target quality, latency, or cost—and report the tradeoffs that the chosen metric hides.
+
+| Configuration | Wall time | Accelerator-seconds |
+|---|---:|---:|
+| One GPU | 100 s | 100 |
+| Four GPUs | 40 s | 160 |
+
+Speedup is 100/40 = 2.5; efficiency is 2.5/4 = 62.5%. The faster run uses more aggregate accelerator time, illustrating why speed and resource cost differ.

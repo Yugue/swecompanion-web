@@ -2,9 +2,9 @@
 
 ## 1. Read relevant information
 
-**Attention** produces a weighted mixture of value vectors. **Self-attention** creates the queries, keys, and values from the same sequence of input states.
+**Attention** mixes value vectors with learned weights; **Self-attention** derives its matching vectors and values from one input stream. For images, **patches** are small spatial regions represented as input units.
 
-A **projection** is a learned linear transformation. Different projections give one token distinct roles as information request, matching descriptor, and contributed content.
+A **projection** is a learned linear map. On image patches, separate maps produce matching descriptors and the features to combine.
 
 ## 2. Assign the roles
 
@@ -21,7 +21,7 @@ A high key score matters because it changes how much of the associated value ent
 \[
 s_j=\frac{q^\top k_j}{\sqrt{d_k}},\qquad a_j=\operatorname{softmax}(s)_j,\qquad o=\sum_j a_jv_j
 \]
-j indexes allowed positions; \(d_k\) is key width; s is compatibility; a is a normalized weight; o is the output. Larger relative \(s_j\) increases that value’s contribution.
+For the equations, j runs over allowed positions, dₖ is key width, s gives scores, a normalized weights, and o their value mixture.
 
 ## 4. Calculate one example
 
@@ -29,7 +29,7 @@ j indexes allowed positions; \(d_k\) is key width; s is compatibility; a is a no
 attention
 ```
 
-The toy uses key width one, scores [log 3,0], and values [2,0] and [0,4]. Weights are [0.75,0.25], giving output [1.5,1].
+The figure's weights [0.75,0.25] mix [2,0] and [0,4] into [1.5,1]. A patch mixture likewise need not equal any input patch.
 
 Swapping the scores gives [0.5,3], with unchanged values.
 
@@ -41,6 +41,8 @@ Scaling helps numerical behavior; it does not force attention to be uniform or i
 
 ## 6. Recognize the limits
 
-Attention can combine only supplied, allowed values. Its weighted average can be a new vector rather than one original token state.
+A mixture uses only accessible states. If a needed image region was cropped out, attention cannot recreate its missing evidence.
 
-The final prediction also depends on other learned transformations. One attention map is not proof of causal reasoning or factual support.
+Patch-to-word attention can indicate internal correspondence without establishing that a generated spatial or numerical claim is correct.
+
+Attention over image patches can combine distant visual regions just as attention over words combines positions. The mixing operation is shared; the spatial or linguistic meaning comes from how the inputs were represented.

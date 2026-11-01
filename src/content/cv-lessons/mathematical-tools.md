@@ -96,8 +96,6 @@ Order matters.
 
 An inverse undoes an invertible transform. **Image warping** creates an image under a coordinate transformation. It commonly maps each destination pixel back to its source coordinate, avoiding forward-mapping holes.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why can’t a 2 × 2 matrix represent translation?
-
-**Answer:** A linear map sends zero to zero. Translation moves zero, so add an offset or use homogeneous coordinates.
+A point at (2,3) shifted right by five becomes (7,3). Ordinary 2×2 multiplication cannot translate every point this way; the extra homogeneous coordinate lets one matrix express that constant shift.

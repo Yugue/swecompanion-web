@@ -62,3 +62,5 @@ None supplies missing environmental evidence. Replay can repeatedly train on a n
 Large Temporal-Difference (TD) errors may reflect rare real rewards, changing policies, bad episode masks, or a divergent predictor. Check the environment and target computation before attributing every fluctuation to the algorithm family.
 
 Monitor actual return, prediction ranges, target ranges, gradient norms, state-action coverage, and behavior changes. A value-network loss has no universal interpretation without its data and target definition.
+
+If one value estimate becomes too high, bootstrapping can spread that overestimate into other targets. Monitoring small prediction errors alone can miss the fact that both prediction and moving target are drifting together.

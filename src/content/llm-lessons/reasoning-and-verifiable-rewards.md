@@ -29,3 +29,5 @@ A group with identical outcomes supplies no within-group preference signal. Insp
 Use hidden or held-out tests to detect exploitation of visible checks. Track reward accuracy on held-out outcomes as well as the policy’s measured reward.
 
 A weak verifier can teach shortcuts. A strong but expensive verifier may suit training or difficult requests while being impractical for every production response.
+
+An answer can pass a weak checker through an unintended shortcut. Audit the checker and inspect successful trajectories; automatically computed reward is reliable only for the property the checker actually verifies.

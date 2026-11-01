@@ -62,3 +62,5 @@ Server processing provides larger shared compute but adds transport, privacy, co
 Compare accuracy and latency percentiles under representative load, including long recordings, cold start, interrupted streams, and hardware contention.
 
 Version the model together with frontend, vocabulary, decoder, and thresholds. Use staged rollout and a tested rollback path; changing one component can invalidate calibration or cached state.
+
+Halving model arithmetic does not halve request time if feature extraction and audio transfer dominate. Measure the complete input-to-output path under expected concurrency and recording lengths.

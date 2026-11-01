@@ -75,3 +75,5 @@ One replica failing removes its capacity while requests may be rerouted. A servi
 Measure representative burstiness, request lengths, batch policy, and failure conditions. Compare tail latency and accepted goodput, not just saturated throughput.
 
 **Technical takeaway:** serving capacity is the amount of useful traffic a system can admit and complete within its response objectives, not simply its fastest forward-pass rate.
+
+If arrivals exceed sustainable service rate, a queue grows even when every individual request is valid. More buffering delays failure; admission limits, routing, or added capacity address the overload itself.

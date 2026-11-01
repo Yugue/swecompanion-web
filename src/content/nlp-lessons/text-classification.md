@@ -48,3 +48,5 @@ If 100 predictions near 0.8 contain only 60 correct labels, confidence and obser
 Negation, quotations, unfamiliar names, and missing conversation context expose different failures.
 
 An unknown intent can receive a large softmax score. Calibration on known inputs does not establish unknown-intent detection; validate a review or clarification policy too.
+
+“Billing” and “technical support” may overlap in a complaint. Decide whether the annotation permits multiple labels before selecting a competing-class output that forces exactly one answer.

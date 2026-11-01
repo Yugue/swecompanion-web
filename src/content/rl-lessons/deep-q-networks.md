@@ -70,3 +70,5 @@ Pixels can be encoded by a convolutional feature extractor, which shares local f
 Compare realized returns with predicted Q-values, replay ages, action frequencies, and episode lengths. Spiking loss after a target copy may be explainable; steadily growing values with flat reward suggest a deeper problem.
 
 Warm up replay with enough varied experience to form useful batches. Tune exploration and learning jointly: aggressive fitting of a tiny early dataset can amplify arbitrary initial estimates.
+
+A replay buffer mixes past transitions so consecutive updates are less tied to one recent trajectory. A target network slows target changes. These mechanisms address different sources of instability and are not interchangeable.

@@ -62,3 +62,5 @@ If there is a genuine finite deadline, remaining time can be part of the state: 
 | Use unrealistic resets | Evaluation exaggerates reliability |
 
 State design, sensor access, and the action interface often matter more than choosing among closely related algorithms.
+
+A robot's position alone may not predict its next position if velocity is omitted. The state must contain enough information for the transition assumption; adding history can help when the observation is incomplete.

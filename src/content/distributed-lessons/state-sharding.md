@@ -83,3 +83,5 @@ optimizer = torch.optim.AdamW(model.parameters())
 The example uses the composable FSDP interface and constructs the optimizer after sharding. Calling the module normally allows its registered execution hooks to run.
 
 **Technical takeaway:** sharding reduces persistent redundancy by changing ownership; correct peak-memory analysis must still follow temporary reconstruction and communication.
+
+With four ranks, assigning one optimizer-state quarter to each reduces replicated ownership. It also creates communication when another rank needs a value. Memory savings follow who owns state, not a blanket promise that all transfers disappear.

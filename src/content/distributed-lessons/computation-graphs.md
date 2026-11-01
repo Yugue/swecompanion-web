@@ -92,3 +92,5 @@ Backward computes gradients; the optimizer changes parameters. Gradients accumul
 A useful distributed diagram labels input ownership, parameter ownership, intermediate shapes, and backward edges. A design that shows only forward arrows hides much of training's cost.
 
 **Technical takeaway:** partition dimensions and dependency edges before choosing devices; the graph determines which communication can be avoided and which must occur.
+
+Partitioning a layer between two devices creates dependencies for both its forward values and backward sensitivities. A complete execution plan identifies where each value is produced, when it is ready, and who consumes it.

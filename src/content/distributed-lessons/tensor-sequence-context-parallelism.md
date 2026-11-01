@@ -87,3 +87,5 @@ Causal masking can create unequal work because later positions attend to more pa
 | Context parallelism | Attention context positions | Key/value blocks and gradient contributions |
 
 **Technical takeaway:** describe each tensor's layout at every boundary; similar names can hide different arithmetic and communication requirements.
+
+Splitting output columns of a matrix product gives each rank distinct output coordinates. Splitting the summed input dimension instead gives partial sums that must be reduced. The partitioned dimension determines communication semantics.

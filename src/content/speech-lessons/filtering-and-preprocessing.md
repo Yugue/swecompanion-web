@@ -60,3 +60,5 @@ Microphones capture different delays and levels. These differences can help sepa
 Enhancement can suppress weak consonants; normalization can erase useful level differences; lossy compression can add artifacts. “Sounds cleaner” is not proof of better recognition or event detection.
 
 Compare raw and processed examples using the task's outcomes, inspect failures, and retain a simple bypass baseline.
+
+Normalizing every clip to equal loudness can help recognition but erase amplitude evidence needed for another task. Treat preprocessing as a task assumption and validate its effect on the intended output.

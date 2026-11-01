@@ -2,13 +2,13 @@
 
 ## 1. Adapt a pretrained model
 
-**Supervised fine-tuning (SFT)** trains on input–desired-output examples. **Continued pretraining** keeps learning from raw text, often from a particular domain. Both update parameters, but they supply different learning signals.
+**Supervised fine-tuning (SFT)** uses desired input/output pairs; **continued pretraining** extends the earlier data-prediction objective. Choose supervision matching the desired generative behavior.
 
 Manuals provide domain text; expert demonstrations provide examples of desired answers.
 
 ## 2. Construct a supervised example
 
-A chat example contains role formatting, a user request, and a target assistant response. **Response-only loss** supervises selected assistant tokens while leaving prompt tokens available as context.
+**Response-only loss** scores selected assistant tokens while preserving the prompt as context. Multimodal data must additionally maintain the media–response pairing.
 
 ```genai-visual
 response-masking
@@ -28,18 +28,20 @@ No objective guarantees fresh factual recall or trustworthy citations.
 
 ## 4. Choose update scope
 
-**Full fine-tuning** allows all selected model parameters to change. Adapter methods instead restrict which updates are learned; the next lesson explains their mechanism.
+**Full fine-tuning** can update the selected base parameters. Restricted update methods trade adaptation freedom against training-state cost.
 
 Use held-out tasks to decide whether more update capacity helps rather than defaulting to a full-model change.
 
 ## 5. Control forgetting
 
-**Catastrophic forgetting** is loss of earlier capabilities after adaptation. Excessive learning rates, narrow data, and repeated examples can accelerate it.
+**Catastrophic forgetting** means adaptation damages earlier skills. Check whether a new visual style or domain improves while broader generation deteriorates.
 
-Mixing representative earlier tasks, limiting updates, and monitoring broad evaluation can help. None removes the need to inspect domain performance.
+Keep representative previous tasks in evaluation and, where appropriate, training. A narrow adaptation score cannot establish preservation of general capability.
 
 ## 6. Validate the actual improvement
 
 Check unseen requests, difficult cases, and general capabilities. Compare against an unchanged model with a good prompt.
 
-If the problem is missing current documents, training may be a costly substitute for retrieval. If the problem is response format, relevant demonstrations may be enough.
+Choose adaptation for a demonstrated behavior gap. Missing current evidence and missing output conventions call for different experiments.
+
+Paired image edits teach a requested transformation between source and target. The training examples must distinguish preserved content from intended change; ordinary descriptive captions do not fully specify that editing objective.

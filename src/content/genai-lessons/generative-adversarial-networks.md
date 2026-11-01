@@ -40,3 +40,5 @@ This differs from VAE posterior collapse: the failure here is poor output covera
 GANs can generate samples in one forward pass, but balancing the two models can be unstable. Sharpness does not guarantee diversity, correct conditioning, or absence of memorization.
 
 Evaluate realism and coverage separately, and inspect changes over training rather than trusting one attractive sample.
+
+A generator can produce a few convincing examples while omitting much of the data distribution. Inspect both realism and coverage; a discriminator's training loss is not a complete diversity measure.

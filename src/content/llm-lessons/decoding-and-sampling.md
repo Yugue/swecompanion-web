@@ -36,3 +36,5 @@ Length-normalized scoring can reduce short-output preference but changes the obj
 Beam search can help structured sequence tasks with a useful sequence score. In open-ended writing, it may repeatedly select generic completions.
 
 Search optimizes the supplied scoring rule. Higher model probability does not necessarily mean better factuality, usefulness, or diversity.
+
+A greedy answer can be consistently wrong while a sampled answer is occasionally right. Decoding changes the selection rule over a fixed model distribution; evaluate output reliability under the configuration users actually receive.

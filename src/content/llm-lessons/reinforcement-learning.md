@@ -33,3 +33,5 @@ The signal attributes outcome feedback to choices without requiring a correct ta
 | Depends on demonstration quality | Depends on exploration and reward quality |
 
 **Exploration** means sampling behavior that can reveal better outcomes. A model that never tries a useful alternative cannot learn its advantage from outcome feedback alone.
+
+If reward is issued only after a complete response, many token decisions share that delayed signal. Assigning credit among them requires a learning estimator; calling each token an action does not solve credit assignment.

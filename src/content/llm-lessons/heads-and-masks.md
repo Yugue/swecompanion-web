@@ -37,3 +37,5 @@ Query projections and output combinations still run. Reducing KV heads is an arc
 Separate projections allow different mixtures, but a head need not correspond to a stable human label such as “syntax.” Its role depends on the layer and input.
 
 Inspect measured quality, cache memory, and serving throughput rather than choosing the head count from interpretability alone.
+
+Sharing key/value heads reduces their stored projections, while query heads can still form distinct comparisons. Count query work and cached key/value storage separately when estimating the effect of head sharing.

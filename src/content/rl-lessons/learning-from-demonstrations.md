@@ -58,3 +58,5 @@ A common practical strategy is demonstration initialization followed by reward-d
 Split by episodes, demonstrators, scenarios, or other units that prevent closely related frames from leaking across evaluation. Measure closed-loop task success and recovery from perturbed conditions.
 
 Audit action conventions, sensor delays, and timestamps. An apparently noisy demonstrator might actually reflect a misalignment between observation and action labels. Include failures and interventions when they provide useful recovery evidence, with their meaning preserved.
+
+A behavior-cloning policy can imitate expert actions on familiar states yet drift into unseen states after one small mistake. Good held-out action accuracy does not measure recovery from its own induced distribution.

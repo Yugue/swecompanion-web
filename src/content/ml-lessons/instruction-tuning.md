@@ -435,25 +435,3 @@ loss = model(input_ids=prompt_and_response, labels=response_labels).loss
 The model is still doing next-token prediction, but now the sequence is structured around an instruction and a desired answer.
 
 ---
-
-## Interview answer
-
-If asked:
-
-> What is instruction tuning?
-
-A strong answer is:
-
-> Instruction tuning is a form of supervised fine-tuning where a pretrained language model is trained on diverse instruction-response pairs. The goal is to teach the model to interpret natural-language instructions and produce responses that satisfy them. The underlying language-model objective is often still next-token cross-entropy, but the training data is structured around desired assistant behavior rather than generic text continuation. This improves zero-shot and general instruction-following ability.
-
-The key distinction to remember is:
-
-\[
-\boxed{\text{Pretraining learns capabilities}}
-\]
-
-\[
-\boxed{\text{Instruction tuning teaches how to use those capabilities on command}}
-\]
-
-**Next topic: Low-Rank Adaptation (LoRA) and parameter-efficient fine-tuning** — how to adapt a huge model without updating all of its weights.

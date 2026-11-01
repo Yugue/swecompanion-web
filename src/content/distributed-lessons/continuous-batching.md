@@ -70,3 +70,5 @@ Smaller chunks can reduce interruption of active decodes but add scheduling and 
 Fairness also matters: strict preference for short requests can indefinitely delay long ones. Use deadlines or explicit service classes where needed.
 
 **Technical takeaway:** continuous batching is a state-and-memory scheduler; successful admission depends on token work, cache ownership, and latency objectives together.
+
+When one sequence ends, admitting a new request into its slot improves utilization. Long new prefills can still delay active decoding, so request admission and compute scheduling need separate attention.

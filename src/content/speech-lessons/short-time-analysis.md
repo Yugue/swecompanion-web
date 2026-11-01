@@ -63,3 +63,10 @@ spectrum = torch.stft(x, n_fft=400, hop_length=160,
 ```
 
 Here fs = 16 kHz would mean 25 ms frames and 10 ms hops. Check frontend conventions before copying these parameters into a pretrained model.
+
+| At 16 kHz | Samples | Duration |
+|---|---:|---:|
+| Window | 400 | 25 ms |
+| Hop | 160 | 10 ms |
+
+Successive windows overlap. A 10 ms frame spacing does not mean each frame needs only 10 ms of audio.

@@ -40,3 +40,5 @@ Compare on the same text, tokenizer, context policy, and scored positions. A tok
 A standard cross-entropy implementation expects raw logits and integer target IDs; it computes stable log probabilities internally. Applying softmax first changes that interface.
 
 Mean token loss can improve while rare factual answers worsen. Inspect task and language subsets as well as the average.
+
+For target token A, probabilities [0.8,0.2] incur less cross-entropy than [0.2,0.8]. The loss sees the probability assigned to the observed target, not whether a later sampled response happens to look convincing.

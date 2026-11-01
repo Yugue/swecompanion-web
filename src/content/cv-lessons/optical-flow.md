@@ -76,8 +76,6 @@ Check validity before reusing points.
 
 Flow helps **video stabilization**, reducing apparent camera shake by compensating estimated movement, as well as alignment and short-term motion cues. Tracking additionally needs identity and lifecycle rules.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why track corners rather than straight edges?
-
-**Answer:** Corners constrain both directions. Straight edges mainly constrain perpendicular motion; use additional context or reject weakly constrained points.
+A smooth wall offers little local texture to match between frames. The absence of a strong estimate does not mean no motion occurred; flow depends on visible evidence and assumptions about neighboring movement.

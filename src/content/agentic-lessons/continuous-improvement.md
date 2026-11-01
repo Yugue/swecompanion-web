@@ -43,7 +43,3 @@ Retain a representative evaluation set so fixing one incident does not degrade c
 Change one conceptual variable where possible. For interacting bundles, use ablations.
 
 Record full configurations, repeated results, cost, and latency.
-
-## Interview mental model
-
-> Fix a demonstrated mechanism and keep a check that detects its return.

@@ -66,7 +66,3 @@ A slow lookup should not consume the ability to report the blocker.
 \]
 
 Compare quality and tail cost too. Cheap failed runs are not productive savings.
-
-## Interview mental model
-
-> Count the whole journey, including the paperwork carried into each stop.

@@ -49,7 +49,3 @@ Cancel outstanding work when the global deadline ends. Validate partial results 
 Use stable task IDs and deduplicate results. A worker may finish before its response is lost.
 
 Repeated merge should not count one finding twice.
-
-## What matters most
-
-> Dispatch checkable pieces; assemble them against the original goal.

@@ -92,8 +92,6 @@ Distinguish:
 
 Confidence scores do not automatically capture either reliably.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why does averaging moving objects fail?
-
-**Answer:** The frames contain different signals at the same pixel. Align them before combining, and handle occlusion and lighting changes.
+Averaging four independent measurements with equal noise variance divides that variance by four. A shared calibration offset survives unchanged, so more frames do not automatically remove every error source.

@@ -38,3 +38,5 @@ A larger model may instead achieve a difficult quality target that the smaller o
 Run smaller-scale experiments with comparable data mixtures and schedules. Track uncertainty and changes in the dominant bottleneck.
 
 Do not turn one paper's fitted token-to-parameter ratio into a universal rule. Scaling does not repair wrong targets, contaminated tests, or missing domain evidence.
+
+Training twice on the same text doubles exposure without doubling novel evidence. A compute-allocation comparison should track unique data, repeated tokens, model size, and achieved quality rather than tokens processed alone.

@@ -40,3 +40,5 @@ gated-ffn
 A gated FFN usually has two input projections and one output projection. Comparing it with a two-matrix FFN requires accounting for intermediate width as well as activation choice.
 
 More intermediate features increase computation and parameter memory. Choose width using measured quality and resource budgets; a wider FFN cannot recover information excluded from the input.
+
+At one layer, the feed-forward network applies the same weights to every token independently. It can transform information already mixed by attention, but does not itself compare two token positions directly.

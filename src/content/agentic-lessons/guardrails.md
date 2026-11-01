@@ -55,7 +55,3 @@ Specify which safe investigation can continue and what evidence accompanies esca
 Submit another user's ID, excessive amounts, stale approval, duplicates, malformed data, and missing prerequisites directly.
 
 Also test unavailable validators and expired credentials.
-
-## What matters most
-
-> The gate must hold even when the caller proposes an invalid operation.

@@ -41,3 +41,5 @@ A piece need not match a word or morpheme. It represents a useful fitted text fr
 More merges add vocabulary entries and usually shorten familiar text. Rare scripts can still fragment heavily.
 
 Inspect segmentation and length distributions on actual inputs. A vocabulary that compresses one language well may truncate another language’s evidence more often.
+
+A learned merge may turn two frequent fragments into one token. At inference, applying a different merge inventory changes the IDs and boundaries, so the trained embedding table no longer receives its expected inputs.

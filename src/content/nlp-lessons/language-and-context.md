@@ -48,3 +48,5 @@ Removing “not” and treating every “not” identically both fail.
 Create **minimal pairs**: examples differing in one important feature. Reverse participants, add negation, or change an ambiguous word’s context.
 
 If annotators need earlier messages, supply them or permit uncertainty. Missing evidence cannot be repaired by a more confident judgement.
+
+“Can you open the window?” has the form of a question but can function as a request. Sentence meaning and the speaker's intended action need not be the same label.

@@ -83,8 +83,6 @@ L2gradient=True uses the Euclidean gradient magnitude defined above. Thresholds 
 
 Inspect gradient magnitude before tuning the binary threshold.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why find wallpaper edges but miss an object?
-
-**Answer:** Gradients measure contrast. Wallpaper may have stronger local changes than the object. Adjust capture/scale or add region and semantic evidence.
+A shadow boundary can have a large intensity gradient without being an object boundary. An edge detector identifies local changes; deciding what those changes mean requires additional appearance or geometric evidence.

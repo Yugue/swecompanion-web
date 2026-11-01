@@ -52,3 +52,5 @@ Short histories share counts more easily but discard longer relationships.
 ## 6. Specify the score
 
 Total sequence probability, average token loss, and length-adjusted search scores answer different questions. Declare targets, boundaries, and termination before comparing them.
+
+A sequence with next-token probabilities 0.5, 0.4, and 0.2 has probability 0.04 under that factorization. Adding log probabilities yields log(0.04), making the same product easier to accumulate numerically.

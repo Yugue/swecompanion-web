@@ -74,3 +74,5 @@ Running statistics and other model buffers are not parameter gradients. A framew
 If one worker skips backward, updates early, or exits its input loop while others still communicate, the job can hang or diverge. Synchronous means the update has a shared logical boundary, not that every kernel starts at the same instant.
 
 **Technical takeaway:** data parallelism is correct gradient bookkeeping over a shared model state; device replication alone is insufficient.
+
+Rank means from batches of two and eight examples should not receive equal weight when the objective is a sample mean. Combine weighted sums with the shared sample count, accounting for the framework's averaging convention.

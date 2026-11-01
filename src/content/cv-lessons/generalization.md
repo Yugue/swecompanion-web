@@ -75,8 +75,6 @@ fits it, fails new data   → coverage / shortcuts / shift / overfit
 
 Stronger dropout will not repair wrong targets or missing camera domains.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Excellent training, poor validation—what changes?
-
-**Answer:** Audit split, labels, and domain first. If overfitting is supported, compare valid augmentation, data, weight decay, early stopping, or reduced capacity.
+A classifier can recognize the background used for each class rather than the object. Evaluate changed backgrounds or controlled crops; a high random-split score alone cannot establish the intended visual skill.

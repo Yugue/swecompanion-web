@@ -46,8 +46,6 @@ Log the probability of the actual action being evaluated.
 
 Neither creates missing support. Use uncertainty estimates and inspect rare large contributions.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Can a reward model invent the missing observations needed for IPS?
-
-**Answer:** It can supply model-based extrapolation, but it does not create logged overlap. State the additional assumptions rather than claiming unsupported IPS evidence.
+A target action with positive probability but zero logging probability has no matching logged outcomes for importance weighting. No finite weight can repair that missing support; a model-based estimate adds an extrapolation assumption.

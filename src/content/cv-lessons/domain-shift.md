@@ -68,8 +68,6 @@ Compare stable and recent holdouts, including old domains still in use. **Shadow
 
 Check selection effects: reviewing only flagged images hides unflagged misses.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** A factory changes cameras and false alarms increase. What next?
-
-**Answer:** Verify color, resolution, orientation, exposure, and calibration. Compare reviewed old/new-camera examples, identify the changed evidence or policy, and test a targeted fix on independent data before rollout.
+Night images can change exposure noise and visibility together. Brightness augmentation may address one aspect while leaving missing detail unresolved. Test realistic night captures before concluding the domain gap is covered.

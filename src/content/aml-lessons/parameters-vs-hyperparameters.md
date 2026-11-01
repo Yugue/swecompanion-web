@@ -40,8 +40,6 @@ Choosing median filling is configuration; the median computed from training rows
 
 **Early stopping** chooses when to stop iterative fitting from validation performance. It is another data-informed choice. Repeated configuration searches can also fit validation noise, so reserve independent final evaluation.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Is a scaler's mean a hyperparameter?
-
-**Answer:** It is fitted state learned from training data. Choosing standardization instead of another transform is a configuration decision.
+In y = wx + b, fitting changes w and b. Choosing a penalty strength changes which fits are preferred. A fitted scaler also stores learned values, so deployment must preserve more than the model's coefficients.

@@ -575,18 +575,3 @@ That leads to:
 - distribution shift
 
 Those ideas appear again and again throughout deep learning.
-
-### For Google, you should be able to answer these without hesitation
-
-- What's the difference between training/validation/test?
-- Loss vs metric?
-- Underfitting vs overfitting?
-- High bias vs high variance?
-- How would you diagnose overfitting?
-- Why can accuracy be misleading?
-- Precision vs recall?
-- What is data leakage?
-- What happens if production data differs from training data?
-- Why establish a baseline?
-
-If all of that feels solid, **ML fundamentals is sufficiently covered for now**. The next curriculum topic is **Linear algebra essentials**.

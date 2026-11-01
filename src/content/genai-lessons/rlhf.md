@@ -45,3 +45,5 @@ Clipping removes further incentive from this term; it does not impose a hard bou
 Check human preferences, factuality, refusals, diversity, and held-out tasks. Watch for verbosity and **sycophancy**, agreement with the user that overrides contrary evidence. A narrow judge also invites overoptimization.
 
 More reward-model training does not solve an incomplete rubric. Audit the comparisons and the policy’s newly sampled outputs.
+
+Human comparisons often combine correctness, style, and usefulness. A reward model learning those comparisons needs evaluation on those separate dimensions, particularly when attractive presentation can conceal incorrect content.

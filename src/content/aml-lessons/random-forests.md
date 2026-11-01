@@ -40,8 +40,6 @@ Tune leaf size and feature sampling as well as tree count. Extra trees increase 
 
 Forests are usually more stable than one deep tree. Correlated errors, poor inputs, and miscalibrated probabilities can remain.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why sample features if bootstrap sampling already changes the data?
-
-**Answer:** Row resampling can still produce trees dominated by the same feature. Feature sampling reduces correlated errors, improving the value of averaging.
+If ten trees all make the same mistake, averaging does little. If their errors differ, averaging can cancel some variation. Row resampling and random feature choices aim to diversify errors without making each tree useless.

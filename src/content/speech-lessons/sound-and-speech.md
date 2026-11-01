@@ -59,3 +59,5 @@ Consequently, word boundaries need not contain silence, and fixed-duration slice
 ## 7. Practical inspection
 
 Listen to the recording and inspect waveform, level, silence, and clipping before relying on features. A waveform can reveal dropouts and timing, but is difficult to read linguistically; later frequency representations expose resonance and harmonic structure.
+
+The same word spoken by two people has different pitch and timing. Recognition needs to preserve linguistic evidence while tolerating these changes; speaker identification deliberately needs some of the variation recognition suppresses.

@@ -39,3 +39,5 @@ Changing tokenizer settings without matching model weights changes which vectors
 Count tokens on representative languages, code, and formatting. Character count alone is a weak proxy for context usage and generation cost.
 
 **Text normalization** transforms text before encoding, for example by changing case or Unicode forms. It can erase meaningful distinctions. Preserve originals when exact characters or source offsets matter.
+
+A tokenizer change can turn one identifier into several pieces and assign different IDs. Even if the decoded text looks unchanged, the model receives a different input sequence; tokenizer compatibility is part of model identity.

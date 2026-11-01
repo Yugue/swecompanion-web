@@ -42,3 +42,5 @@ The output’s meaning determines its loss; not every head needs softmax.
 **Capacity** is a model’s ability to represent varied mappings. Increasing width or depth can add capacity, but useful behavior still requires suitable data, objectives, and optimization.
 
 A large network can fit an incorrect target perfectly. Verify what the labels and loss actually reward.
+
+Without a nonlinear operation, composing affine layers still yields one affine mapping. Extra depth becomes useful because intermediate transformations can change which features the next learned map receives.

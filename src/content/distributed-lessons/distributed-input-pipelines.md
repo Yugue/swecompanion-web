@@ -75,3 +75,5 @@ For precision/recall, aggregate confusion counts. Ranking metrics such as area u
 A training sampler's repeated padding examples can bias evaluation. Use duplicate-free evaluation sharding, or retain record IDs and exclude repeats before aggregation. Disable training-specific random transformations unless they are intentionally part of the evaluation protocol.
 
 **Technical takeaway:** data ownership, prefetch state, and metric denominators are part of the distributed algorithm's correctness.
+
+If two workers read the same shuffled rows, accelerator utilization can look excellent while effective data diversity falls. Shard ownership and epoch accounting establish which independent examples actually contributed to learning.

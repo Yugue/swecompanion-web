@@ -42,8 +42,6 @@ Controlled exploration changes opportunities to observe uncertain eligible items
 
 Fresh-item budgets or variety rules change exposure but are not automatically unbiased experiments. Preserve the selection process and probabilities when the evaluation requires them.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why is replacing total clicks with CTR not a complete feedback-loop fix?
-
-**Answer:** CTR removes one volume effect, but audiences, placement, and uncertainty still differ. The system continues controlling which alternatives receive evidence.
+More exposure creates more clicks even with unchanged appeal. Training on those clicks can then increase exposure again. Logging opportunities and deliberately gathering alternative evidence help separate popularity reinforcement from preference.

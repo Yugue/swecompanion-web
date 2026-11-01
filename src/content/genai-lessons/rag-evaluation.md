@@ -39,3 +39,5 @@ For unanswerable questions, evaluate appropriate abstention separately from inco
 Move evidence, introduce distractors, change key values, and update source versions. Measure whether answers respond to the change.
 
 Track stage metrics alongside end-to-end correctness, latency, and access-control failures. Optimizing retrieval relevance alone can still worsen complete answers.
+
+A wrong answer can arise because no supporting passage was retrieved or because supplied evidence was ignored. Evaluate those stages separately so retrieval changes are not credited with fixing generation behavior they never tested.

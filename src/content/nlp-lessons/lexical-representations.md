@@ -46,3 +46,5 @@ For vocabulary width V, sparse storage keeps nonzero values and indices instead 
 | N-grams | Local phrase evidence | Sparse; limited context |
 
 Lexical features suit exact identifiers and distinctive phrases. Paraphrases with little overlap remain difficult.
+
+Bag-of-words counts make “dog bites man” and “man bites dog” identical when word counts match. The representation loses order before the classifier sees it; more training cannot recover that discarded distinction.

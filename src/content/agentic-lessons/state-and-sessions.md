@@ -66,11 +66,3 @@ Record triggers, timestamps, and wake conditions. Reject illegal transitions.
 Store large files and observations separately with controlled references and hashes.
 
 Keep task metadata small enough for consistent transactional updates.
-
-## Interview mental model
-
-> Could another worker recover the run correctly if this process stopped now?
-
-## Chapter 4 checkpoint
-
-Trace a fact through retrieval, context, compaction, correction, and deletion. Identify source, scope, version, and exact values at every stage.

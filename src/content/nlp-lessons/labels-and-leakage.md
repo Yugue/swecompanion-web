@@ -45,3 +45,5 @@ Learn vocabularies, word-frequency statistics, and selected features inside trai
 Repeatedly choosing changes from test errors makes that test development evidence. Reserve fresh assessment when an independent estimate is required.
 
 Choose split sizes from coverage and dependence, rather than a universal percentage.
+
+If a support category is embedded in a template added after resolution, that template can reveal the answer. Evaluate the text as it existed when the classifier would actually be called.

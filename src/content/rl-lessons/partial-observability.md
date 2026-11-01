@@ -63,3 +63,5 @@ Stored hidden states can become stale as model parameters change. Burn-in reduce
 Reset memory when the task resets, preserve it when one continuing episode is merely split into chunks, and define how it behaves after missing observations.
 
 A critic can sometimes use privileged simulator state during training while the actor uses deployable observations, but the architecture and training assumptions must make that asymmetry explicit. Accidentally feeding hidden state into the actor creates a policy that cannot run as evaluated.
+
+Two identical camera frames can precede different outcomes if one object is moving left and the other right. History or a belief representation supplies information that a memoryless policy lacks.

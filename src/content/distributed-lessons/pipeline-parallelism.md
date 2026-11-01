@@ -71,3 +71,5 @@ Each microbatch's loss must contribute its proper weight to the whole update. Wi
 Parameters tied across stages, such as shared input/output embeddings, need a common logical value and combined gradient contributions. Two independently updated copies would change the model.
 
 **Technical takeaway:** pipeline parallelism is a coordinated schedule of forward values, backward gradients, and parameter versions; useful overlap depends on microbatch size and stage balance.
+
+If stage times are 2 ms and 8 ms, equal layer counts do not balance the pipeline. The slower stage constrains steady throughput, while startup and drain leave bubbles that depend on microbatch scheduling.

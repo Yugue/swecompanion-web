@@ -98,9 +98,14 @@ for (const topic of topics) {
   assert.ok(sections.length >= 6 && sections.length <= 12 && sections.every((n, i) => Number(n) === i + 1), `${topic.id}: use 6–12 sequential short sections`);
   sectionsChecked += sections.length;
   const lastSection = blocks.findLastIndex(block => block.type === "heading2");
-  assert.match(blocks[lastSection].text, /^\d+\. Interview reasoning$/, `${topic.id}: end with interview reasoning`);
-  assert.deepEqual(blocks.slice(lastSection + 1).map(block => block.type), ["paragraph", "paragraph"], `${topic.id}: end with one question and one answer`);
-  assert.ok(blocks[lastSection + 1].text.startsWith("**Question:**") && blocks[lastSection + 2].text.startsWith("**Answer:**"), `${topic.id}: missing reasoning prompt or answer`);
+  if (/Interview reasoning$/.test(blocks[lastSection].text)) {
+    assert.match(blocks[lastSection].text, /^\d+\. Interview reasoning$/, `${topic.id}: end with interview reasoning`);
+    assert.deepEqual(blocks.slice(lastSection + 1).map(block => block.type), ["paragraph", "paragraph"], `${topic.id}: end with one question and one answer`);
+    assert.ok(blocks[lastSection + 1].text.startsWith("**Question:**") && blocks[lastSection + 2].text.startsWith("**Answer:**"), `${topic.id}: missing reasoning prompt or answer`);
+  } else {
+    assert.match(blocks[lastSection].text, /^\d+\. Work a concrete case$/);
+    assert.ok(blocks.slice(lastSection + 1).some(block => block.type === "paragraph" && block.text.split(/\s+/).length >= 15), `${topic.id}: missing worked explanation`);
+  }
   assert.equal((source.match(/^```/gm) ?? []).length % 2, 0, `${topic.id}: unclosed fence`);
   assert.equal((source.match(/^\\\[$/gm) ?? []).length, (source.match(/^\\\]$/gm) ?? []).length, `${topic.id}: unclosed display math`);
   const inlineSource = source.replace(/\\\[[\s\S]*?\\\]/g, "");
@@ -160,4 +165,4 @@ if (process.argv.includes("--export")) {
   const sitemap = fs.readFileSync(path.join(process.cwd(), "out/sitemap.xml"), "utf8");
   for (const topic of topics) assert.ok(sitemap.includes(`/mldomain/appliedml/${topic.id}</loc>`));
 }
-console.log(`Applied ML validated: ${topics.length} chapters, ${sectionsChecked} short sections with closing reasoning prompts, ${used.size} figures across ${illustratedChapters} chapters, ${tables} tables, ${equations} math expressions and ${words.toLocaleString("en-US")} source words. Duplicate-paragraph, numerical and parser checks passed${process.argv.includes("--export") ? "; exported pages, links, canonical URLs and sitemap passed" : ""}.`);
+console.log(`Applied ML validated: ${topics.length} chapters, ${sectionsChecked} short sections with worked applications, ${used.size} figures across ${illustratedChapters} chapters, ${tables} tables, ${equations} math expressions and ${words.toLocaleString("en-US")} source words. Duplicate-paragraph, numerical and parser checks passed${process.argv.includes("--export") ? "; exported pages, links, canonical URLs and sitemap passed" : ""}.`);

@@ -54,3 +54,5 @@ Augmentation and positive-pair definitions encode those priorities. “General-p
 Use smaller encoder learning rates, staged unfreezing, regularization, or mixed source/target data when appropriate. Monitor source and target performance to detect **catastrophic forgetting**, the loss of earlier capabilities.
 
 Keep pretraining and adaptation data provenance separate from test data. External checkpoints may have seen benchmark recordings.
+
+An encoder pretrained to ignore speaker identity may help transcription while removing evidence needed for speaker verification. Transfer quality depends on which distinctions the original objective preserved.

@@ -45,3 +45,5 @@ A layer with four experts that selects two can store all four while running only
 Sparse activation can add capacity at lower active compute, but total weight memory remains large. Moving tokens between devices adds communication and tail latency.
 
 Choose architecture from task requirements, measured quality, memory, and serving behavior. Parameter count alone does not settle the comparison.
+
+A model reading a whole image to produce text can use full visual evidence while remaining causal over generated words. Different parts of one system can therefore obey different information-access rules.

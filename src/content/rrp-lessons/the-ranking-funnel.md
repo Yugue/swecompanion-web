@@ -46,8 +46,12 @@ Compare 200, 500, and 1,000 candidates on the same requests. Measure final-list 
 
 More candidates add options and work. A small catalogue with cheap scoring may need no separate retrieval stage.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** A better ranker produces no product gain. What do you inspect first?
+```text
+catalogue → retrieval → candidate set → ranker → displayed list
+                         ↑
+               only sports admitted
+```
 
-**Answer:** Trace useful items through the handoffs. Missing candidates suggest retrieval limits; retrieved items with poor scores suggest ranking or feature problems.
+A missing cooking video cannot be recovered by sorting that candidate set better. Diagnose inclusion before changing scores.

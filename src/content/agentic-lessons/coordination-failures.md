@@ -53,11 +53,3 @@ Record dependency versions. Turn silent overwrites into visible conflicts.
 Test disagreement, timeout, duplicate delivery, incomplete output, and reordered completion.
 
 Check provenance, ownership, conflicts, partial-result honesty, and global budgets at system level.
-
-## Interview mental model
-
-> The seams are part of the system and need their own checks.
-
-## Chapter 5 checkpoint
-
-Explain the benefit of a split, its briefs and return contracts, the merge rules, and recovery when a worker fails.

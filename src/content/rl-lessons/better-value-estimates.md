@@ -63,3 +63,5 @@ In expectation, probability 0.04 times weight 0.25 restores its uniform contribu
 | Importance weights | Nonuniform replay sampling | Correct full target-policy trajectory distribution |
 
 Both mechanisms can be combined. Neither substitutes for a useful reward, valid target masks, or representative data. Repeatedly selecting noisy transitions can reduce effective diversity.
+
+Selecting the highest noisy estimate tends to select positive noise too. Double estimation separates selection and evaluation, reducing this mechanism without guaranteeing unbiased values under every approximation or dataset.

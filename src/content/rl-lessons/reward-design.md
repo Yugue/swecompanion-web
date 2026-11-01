@@ -72,3 +72,5 @@ This handles an expected tradeoff under assumptions. It does not ensure that eve
 | Low energy | Refuse all movement | Completion under required service level |
 
 Watch full trajectories and search for high-reward failures. Changing the reward changes the task the learner sees; reevaluate previously successful behavior afterward.
+
+Rewarding distance traveled can teach a navigation agent to circle indefinitely. Write down a behavior that maximizes the proposed score while failing the actual task; that counterexample exposes a reward loophole.

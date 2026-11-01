@@ -62,7 +62,3 @@ Similarity is not an access-control mechanism.
 Candidate recall locates retrieval misses. Top-rank metrics locate ordering problems. Answer checks locate generation failures.
 
 Tune candidate count and passage budget together.
-
-## What matters most
-
-> Retrieval finds the shelf; reranking puts the most useful passages within reach.

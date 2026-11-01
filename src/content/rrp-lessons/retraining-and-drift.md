@@ -42,8 +42,6 @@ A **rollout gate** is a predeclared requirement an update must pass before recei
 
 There is no universal daily retraining rule.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Input distributions changed but later-period quality is stable. Retrain immediately?
-
-**Answer:** A distribution shift alone does not establish damage. Check serving health and outcome evidence, then compare a candidate update against the current model.
+A surge in new items changes feature distributions without necessarily lowering usefulness. Compare later-period outcomes and pipeline health before attributing the shift to a model that needs retraining.

@@ -43,8 +43,6 @@ The model estimates risk; the threshold reflects review capacity and error costs
 
 Use ML when representative data contains patterns that are difficult to specify manually. If the requirement is already a complete rule, measure that rule first. Include data, serving, and maintenance costs when judging improvement.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** A filter memorizes all training messages perfectly. Is it useful?
-
-**Answer:** Test representative new messages. Perfect recall of old answers does not show that the learned pattern transfers or improves the decision.
+A rule that blocks every message containing “prize” is fixed by its author. A learned filter can combine words and sender history; its value is fewer costly mistakes on new messages, not its training score.

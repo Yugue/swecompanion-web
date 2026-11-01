@@ -52,3 +52,5 @@ Compare performance by language, accent, speaking style, and recording condition
 Apply consistent normalization to training targets and evaluation references. Converting “twenty one” to “21” may be desirable for display, but scoring needs a stated policy.
 
 Cropping audio requires matching transcript boundaries. If a crop loses the start of a word while keeping its full target, the training example becomes inconsistent.
+
+“Twenty-one” and “21” can represent the same spoken content under different text conventions. Fix normalization and tokenization before counting recognition errors, or formatting choices become mislabeled acoustic failures.

@@ -29,3 +29,5 @@ Verify results with tools, proofs, or checks appropriate to the task. Repeating 
 Extra samples help when they contain useful alternatives and the checker can identify them. Correlated mistakes can make repeated attempts much less valuable than the independent-sample calculation suggests.
 
 Measure selected-answer accuracy, latency, tokens spent, and cost per solved task. Stop when extra computation fails to improve the required operating point.
+
+Taking more attempts improves the chance that some answer succeeds, but choosing the successful one needs a selector. Report one-attempt performance separately from best-of-many results with a privileged checker.

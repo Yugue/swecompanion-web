@@ -52,7 +52,3 @@ Preserve decisions and observations during compaction according to the interface
 Measure time to useful action, unnecessary calls, success versus usage, and tail cost/latency.
 
 Permit early completion; a maximum allowance is not a target to spend.
-
-## What matters most
-
-> Spend computation where it changes the outcome, then verify the gain.

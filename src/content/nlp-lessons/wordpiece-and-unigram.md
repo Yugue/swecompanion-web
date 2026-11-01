@@ -53,3 +53,5 @@ Vocabulary training can prune pieces with little contribution to corpus likeliho
 Equal vocabulary sizes do not imply equal token lengths. Under one token cutoff, different tokenizers can expose different amounts of source text.
 
 Measure truncation and downstream errors on the languages you serve.
+
+Several valid segmentations can spell the same string. The method's scoring and selection rules determine which pieces are used; sharing a vocabulary does not make two tokenization algorithms equivalent.

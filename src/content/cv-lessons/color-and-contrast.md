@@ -83,8 +83,6 @@ These operations do different things:
 
 Input standardization changes image values before the network. Normalizing features inside a network is a separate operation, covered in Chapter 4.4. Match the preprocessing expected by the pretrained model.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** When would grayscale help?
-
-**Answer:** When shape or intensity determines the target, such as controlled component counting. Retain color for color-defined categories; compare representative examples before choosing.
+Two arrays can store identical numbers while one represents RGB and another BGR. The model then sees different colors. Verify channel meaning before interpreting a failure as a lack of color invariance.

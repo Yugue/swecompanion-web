@@ -46,11 +46,3 @@ Recurring corrections can become regression cases or deterministic checks.
 Measure waiting time, resolution time, edit/rejection rates, caught harmful proposals, disagreement, and backlog.
 
 A useful gate needs both adequate review and acceptable turnaround.
-
-## What matters most
-
-> The person should approve a specific, evidenced result they can inspect.
-
-## Chapter 6 checkpoint
-
-Explain outcome/process evaluation, judge validation, observable failures, permission enforcement, injection paths, and review effectiveness.

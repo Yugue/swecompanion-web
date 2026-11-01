@@ -83,3 +83,5 @@ Expert parameters may themselves be replicated or tensor-sharded. Their gradient
 | Inference latency | Small request batches make dispatch harder to amortize |
 
 **Technical takeaway:** expert parallelism trades dense arithmetic for conditional routing; evaluate parameter capacity, useful expert batch size, network exchange, and the slowest owner together.
+
+Equal token counts do not imply equal expert load: routing may send most tokens to one expert. Track per-expert tokens and dispatch traffic before concluding sparse activation guarantees balanced acceleration.

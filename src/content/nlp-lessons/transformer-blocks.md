@@ -47,3 +47,5 @@ It receives context already mixed by attention; it does not itself read neighbor
 Other variants normalize after additions or change activations and gating. Match equations, diagram, and implementation.
 
 Dropout affects training/evaluation behavior, not the identity of learned weights.
+
+Attention moves information across positions; the positionwise network transforms each position's feature vector. Stacking the two repeatedly allows newly transformed features to influence later cross-position mixtures.

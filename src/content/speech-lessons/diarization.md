@@ -54,3 +54,5 @@ Keep word recognition and speaker assignment separately measurable. A correct tr
 **Diarization Error Rate (DER)** combines missed speech, false-alarm speech, and speaker confusion after mapping predicted speaker labels to reference identities.
 
 Specify boundary tolerance, called a collar, and whether overlap is scored. Excluding overlaps can make the reported result look much better without solving the difficult cases.
+
+Transcribing “hello” correctly does not identify who said it. Diarization supplies speaker regions; recognition supplies words. Their time alignment determines whether a transcript attributes those words to the correct person.

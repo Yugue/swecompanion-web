@@ -73,7 +73,3 @@ The final message proposes completion; the runtime checks the outcome.
 A missing response does not prove failure. Check the external operation or idempotency key before retrying a write.
 
 Persist requested, executed, and observed states so recovery can distinguish them.
-
-## What matters most
-
-> Each observation should change the next decision or justify stopping.

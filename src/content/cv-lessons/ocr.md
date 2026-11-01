@@ -81,8 +81,6 @@ Blur, curved text, handwriting, and unfamiliar scripts need different data. Lang
 
 Use confidence to route uncertain critical fields to review.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Character accuracy is high, but invoice totals are wrong. What do you check?
-
-**Answer:** Trace failed totals through crops, digits, decimal/currency handling, reading order, and field assignment. Measure exact field correctness so a layout error is not mistaken for a recognition problem.
+If the text crop is wrong, a perfect recognizer still reads the wrong pixels. Evaluate localization and transcription separately, then measure whether their combination returns the correct string for the intended region.

@@ -40,3 +40,5 @@ A stronger penalty preserves earlier behavior more aggressively but can restrict
 **Reward hacking** means exploiting a reward rule without achieving the intended goal. Rewarding long answers can produce repetition; rewarding test passage can encourage checker-specific shortcuts.
 
 Use independent evaluations and inspect high-reward failures. An improved training reward is evidence about the reward, not proof of general reasoning.
+
+A generated output can receive feedback only after completion. Optimizing that feedback changes which outputs the policy favors, but a flawed scorer can reward undesirable shortcuts instead of the intended property.

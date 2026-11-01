@@ -48,7 +48,3 @@ Query the relevant artifact or section. Loading the entire workspace into every 
 Include message/task IDs and deduplicate retries. Handle delayed replies, deadlines, and missing responses.
 
 The coordinator decides whether to retry, reassign, or continue partially.
-
-## What matters most
-
-> A handoff needs a labeled envelope; shared work needs ownership and version checks.

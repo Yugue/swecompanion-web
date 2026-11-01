@@ -68,3 +68,5 @@ Loss choice alone does not determine latency; frontend, encoder, and decoding po
 Transducers can emit late or struggle with search and endpoint policy. Attention decoders can produce linguistically plausible but acoustically unsupported text, especially on nonspeech or mismatch.
 
 Length limits, silence checks, confidence evaluation, and strong coverage tests help, but no heuristic is a universal fix.
+
+A transducer's blank advances through audio without emitting a text symbol. A nonblank emits a symbol under its alignment rules. Confusing these transitions with ordinary next-token language generation obscures how timing is learned.

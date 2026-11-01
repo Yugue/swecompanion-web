@@ -58,3 +58,5 @@ A cascaded detector can use a cheap first stage and a stronger verifier. Count e
 | Are tiny events ignored? | Duration and rarity slices |
 
 The shared evaluation lesson develops formulas; here the central decision is what counts as one correct prediction.
+
+A one-second clip can contain both a siren and speech. A single-label softmax forces competition between them, whereas independent event outputs allow overlap when the annotation and evaluation support it.

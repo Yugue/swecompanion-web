@@ -40,3 +40,5 @@ Changing head count changes representational structure and implementation effici
 During generation, storing separate past keys and values for every head can be expensive. A later serving lesson introduces architectures that let multiple query heads share key/value heads.
 
 Assess quality and resource use together rather than assuming more heads are always better.
+
+Two heads can form different mixtures over the same positions. This supplies parallel learned comparisons, not a guarantee that one head always tracks objects and another always tracks grammar.

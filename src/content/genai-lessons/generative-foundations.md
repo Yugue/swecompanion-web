@@ -40,3 +40,5 @@ Later lessons derive these mechanisms; no prior knowledge of them is required he
 **Fidelity** is resemblance to the desired data; **diversity** is variation across outputs; **coverage** is representation of different valid cases.
 
 Copying one perfect training image can give apparent fidelity with poor coverage. For text, a **hallucination** is a plausible claim that is false or unsupported under the required evidence policy.
+
+A classifier chooses among supplied labels; a generator constructs an output such as a sentence or image. Sampling several plausible outputs does not establish that any one meets a factual or task-specific requirement.

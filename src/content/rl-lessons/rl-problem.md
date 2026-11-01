@@ -54,3 +54,5 @@ RL becomes useful when actions materially affect future opportunities, feedback 
 For the robot, define completed deliveries, collision rate, energy, and deadlines. A training reward such as forward movement may help learning but is only a proxy for those outcomes.
 
 **Sample efficiency** measures useful improvement per unit of experience. **Compute efficiency** concerns resources used to process that experience. Fast simulated learning can still require an unacceptable number of real interactions.
+
+A thermostat action changes both current comfort and future temperature. This delayed effect distinguishes control from predicting tomorrow's temperature without acting. Specify the reward and what actions can actually influence.

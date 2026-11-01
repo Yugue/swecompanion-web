@@ -81,8 +81,6 @@ Try class weights, balanced sampling, or targeted collection. They may affect ca
 
 Evaluate realistic prevalence and important slices. Calibration measures confidence reliability, separate from ranking.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** High accuracy, missed defects—what changes?
-
-**Answer:** Inspect counts and score distributions. Choose recall and review-load requirements, tune a validation operating point, then investigate the missed-defect slices.
+A model can be correct on common classes and miss every rare defect. Inspect per-class counts and the decision threshold relevant to inspection, rather than relying on accuracy dominated by healthy items.

@@ -70,8 +70,6 @@ For high-resolution defects:
 
 Capture quality and labels may matter more than model family.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** CNN or ViT for small, high-resolution defects?
-
-**Answer:** Compare a pretrained CNN with a relevant pretrained or hierarchical ViT. Estimate patch and activation costs, preserve small-defect evidence, and measure slice quality and latency under the same constraints.
+A 224×224 image split into 16×16 nonoverlapping patches gives 196 patch tokens before optional special tokens. Smaller patches increase token count and can sharply increase pairwise attention work.

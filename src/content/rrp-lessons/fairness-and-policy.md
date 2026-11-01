@@ -40,8 +40,6 @@ Check eligible inventory, retrieval inclusion, final selection, and placement. A
 
 Concentration is a reason to investigate; it is not by itself proof of unfairness. Availability and task demand also matter.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why recheck policy on a cached recommendation list?
-
-**Answer:** Availability or policy status may have changed since caching. A previously valid selection is not evidence of current eligibility.
+An item removed after a cache was filled must remain ineligible even if its cached relevance is high. Apply current eligibility at selection or response time; model scores do not override product policy.

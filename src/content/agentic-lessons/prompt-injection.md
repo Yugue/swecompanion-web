@@ -53,7 +53,3 @@ Reduce access to the minimum task requirements.
 Record sources, proposed destinations, denied actions, and affected runs under a privacy-aware logging policy.
 
 Contain outbound operations, revoke affected credentials, inspect compromised state/memories, and identify other runs that consumed the content.
-
-## Interview mental model
-
-> Reading a document does not give the document authority over the agent.

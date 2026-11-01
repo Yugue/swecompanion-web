@@ -43,3 +43,5 @@ A model called “decoder-only” commonly uses masked self-attention without th
 For text classification, an encoder or small specialized model may suffice. For flexible continuation, consider a causal decoder. For source-to-target tasks, compare both decoder-only prompting and encoder–decoder designs.
 
 Measure quality, data needs, and serving cost. Architecture alone does not guarantee better multilingual behavior or factuality.
+
+Bidirectional access is valid when the full input is known before prediction. It would reveal answers if used unchanged for prefix-only next-token training; the architecture's access pattern must match the objective.

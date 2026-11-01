@@ -82,3 +82,5 @@ The forward pass computes outputs; backward computes derivatives; step changes p
 **Underfitting** means useful structure is not learned even on training data. **Overfitting** means training-specific patterns do not transfer. Use held-out tasks or data for model selection, and preserve a final test set for evaluation.
 
 Weight decay discourages large parameters, early stopping limits further fitting, and gradient clipping limits unusually large gradient norms. In RL, targets and the collected input distribution can both change during training, adding difficulties beyond fixed supervised datasets.
+
+Updating a neural value estimate for one state can change estimates for similar states through shared weights. Unlike a table lookup, learning at one entry is not isolated; this enables generalization and interference.

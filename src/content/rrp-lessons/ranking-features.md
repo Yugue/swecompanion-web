@@ -45,8 +45,6 @@ Use ablations to compare quality with and without a feature. Measure missing-val
 
 The features-and-freshness chapter explains consistent historical reconstruction and live computation.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** A creator has one click from one display. Should its 100% CTR dominate?
-
-**Answer:** No. Supply support counts and a validated smoothing method so one observation does not appear as strong evidence of a perfect rate.
+One click from one display and 1,000 clicks from 1,000 displays both give raw CTR 1. Their uncertainty differs radically. Provide support or smoothing so a score cannot mistake one observation for extensive evidence.

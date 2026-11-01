@@ -47,3 +47,5 @@ A prompt can supply context while contributing no target loss.
 All-blocked scores have no ordinary softmax distribution. Handle that case explicitly.
 
 Check boolean direction and broadcast dimensions: APIs differ in whether true means allow or block.
+
+A source padding mask prevents reading nonexistent source positions. A causal target mask prevents reading future answers. Both exclude entries, but they enforce different information-availability rules.

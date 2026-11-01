@@ -4,7 +4,7 @@
 
 **Prefill** processes the available prompt to produce model states and initial predictions. **Decoding** repeatedly processes newly selected tokens to continue the sequence.
 
-A **key–value cache**, or **KV cache**, stores past attention keys and values so they need not be recomputed at every step.
+A **key–value cache**, or **KV cache**, retains previous decoder keys and values. It is distinct from reusable image-encoder features.
 
 ## 2. Follow one additional token
 
@@ -12,30 +12,32 @@ A **key–value cache**, or **KV cache**, stores past attention keys and values 
 kv-cache
 ```
 
-Prefill processes A, B, C and supplies logits from which D is selected. Processing D computes its projections, appends its key/value, and produces logits for the following token. Each relevant layer maintains its own cache.
+In the figure, prompt A B C selects D. Processing D then appends its decoder state and scores the following position.
 
 Past queries need not be stored for this causal decoding procedure.
 
 ## 3. Understand why reuse is valid
 
-In a causal decoder, earlier positions cannot read future tokens. Appending D therefore does not change the earlier states under the same model and positional convention.
+Prefix-state reuse relies on causal access and unchanged computation. An encoder reading an entire changing input does not automatically satisfy that premise.
 
 Changing the prior prefix, model weights, or relevant formatting can invalidate reused states.
 
 ## 4. Identify remaining computation
 
-Each new token still passes through model layers and reads the relevant cache. Caching removes repeated prefix projection work; it does not remove attention over previous positions or feed-forward computation.
+A cached decoder still computes each new state and reads retained history. It does not skip the model's remaining layers or all prefix interaction.
 
 Generation remains sequential because the identity of the next token is not yet known.
 
 ## 5. Measure different latencies
 
-**Time to first token (TTFT)** includes queueing, prompt processing, and initial output work. **Inter-token latency** measures time between subsequent emitted tokens.
+**Time to first token (TTFT)** measures initial waiting and prompt work; **inter-token latency** measures subsequent output spacing, when outputs arrive token by token.
 
-With roughly constant inter-token time d, an N-token output takes approximately TTFT+(N−1)d. TTFT=0.2 seconds, d=0.05, and N=5 give about 0.4 seconds. Queueing and variable step times can change this approximation.
+For five emitted tokens, four intervals follow the first: 0.2+4×0.05=0.4 seconds under the figure's simplified constant-spacing assumptions.
 
 ## 6. Account for cache growth
 
-Cache storage increases with active sequences, context length, layers, and key/value width. A request can exhaust memory during generation even if its prompt initially fits.
+Decoder cache demand grows with retained positions and concurrent requests. Encoded images and other media state may add separate memory requirements.
 
-Compare caching benefits under the actual prompt/output distribution. A tiny example hides the costs of long contexts and concurrent users.
+Compare short chat, long-document, and media-conditioned workloads separately. Similar text output lengths can conceal very different prompt-processing costs.
+
+A visual encoder's cached image representation and a text decoder's key/value cache serve different computations. Reusing one does not imply the other is valid; identify exactly which state a serving system retains.

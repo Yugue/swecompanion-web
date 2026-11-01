@@ -29,3 +29,5 @@ Recomputed stochastic operations, such as dropout, must reproduce the intended r
 Out-of-memory during model loading suggests weight placement. Failure only during backward suggests activations, gradients, or optimizer initialization. Failure on long batches suggests sequence-dependent state.
 
 Measure peak allocated memory and communication time. A memory snapshot at loading time can miss the much larger backward peak.
+
+A model fitting its weights in memory can still fail during backward when saved activations, gradients, and temporary buffers coexist. Budget a complete training step rather than a single stored parameter table.

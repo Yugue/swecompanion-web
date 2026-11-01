@@ -89,3 +89,5 @@ parameters + optimizer buffers + step count
 Equal starting parameters, optimizer state, gradients, and update rules preserve equality, subject to numerical execution differences. A skipped update on only one worker violates this invariant.
 
 **Technical takeaway:** a distributed training step is a coordinated transition of persistent state, not merely a communication of gradient tensors.
+
+Two replicas with identical weights and gradients can diverge if their momentum histories differ. An optimizer update depends on its persistent state as well as the current gradient; synchronize or assign ownership accordingly.

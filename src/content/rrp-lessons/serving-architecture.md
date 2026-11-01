@@ -44,8 +44,6 @@ Log request and impression IDs, positions, versions, and fallback use. Server se
 
 Keep a compatible previous model/data bundle for rollback. Outcome linkage belongs to the rendered opportunity, as established in the data chapter.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why can fast model inference coexist with slow recommendations?
-
-**Answer:** Feature fetching, source deadlines, communication, and queueing can dominate the critical path. Profile the whole request before optimizing one model stage.
+Two retrieval sources taking 20 ms each in parallel contribute roughly the slower path, not their sum, before merge costs. Sequential feature dependencies still add to the request's critical path.

@@ -65,3 +65,5 @@ For loss L = (w x − y)², dL/dw = 2(wx − y)x. The **chain rule** multiplies 
 parameter change → prediction change → loss change
                        chain these sensitivities backward
 ```
+
+If a ten-frame sequence is padded to twenty frames, averaging all twenty halves a valid-frame mean when padding is zero. Carry lengths or masks so tensor shape does not silently change the statistic.

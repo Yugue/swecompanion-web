@@ -68,3 +68,5 @@ A seed is a recipe for one stochastic run under specified execution conditions, 
 A fast simulator enables experimentation, but a mismatch in friction, delays, reset conditions, or observation noise can dominate algorithm differences. Validate task-relevant dynamics rather than judging simulator fidelity by visual realism.
 
 Track training versus inference modes and preprocessing consistently. A policy must receive the same feature conventions and action scaling when evaluated or deployed as when its behavior was trained.
+
+Parallel environments increase experience throughput, but workers may use older policy versions. Track collection policy and update timing so faster collection does not silently change the learning assumptions.

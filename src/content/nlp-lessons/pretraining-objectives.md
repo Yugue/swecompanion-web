@@ -51,3 +51,5 @@ Architecture access and corruption must match the declared objective.
 Test relevant labels, languages, lengths, and outputs after adaptation. Pretraining loss measures its constructed task, not factual support or universal downstream quality.
 
 Document pretraining resources when assessing held-out generalization.
+
+Hiding a token and predicting it allows surrounding context on both sides. Predicting the next token allows only a prefix. The objective and mask must agree about which evidence is legally available.

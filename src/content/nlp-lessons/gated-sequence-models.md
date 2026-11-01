@@ -51,3 +51,5 @@ There is no separate LSTM-style cell state. Update-gate formula conventions diff
 ## 6. Choose by task and cost
 
 Both remain recurrent and summarize evidence in fixed-width states. Compare quality, stability, state size, and latency on the same task.
+
+A gate near zero suppresses one update or information route; a gate near one preserves it. The gate is learned from context rather than a hard-coded promise that every important dependency will be remembered.

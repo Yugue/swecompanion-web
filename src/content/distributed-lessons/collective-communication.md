@@ -79,3 +79,5 @@ This computes a mean across ranks. It is a mean across samples only when each ra
 Collectives need compatible calls, shapes, types, and group ordering. Asynchronous communication also needs safe buffer lifetimes and consumer dependencies. A mathematical diagram without these conditions is incomplete.
 
 **Technical takeaway:** choose a collective from the desired output ownership, then analyze its actual communication algorithm and execution dependencies.
+
+For tensors [1,2] and [3,4], sum All-Reduce returns [4,6] to both ranks. All-Gather returns both original pieces. Reduction combines corresponding entries; gathering preserves separate entries.

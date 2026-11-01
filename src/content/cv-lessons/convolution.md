@@ -81,8 +81,6 @@ features = torch.relu(layer(x))
 
 At stride one, this padding preserves H/W.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why use convolution instead of a dense image layer?
-
-**Answer:** Local shared weights reduce parameters and encode spatial structure. Resolution still controls activation cost; cheaper variants trade mixing flexibility for efficiency.
+Applying one 3×3 filter to every location reuses the same nine spatial weights per channel pair. The output map changes with local content; the weights do not change from one patch to another.

@@ -39,3 +39,5 @@ If the answer remains unchanged when decisive evidence changes, the model may be
 Test small text, unusual layouts, spatial relations, counting, and ambiguous images. Require the model to decline an answer when the image is unreadable rather than rewarding plausible completion.
 
 Text embedded in images can also carry untrusted instructions. Image input belongs inside the same trust boundary analysis as retrieved text.
+
+A text answer about an image needs an interface that carries relevant visual evidence into language generation. A fluent language prior can fill gaps convincingly, so test answers against visible details and unanswerable cases.

@@ -48,8 +48,6 @@ Check cross-split duplicates, future-derived inputs, unusual label rates, missin
 
 A completed job is not proof of valid training rows.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Training rows suddenly double while impression volume is unchanged. First check?
-
-**Answer:** Inspect join multiplicity and duplicate keys before attributing the increase to user behavior or retraining on the larger dataset.
+If one impression joins three duplicate item records, one training opportunity becomes three rows. Check key uniqueness and join counts before treating a larger dataset as more independent evidence.

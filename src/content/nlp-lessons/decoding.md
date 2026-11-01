@@ -48,3 +48,5 @@ Renormalize afterward. For [0.5,0.3,0.2] and p=0.7, keep the first two → [0.62
 EOS is learned termination; an output cap can cut text mid-sentence. Stop strings and repetition penalties also change behavior.
 
 Compare quality, diversity, support, and cost. Lower temperature does not supply missing factual knowledge.
+
+The highest-probability first word need not begin the highest-probability complete sentence. Greedy selection optimizes the next choice locally; beam search tracks alternatives under an explicit sequence score.

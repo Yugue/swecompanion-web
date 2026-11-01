@@ -40,3 +40,5 @@ Adapter weights and arithmetic are not necessarily four-bit. Gradients must stil
 Full fine-tuning provides broader update freedom; LoRA reduces trainable state; QLoRA additionally reduces base storage. Compare quality at an actual memory and time budget.
 
 Merging an adapter into base weights can remove the extra branch at inference, subject to representation and quantization constraints.
+
+Freezing base weights removes their parameter updates, not the computation needed to propagate sensitivity through them. Adapter training can still require substantial saved activations, especially at long sequence lengths.

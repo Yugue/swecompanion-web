@@ -70,7 +70,3 @@ Check customer ownership, match the request to the record, clarify ambiguity, an
 ## 10. Common omissions
 
 Architecture before requirements, no stopping check, prompt-only permissions, one-run evaluation, missing budget, and unsupported completion.
-
-## Interview mental model
-
-> Follow one request through the whole system and show where each claim or action is checked.

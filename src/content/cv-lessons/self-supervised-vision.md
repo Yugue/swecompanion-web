@@ -75,8 +75,6 @@ Evaluate classification and dense tasks separately. Hold out sources/domains and
 
 Measure label efficiency at several label counts—for example, 100, 1,000, and 10,000—not from one score.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** How can a model learn useful features without labels?
-
-**Answer:** Build targets from views, teachers, or masked content. Explain the rewarded relationship, removed information, and collapse prevention. Establish usefulness on independent downstream tasks.
+Two crops from one image supply a training relationship without a class label. If a crop removes the defining object, the assumed relationship can become misleading; the augmentation design is part of the objective.

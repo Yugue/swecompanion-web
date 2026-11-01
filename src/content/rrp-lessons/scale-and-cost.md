@@ -48,8 +48,6 @@ Measure throughput and tail latency with realistic batches, popular-item concent
 
 Feature access, queueing, and index maintenance may dominate raw arithmetic. Reserve headroom for peaks and recovery.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Does fitting vector bytes in memory prove the deployment fits?
-
-**Answer:** No. Include index structures, replicas, temporary build copies, and old/new coexistence, then measure peak usage.
+One million 128-coordinate float32 vectors need about 512 MB for values alone. Index metadata, replicas, and simultaneous old/new versions add memory; representation bytes are a lower bound, not a deployment budget.

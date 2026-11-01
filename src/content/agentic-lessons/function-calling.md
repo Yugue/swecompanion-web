@@ -60,7 +60,3 @@ A numeric refund amount can still be negative, too large, or unauthorized.
 The model proposes tools and arguments from evidence. Runtime checks determine whether they are valid and allowed.
 
 Return concise actionable errors so correctable requests can be repaired.
-
-## What matters most
-
-> Selection is a model decision; execution is a validated runtime operation.

@@ -91,8 +91,6 @@ Metric scale can come from:
 
 **Metric depth** uses physical units; **relative depth** supplies depth relationships without necessarily fixing physical scale. **Domain shift** means input conditions differ from those used to develop the model. Check all three, especially at boundaries. Smooth-looking depth need not be physically accurate.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why is faraway stereo less reliable?
-
-**Answer:** Small disparity magnifies matching errors. Improve matching/calibration and consider baseline tradeoffs while reporting uncertainty.
+For fixed camera separation and focal length, smaller disparity implies greater depth. A one-pixel correspondence error consequently produces much larger depth uncertainty for distant objects than for nearby ones.

@@ -75,3 +75,5 @@ A fixed temperature requires tuning relative to reward and action scales. Automa
 SAC reuses data efficiently but runs multiple networks and depends on replay coverage. PPO often uses simpler recent-rollout bookkeeping but generally collects more fresh experience. Compare environment cost, compute, tuning budget, and observed reliability rather than asserting a universal winner.
 
 The common continuous SAC formulation shown here is not its only possible action-space variant. At evaluation, choosing a mean or deterministic action changes the behavior being measured; record the convention.
+
+SAC balances expected reward with an entropy objective. Larger temperature puts more weight on spread in the policy; this changes the optimization target rather than simply adding random noise after choosing an action.

@@ -44,8 +44,6 @@ A finite relevance bonus cannot override a hard rule.
 
 Compare on the same candidate pool, then measure product effects. More variety can help or hurt depending on the surface; the beyond-accuracy chapter defines the relevant metrics.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why can sorting individual relevance scores produce a weak page?
-
-**Answer:** Independent scores may omit redundancy and other relationships within the selected list. Final selection must account for what is already present.
+If A and B cover the same story and C covers another useful story, the best pair may be A+C even when B's individual relevance exceeds C's. Selection depends on what is already chosen.

@@ -42,3 +42,5 @@ Routing needs correct destinations. Extraction needs correct boundaries and type
 ## 6. Handle missing context
 
 If essential evidence is absent, allow clarification or review. Fluent output does not establish understanding or correctness.
+
+“Find the delivery date” could mean extracting a stated date or calculating an implied one. Specify the output and evidence requirement first; those tasks need different labels and evaluation.

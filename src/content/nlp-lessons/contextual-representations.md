@@ -49,3 +49,5 @@ An encoder’s states may read the full input; a causal decoder’s last valid s
 Averaging can dilute one decisive word among boilerplate. A sentiment-trained summary can organize documents by attitude rather than answer relevance.
 
 Evaluate the intended comparison; the sentence-embedding lesson supplies a relationship-specific training objective.
+
+The two occurrences of “bank” in a financial and a river sentence start from the same lookup row but can end with different contextual states. Contextualization changes representations, not token identity.

@@ -90,8 +90,6 @@ Residuals change **information paths**. **Feature normalization** recenters/resc
 
 They complement the same convolutions and receptive-field rules; neither replaces correct shapes or useful input evidence.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why can extra plain layers worsen training error?
-
-**Answer:** Optimization can become harder. Residual paths offer an identity-like solution and direct gradient contribution, letting layers learn useful corrections.
+If a residual branch initially outputs nearly zero, the block can still pass its input along the shortcut. The learning problem becomes refining a representation instead of reconstructing it at every stage.

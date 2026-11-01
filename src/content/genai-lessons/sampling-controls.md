@@ -40,3 +40,5 @@ Use explicit end conditions and output limits. Repeated text can also signal tra
 Compare correctness, diversity, format success, and cost over repeated samples. Changing temperature does not add missing facts or repair broken retrieval.
 
 Define the order of temperature, filtering, and penalties: composing these transformations differently can change the final distribution.
+
+Sharper next-unit probabilities can reduce variation while preserving a model's strongest mistake. Use task evidence to judge correctness; changing sampling controls does not add facts missing from the model or context.

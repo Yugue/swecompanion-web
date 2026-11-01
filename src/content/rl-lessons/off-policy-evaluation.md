@@ -69,3 +69,5 @@ Report weight concentration, overlap, sensitivity to clipping, and disagreement 
 | Importance sampling | Direct probability correction | Large or unstable weights |
 | FQE | Avoids full trajectory products | Model error and coverage |
 | Doubly robust | Uses predictions plus residual evidence | Both components can be wrong |
+
+A target policy choosing an action absent from logging support cannot obtain that outcome through importance weighting. A predictive outcome model can extrapolate, but introduces assumptions beyond observed action overlap.

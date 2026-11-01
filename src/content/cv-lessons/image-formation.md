@@ -84,8 +84,6 @@ Inspect the actual input:
 
 Compare successful and failing captures of the same scene.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why might a daytime model fail at night?
-
-**Answer:** Check light, noise, exposure, blur, and color first. Improve capture if evidence is missing; add representative night data if useful evidence remains.
+A saturated white patch records the sensor's upper limit rather than the original brightness differences. Contrast adjustment can redistribute recorded values, but cannot reconstruct detail that was never captured.

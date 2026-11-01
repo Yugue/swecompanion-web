@@ -46,8 +46,6 @@ Trees express nonlinear thresholds without ordinary scaling. Small data changes 
 
 A standard regression tree is piecewise constant. Outside observed input ranges it reuses existing leaves, rather than extending a trend. Category and missing-value support depend on the estimator.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why can a minimum leaf size improve generalization?
-
-**Answer:** It prevents splits that rely on tiny groups and unstable target estimates. Too large a minimum can also remove useful local structure.
+A split at age 30 assigns every value below 30 to one branch. Predictions jump at the boundary and are constant within a leaf; a deeper tree adds smaller regions rather than fitting one smooth global slope.

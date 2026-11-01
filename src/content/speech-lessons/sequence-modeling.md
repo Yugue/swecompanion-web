@@ -60,3 +60,5 @@ The result is B × D. Empty recordings still need explicit rejection or a define
 Streaming inference may reuse hidden state across chunks. State must stay associated with the correct stream, reset on termination, and follow model version and timeout rules.
 
 Reusing state across unrelated callers leaks context and corrupts predictions. Resetting state on every chunk loses the continuity the model was designed to exploit.
+
+A recurrent state summarizes preceding audio. Reusing it for a new caller mixes sessions; resetting it inside one continuous utterance loses context. State lifetime belongs to the serving contract.

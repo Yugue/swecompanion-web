@@ -41,3 +41,5 @@ During training, encode an observed image and reconstruct a sampled code. During
 A very weak bottleneck may mostly copy inputs. Excessive regularization can erase information; **posterior collapse** occurs when the latent code carries little useful information about the example.
 
 Inspect reconstruction, sampled outputs, and latent use separately. A good reconstruction alone does not establish a good generator.
+
+A reconstruction objective asks a compressed code to preserve its input. A generative latent distribution additionally makes sampling meaningful; reconstructing known inputs well alone does not guarantee plausible outputs from arbitrary sampled codes.

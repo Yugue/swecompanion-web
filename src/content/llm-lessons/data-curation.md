@@ -39,3 +39,5 @@ Search for exact text and semantic variants; inspect source lineage and dates. *
 Compare held-out loss by source, language, and task under a fixed tokenizer. Audit removed and oversampled examples, not just aggregate quality scores.
 
 Keep a versioned manifest of sources, filters, sampling weights, and exclusions. It should be possible to explain which data change preceded a behavior change.
+
+Removing exact duplicate files does not remove a copied paragraph embedded in another document. Define the unit of deduplication and separately check evaluation contamination; these checks answer different data-quality questions.

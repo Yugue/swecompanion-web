@@ -49,3 +49,5 @@ Evaluate whether “a dog barks after a door closes” is supported, not merely 
 Background correlations, caption style, recording source, language coverage, and duration all affect embeddings. A retrieval score is not a universal calibrated probability across arbitrary prompts.
 
 Include acoustically similar negatives, irrelevant queries, unfamiliar environments, and an abstention policy when no candidate description fits.
+
+A recording containing a dog and traffic can match “street noise” while missing the bark event. Evaluate fine-grained claims or intervals when the application needs more than broad clip similarity.

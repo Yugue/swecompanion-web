@@ -29,3 +29,5 @@ Keep final evaluation examples out of the demonstrations. A prompt containing an
 Hold the question set fixed and compare instructions alone, useful demonstrations, and irrelevant demonstrations. Test new wording and genuine missing-information cases.
 
 If behavior depends on one example's phrasing or position, improve the examples and measure again. A longer prompt can add both guidance and distraction.
+
+Few-shot examples can clarify whether an absent field should be null or omitted. They cannot supply a missing invoice amount; distinguish demonstrating a convention from providing evidence for a value.

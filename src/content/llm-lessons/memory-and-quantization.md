@@ -30,3 +30,5 @@ Weight memory stays shared at a fixed model configuration. A smaller weight form
 Reserve memory for temporary computation buffers, unused allocation space, and batching. Decimal GB means 10⁹ bytes; binary GiB means 2³⁰ bytes, and one MiB means 2²⁰ bytes.
 
 Measure peak usage with representative requests. A model that barely fits its weights can still be impossible to serve reliably.
+
+Two users with equal current prompts can require different memory if one has accumulated a long history. Weight storage is shared per model replica, while retained request state depends on concurrent sequence lengths.

@@ -42,8 +42,6 @@ Independent sources can run in parallel with individual deadlines. Merge success
 
 Log source counts, removals, timeouts, and eventual displays. Provenance alone does not establish which source caused engagement.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** A new source adds 100 results but almost no candidates. Why?
-
-**Answer:** Its IDs may overlap existing results or fail eligibility. Inspect the deduplicated eligible union before concluding the ranker ignored its contribution.
+Source A supplies 100 IDs and B supplies 100, but 80 overlap. Their union has 120 candidates before policy filtering. Count unique eligible additions rather than summing source response sizes.

@@ -38,8 +38,6 @@ Use selection to retain identifiable measurements or remove expensive inputs. PC
 
 **t-SNE** and **UMAP** are nonlinear methods often used to explore local neighborhoods in low-dimensional plots. Apparent global distances and cluster sizes need caution. UMAP can also transform new inputs when fitted and validated appropriately.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why can PCA hurt accuracy while retaining nearly all variance?
-
-**Answer:** Spread is unrelated to the label objective. The discarded narrow direction may contain the information needed to distinguish outcomes.
+Two measurements may vary together along a diagonal. One principal coordinate can retain most of that variation, but a small perpendicular separation may encode the class. Unsupervised compression does not optimize label separation.

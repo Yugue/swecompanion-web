@@ -52,8 +52,6 @@ A **convex objective** has no nonglobal local minima. It may still lack a unique
 
 **Coordinate descent** updates one coefficient at a time. **Quasi-Newton methods** approximate curvature. Match the solver to the objective and check convergence.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why use mini-batches when the full gradient is available?
-
-**Answer:** Each update costs less and can start making progress without processing every row. Measure total convergence time and accept controlled update noise.
+With L(w) = (w−2)², w=0 has gradient −4. A step of 0.1 moves w to 0.4 and reduces loss from 4 to 2.56. Recompute the gradient there; the old slope is already stale.

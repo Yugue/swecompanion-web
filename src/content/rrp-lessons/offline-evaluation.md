@@ -44,8 +44,6 @@ A held-out click supplies evidence for an exposed item. An unshown item has no l
 
 Off-policy evaluation and online experiments address different policy-effect questions in the following chapters.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Why can better offline NDCG fail to improve the product?
-
-**Answer:** The test may miss new exposure effects, use unsuitable labels or candidates, or differ from serving. Trace those assumptions before choosing a larger model.
+A test using only previously displayed items evaluates a restricted choice set. It cannot directly establish the effect of newly exposing items that the old policy never showed.

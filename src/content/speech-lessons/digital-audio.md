@@ -64,3 +64,5 @@ duration = audio.shape[-1] / target_rate
 ```
 
 Check the chosen pretrained model's documented rate, channel policy, scaling, and frontend; 16 kHz is an example, not a universal audio standard.
+
+A 16 kHz sample rate means 16,000 samples per second, not 16,000 distinct frequencies. The highest representable sinusoidal frequency is below 8 kHz after suitable antialias filtering.

@@ -52,7 +52,3 @@ Do not substitute a nearby write tool just to produce an action.
 ## 7. Version the catalogue
 
 Keep index, exposed schemas, and runtime definitions compatible. Record versions and evaluate changes on the same selection cases.
-
-## What matters most
-
-> First find the right shelf, then choose the right tool. Neither stage grants permission.

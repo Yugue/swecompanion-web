@@ -81,8 +81,6 @@ Uniform, popularity-based, and hard-negative sampling teach different comparison
 
 Evaluate the full procedure against realistic eligible competition.
 
-## 9. Interview reasoning
+## 9. Work a concrete case
 
-**Question:** Does BPR stop updating a correctly ordered pair?
-
-**Answer:** No. Its smooth loss still rewards a larger positive gap; correct order alone does not make the loss or gradient zero.
+A preferred item scoring 2 and a contrast scoring 1 are correctly ordered. BPR still has a positive loss because it rewards a larger gap. Ranking order and confidence in that order are different quantities.

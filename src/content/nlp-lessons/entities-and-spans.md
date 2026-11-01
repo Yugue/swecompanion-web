@@ -41,3 +41,11 @@ Many O tokens can hide entity failures in token accuracy.
 Flat BIO assigns one label per token, so it cannot directly encode nested or overlapping spans.
 
 Independent predictions can also produce invalid continuations. Transition-aware decoding addresses that separate problem.
+
+```text
+original word:   Washington
+token pieces:   Wash | ing | ton
+word target:    LOCATION
+```
+
+Three positions still represent one labeled word. Specify which pieces receive supervision and how their predictions map back to the original character span.

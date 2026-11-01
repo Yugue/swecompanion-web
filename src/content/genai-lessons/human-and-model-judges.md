@@ -35,3 +35,5 @@ A judge can agree on easy cases while missing rare, consequential errors. Use ve
 Candidate text can contain instructions aimed at the judge. Keep it clearly separated as material to evaluate, and test adversarial examples.
 
 Avoid optimizing a generator only against one fixed judge. It can learn superficial scoring shortcuts while independent quality stagnates.
+
+A judge assessing image edits needs both the request and source image to determine what should remain unchanged. Looking only at the edited image measures standalone appearance rather than editing fidelity.

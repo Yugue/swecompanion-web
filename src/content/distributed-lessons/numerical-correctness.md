@@ -75,3 +75,5 @@ A seed controls a random stream's starting point; it does not prove the same num
 Use finite-difference gradients for a tiny differentiable example, reconstruction checks for partitioned tensors, and replica comparisons where equality is expected. Validate evaluation counts and checkpoint restoration with the same care.
 
 **Technical takeaway:** numerical correctness is preservation of a defined objective and state transition within justified tolerances, not merely a finite loss that decreases.
+
+Floating-point addition changes with reduction order because rounding is finite. Small numerical differences can be expected, while duplicated samples or wrong denominators are semantic errors; use tolerances without masking those structural faults.

@@ -42,8 +42,6 @@ Alternatively, choose settings with development CV and assess once on a reserved
 
 Fold spread describes variation across folds; overlapping training sets mean it is not automatically a confidence interval. The model-comparison lesson develops paired uncertainty.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why must a scaler be refitted inside each fold?
-
-**Answer:** Held-out rows must not influence fitted statistics. Reusing a scaler fitted to all rows evaluates a procedure that already saw part of its evaluation data.
+In three folds, each row is assessed once using a model fitted without its fold. The scaler must also exclude that fold. The evaluation unit is the entire fit-and-transform procedure, not just the final estimator.

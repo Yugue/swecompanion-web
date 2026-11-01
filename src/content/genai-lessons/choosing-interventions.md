@@ -47,3 +47,11 @@ A lower average cost can hide more retries or larger outputs. Include complete r
 A useful diagnosis identifies the failing stage, supporting evidence, and the next experiment. “Use a larger model” is incomplete without a tested capability gap.
 
 Revisit the input and success definition if all variants fail in the same way. The requested outcome may be ambiguous or unsupported by available data.
+
+| Observed gap | Experiment to test |
+|---|---|
+| Required fact absent | Supply the missing evidence |
+| Known fact, wrong output shape | Clarify the format or supply demonstrations |
+| Output units ignore source details | Inspect conditioning and alignment |
+
+Match the intervention to the failure; adding more documents does not directly repair a formatting rule.

@@ -71,3 +71,5 @@ Larger decode batches reuse weights across more sequences but increase cache rea
 These objectives can conflict: a large prefill batch can delay existing decode requests, while always prioritizing decode can starve new prompts.
 
 **Technical takeaway:** generative serving is repeated forward execution with growing request state; prefill, decode, and KV-cache ownership must be designed together.
+
+The prompt is available together during prefill; each new decode token depends on the previous choice. The cache reuses prior keys and values, while concurrent requests still consume cache space according to their retained lengths.

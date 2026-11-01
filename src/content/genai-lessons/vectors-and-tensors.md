@@ -41,3 +41,5 @@ A **transpose** exchanges axes. It changes how coordinates are arranged, not the
 **Broadcasting** repeats compatible smaller arrays across larger shapes. Adding a width-h bias to every row is useful broadcasting; accidentally mixing examples is not.
 
 Check semantic axis names as well as numerical sizes. Equal-sized axes can still represent different things.
+
+A color image has height, width, and three channel coordinates before batching. A sentence has token positions instead. Writing the axes first prevents a shape-compatible operation from mixing the wrong kind of coordinate.

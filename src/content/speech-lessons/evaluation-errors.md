@@ -72,3 +72,5 @@ Track absolute error counts as well as rates. A small difficult slice can be imp
 Use paired comparisons on the same examples. Resample at an appropriate independent unit, such as speaker or session, instead of treating correlated frames as independent trials.
 
 Confidence calibration, ranking quality, and thresholded accuracy answer different questions. Recalibrate after distribution or sampling changes when supported by new labels.
+
+One deletion in a two-word reference contributes 50% word error rate for that utterance. Corpus WER sums error counts and reference words; averaging utterance percentages would weight short and long recordings differently.

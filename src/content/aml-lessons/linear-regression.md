@@ -51,8 +51,6 @@ Residual patterns can expose a missing relationship. Unequal error variance or d
 
 Linear models can extend trends beyond observed inputs; an incorrect trend can also extrapolate badly.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Can two nearly identical inputs have unstable coefficients but stable predictions?
-
-**Answer:** Yes. Their contributions can trade off while their sum changes little. Inspect collinearity and regularization before interpreting each coefficient separately.
+For predicted fare = 3 + 2 × kilometers, a 4 km trip predicts 11 currency units. The intercept represents the prediction at zero distance; it is not necessarily meaningful outside the observed operating range.

@@ -72,8 +72,6 @@ For each failure, ask: missing coverage, ambiguous target, wrong annotation, or 
 
 Collect or relabel to test a specific hypothesis.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Annotators disagree about faint defects. What do you do?
-
-**Answer:** Clarify the acceptance decision, create borderline examples and an uncertainty policy, then repeat a pilot with adjudication. Evaluate those cases separately before changing model capacity.
+Two annotators can draw different boxes because one includes occluded extent and the other only visible pixels. Resolve the annotation convention before expecting training to produce one consistent geometric target.

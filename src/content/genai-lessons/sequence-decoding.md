@@ -40,3 +40,5 @@ Length-normalized scores change the search objective; define that convention whe
 Beam search can help constrained sequence tasks but may reduce variety in open-ended generation. Greedy decoding is inexpensive and repeatable under deterministic execution.
 
 Neither guarantees correctness. Better search can expose a model’s preference for fluent, generic, or unsupported answers more consistently.
+
+An autoregressive media model chooses one represented unit after another. A diffusion sampler updates a noisy state through a different process; “decoding step” counts are not comparable without defining what each step computes.

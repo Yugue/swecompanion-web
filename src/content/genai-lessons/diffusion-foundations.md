@@ -40,3 +40,5 @@ The same grid requires different corrections at different noise levels. The time
 A random **seed** initializes the pseudorandom generator. With the same configuration, it can help reproduce a starting noise realization; different numerical implementations can still differ.
 
 Changing the seed explores alternative samples. It does not strengthen a model’s prompt understanding. If every seed misses the same requested object, inspect conditioning and model capability rather than only sampling more images.
+
+The training task pairs a corrupted example with information about the added noise or clean signal under the chosen objective. Generation starts from noise and uses repeated learned corrections rather than retrieving a stored clean example.

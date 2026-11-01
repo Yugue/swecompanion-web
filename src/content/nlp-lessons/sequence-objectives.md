@@ -49,3 +49,5 @@ An early error changes later inputs. Evaluate complete outputs alongside referen
 One fixed-width source state can lose long-input details. Increasing width differs from letting each prediction read relevant source positions directly.
 
 The next chapter develops that direct-reading mechanism.
+
+Predicting each tag independently can produce an invalid beginning-inside sequence. A structured objective can score transitions as well as local evidence, making the output constraints part of learning or decoding.

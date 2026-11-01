@@ -35,3 +35,5 @@ Small batches can leave pipeline stages idle. Fast matrix multiplication cannot 
 If replicated optimizer state dominates, test state sharding. If one layer cannot fit, tensor parallelism may help; if layer groups can be placed separately, consider pipelining.
 
 More devices do not guarantee a faster or cheaper run. Check global batch size, token weighting, peak memory, and actual elapsed time after changing the distribution.
+
+Two workers averaging their mean losses equally represent a global sample mean only when their effective supervised counts match. Variable-length masking can make equal batch sizes carry unequal numbers of target tokens.

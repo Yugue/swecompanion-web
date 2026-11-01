@@ -38,3 +38,5 @@ Keep independent evaluation and useful real data. Agreement between teacher and 
 Compare task quality, latency, memory, and cost at matched output budgets. A smaller student may require longer outputs or more retries, reducing nominal savings.
 
 Distillation transfers selected behavior, not every teacher capability. Test the student directly on real, held-out requests.
+
+A student trained on generated captions inherits whatever objects the teacher systematically omits. Evaluate against independently checked image content so agreement with the teacher is not mistaken for complete visual understanding.

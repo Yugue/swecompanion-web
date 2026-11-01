@@ -80,8 +80,6 @@ With \(U\) users, \(I\) items, and \(d\) coordinates, storage has \((U+I)d\) vec
 
 Rotating both tables together can preserve dot products: axes need not correspond to named genres. The next chapter handles implicit-feedback objectives.
 
-## 10. Interview reasoning
+## 10. Work a concrete case
 
-**Question:** Can you label each latent coordinate with a genre?
-
-**Answer:** Only with additional evidence. Several coordinate systems can express the same scores, so the objective does not assign an intrinsic human meaning to each axis.
+For user vector [1,2] and item vector [3,1], the dot-product score is 5. Rotating both vector spaces consistently preserves such scores; the coordinates need not carry fixed human-readable genre meanings.

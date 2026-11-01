@@ -61,3 +61,5 @@ Silence trimming affects alignment and pauses. A neutral-read dataset is limited
 Check pronunciation and missing/repeated words, naturalness, prosody, speaker similarity where relevant, and latency. Recognition-based content checks help but inherit recognizer errors.
 
 Listening tests should use matched text, randomized presentation, and clear instructions. Fluent sound with incorrect content is a failure.
+
+A natural-sounding sample can pronounce a dosage or name incorrectly. Separate intelligibility and content accuracy from perceived voice quality, especially for rare strings absent from ordinary listening examples.

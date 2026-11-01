@@ -47,8 +47,6 @@ Spherical covariance gives round components; diagonal gives axis-aligned spreads
 
 Use restarts and covariance regularization to avoid poor starts or collapse onto one observation. **Akaike information criterion (AIC)** and **Bayesian information criterion (BIC)** compare likelihood with parameter-count penalties; lower is preferred under each criterion. Held-out likelihood and usefulness offer separate evidence.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Why prefer soft assignments for overlapping groups?
-
-**Answer:** They expose model-based ambiguity that a single cluster ID hides. They still depend on the fitted distribution and do not prove natural group identities.
+A point can receive component probabilities [0.55,0.45] instead of one hard cluster ID. These are responsibilities under the fitted densities, not probabilities that the world has two objectively correct social or product categories.

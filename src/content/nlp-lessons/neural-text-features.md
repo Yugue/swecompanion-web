@@ -54,3 +54,5 @@ Nonlinear activations enable relationships one weighted sum cannot express.
 An MLP receiving identical bag-of-words vectors cannot distinguish their original word orders. More layers cannot recover information already discarded.
 
 Use suitable input features as well as useful transformations.
+
+A hidden layer can combine a negation indicator and a positive word into a new feature. Its usefulness still depends on examples and an objective that reward the distinction.

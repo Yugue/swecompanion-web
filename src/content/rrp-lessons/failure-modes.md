@@ -45,8 +45,6 @@ Use a valid fallback or compatible previous bundle during an incident. Preserve 
 
 Reproduce the failure and change the implicated component. Check the affected stage, broader quality, eligibility, and latency after repair.
 
-## 7. Interview reasoning
+## 7. Work a concrete case
 
-**Question:** Recorded clicks fall suddenly while rendered recommendations appear unchanged. What do you check?
-
-**Answer:** Verify impression and outcome collection, event linkage, and arrival delays before concluding the recommendations became worse.
+If recommendations still render but click events disappear, check event collection and ID joins before retraining. A measured outcome can fail because its measurement pipeline broke.

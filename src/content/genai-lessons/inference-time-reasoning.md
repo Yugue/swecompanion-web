@@ -39,3 +39,5 @@ Match evaluation by total compute or monetary cost. Comparing one short answer w
 If the judge rewards polished explanations over correct results, best-of-N may amplify that bias. On simple extraction, extra reasoning can introduce unsupported assumptions.
 
 Use external evidence or deterministic calculation when appropriate. More generated text is an intervention to test, not a universal quality setting.
+
+Producing five candidate outputs helps only if selection can identify a useful candidate. Evaluate candidate generation and selection separately; the presence of one good output does not mean the delivered output is good.

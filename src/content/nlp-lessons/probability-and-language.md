@@ -53,3 +53,5 @@ For equally likely word lengths X=1 or X=3 characters:
 **Independence** means knowing one variable leaves the other’s distribution unchanged. Sentence words generally violate it.
 
 Finite observed frequencies also have sampling uncertainty.
+
+The probability of “bank” changes after “river” versus “central.” A conditional probability describes the next event given specified evidence; it is not an intrinsic popularity score attached permanently to the word.

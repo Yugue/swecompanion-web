@@ -41,3 +41,5 @@ A long answer may cite one supported fact while leaving its conclusion unsupport
 Report correctness, completeness, support, and formatting separately before forming a combined score. A single metric can hide why a system improved or failed.
 
 For missing evidence, reward an appropriate limited answer rather than forcing a fabricated complete response. Evaluate the policy for omission alongside answer accuracy.
+
+A response can cite the correct source yet state a fact the source does not support. Score correctness of the answer and support for its claims separately instead of awarding credit for citation presence alone.

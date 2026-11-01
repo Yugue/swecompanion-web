@@ -55,7 +55,3 @@ Check row counts, uniqueness, conservation of totals, output schema, and represe
 Record source, input references/hashes, runtime version, output, errors, artifacts, and timing.
 
 Redact sensitive values under the logging policy.
-
-## What matters most
-
-> The sandbox limits effects; independent result checks establish correctness.

@@ -41,3 +41,5 @@ Remove near-duplicate passages where they crowd out complementary evidence. Pres
 Measure relevant-document presence before reranking, its position afterward, and whether it survives context selection. These isolate candidate-generation, relevance-scoring, and budget failures.
 
 A stronger reranker cannot retrieve evidence outside its candidate list. Improve upstream coverage before increasing reranker size.
+
+Combining two top-ten lists gives at most twenty candidates and often fewer after deduplication. Measure the unique relevant union before attributing a gain to the reranker that only reorders that union.

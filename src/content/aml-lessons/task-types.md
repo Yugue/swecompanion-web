@@ -43,8 +43,6 @@ Politics risk 0.8 and economics risk 0.7 need not sum to one because they descri
 
 Good ordering need not imply accurate probabilities. Finding high-risk customers also does not establish that contacting them changes their behavior.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** A team can call only 500 customers. Is classification accuracy enough?
-
-**Answer:** Inspect the top-500 queue and its useful outcomes. Whole-population accuracy can hide poor ordering at the action budget.
+A store selecting ten products needs an ordering. A model can predict purchase probabilities, but the final task is ranking the eligible products; classifying every product above a fixed cutoff may return too many or too few.

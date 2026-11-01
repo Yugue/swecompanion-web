@@ -295,3 +295,5 @@ So a good interview statement is:
 That's the mental model I would lock in first.
 
 The next topic is where this becomes much more concrete: **receptive fields, kernel size, stride, padding, and pooling**—especially calculating the output shape of a convolution.
+
+A filter is reused at different spatial locations, giving the same local detector across an image. The resulting feature map records where evidence appears; shared weights do not mean every location produces the same value.

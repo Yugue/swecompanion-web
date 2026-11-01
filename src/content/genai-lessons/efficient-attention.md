@@ -44,3 +44,5 @@ This changes allocation and sharing, not the semantic attention mask. Authorizat
 Compare quality, memory, throughput, first-token time, and inter-token time under realistic concurrency. Available implementations, memory bandwidth, and sequence lengths determine practical benefit.
 
 A theoretical saving is not a universal speedup. Verify that the configured optimization is actually active.
+
+Changing how the same attention is computed differs from discarding interactions through a sparse pattern. The first can preserve the mathematical operation; the second changes which evidence positions can combine.

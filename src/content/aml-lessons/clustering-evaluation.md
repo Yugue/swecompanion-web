@@ -45,8 +45,6 @@ Inspect sizes, representative examples, and feature distributions. Silhouette fa
 
 Ask whether the groups support a meaningful action. Distinct customer segments do not establish different responses to a campaign; test that claimed benefit separately.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** Marketing wants the right number of segments. Can one metric decide?
-
-**Answer:** Use geometry to propose candidates, resampling to assess repeatability, and the intended action to judge usefulness. A single score does not establish a natural count.
+A customer split can have clean geometric separation while assigning groups that need the same marketing action. Check both reproducible structure and whether a different group assignment changes a useful decision.

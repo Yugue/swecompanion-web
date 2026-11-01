@@ -41,8 +41,6 @@ For missing new items, trace the route to display. For live regressions, compare
 
 Offer a check that separates hypotheses, not an unprioritized list of possible models.
 
-## 6. Interview reasoning
+## 6. Work a concrete case
 
-**Question:** A system is called “better personalized” because offline NDCG rises. What should you ask?
-
-**Answer:** Ask what changed, which requests and labels were evaluated, whether candidates and eligibility matched, and what evidence supports greater user value. The metric alone does not establish that claim.
+A proposal to improve a feed should state whose decisions change, which items can enter, what each score means, and which outcomes establish improvement. An architecture diagram without those contracts leaves the learning problem unspecified.

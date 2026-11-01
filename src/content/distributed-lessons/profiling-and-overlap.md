@@ -82,3 +82,5 @@ These are hypotheses, not proofs; several causes can produce similar traces.
 Change one meaningful parameter, preserve the workload and precision, and measure step time, memory, and quality-relevant semantics. Repeat only when variance or a new observation justifies it.
 
 **Technical takeaway:** effective overlap removes exposed dependencies without exceeding memory or shared-resource budgets; a trace should explain why the end-to-end step improves.
+
+An idle interval after backward may mean a late communication dependency, not insufficient compute. Follow the critical path to the last required event rather than summing all independently timed operations.

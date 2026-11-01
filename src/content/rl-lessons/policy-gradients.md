@@ -79,3 +79,5 @@ Long horizons, variable rewards, and rare successful trajectories can make plain
 | Q-learning | Action values | Bootstrapped optimality error |
 | REINFORCE | Policy distribution | Sampled return times score gradient |
 | Actor–critic | Policy and value predictor | Estimated advantage and value error |
+
+With action probability 0.5, sampling that action and observing positive return increases its log-probability contribution under REINFORCE. Repeated samples are needed: one lucky outcome does not establish a reliable causal advantage.

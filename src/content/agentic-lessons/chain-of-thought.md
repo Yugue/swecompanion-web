@@ -44,7 +44,3 @@ For auditing, keep observable calls, cited policy clauses, calculations, and out
 Thirty steps with 250 additional tokens each produce 7,500 extra tokens in an illustrative visible-reasoning design.
 
 Actual accounting and retention vary by interface. Measure usage and latency. Preserve decisions and evidence when compacting, rather than long reasoning narratives.
-
-## What matters most
-
-> Extra reasoning is scratch-work capacity. Evidence and validation remain separate responsibilities.

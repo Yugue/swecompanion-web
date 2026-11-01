@@ -52,7 +52,3 @@ Recheck current permissions before serving cached sensitive data.
 Track cached-token share, latency and cost saved, and stale-result incidents.
 
 A high hit rate on a tiny prefix may save little.
-
-## What matters most
-
-> Reuse a photocopy only while its content, permissions, and version remain valid.

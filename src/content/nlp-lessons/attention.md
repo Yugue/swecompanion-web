@@ -54,3 +54,5 @@ Dividing by √d_k moderates this growth. The toy uses d_k=1, so scaling leaves 
 Only supplied, allowed values can contribute. The output is a mixture, not necessarily one original vector.
 
 An attention weight shows internal routing; it does not alone establish a faithful explanation of the final prediction.
+
+For weights [0.2,0.8] and scalar values [10,0], the mixed output is 2. Attention chooses a weighted combination; it need not copy the most heavily weighted token's entire state.

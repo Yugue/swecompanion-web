@@ -42,8 +42,6 @@ CTR moving from 4.0% to 4.2% is **0.2 percentage points**, or **5% relative**. R
 
 **Interleaving** mixes two rankers' outputs into one list and attributes feedback under a mixing rule. It compares ranking preferences, not the full retention or revenue effect of deploying either policy.
 
-## 8. Interview reasoning
+## 8. Work a concrete case
 
-**Question:** Why might request randomization mismeasure a habit-changing feed?
-
-**Answer:** Earlier recommendations can influence later requests assigned to the other policy. Persistent assignment or another justified design must account for that carryover.
+Randomizing users keeps each person's repeated requests under one policy, reducing cross-policy carryover within that person. It does not automatically solve interference between users sharing inventory or social interactions.

@@ -64,3 +64,5 @@ A greedy improvement selects continue. If the successor estimate is later correc
 | Value iteration | Current estimates within a synchronous sweep | Optimality backup |
 
 A dense sweep can require work proportional to the number of states squared times the number of actions. Sparse transitions reduce that cost, but large or continuous state spaces still resist enumeration. Sampled planning avoids full expectations but introduces sampling error.
+
+Value iteration requires a transition/reward model to compute expected backups. A simulator can supply samples for planning, but its errors then enter the decision; planning does not create environmental knowledge for free.

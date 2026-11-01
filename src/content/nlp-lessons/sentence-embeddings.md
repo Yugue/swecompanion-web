@@ -47,3 +47,5 @@ Validate mining, allow multiple positives, or exclude known equivalent documents
 Use the trained pooling and vector-normalization conventions. Handle empty/zero vectors explicitly.
 
 Evaluate realistic competing passages. Easy negatives can give low training loss without useful retrieval discrimination.
+
+Averaging token states weights each included position equally unless changed. Padding or boilerplate can distort that representation; the pooling rule and training objective jointly define what sentence similarity captures.

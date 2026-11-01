@@ -64,7 +64,3 @@ Use shared IDs, field names, units, provenance, and conflict rules.
 worker result → {entity_id, fields, sources, missing}
 merge         → join by ID; retain conflicts
 ```
-
-## What matters most
-
-> Decompose into pieces that fit together, not merely pieces that can run separately.

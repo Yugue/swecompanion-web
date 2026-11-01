@@ -44,3 +44,5 @@ Hashing needs no fitted vocabulary. Later corpus-based weighting still has fitte
 | Hashing | Fixed width; streaming | Collisions; harder weight inspection |
 
 Neither creates semantic equivalence or restores discarded word order.
+
+A rare identifier can receive high inverse-document weight without being semantically important. TF–IDF rewards discriminative frequency patterns, so inspect whether those patterns are meaningful or merely dataset-specific artifacts.
