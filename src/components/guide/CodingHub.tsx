@@ -148,7 +148,7 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
           <main id="guide-top" className="mx-auto max-w-4xl px-4 py-6 sm:px-8">
             <div className="mb-6 rounded-2xl border border-outline/70 bg-surface p-6 sm:p-8">
               <h1 className="mb-2.5 text-3xl font-bold leading-tight tracking-tight text-text sm:text-4xl">
-                Master the fundamentals. Walk into L4–L6 interviews with confidence.
+                Master the fundamentals. Ace your next coding interview.
               </h1>
               <p className="text-base leading-relaxed text-text-muted">
                 A carefully organized guide to the data structures, algorithms, and representative
