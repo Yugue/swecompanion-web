@@ -8,10 +8,10 @@ import { Container } from './primitives'
 
 type TabId = 'leetcode' | 'debug' | 'system'
 
-const tabs: { id: TabId; label: string; problem: string }[] = [
-  { id: 'leetcode', label: 'LeetCode', problem: 'Two Sum II — sorted input' },
-  { id: 'debug', label: 'Debug my code', problem: 'Off-by-one in binary search' },
-  { id: 'system', label: 'System design', problem: 'Design a URL shortener' },
+const tabs: { id: TabId; label: string; problem: string; prompt: string }[] = [
+  { id: 'leetcode', label: 'LeetCode', problem: 'Two Sum II — sorted input', prompt: 'Find two numbers in a sorted array that add up to the target. Use constant extra space.' },
+  { id: 'debug', label: 'Debug my code', problem: 'Off-by-one in binary search', prompt: 'The target exists, but binary search returns no match. Find and fix the boundary error.' },
+  { id: 'system', label: 'System design', problem: 'Design a URL shortener', prompt: 'Design a service that creates short links and redirects users reliably at scale.' },
 ]
 
 const panels: Record<
@@ -61,7 +61,6 @@ const panels: Record<
 export function Hero() {
   const [active, setActive] = useState<TabId>('leetcode')
   const [hasSelectedTab, setHasSelectedTab] = useState(false)
-  const panel = panels[active]
 
   useEffect(() => {
     if (hasSelectedTab) return
@@ -102,135 +101,128 @@ export function Hero() {
         }}
       />
 
-      <Container className="relative grid max-w-[1440px] gap-12 py-16 md:py-20 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center lg:gap-10 xl:gap-16">
-        <div className="mx-auto flex min-w-0 max-w-3xl flex-col items-center text-center lg:items-start lg:text-left">
-          <span className="mb-6 inline-flex items-center gap-2 lg:self-start rounded-full border border-border bg-muted px-3 py-1 font-mono text-xs text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-brand-blue" />
+      <Container className="relative grid max-w-7xl gap-10 py-14 sm:py-20 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center lg:gap-12 lg:py-24">
+        <div className="mx-auto flex min-w-0 max-w-xl flex-col items-center text-center lg:items-start lg:text-left">
+          <span className="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-brand-blue/15 bg-brand-blue/5 px-3 py-1.5 text-xs text-muted-foreground">
+            <span className="size-1.5 shrink-0 rounded-full bg-brand-blue" />
             Invisible to screen share, capture &amp; recording
           </span>
 
-          <h1 className="text-balance text-4xl font-medium leading-[1.05] tracking-tight text-foreground md:text-6xl">
-            Invisible AI for SWE Interviews
+          <h1 className="text-balance text-4xl font-medium leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-[clamp(2.5rem,3.5vw,3.25rem)]">
+            Undetectable AI<br className="hidden lg:block" />{' '}
+            for SWE interviews
           </h1>
 
-          <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
+          <p className="mt-5 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground">
             SWECompanion reads your screen and solves or debugs coding and
             system design problems in real time with clean, optimal solutions.
           </p>
 
-          <div className="mt-8 flex justify-center lg:justify-start">
+          <div className="mt-8">
             <Button
               size="lg"
-              className="h-11 bg-brand-blue px-5 text-base text-white hover:bg-brand-blue/90"
+              className="h-auto min-h-14 gap-7 rounded-xl bg-brand-blue px-5 py-3 text-white shadow-sm hover:bg-brand-blue/90"
               render={
                 <a href="#download">
-                  Download for macOS
-                  <ArrowRight className="size-4" />
+                  <span className="flex flex-col items-start gap-0.5 text-left">
+                    <span className="text-sm font-semibold leading-5">Download for macOS</span>
+                    <span className="text-xs font-normal leading-4 text-white/80">Try for free</span>
+                  </span>
+                  <ArrowRight className="size-4" aria-hidden="true" />
                 </a>
               }
             />
           </div>
         </div>
 
-        <div className="min-w-0">
-          {/* problem-type selector */}
-          <div className="mx-auto flex max-w-4xl justify-center">
-            <div
-              role="tablist"
-              aria-label="Choose a problem type"
-              className="flex flex-wrap items-center justify-center gap-1 rounded-lg border border-border bg-card p-1"
-            >
-              {tabs.map((t) => (
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_16px_60px_-24px_color-mix(in_oklch,var(--brand-blue)_25%,transparent)]">
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-3 sm:px-5">
+            <span className="flex gap-1.5" aria-hidden="true">
+              <span className="size-2.5 rounded-full border border-border bg-background" />
+              <span className="size-2.5 rounded-full border border-border bg-background" />
+              <span className="size-2.5 rounded-full border border-border bg-background" />
+            </span>
+            <span className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+              <span className="size-1.5 rounded-full bg-destructive" />
+              Zoom · screen shared
+            </span>
+          </div>
+
+          <div className="border-b border-border px-3 py-3 sm:px-5">
+            <div role="tablist" aria-label="Choose a problem type" className="grid grid-cols-3 gap-1 rounded-lg bg-muted/60 p-1">
+              {tabs.map((tab) => (
                 <button
-                  key={t.id}
+                  key={tab.id}
+                  id={`demo-tab-${tab.id}`}
                   type="button"
                   role="tab"
-                  aria-selected={active === t.id}
+                  aria-selected={active === tab.id}
+                  aria-controls={`demo-panel-${tab.id}`}
                   onClick={() => {
                     setHasSelectedTab(true)
-                    setActive(t.id)
+                    setActive(tab.id)
                   }}
                   className={cn(
-                    'rounded-md px-3.5 py-1.5 text-sm transition-colors',
-                    active === t.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground',
+                    'rounded-md px-2 py-2 text-xs font-medium transition-colors sm:text-sm',
+                    active === tab.id
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-background hover:text-foreground',
                   )}
                 >
-                  {t.label}
+                  {tab.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* window frame */}
-          <div className="mx-auto mt-6 max-w-4xl overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-            {/* title bar */}
-            <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-2.5">
-              <span className="flex gap-1.5">
-                <span className="size-3 rounded-full border border-border bg-background" />
-                <span className="size-3 rounded-full border border-border bg-background" />
-                <span className="size-3 rounded-full border border-border bg-background" />
-              </span>
-              <span className="ml-2 flex items-center gap-2 font-mono text-xs text-muted-foreground">
-                <span className="inline-block size-1.5 rounded-full bg-destructive" />
-                Zoom · screen shared
-              </span>
-            </div>
+          {/* Overlap panels so the preview height stays stable as the demo rotates. */}
+          <div className="grid">
+            {tabs.map((tab) => {
+              const panel = panels[tab.id]
+              const isActive = active === tab.id
+              return (
+                <div
+                  key={tab.id}
+                  id={`demo-panel-${tab.id}`}
+                  role="tabpanel"
+                  aria-labelledby={`demo-tab-${tab.id}`}
+                  aria-hidden={!isActive}
+                  inert={!isActive}
+                  className={cn('col-start-1 row-start-1 min-w-0', !isActive && 'invisible pointer-events-none')}
+                >
+                  <div className="border-b border-border bg-muted/15 px-4 py-4 sm:px-5">
+                    <p className="font-mono text-xs text-muted-foreground">problem.md</p>
+                    <h3 className="mt-1.5 text-base font-medium tracking-tight text-foreground">{tab.problem}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{tab.prompt}</p>
+                  </div>
 
-            <div className="relative grid gap-0 md:grid-cols-[0.65fr_1fr] lg:grid-cols-1 xl:grid-cols-[0.65fr_1fr]">
-              {/* the "problem" side — visible to everyone on the call */}
-              <div className="min-w-0 border-b border-border p-6 md:border-b-0 md:border-r lg:border-b lg:border-r-0 xl:border-b-0 xl:border-r">
-                <p className="font-mono text-xs text-muted-foreground">
-                  problem.md
-                </p>
-                <h3 className="mt-3 text-lg font-medium tracking-tight">
-                  {tabs.find((t) => t.id === active)?.problem}
-                </h3>
-                <div className="mt-4 space-y-2.5">
-                  {[85, 72, 90, 64].map((w, i) => (
-                    <div
-                      key={i}
-                      className="h-2.5 rounded-full bg-muted"
-                      style={{ width: `${w}%` }}
-                    />
-                  ))}
+                  <div className="px-4 py-5 sm:px-5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 text-xs font-medium text-signal">
+                        <Sparkles className="size-3.5" />
+                        SWECompanion
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[10px] text-muted-foreground">
+                        <EyeOff className="size-3" />
+                        Hidden from screen share
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm font-medium leading-relaxed">{panel.title}</p>
+                    <pre className="mt-3 whitespace-pre-wrap break-words rounded-lg border border-brand-navy bg-brand-navy p-3 font-mono text-[12px] leading-relaxed text-brand-navy-foreground [overflow-wrap:anywhere] sm:p-4">
+                      <code>
+                        {panel.lines.map((line, i) => (
+                          <span key={i} className={cn('block', line.dim && 'text-brand-cyan/80')}>
+                            {line.t}
+                          </span>
+                        ))}
+                      </code>
+                    </pre>
+                    <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{panel.footer}</p>
+                  </div>
                 </div>
-                <div className="mt-6 rounded-lg border border-border bg-muted/40 p-3">
-                  <div className="h-2.5 w-1/3 rounded-full bg-muted" />
-                  <div className="mt-2 h-2.5 w-3/4 rounded-full bg-muted" />
-                </div>
-              </div>
-
-              {/* the companion overlay side — only you see this */}
-              <div className="relative min-h-[280px] min-w-0 p-6">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 font-mono text-xs text-signal">
-                    <Sparkles className="size-3.5" />
-                    SWECompanion
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-base text-muted-foreground">
-                    <EyeOff className="size-3" />
-                    Hidden from screen share
-                  </span>
-                </div>
-                <p className="mt-3 text-sm font-medium">{panel.title}</p>
-                <pre className="mt-3 overflow-x-auto rounded-lg border border-brand-navy bg-brand-navy p-3 font-mono text-base leading-relaxed text-brand-navy-foreground">
-                  <code>
-                    {panel.lines.map((line, i) => (
-                      <div key={i} className={cn(line.dim && 'text-brand-cyan/80')}>
-                        {line.t}
-                      </div>
-                    ))}
-                  </code>
-                </pre>
-                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                  {panel.footer}
-                </p>
-              </div>
-            </div>
+              )
+            })}
           </div>
-
         </div>
       </Container>
     </section>

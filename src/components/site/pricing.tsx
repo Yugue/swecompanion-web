@@ -117,7 +117,7 @@ export function Pricing() {
               <p className="font-mono text-xs tracking-widest text-brand-blue uppercase">
                 Pro — unlimited use
               </p>
-              <span className="rounded-full bg-brand-blue px-2.5 py-1 font-mono text-base tracking-wide text-primary-foreground uppercase">
+              <span className="rounded-full bg-brand-blue px-2.5 py-1 font-mono text-[10px] tracking-wide text-primary-foreground uppercase">
                 Most popular
               </span>
             </div>
