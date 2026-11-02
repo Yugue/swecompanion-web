@@ -2,17 +2,15 @@
 
 ## 1. A useful response may lack an automatic reward
 
-For an assistant response, correctness, helpfulness, and style can be difficult to encode in one hand-written function. Humans can sometimes compare two responses more reliably than assign absolute scores.
+Humans may compare assistant responses more reliably than assign absolute quality scores. **RL from human feedback (RLHF)** learns a reward from judgments and optimizes a policy against it.
 
-**Reinforcement Learning from Human Feedback (RLHF)** can learn a reward signal from such judgments and optimize a policy using it. It changes the source of reward, not the need for careful objectives, data coverage, and evaluation.
+Changing the reward source does not remove coverage, proxy, or evaluation problems.
 
 ## 2. Map a language model into policy notation
 
-A **language model (LM)** assigns probabilities to tokens conditioned on prior context. For prompt x and response tokens y, the sequence probability is a product of conditional token probabilities, so its log probability is a sum.
+A **language model** assigns probabilities to **tokens**, pieces of text, given preceding context. Sequence probabilities multiply token probabilities; sequence log probabilities add.
 
-The prompt distribution supplies initial conditions. The generated tokens are actions; the context grows as generation proceeds. A sequence-end reward can score the completed response, including the end-of-sequence decision under the chosen convention.
-
-The RL mechanisms do not require a detailed Transformer architecture derivation to understand this mapping.
+Prompt x supplies initial context; generated tokens y are actions. Context grows after each action. A completed-response reward can arrive at sequence end, including the end-token decision under the chosen convention.
 
 ## 3. Distinguish the three training roles
 
@@ -22,34 +20,38 @@ comparisons   → preference reward model
 policy samples → reward scoring + regularization → policy update
 ```
 
-**Supervised Fine-Tuning (SFT)** fits demonstrated responses. A reward model learns relative quality from comparisons. Policy optimization generates or uses policy experience to improve the reward-regularized objective.
+**Supervised fine-tuning (SFT)** fits demonstrated responses. A **reward model** predicts preference quality. Policy optimization improves its reward-regularized objective using policy samples.
 
-A critic, if used, estimates the policy's future training return. That is a different job from a reward model estimating preference quality. The two should not be conflated merely because both output scalars.
+The critic predicts future training return; the reward model predicts preference quality. Equal output shapes do not make their targets interchangeable.
 
 ## 4. Learn a pairwise reward model
+
+Fit a pairwise reward model:
 
 \[
 L_{\mathrm{RM}}(\psi)=-\mathbb E\log\sigma\left(r_\psi(x,y_w)-r_\psi(x,y_l)\right)
 \]
 
-Psi denotes reward-model parameters, y w a preferred response, y l a less-preferred one, and sigma the sigmoid function. The model assigns a higher score difference to the preferred member.
+ψ is reward-model weights; x prompt; yw preferred response; yl less preferred response; σ the sigmoid. The loss favors a higher score for yw.
 
-This comparison loss identifies relative scores under a modeling assumption; it does not make scores calibrated truth probabilities. Annotator disagreement, response-length correlations, and dataset selection can shape the learned proxy.
+Scores express relative preference under a model, not calibrated truth. Annotator disagreement, length, and selection bias can shape them.
 
 ## 5. Optimize reward while limiting drift
+
+Optimize learned reward while penalizing drift from a reference policy:
 
 \[
 J(\theta)=\mathbb E_{x,\,y\sim\pi_\theta}
 \left[r_\psi(x,y)-\beta\log\frac{\pi_\theta(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}\right]
 \]
 
-Theta denotes policy parameters, beta a positive regularization weight, and pi ref a reference policy. In expectation, the log ratio is a KL penalty on response distributions under the specified prompt distribution.
+θ is policy weights; β>0 regularization strength; πref reference policy. In expectation, the response log ratio is a KL penalty.
 
-This KL discourages large drift from a reference. It is conceptually different from PPO's update-to-collection-policy ratio; one anchors the training objective and the other controls a local optimization surrogate.
+Reference KL anchors the training objective. PPO’s collection-policy ratio controls a local update; it serves a different role.
 
 ## 6. Direct preference optimization uses a different training route
 
-**Direct Preference Optimization (DPO)** trains on fixed preference pairs using a relative policy likelihood loss. Define:
+**Direct preference optimization (DPO)** fits fixed preference pairs through relative policy likelihoods:
 
 \[
 z=\beta\left[\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-
@@ -57,15 +59,15 @@ z=\beta\left[\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-
 L_{\mathrm{DPO}}=-\mathbb E\log\sigma(z)
 \]
 
-Under its reward-policy parameterization, preference fitting can optimize an objective related to KL-regularized reward optimization without separately training an explicit reward model or running an online rollout loop during that fitting step.
+β is regularization scale; z compares preferred and rejected response log ratios against the reference. LDPO penalizes a small preferred-response margin.
 
-DPO remains dependent on the preference dataset and modeling assumptions. It should not be described as ordinary supervised imitation or as identical to online PPO-based RLHF.
+Its reward-policy parameterization links preference fitting to KL-regularized optimization without a separate reward model or online rollouts during fitting. It still relies on preference assumptions and data; it is not ordinary imitation.
 
 ## 7. More reward can mean less quality
 
-As the policy changes, it can find responses unlike those used to train the reward model. Superficial verbosity, formatting, or persuasive wording may receive higher predicted reward without improving correctness.
+A policy can exploit reward-model preferences for verbosity, formatting, or persuasive wording while actual correctness worsens.
 
-Keep held-out human judgments, task-grounded checks, and failure categories separate from the training reward. Reference regularization can reduce drift but does not prove that a learned reward cannot be exploited.
+Use held-out judgments and task-grounded checks independent of reward scores. Reference regularization limits drift but does not prevent exploitation.
 
 ## 8. Choose the signal deliberately
 
@@ -76,6 +78,4 @@ Keep held-out human judgments, task-grounded checks, and failure categories sepa
 | A usable reward and new policy rollouts | Explicit reward-driven optimization |
 | Objective executable success checks | Verified-outcome reward with coverage audits |
 
-These are starting points, not universal rankings. Evaluate the actual deployment task and budget.
-
-A comparison saying A is preferred to B specifies a relative judgment. Turning it into a reward requires a model and assumptions; a higher fitted reward is not independently verified task success.
+Choose a starting point from available evidence, then compare task quality and budget; the table is not a universal ranking.

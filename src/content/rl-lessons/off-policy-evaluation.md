@@ -2,65 +2,67 @@
 
 ## 1. The training critic is not an independent verdict
 
-A policy trained on logged data needs evaluation before deployment. **Off-Policy Evaluation (OPE)** estimates its performance using trajectories collected by other behavior.
+**Off-policy evaluation (OPE)** estimates a target policy’s performance from other policies’ logged experience.
 
-The central question is causal: what outcomes would occur if this target policy acted? A good fit to factual logged outcomes is helpful but does not automatically answer that counterfactual.
+It asks what would happen under different choices. Fitting outcomes from observed choices does not automatically identify that counterfactual.
 
 ## 2. State the identification assumptions
 
-Importance-based sequential evaluation usually needs known or consistently estimated behavior probabilities, target-policy support within behavior coverage, and logged information sufficient to account for behavior selection and relevant dynamics.
+Importance-based OPE needs behavior probabilities, target support, and logged information sufficient to explain behavior selection and relevant dynamics.
 
-If operators chose actions using an unrecorded fault signal that also predicts failure, the observed comparisons can be confounded. A sophisticated estimator cannot validate away a missing variable from the same incomplete logs.
+**Confounding** occurs when an unrecorded variable affects both action selection and outcomes. If operators use a hidden fault signal, naive logged comparisons can misattribute its effect to actions.
 
-Preserve action availability, reset semantics, policy versions, and initial-condition distributions. Evaluate the intended deployment population, not an accidental subset with complete records.
+Preserve action availability, policy versions, boundaries, and initial conditions. Evaluate the intended deployment population.
 
 ## 3. Importance sampling reweights complete trajectories
+
+Reuse the trajectory importance ratios introduced earlier:
 
 \[
 \widehat J_{\mathrm{IS}}=\frac1N\sum_{i=1}^N w_iG_0^{(i)},\qquad
 w_i=\prod_t\frac{\pi(a_t^{(i)}\mid s_t^{(i)})}{b(a_t^{(i)}\mid s_t^{(i)})}
 \]
 
-N is the number of independent logged trajectories, G their matching-objective returns, pi the target, and b the behavior policy. The ratios account for how often each trajectory would appear under the target.
+N counts independent trajectories; G₀⁽ⁱ⁾ is trajectory i’s matching-objective return; π target; b behavior; wᵢ its weight.
 
-Weights can explode with horizon or policy mismatch. Per-decision estimators attach shorter prefix ratios to individual rewards, often reducing unnecessary variance. Weight clipping and self-normalization alter bias–variance tradeoffs as discussed in 2.5.
+**Per-decision importance sampling** uses reward-specific prefix ratios. It can reduce unnecessary variance. Long horizons and weak overlap still cause concentrated weights; clipping trades bias for stability.
 
 ## 4. A one-step numerical example
 
-Suppose behavior chooses left and right with probability 0.5 each; the target always chooses left. Two logged examples contain left reward 4 and right reward 0. Their weights are 2 and 0, giving importance estimate (2×4+0×0)/2=4.
+Behavior picks left/right with probability 0.5 each; target always picks left. Logged (left,4) and (right,0) get weights 2 and 0: estimate=(8+0)/2=4.
 
-This computation does not prove a true expected reward of 4. It shows reweighting on a tiny random sample. If left was never sampled in the dataset, finite-data evidence would be inadequate despite positive population support.
+This is a tiny-sample calculation, not proof of true value 4. Positive population support does not ensure a finite dataset contains enough target actions.
 
 ## 5. Fitted Q Evaluation learns the target policy's value
 
-**Fitted Q Evaluation (FQE)** repeatedly regresses a value model onto fixed-policy Bellman targets:
+**Fitted Q evaluation (FQE)** repeatedly fits a value model to a fixed target policy’s Bellman backups:
 
 \[
 y=r+\gamma(1-d)\mathbb E_{a'\sim\pi(\cdot\mid s')}[\widehat Q_{k-1}(s',a')]
 \]
 
-K counts fitting iterations and d marks genuine termination. Unlike Q-learning control, the next-action average follows the fixed policy being evaluated, without a greedy maximization.
+k counts fitting iterations; d marks termination; r reward; γ discount. Average next actions under π rather than maximizing them.
 
-Estimate performance by averaging its initial-state action values under the target policy. FQE avoids multiplying long likelihood ratios but depends on value-model accuracy and enough data for the target's relevant states and actions.
+Average initial-state values under π for performance. FQE avoids long ratio products but depends on model accuracy and relevant state-action coverage.
 
 ## 6. Doubly robust evaluation combines both signals
 
-For one decision, a **Doubly Robust (DR)** estimate has contribution:
+A **doubly robust (DR)** estimator combines a model prediction with an importance-weighted residual. For one decision:
 
 \[
 \widehat V(s)+\rho\left[r-\widehat Q(s,a)\right],\qquad
 \widehat V(s)=\sum_a\pi(a\mid s)\widehat Q(s,a)
 \]
 
-Rho is pi(a given s)/b(a given s). The model predicts the policy average, while a weighted residual corrects observed model errors.
+Q̂ predicts action reward, V̂ averages it under π, and ρ=π(a given s)/b(a given s). The residual corrects model errors observed in the logs.
 
-A sequential version replaces the residual with r+gamma times a recursively corrected successor value minus Q hat, with appropriate terminal handling. Under support and identification conditions, correct importance ratios or a correct compatible value model can protect against the other component's error. Arbitrarily wrong models and ratios do not cancel each other by default.
+Sequential DR uses a corrected successor value in the residual. Under support and identification assumptions, correct ratios or a compatible correct value model can protect against error in the other component; two wrong components need not cancel.
 
 ## 7. Keep estimation honest
 
-Fit nuisance models separately or use cross-fitting, where each held-out partition is evaluated with models fitted on other partitions. Resample complete episodes or other independent units when estimating uncertainty; individual correlated transitions are not interchangeable independent samples.
+**Cross-fitting** evaluates each partition using models fitted on other partitions. Resample complete episodes or other independent units, rather than correlated transitions.
 
-Report weight concentration, overlap, sensitivity to clipping, and disagreement among estimators. A narrow model-based interval can omit extrapolation bias. Unsupported decisions remain an assumption-driven prediction rather than strong empirical validation.
+Report weight concentration, overlap, clipping sensitivity, and estimator disagreement. Narrow intervals do not include every possible extrapolation or missing-variable error.
 
 ## 8. Compare practical options
 
@@ -70,4 +72,4 @@ Report weight concentration, overlap, sensitivity to clipping, and disagreement 
 | FQE | Avoids full trajectory products | Model error and coverage |
 | Doubly robust | Uses predictions plus residual evidence | Both components can be wrong |
 
-A target policy choosing an action absent from logging support cannot obtain that outcome through importance weighting. A predictive outcome model can extrapolate, but introduces assumptions beyond observed action overlap.
+Absent logging support cannot be repaired by importance weights. Predicting those outcomes with a model adds assumptions beyond observed action overlap.

@@ -2,36 +2,38 @@
 
 ## 1. Replace a model expectation with observed experience
 
-The Bellman equation describes the correct value but does not give unknown transition probabilities. Suppose the robot repeatedly follows one fixed policy. It can estimate the value of a visited state from actual rewards instead of enumerating all possible futures.
-
-Two choices matter: wait for the observed return, or fill in the unobserved future with a current value prediction.
+With unknown dynamics, estimate a fixed policy’s value from observed rewards. Either wait for its realized return or predict the unobserved continuation.
 
 ## 2. Monte Carlo uses the observed return
+
+**Monte Carlo (MC) prediction** moves value toward a sampled complete return:
 
 \[
 V(S_t)\leftarrow V(S_t)+\alpha\left[G_t-V(S_t)\right]
 \]
 
-**Monte Carlo (MC)** prediction moves the current estimate toward a sampled return Gt. Alpha is the step size. With a fixed policy and a complete correctly discounted trajectory, the return is an unbiased sample of the conditional expected return.
+Gₜ is observed return, V(Sₜ) the current estimate, and α the step size. Under a fixed policy, complete correctly discounted returns are unbiased samples of conditional value.
 
-First-visit MC updates from the first occurrence of a state in an episode; every-visit MC uses each occurrence. Samples within an episode can be correlated. Episodic MC must wait for the episode's rewards to be available.
+**First-visit MC** uses a state’s first occurrence per episode; **every-visit MC** uses all occurrences. Within-episode samples can be correlated. Both need the relevant future rewards.
 
 ## 3. TD fills in a continuation estimate
+
+**Temporal-difference (TD) prediction** combines one observed reward with a predicted continuation:
 
 \[
 \delta_t=R_{t+1}+\gamma V(S_{t+1})-V(S_t),\qquad
 V(S_t)\leftarrow V(S_t)+\alpha\delta_t
 \]
 
-**Temporal-Difference (TD)** prediction uses one reward and a bootstrapped next-state value. Delta is the TD error: target minus current prediction. At a genuine terminal state the continuation value is zero, following 1.5.
+δₜ is **TD error**, target minus prediction. Rₜ₊₁ is reward; γ discounts next value V(Sₜ₊₁); α controls the update. At genuine termination, continuation is zero.
 
-TD can update immediately after one transition and can operate in continuing tasks. Its target depends on existing estimates, which may be inaccurate.
+TD updates after one transition, including in continuing tasks. Its target inherits errors from current predictions.
 
 ## 4. A shared transition, different evidence
 
-Let V(s)=4, observed reward=1, successor estimate=6, gamma=0.9, and alpha=0.2. TD's target is 6.4, its error is 2.4, and the new estimate is 4.48.
+With V(s)=4, reward 1, successor estimate 6, γ=0.9, and α=0.2: TD target=6.4, error=2.4, new value=4.48.
 
-If the eventual sampled return is 8, MC's update from the same original estimate produces 4.8. Neither update alone proves the other wrong: one uses a prediction of the remaining trajectory; the other uses this particular realized future.
+If the eventual return is 8, MC updates the same original value to 4.8. They use different evidence: predicted continuation versus this realized future.
 
 ```text
 MC: state → observed rewards all the way to episode end → return target
@@ -47,19 +49,19 @@ TD: state → one observed reward → predicted continuation → target
 | Target depends on current values | No | Yes |
 | Exposure to future outcome randomness | Entire remaining trajectory | One step plus prediction |
 
-MC returns can have high variance over a long stochastic horizon. TD commonly reduces target variance at the cost of dependence on imperfect estimates. These are useful tendencies, not an unconditional theorem comparing every estimator in every task.
+Long-horizon MC returns can be noisy. TD often lowers target variance but depends on imperfect values; neither is uniformly more accurate.
 
-With one-step TD, a newly observed terminal reward initially changes nearby predictions; repeated updates propagate its effect backward.
+One-step TD initially changes values near a new reward. Repeated backups propagate its effect backward.
 
 ## 6. Learning rates and convergence assumptions
 
-A sample-average update uses alpha=1/N for the Nth observation of a fixed mean. Constant alpha keeps adapting to changing targets but leaves persistent noise.
+For a fixed mean, α=1/N averages N samples. Constant α tracks changing targets but leaves persistent noise.
 
-Tabular on-policy TD converges under standard discounted or suitable episodic assumptions, adequate state visitation, and appropriate diminishing step sizes. Introducing neural approximation or a changing policy requires separate reasoning; a scalar tabular convergence claim is not a general deep-learning guarantee.
+Tabular on-policy TD needs adequate visitation, appropriate diminishing step sizes, and suitable discounted/episodic assumptions. These guarantees do not automatically cover neural networks or changing policies.
 
 ## 7. What a TD error does and does not tell you
 
-A large error can indicate a surprising outcome, a poor value estimate, or a changed policy. A small error can mean consistent estimates even when the policy is bad or the reward misses the real objective.
+Large TD error may signal surprise, wrong values, or changed behavior. Small error establishes neither good behavior nor a useful reward.
 
 ```python
 target = reward + gamma * continuation_value
@@ -67,6 +69,4 @@ td_error = target - value
 value += learning_rate * td_error
 ```
 
-This tabular snippet assumes continuation_value already handles the episode boundary. Neural updates instead change shared parameters through a loss.
-
-With estimate 4, reward 1, next estimate 5, and discount 0.9, the TD target is 5.5. It can update before the episode ends, but it depends on another learned estimate.
+The snippet is tabular; continuation_value must already handle the boundary. Neural updates instead fit shared parameters.

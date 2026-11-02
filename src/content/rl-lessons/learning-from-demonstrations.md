@@ -2,45 +2,47 @@
 
 ## 1. A demonstrated action is a different signal from a reward
 
-If an expert drives a robot through a doorway, the training record can directly identify the action taken in each observed situation. **Imitation learning** uses this behavior as supervision.
+**Imitation learning** uses demonstrated actions as supervision. A doorway demonstration tells the learner what an expert did at each observation.
 
-A demonstration can be valuable when random exploration is expensive or unlikely to reach success. It describes what the demonstrator did, not necessarily why it was optimal or how to recover from every possible error.
+Demonstrations can avoid expensive random exploration, but do not necessarily explain optimality or recovery from mistakes.
 
 ## 2. Behavior cloning is supervised policy fitting
+
+**Behavior cloning (BC)** fits a policy to expert actions:
 
 \[
 L_{\mathrm{BC}}(\theta)=-\mathbb E_{(o,a)\sim\mathcal D_{\mathrm{expert}}}
 [\log\pi_\theta(a\mid o)]
 \]
 
-**Behavior cloning (BC)** fits policy parameters theta to demonstrated action a given available observation o. D expert is the demonstration dataset. A continuous deterministic policy may instead regress to demonstrated action vectors.
+θ is policy weights; o observation; a demonstrated action; Dexpert demonstrations. Continuous deterministic policies may instead regress action vectors.
 
-Training needs consistent observation and action interfaces. An expert with access to hidden state can produce actions the deployed learner cannot infer from its own observations.
+Match sensor and action interfaces. An expert using hidden state can choose actions the learner cannot infer from its own observation.
 
 ## 3. Why small action errors can compound
 
-At deployment, the learner's own actions determine later observations. A small steering error moves the robot off the demonstrated path. Its next observation can then be unfamiliar, causing another error and further deviation.
+A small steering error moves the learner off the expert path. Unfamiliar observations cause further errors: behavior changes its own input distribution.
 
 ```text
 expert path → demonstration observations → low supervised validation error
 learner error → unfamiliar observation → larger error → further deviation
 ```
 
-The issue is **distribution shift caused by the learner's behavior**. A random train-validation split of demonstration frames can understate it, especially when nearby frames from one trajectory appear in both sets.
+Random frame splits can hide this failure when nearby frames leak across training and validation.
 
 ## 4. Average actions can be invalid behavior
 
-Two experts may pass an obstacle on opposite sides. A squared-error predictor can average those valid actions into a collision course.
+Experts passing opposite sides of an obstacle demonstrate two valid actions. Squared-error fitting can average them into a collision.
 
-A suitable stochastic or multimodal action model can preserve alternatives, but it does not solve missing recovery states or poor demonstration quality. First establish whether multimodality, observation ambiguity, or dataset coverage explains the failure.
+A **multimodal** policy represents distinct action alternatives. It does not repair missing recovery states; distinguish ambiguous inputs, valid alternatives, and poor coverage.
 
 ## 5. Dataset aggregation changes the supervision distribution
 
-**Dataset Aggregation (DAgger)** iteratively runs the learner, asks an expert what action should be taken at visited states, adds those labeled states to the dataset, and refits the policy.
+**Dataset Aggregation (DAgger)** runs the learner, requests expert labels at learner-visited states, adds them to training data, and refits.
 
-The important change is obtaining expert labels where the learner actually goes. Simply labeling its own actions as correct would reinforce its errors rather than provide the intended supervision.
+The new labels correct the learner where it actually goes. Treating its own actions as expert targets would reinforce mistakes.
 
-Early data collection may mix expert and learner control. The availability, cost, and safe execution of expert labeling are practical assumptions, not free resources.
+Expert access and controlled collection have costs. Early collection may mix expert and learner control.
 
 ## 6. Compare available training signals
 
@@ -51,12 +53,10 @@ Early data collection may mix expert and learner control. The availability, cost
 | Environment rewards | Long-term objective feedback | Exploration and credit assignment |
 | Preferences | Relative quality judgments | Incomplete ranking signal |
 
-A common practical strategy is demonstration initialization followed by reward-driven fine-tuning. Fine-tuning may improve beyond the demonstrator but can also forget competent behavior or exploit a misspecified reward.
+Demonstration initialization followed by reward-driven fine-tuning can improve beyond the expert, but may forget useful behavior or exploit reward errors.
 
 ## 7. Evaluate behavior, not just action accuracy
 
-Split by episodes, demonstrators, scenarios, or other units that prevent closely related frames from leaking across evaluation. Measure closed-loop task success and recovery from perturbed conditions.
+Split by episodes, demonstrators, or scenarios. Measure **closed-loop** success—behavior under its own actions—and recovery after perturbations.
 
-Audit action conventions, sensor delays, and timestamps. An apparently noisy demonstrator might actually reflect a misalignment between observation and action labels. Include failures and interventions when they provide useful recovery evidence, with their meaning preserved.
-
-A behavior-cloning policy can imitate expert actions on familiar states yet drift into unseen states after one small mistake. Good held-out action accuracy does not measure recovery from its own induced distribution.
+Check timestamps, sensor delay, and action conventions before treating labels as noise. Preserve the meaning of failures and expert interventions.

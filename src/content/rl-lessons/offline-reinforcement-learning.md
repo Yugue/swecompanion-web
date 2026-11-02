@@ -2,13 +2,13 @@
 
 ## 1. No new trial can correct an unsupported guess
 
-**Offline Reinforcement Learning (offline RL)** improves a policy from a fixed collection of trajectories without additional environment interaction during training.
+**Offline RL** improves a policy from fixed trajectories, with no new environment collection during training.
 
-The motivation is strong when data already exists and new trials are expensive. The difficulty is that a policy can select actions outside the dataset's coverage without being able to observe their consequences and correct itself.
+Unsupported action predictions cannot be corrected by trying them. Existing data must justify the proposed improvement.
 
 ## 2. Off-policy does not mean offline-safe
 
-An online off-policy learner can visit an apparently valuable unfamiliar action, discover it is bad, and update. A fixed-data learner may repeatedly bootstrap from the same optimistic unsupported prediction.
+Online off-policy learning can discover that an unfamiliar high-Q action is bad. Offline learning may repeatedly bootstrap its unsupported optimism.
 
 ```text
 unseen action → arbitrary high predicted Q → selected in backup
@@ -16,23 +16,23 @@ unseen action → arbitrary high predicted Q → selected in backup
      └──────── policy favors unseen action ←─┘
 ```
 
-A larger buffer helps only if it adds relevant support, quality, or diversity. Duplicating narrowly collected transitions does not supply counterfactual evidence.
+A larger buffer helps only by adding relevant coverage or quality. Duplicated narrow data supplies no new action-outcome evidence.
 
 ## 3. The distribution shifts twice
 
-The learned policy can choose actions unlike the behavior's actions at familiar states. Those actions can also drive it toward unfamiliar future states.
+A policy can choose unfamiliar actions at familiar states, then reach unfamiliar successor states.
 
-Bootstrapping propagates errors from unsupported successors back into supported parts of the dataset. Ordinary supervised train-validation loss on logged transitions can look good while the resulting policy performs poorly.
+Bootstrapping spreads these errors into supported predictions. Low held-out loss on logged transitions can coexist with poor deployed behavior.
 
 ## 4. Constrain policy improvement near evidence
 
-One response is to favor actions resembling demonstrated or behavior-supported actions. This can use explicit divergence penalties, behavior models, or limited policy improvement rules.
+A **behavior constraint** limits policy movement toward unsupported actions, using behavior models, divergence penalties, or restricted improvement rules.
 
-The tradeoff is caution versus improvement. A tight constraint may preserve a poor behavior policy. A loose one may allow exploitation of unsupported values. Behavior modeling can itself be inaccurate, especially for multimodal actions or hidden mixtures of collection policies.
+Tight constraints may preserve poor behavior; loose constraints allow extrapolation errors. Behavior models can also miss multimodal or mixed collection policies.
 
 ## 5. Conservative value learning penalizes optimism
 
-A simplified discrete-action **Conservative Q-Learning (CQL)** regularizer illustrates a second response:
+**Conservative Q-learning (CQL)** penalizes broadly optimistic values relative to dataset actions. One discrete-action form is:
 
 \[
 L_{\mathrm{CQL}}=L_{\mathrm{Bellman}}+
@@ -41,15 +41,15 @@ L_{\mathrm{CQL}}=L_{\mathrm{Bellman}}+
 \mathbb E_{a\sim\mathcal D(\cdot\mid s)}Q(s,a)\right]
 \]
 
-D is the dataset, beta a positive penalty weight, and L Bellman the detached-target fitting loss. The log-sum-exp term pushes down broadly high action values relative to values of dataset actions; the second term counterbalances that pressure on observed actions.
+D is data; β>0 penalty strength; LBellman detached-target fitting loss. Log-sum-exp presses high action values downward; subtracting observed-action values counterbalances this pressure on data-supported actions.
 
-This is a representative mechanism, not every CQL implementation. Continuous action spaces need approximations to action integration. Theoretical lower-bound results have assumptions; a practical conservative critic is not a deployment safety certificate.
+Continuous variants approximate action integration. This illustrates the mechanism; lower-bound guarantees need assumptions and do not certify deployment safety.
 
 ## 6. A numerical unsupported-action example
 
-At one state, logged actions all choose left. Suppose the learned Q estimates are left=3 and right=100, but right has no observations. A greedy backup selects right because of the estimate, not evidence.
+All logged actions choose left. Learned Q(left)=3 and Q(right)=100 make greedy control prefer an unobserved right action.
 
-A behavior constraint may reject right. A conservative value penalty may reduce its unsupported advantage. Neither proves whether right is actually good. They control how aggressively a policy can exploit uncertainty that the dataset cannot resolve.
+A behavior constraint can reject right; a conservative penalty can reduce its advantage. Neither establishes right’s true outcome.
 
 ## 7. What the dataset must preserve
 
@@ -61,12 +61,10 @@ A behavior constraint may reject right. A conservative value penalty may reduce 
 | Behavior versions and propensities when available | Understand collection and evaluation |
 | Failures, interventions, and scenario coverage | Reveal limits and selection bias |
 
-Logged rewards may themselves be proxies. An offline policy can exploit their mistakes just as an online one can. Changed sensors, action interfaces, or reward conventions can invalidate reuse.
+Changing sensors, reward definitions, or action interfaces can invalidate data reuse. Offline learning can exploit a logged reward proxy just as online learning can.
 
 ## 8. Compare imitation, offline RL, and online learning
 
-Behavior cloning copies observed actions without needing reward labels. Offline RL uses rewards and sequential structure to seek improvement within the evidence. Online RL can collect new evidence but pays interaction cost and risk.
+BC copies actions without rewards. Offline RL uses rewards and sequential structure for evidence-constrained improvement. Online RL can gather missing evidence at collection cost.
 
-Start with behavior cloning and a no-change baseline. Seek independent policy evaluation, uncertainty analysis, and limited controlled validation before trusting improvement predicted by the training critic.
-
-An offline dataset may contain no examples of a proposed action in a state region. A high learned value there can be extrapolation error; online trial-and-error evidence is unavailable during offline training.
+Compare with BC and unchanged behavior. Seek independent evaluation and controlled validation rather than trusting the training critic.

@@ -2,11 +2,13 @@
 
 ## 1. Ask whether an outcome was better than expected
 
-A return of 10 may be excellent in a hard state and disappointing in an easy one. Using raw returns makes the policy gradient respond to variation the chosen action did not explain.
+Return 10 may be excellent in a difficult state and poor in an easy one. A **baseline** subtracts a state-specific reference.
 
-A **baseline** subtracts a reference outcome. An **actor–critic** learns a policy, the actor, alongside a value predictor, the critic, that supplies this reference or a bootstrapped learning signal.
+The actor uses this comparison to change behavior; the critic learns the reference values or bootstrapped signal.
 
 ## 2. Why an action-independent baseline preserves the gradient
+
+An action-independent baseline has zero expected score-gradient contribution:
 
 \[
 \mathbb E_{a\sim\pi_\theta(\cdot\mid s)}
@@ -14,23 +16,23 @@ A **baseline** subtracts a reference outcome. An **actor–critic** learns a pol
 =b(s)\nabla_\theta\sum_a\pi_\theta(a\mid s)=0
 \]
 
-B(s) is independent of the sampled action. Policy probabilities sum to one, whose derivative is zero. Therefore subtracting b(s) from the return does not change the expected score gradient under the usual assumptions.
+b(s) does not depend on sampled action a. πθ probabilities sum to one, whose derivative is zero. Subtracting b(s) therefore preserves the expected actor gradient.
 
-Treat the baseline as fixed within that actor-gradient calculation. An action-dependent baseline needs additional correction; arbitrary action-dependent subtraction does not enjoy the same identity.
+Treat the baseline as fixed during that calculation. Action-dependent subtraction needs additional correction.
 
 ## 3. A learned value baseline and advantage
 
-Using V(s) as a baseline estimates how much better the sampled action's future was than the policy's expected future. With a complete sampled return, Gt−V(St) remains an unbiased baseline-adjusted signal even if the baseline is imperfect, when used correctly.
+A complete return minus V(s) remains unbiased as an actor signal with a correctly used action-independent baseline, even if V is inaccurate.
 
-Replacing the full return with a bootstrapped target reduces reliance on long sampled outcomes but can introduce bias through critic error. That is the important distinction between a harmless imperfect baseline and an imperfect bootstrapped advantage estimator.
+A bootstrapped return also depends on successor predictions. Critic errors can then bias the estimated advantage, rather than merely change its variance.
 
 ## 4. The one-step actor–critic signal
+
+A one-step actor–critic can use TD error:
 
 \[
 \delta_t=r_{t+1}+\gamma(1-d_t)V_\phi(s_{t+1})-V_\phi(s_t)
 \]
-
-Phi denotes critic parameters and d genuine termination. With an exact on-policy value, the expected TD error conditioned on state and action equals the advantage. With an approximate critic, the error becomes a biased but often useful estimate.
 
 ```text
 observation → actor → action → environment → reward, successor
@@ -38,39 +40,41 @@ observation → actor → action → environment → reward, successor
                          advantage → actor update
 ```
 
+φ denotes critic parameters; r reward; γ discount; d genuine termination. With exact on-policy V, expected δ given state/action equals advantage. An approximate critic can bias it.
+
 ## 5. Generalized advantage estimation
 
-**Generalized Advantage Estimation (GAE)** mixes future TD errors:
+**Generalized advantage estimation (GAE)** mixes successive TD errors:
 
 \[
 \widehat A_t^{\mathrm{GAE}}=\sum_{l=0}^{L-1}(\gamma\lambda)^l\delta_{t+l}
 \]
 
-L is the available trajectory length from t, gamma the task discount, and lambda the estimator's mixing parameter from 2.3. Stop the sum at the relevant sequence boundary and bootstrap the final value appropriately.
+Â is estimated advantage; L available sequence length; γ task discount; λ mixture strength. Stop at sequence boundaries and handle the final bootstrap correctly.
 
-Lambda=0 gives the one-step TD error. With lambda=1 and a complete genuinely terminated episode, the terms telescope to the Monte Carlo return minus the initial value. Larger lambda generally relies more on sampled future information and less on intermediate bootstraps.
+λ=0 gives one-step TD error. At λ=1 in a complete terminated episode, errors telescope to return minus starting value. Larger λ generally uses more sampled future information.
 
 ## 6. A two-step example
 
-Let gamma=0.9, lambda=0.8, delta0=1, and delta1=2. Then estimated advantage at the first decision is 1+0.72×2=2.44. At lambda=0 it would be 1.
+For γ=0.9, λ=0.8, and TD errors [1,2], advantage is 1+0.72×2=2.44. At λ=0 it is 1.
 
-This does not alter which future rewards the task discounts. It changes the mixture of errors used to estimate improvement. At a collection truncation, include the final continuation estimate in the final delta, but do not recurse into an unrelated reset episode.
+λ changes estimation, not the task’s discounting. At truncation, include the final bootstrap in δ but stop recursion before reset.
 
 ## 7. Actor and critic losses have different jobs
+
+Actor and value losses optimize different outputs:
 
 \[
 L_{\mathrm{actor}}=-\mathbb E[\log\pi_\theta(a_t\mid s_t)\operatorname{stopgrad}(\widehat A_t)],\qquad
 L_{\mathrm{value}}=\frac12\mathbb E[(V_\phi(s_t)-\operatorname{stopgrad}(\widehat R_t))^2]
 \]
 
-R hat is a selected return target, often advantage plus the value used during collection. Stopgrad means treat the quantity as fixed for that loss. The actor expression is a common rollout surrogate; weighting depends on the objective convention described in 4.1.
+θ is actor parameters; φ critic parameters; R̂ a chosen return target, often collection value plus estimated advantage. **Stopgrad** holds targets fixed. Actor time weighting must match the objective convention.
 
-Shared encoders receive gradients from both losses. Critic loss weight can therefore affect representation learning even though the actor and critic have different outputs.
+Shared feature encoders receive both gradients, so value-loss weighting can alter policy representations.
 
 ## 8. Practical tradeoffs
 
-A critic trained too little can provide poor advantages. A critic aggressively fitted to narrow recent data can overfit or destabilize shared features. Advantage normalization can improve scale conditioning but changes finite-batch behavior and is not a proof of unbiasedness.
+An undertrained critic gives poor advantages; overfitting narrow recent data can destabilize shared features. Advantage normalization changes finite-batch scaling and does not prove unbiasedness.
 
-Synchronous **Advantage Actor–Critic (A2C)** collects on-policy experience from several environments and updates with advantage estimates. Parallel collection improves throughput; it does not by itself permit unrestricted old-data replay.
-
-An advantage of +2 means the action outcome is estimated better than the state's baseline by two return units. The actor uses that comparison; the critic separately learns to improve the baseline estimate.
+**Advantage Actor–Critic (A2C)** synchronously collects on-policy experience from parallel environments. Faster collection does not permit unrestricted historical replay.

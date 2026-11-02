@@ -2,35 +2,35 @@
 
 ## 1. Debug from observable facts
 
-A flat reward curve can mean a broken environment, a poor reward, missing exploration, wrong targets, or failed optimization. Changing multiple hyperparameters at once makes those explanations harder to distinguish.
+Flat reward can reflect environment bugs, missing exploration, wrong targets, poor objectives, or failed optimization. Changing many settings obscures the cause.
 
-Start with the smallest controlled environment that exercises the mechanism. A deterministic two-state problem can reveal a target error much faster than another expensive full-task run.
+Start with a tiny controlled task. A deterministic two-state example can expose errors before another expensive run.
 
 ## 2. Verify the environment and reward first
 
-Run a random policy and a simple hand-written or known-good policy. Inspect actions, rewards, episode lengths, success labels, and actual trajectories. Confirm that the known-good behavior can receive the expected outcome.
+Run random and known-good policies. Inspect actions, reward, episode length, success labels, and actual trajectories.
 
-If no feasible behavior succeeds, investigate task reachability, action scaling, reset conditions, and reward computation. A sophisticated optimizer cannot fix an impossible or incorrectly instrumented task.
+If known-good behavior cannot succeed, inspect reachability, action scaling, resets, and reward computation before tuning the learner.
 
 ## 3. Check numerical targets by hand
 
-Use transitions with known values. With reward=1, gamma=0.9, and continuation=5, a continuing target is 5.5 and a genuinely terminal target is 1.
+Hand-check reward 1, γ=0.9, continuation 5: continuing target 5.5; terminal target 1.
 
-Verify that selected action values, batch dimensions, masks, discount powers, and reward timing match the equations. Inspect whether replay successors belong to the right episode. Confirm detached targets and intended actor-gradient paths.
+Verify action indexing, tensor shapes, masks, discount powers, reward timing, successor identity, detached targets, and required actor-gradient paths.
 
-For a policy loss, positive advantage should favor the sampled action under the chosen minimizing sign convention; negative advantage should discourage it, subject to clipping or other regularization.
+Positive advantage should favor its sampled action under the minimizing loss convention; negative advantage should discourage it, subject to clipping.
 
 ## 4. Verify optimization on a tiny fixed batch
 
-Can a small value network reduce loss on fixed trusted targets? Are gradients finite and nonzero in the expected parameters? Does the optimizer receive the right parameter set and clear accumulated gradients?
+First fit fixed trusted targets on a tiny batch. Inspect finite gradients, actual weight changes, optimizer parameters, and gradient clearing.
 
-Do not require a bootstrap learner's moving loss to behave like fixed-label regression. First isolate that simpler case. In an actor update, hold critic parameters fixed while retaining derivatives through its action input where the algorithm requires them.
+Then reintroduce moving targets. For differentiable actor–critic updates, freeze critic weights but retain derivatives through action inputs.
 
 ## 5. Inspect information and exploration
 
-Count action frequencies, visited regions, successful trajectories, and replay composition. If the buffer contains no informative reward or recovery states, more fitting may only sharpen unsupported guesses.
+Count action frequencies, visited regions, successes, and replay composition. More fitting cannot replace missing reward or recovery evidence.
 
-Repeated identical observations with incompatible outcomes can indicate partial observability or missing timestamps. Recurrent hidden states, padding masks, and sequence boundaries are especially important when failures occur only in batched or chunked execution.
+Identical observations with incompatible outcomes suggest missing information. For recurrent failures, check memory, padding, and chunk boundaries.
 
 ## 6. Read diagnostics as a group
 
@@ -43,18 +43,16 @@ Repeated identical observations with incompatible outcomes can indicate partial 
 | Training reward rises but success falls | Reward loophole or metric disagreement |
 | Only some seeds learn | Rare discoveries or unstable optimization |
 
-These are hypotheses, not one-to-one diagnoses. Validate each against logged transitions and controlled experiments.
+Treat these symptoms as hypotheses, then test them against logged transitions and controlled experiments.
 
 ## 7. Distinguish scale from progress
 
-For bounded rewards of magnitude at most Rmax and gamma below one, unregularized true values cannot exceed Rmax/(1−gamma) in absolute magnitude. Predictions outside a plausible range are a useful clue.
+Compare predicted values with the reward/discount bounds established earlier. Unexpected scale is a clue, not a diagnosis.
 
-Critic loss can rise when a policy first discovers useful high rewards. Entropy can decline as a policy legitimately becomes confident. A return curve can move because episode length changed. Interpret each metric alongside task behavior and the objective definition.
+Critic loss may rise after discovering high rewards; entropy may fall during useful learning. Interpret metrics with behavior, episode length, and objective.
 
 ## 8. Use interventions that identify a cause
 
-Freeze the target network longer to probe moving-target feedback. Replace learned rewards with a trusted toy reward to isolate reward-model issues. Train on a tiny solvable task to separate implementation from task difficulty. Compare feed-forward and history-aware inputs when state aliasing is suspected.
+Freeze targets longer to probe target feedback. Use trusted toy rewards to isolate reward-model errors. Compare history-aware inputs to test state aliasing.
 
-Change one mechanism, state the expected outcome, and compare matched evaluation budgets. Retain a stable baseline; otherwise normal seed variation can masquerade as a successful fix.
-
-Before interpreting rising reward as learning, run a random policy and a known simple policy through the same reward code. A broken success detector can make every algorithm appear effective.
+Change one mechanism, predict its effect, and compare matched budgets. Retain a stable baseline so seed noise does not masquerade as a fix.

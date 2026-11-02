@@ -2,7 +2,7 @@
 
 ## 1. Separate interaction from learning
 
-An RL system usually has collectors running environments, storage for experience, a learner updating parameters, and evaluators running frozen policies. Their rates need not match.
+Collectors run environments; storage retains experience; a learner updates parameters; evaluators test frozen policies. These components can run at different rates.
 
 ```text
 versioned policy → collectors → experience storage → learner → new policy
@@ -10,23 +10,23 @@ versioned policy → collectors → experience storage → learner → new polic
                   environment telemetry      frozen-policy evaluator
 ```
 
-The architecture determines which policy generated each transition, how old it is, and whether the chosen update can use it.
+Track which policy generated each transition and its age. The update must tolerate the resulting data distribution.
 
 ## 2. Count resources in the right units
 
-Record environment transitions, complete episodes, learner updates, sampled batch items, wall-clock time, memory, and compute separately.
+Count environment transitions, episodes, updates, batch items, wall-clock time, memory, and compute separately.
 
-If 1,000 transitions support 100 updates of batch size 256, the learner draws 25,600 transition samples, averaging 25.6 draws per new transition. That is data reuse, not 25,600 new interactions. High reuse can improve sample efficiency or overfit a narrow buffer.
+100 updates of batch size 256 over 1,000 new transitions draw 25,600 samples: 25.6 uses per new transition, not 25,600 interactions.
 
-Environment steps can also differ in duration and cost. A millisecond simulator step and a physical trial are not interchangeable budget units.
+Reuse may improve sample efficiency or overfit. Simulator steps and physical trials also differ in duration and cost.
 
 ## 3. Vectorized environments improve collection throughput
 
-Several environments can advance concurrently, supplying less locally correlated experience and better hardware utilization. The number of environments and rollout length jointly determine recent batch size.
+**Vectorized environments** advance several independent instances concurrently. Environment count times rollout length determines a recent rollout batch’s size.
 
-For an on-policy update, policy versions should stay consistent with the algorithm's rollout assumptions. Asynchronous collectors can lag behind the learner; stale log probabilities must be the actual collection probabilities, not recomputed under the latest parameters.
+Asynchronous collectors may lag. Store actual collection log probabilities rather than recomputing them with the latest policy.
 
-Off-policy replay tolerates broader historical behavior, but arbitrary staleness can still worsen distribution shift and useful coverage.
+Historical replay permits broader policy ages, but stale data can still weaken relevant coverage.
 
 ## 4. A transition needs a precise schema
 
@@ -39,34 +39,34 @@ Off-policy replay tolerates broader historical behavior, but arbitrary staleness
 | Policy version and log probability when needed | Identify behavior and compute ratios |
 | Episode and sequence identity | Reconstruct valid temporal context |
 
-A recurrent learner also needs sequence context and memory reset information. A changing preprocessing transform needs versioning or consistent reconstruction from stored raw evidence.
+A **transition schema** defines the fields and meaning of each stored interaction.
+
+Recurrent learning also needs valid sequence context and reset information. Version preprocessing or preserve enough raw data to reconstruct it consistently.
 
 ## 5. Automatic resets can silently corrupt learning
 
-A vectorized environment may reset one finished instance while others continue. The returned observation can be the first frame of the next episode rather than the predecessor transition's final observation.
+Automatic reset can return a new episode’s first observation in place of the old episode’s final one. Different vectorized instances can reset separately.
 
-Preserve final observations before reset. At external truncation, use the final state for a valid continuation estimate. Stop GAE or trace recursion at the boundary so it never incorporates another episode's rewards.
+Preserve final observations for bootstrap targets. Stop GAE/traces at boundaries before they mix episode rewards.
 
-Test genuine success, genuine failure, collection truncation, and partial batch resets as separate cases.
+Check success, failure, truncation, and partial batch reset separately.
 
 ## 6. Budget replay memory before collecting
 
-For a simple buffer storing current and next 64-dimensional float32 observations, each pair uses 512 bytes. Add a four-byte action, four-byte reward, and two one-byte boundary flags: roughly 522 bytes per transition.
+Two 64-coordinate float32 observations need 512 bytes. Add action 4, reward 4, and boundary flags 2: about 522 bytes per transition.
 
-One million transitions then need about 522 MB in decimal units before metadata, indexing, alignment, priorities, or object overhead. Image observations can be much larger; shared frame storage and compact data types reduce duplication.
+One million transitions need about 522 MB before metadata, priorities, alignment, and indexing. Image buffers may share frames to avoid duplication.
 
-Training additionally stores parameters, optimizer statistics, activations, and temporary batches. Replay size is only part of the memory budget.
+Parameters, optimizer statistics, activations, and temporary batches consume additional training memory.
 
 ## 7. Reproducibility requires more than one seed
 
-Seed the environment, policy sampling, replay sampling, and numerical libraries where supported. Record configuration, software versions, reward code, simulator version, and reset distributions.
+Seed environments, policy/replay sampling, and numerical libraries. Record software, configuration, reward/simulator versions, and resets.
 
-A seed is a recipe for one stochastic run under specified execution conditions, not proof of deterministic behavior across hardware or parallel scheduling. Independent training seeds are still required to assess robustness of the training procedure.
+A seed describes one run; hardware and parallel scheduling can still differ. Independent training runs assess procedural reliability.
 
 ## 8. Simulator quality is task-specific
 
-A fast simulator enables experimentation, but a mismatch in friction, delays, reset conditions, or observation noise can dominate algorithm differences. Validate task-relevant dynamics rather than judging simulator fidelity by visual realism.
+Validate control-relevant friction, delays, resets, and sensor noise. Attractive simulator graphics do not establish useful dynamics accuracy.
 
-Track training versus inference modes and preprocessing consistently. A policy must receive the same feature conventions and action scaling when evaluated or deployed as when its behavior was trained.
-
-Parallel environments increase experience throughput, but workers may use older policy versions. Track collection policy and update timing so faster collection does not silently change the learning assumptions.
+Match training/deployment features, action scales, and inference modes. These conventions are part of the policy.

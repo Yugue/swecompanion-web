@@ -2,21 +2,25 @@
 
 ## 1. Avoid an expensive maximization at every decision
 
-A robot chooses a vector of continuous motor torques. A discrete value method cannot enumerate every possible vector to find its maximum.
+Motor torques are continuous: enumerating every action is impossible. **Deep Deterministic Policy Gradient (DDPG)** learns actor μ(s) to propose actions and critic Q(s,a) to evaluate them.
 
-**Deep Deterministic Policy Gradient (DDPG)** learns an actor mu(s) that proposes a continuous action and a critic Q(s,a) that evaluates it. The actor approximates the action-maximization step through gradient learning.
+The actor learns an approximate maximizer of the critic rather than searching all actions at decision time.
 
 ## 2. Learn a critic from replay
+
+The target actor supplies the next action for critic fitting:
 
 \[
 y=r+\gamma(1-d)Q_{\bar\phi}(s',\mu_{\bar\theta}(s'))
 \]
 
-Theta denotes actor parameters, phi critic parameters, and bars slowly updated target parameters. D indicates genuine termination. Fit Q phi(s,a) to the detached target y using replayed transitions.
+r is reward; γ discount; d genuine termination. θ is actor weights, φ critic weights, and bars mark slow targets. Fit Qφ(s,a) to detached y using replay.
 
-Unlike discrete Q-learning, the next action comes from the target actor. Replay can contain earlier exploratory behavior; the target describes the chosen continuation policy.
+Collection may use earlier exploratory policies; the target specifies the desired continuation.
 
 ## 3. Differentiate the critic through the actor
+
+The actor follows the critic’s derivative through its action:
 
 \[
 \nabla_\theta J_{\mathrm{actor}}
@@ -25,9 +29,9 @@ Unlike discrete Q-learning, the next action comes from the target actor. Replay 
 \nabla_\theta\mu_\theta(s)\right]
 \]
 
-D is the replay-state distribution. The chain rule asks how changing the action changes predicted value, then how actor parameters change that action. The environment remains outside the differentiated computation.
+D is replay-state distribution. ∇ₐQ gives value’s sensitivity to action; ∇θμ gives action’s sensitivity to actor weights. The environment is outside this derivative.
 
-This is a replay-state actor surrogate. Do not silently identify every replay-state gradient with the exact start-state performance gradient under a different visitation distribution.
+This replay-state surrogate is not automatically the exact start-state gradient under a different visitation distribution.
 
 ## 4. What gets gradients in an actor update
 
@@ -37,17 +41,19 @@ replay state → actor parameters → proposed action → critic function → va
                  └──── derivative through action ────┘
 ```
 
-A minimizing actor loss is minus mean Q(s,mu(s)). Hold critic parameters fixed for this optimizer step while preserving its derivative with respect to action. Detaching the proposed action would break the actor's learning path.
+Minimize −mean Q(s,μ(s)). Hold critic weights fixed for this step while retaining its derivative with respect to action. Detaching the proposed action breaks actor learning.
 
-A deterministic actor needs an explicit exploration mechanism during collection, often added action noise and initial random actions. Clip or transform commands to valid actuator bounds.
+A deterministic actor needs collection exploration, often initial random actions and later action noise. Enforce valid actuator bounds.
 
 ## 5. Why the actor can exploit the critic
 
-A critic is least reliable for actions poorly represented in replay. The actor searches its predictions and can discover spuriously high values, producing a feedback loop of bad actions and optimistic targets.
+The actor can exploit spuriously high critic predictions in poorly covered action regions, reinforcing bad actions and optimistic targets.
 
-**Twin Delayed DDPG (TD3)** addresses this with three linked mechanisms: smaller-of-two target critics, slower actor updates, and smoothed target actions. These are responses to approximation error, not a guarantee of safe control.
+**Twin Delayed DDPG (TD3)** adds twin target critics, delayed actor updates, and target-action smoothing to reduce approximation-error feedback.
 
 ## 6. The TD3 target
+
+TD3 perturbs the target action, then evaluates the smaller target critic:
 
 \[
 \widetilde a'=\operatorname{clip}\left(\mu_{\bar\theta}(s')+
@@ -59,24 +65,22 @@ A critic is least reliable for actions poorly represented in replay. The actor s
 y=r+\gamma(1-d)\min_{j\in\{1,2\}}Q_{\bar\phi_j}(s',\widetilde a')
 \]
 
-Xi is Gaussian target noise, c limits that noise, and action bounds limit the final action. Both critics fit this target. Smoothing discourages sharp unsupported value peaks near the actor's proposed action.
+ξ is Gaussian target noise with scale σ; c clips noise; amin,amax bound actions; j indexes two target critics. Both critics fit y. Smoothing discourages narrow unsupported peaks.
 
-Target noise is different from exploration noise: it changes the learning target rather than directly collecting new behavior.
+Target noise changes the learning target; exploration noise changes collected actions. They serve different purposes.
 
 ## 7. Delayed updates and target averaging
 
-TD3 performs actor and target updates less frequently than critic updates so the actor is less likely to exploit a poorly fitted critic. Its actor commonly maximizes the first critic, while the target uses the minimum of two.
+Update the actor and targets less often than critics so values improve before the actor exploits them. The actor commonly maximizes critic one; targets use both critics’ minimum.
 
-A target averaging convention is theta bar ← (1−tau) theta bar + tau theta, with small positive tau. Some codebases parameterize the retained old weight instead; check the equation before comparing named hyperparameters.
+Slow averaging uses θ̄←(1−τ)θ̄+τθ for small positive τ. Some implementations name the retained old-weight coefficient instead; compare equations.
 
 ## 8. Numerical target and tradeoffs
 
-Let the smoothed successor action have target critic values 8 and 5, reward=1, gamma=0.9, and no termination. TD3's target is 1+0.9×5=5.5, whereas using the larger estimate would give 8.2.
+Successor critics [8,5], reward 1, and γ=0.9 give TD3 target 5.5. Using the larger critic would give 8.2.
 
 | Mechanism | Intended effect | Limitation |
 |---|---|---|
 | Twin target minimum | Reduce optimistic targets | Can introduce underestimation |
 | Delayed actor updates | Improve critic before exploiting it | More critic work per policy update |
 | Target smoothing | Reduce exploitation of narrow peaks | Sensitive to action scale and bounds |
-
-A continuous actor can choose an action without enumerating infinitely many possibilities. Its update uses the critic's local action-value slope, so critic errors can guide the actor toward unsupported actions.

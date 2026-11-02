@@ -2,78 +2,84 @@
 
 ## 1. Optimize useful randomness as well as reward
 
-A deterministic policy may commit early to a poor action region. **Soft Actor–Critic (SAC)** learns a stochastic policy with replay while rewarding entropy as part of its objective.
+**Soft Actor–Critic (SAC)** learns a stochastic actor from replay while rewarding entropy as part of its objective.
 
-This connects two mechanisms: off-policy actor–critic data reuse and direct control of policy randomness. It is not simply deterministic control with extra action noise attached afterward.
+It learns a reward/randomness tradeoff, rather than adding noise after optimizing a deterministic policy.
 
 ## 2. The maximum-entropy objective
+
+The **maximum-entropy objective** adds policy entropy to discounted reward:
 
 \[
 J(\pi)=\mathbb E_\pi\left[\sum_{t\ge0}\gamma^t
 \left(R_{t+1}+\alpha\mathcal H(\pi(\cdot\mid S_t))\right)\right]
 \]
 
-Gamma discounts future terms, alpha is a nonnegative **temperature**, and H is policy entropy. For a continuous density, differential entropy is the expectation of minus log density and can be negative; it also depends on action units.
+R is task reward; γ discount; α≥0 the **temperature**; H entropy. For continuous actions, entropy is expected minus log density; it can be negative and depends on units.
 
-Larger alpha puts more weight on spread relative to reward. Reward rescaling therefore changes the effective tradeoff unless temperature is adjusted. The regularized optimum can differ from the reward-only optimum.
+Increasing α values spread more relative to reward. Rescaling reward changes that tradeoff unless α adjusts; the optimum can differ from reward-only control.
 
 ## 3. Soft values include future entropy
 
-A standard SAC critic target is:
+A soft critic target includes successor entropy:
 
 \[
 y=r+\gamma(1-d)\left[\min_j Q_{\bar\phi_j}(s',a')
 -\alpha\log\pi_\theta(a'\mid s')\right],\qquad a'\sim\pi_\theta(\cdot\mid s')
 \]
 
-Phi j are two critic parameter sets, bars identify target critics, and d indicates genuine termination. The target treats the bracket as fixed during critic fitting.
+j indexes two critics with parameters φj; bars mark targets; d denotes genuine termination. Sample a′ from πθ at s′ and hold the target fixed during critic fitting.
 
-The soft Q convention here includes immediate reward and future entropy contributions. The actor's objective supplies the current decision's entropy term. Mixing conventions can accidentally count an entropy term twice or omit it.
+This Q convention contains immediate reward and future entropy. The actor supplies current-action entropy; avoid counting it twice.
 
 ## 4. The actor balances value and log density
+
+Minimize an actor loss balancing log density and critic value:
 
 \[
 L_{\mathrm{actor}}=\mathbb E_{s\sim\mathcal D,\,a\sim\pi_\theta}
 \left[\alpha\log\pi_\theta(a\mid s)-\min_jQ_{\phi_j}(s,a)\right]
 \]
 
-D is replayed states. Minimizing this expression favors high critic value and, in expectation, higher entropy. The twin critics reduce a source of optimistic action evaluation; both can still be wrong in the same unsupported region.
+D supplies replay states; a is a newly sampled policy action. The value term favors high-Q actions; the expected log-density term favors entropy.
 
-Unlike a stored-action likelihood update, the actor samples new actions at replayed states. This distinction matters for its gradient calculation.
+Twin critics can share unsupported errors. These are new sampled actions at stored states, rather than likelihood updates on stored actions.
 
 ## 5. Reparameterize continuous action samples
+
+**Reparameterization** expresses an action using fixed base noise and differentiable parameters:
 
 \[
 u=\mu_\theta(s)+\sigma_\theta(s)\odot\epsilon,\qquad
 \epsilon\sim\mathcal N(0,I),\qquad a=\tanh(u)
 \]
 
-Mu and sigma are learned mean and scale vectors, epsilon is fixed base noise for a sampled gradient computation, and the elementwise tanh maps actions to (−1,1). Physical action bounds can add a scale and shift.
+μ,σ are learned mean/scale vectors; ⊙ multiplies coordinates; ε is standard Gaussian noise. Tanh maps u into (−1,1); physical bounds may add scaling and shifting.
 
-This **reparameterization** preserves a differentiable path from the sampled action through mu and sigma to theta. It differs from REINFORCE's score-function estimator, which treats a sampled action as fixed while differentiating its log probability.
+Gradients flow through action to μ and σ. REINFORCE instead holds the sampled action fixed and differentiates its log probability.
 
 ## 6. Squashing changes probability density
+
+Squashing changes density, requiring a **change-of-variables correction**:
 
 \[
 \log\pi(a\mid s)=\log p_U(u\mid s)-\sum_k\log\left(1-\tanh^2(u_k)\right)
 \]
 
-P subscript U is the pre-squash Gaussian density; k indexes action coordinates. The second term is the change-of-variables correction. If actions are additionally scaled, include the corresponding constant log-scale term in the density convention.
+pU is the pre-squash Gaussian density; k indexes coordinates. Additional action scaling contributes a constant log-scale term. Ignoring this correction optimizes the wrong entropy.
 
-Near action bounds, a naive implementation can lose numerical precision; use a stable transformed distribution or equivalent stable expression. Ignoring the correction trains the wrong entropy and actor objective.
+Use a numerically stable transformed distribution near action bounds, where naive log(1−tanh²u) loses precision.
 
 ## 7. A small soft-target calculation
 
-Suppose reward=1, gamma=0.9, the smaller successor Q is 5, alpha=0.2, and sampled next-action log density is −1. The continuation is 5−0.2×(−1)=5.2, giving target 5.68.
+Reward 1, γ=0.9, smaller Q=5, α=0.2, and successor log density −1 give continuation 5.2 and target 5.68.
 
-A log density of −1 is not a probability of −1. For continuous actions it is the logarithm of a density, as introduced in 1.2.
+Log density −1 is not negative probability: it is the logarithm of a continuous density.
 
 ## 8. Temperature and operational choices
 
-A fixed temperature requires tuning relative to reward and action scales. Automatic tuning can adjust a positive alpha to encourage a selected entropy target; target conventions differ for continuous and discrete policies.
+A fixed α needs tuning against reward/action scale. Automatic temperature tuning adjusts it toward a selected entropy target.
 
-SAC reuses data efficiently but runs multiple networks and depends on replay coverage. PPO often uses simpler recent-rollout bookkeeping but generally collects more fresh experience. Compare environment cost, compute, tuning budget, and observed reliability rather than asserting a universal winner.
+SAC trades replay reuse for multiple networks and coverage sensitivity. PPO needs fresh rollouts but different bookkeeping. Compare interaction cost, compute, and observed reliability.
 
-The common continuous SAC formulation shown here is not its only possible action-space variant. At evaluation, choosing a mean or deterministic action changes the behavior being measured; record the convention.
-
-SAC balances expected reward with an entropy objective. Larger temperature puts more weight on spread in the policy; this changes the optimization target rather than simply adding random noise after choosing an action.
+Record evaluation behavior: a stochastic sample and a mean action measure different policies. Continuous SAC is not its only possible action-space variant.

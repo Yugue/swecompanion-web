@@ -2,26 +2,26 @@
 
 ## 1. Experience can train more than a policy
 
-A warehouse robot can learn what its motors do to its position and how congestion affects movement. A learned **environment model** predicts transitions and rewards; planning can use it to compare actions before executing them.
+A learned **environment model** predicts transitions and rewards, letting a robot compare actions before executing them.
 
-**Model-based RL** learns or uses such a model for control. **Model-free RL** learns policies or values without using an explicit transition model for planning. A simulator used only to collect ordinary transitions does not automatically make the learning algorithm model-based.
+**Model-based RL** uses an environment model for control. **Model-free RL** learns values or policies without model-based planning. Collecting ordinary transitions in a simulator does not alone make an algorithm model-based.
 
 ## 2. Learn the model from transitions
 
-A deterministic model might predict a next-state vector and expected reward with regression losses. A probabilistic model predicts a distribution over outcomes and can be fitted by negative log likelihood.
+A deterministic model regresses successor states and rewards. A probabilistic model fits an outcome distribution, for example by negative log likelihood:
 
 \[
 L_{\mathrm{model}}=-\mathbb E_{(s,a,s')\sim\mathcal D}
 [\log\widehat p_\psi(s'\mid s,a)]
 \]
 
-D is the real transition dataset, psi model parameters, and p hat the learned transition density or probability. A separate reward head can estimate expected reward. Input and output choices must preserve information relevant to control.
+D is real transitions; ψ model weights; p̂ψ predicted successor probability or density. A separate head can predict expected reward. Preserve control-relevant information.
 
-Low prediction error on typical transitions does not guarantee accuracy for the unusual actions a planner may discover.
+Low error on common actions does not establish accuracy for unusual actions discovered by a planner.
 
 ## 3. Dyna uses imagined experience
 
-**Dyna** combines real interaction, model fitting, and simulated updates. After observing a real transition, update the model and value learner. Then sample modeled transitions and perform additional value backups.
+**Dyna** alternates real interaction, model fitting, and value updates from both real and imagined transitions.
 
 ```text
 real interaction → transition dataset → model
@@ -31,11 +31,11 @@ real interaction → transition dataset → model
  improved behavior → more real interaction
 ```
 
-The gain is more learning computation per real interaction. The cost is model-induced bias: synthetic transitions can repeatedly reinforce an error.
+More updates per real interaction can improve sample efficiency. Incorrect synthetic transitions can also repeatedly reinforce model bias.
 
 ## 4. Model Predictive Control plans and replans
 
-**Model Predictive Control (MPC)** optimizes an action sequence over a finite model horizon, executes only its first action, receives a real observation, and replans.
+**Model predictive control (MPC)** plans an action sequence, executes only its first action, observes the result, and replans.
 
 \[
 (a_0^*,\ldots,a_{H-1}^*)\in\arg\max_{a_{0:H-1}}
@@ -43,23 +43,23 @@ The gain is more learning computation per real interaction. The cost is model-in
 +\gamma^H\widehat V(s_H)\right]
 \]
 
-H is planning horizon, r hat predicted reward, and V hat an optional terminal value. State predictions follow the learned model. Candidate sequences can be sampled and compared when direct optimization is difficult.
+H is horizon; r̂ predicted reward; V̂ optional terminal value; γ discount. Predicted states follow model p̂. Candidate sequences can be sampled when direct optimization is difficult.
 
-Replanning uses new evidence to correct earlier prediction errors. It does not remove errors within the currently chosen plan.
+Replanning uses new observations to correct the next plan; errors within the current plan remain.
 
 ## 5. Why horizon is a tradeoff
 
-A longer horizon considers more delayed consequences, but repeated prediction can compound error. The optimizer may find a sequence that exploits a model mistake rather than a real opportunity.
+Longer planning sees farther consequences but compounds prediction errors. The optimizer can exploit model mistakes rather than real opportunities.
 
-A terminal value estimate can shorten explicit planning, but adds its own approximation error. A good planning horizon balances useful lookahead, model reliability, terminal-value quality, and decision-time compute.
+A terminal value shortens explicit lookahead but adds value error. Choose horizon using model trust, value quality, and decision-time budget.
 
 ## 6. Model uncertainty and distribution shift
 
-Multiple separately fitted models can reveal some disagreement about unfamiliar transitions. A planner can prefer actions with lower uncertainty or collect data where disagreement matters.
+An **ensemble** of separately fitted models can expose disagreement on unfamiliar transitions. Use it to guide collection or cautious planning.
 
-An ensemble is not a guarantee of calibrated uncertainty: its members may share a wrong assumption or lack the same data. Validate predictions across action ranges and multi-step rollouts, then compare actual closed-loop control outcomes.
+Agreement is not proof of correctness: models can share missing data or assumptions. Check multi-step predictions and actual closed-loop outcomes.
 
-Models may operate in a learned compact representation instead of raw observations. The representation still needs to retain information useful for reward and action consequences.
+A compact learned representation can reduce modeling cost but must retain reward- and control-relevant information.
 
 ## 7. Sample efficiency is not inference efficiency
 
@@ -69,6 +69,6 @@ Models may operate in a learned compact representation instead of raw observatio
 | Online planning with a model | Can use lookahead to save trials | Multiple predicted rollouts |
 | Distill a planner into a policy | Pay planning during data creation | Smaller policy evaluation later |
 
-If a control deadline permits only milliseconds, an expensive planner may be infeasible even when sample efficient. Distillation trades some planner flexibility for a faster policy.
+**Distillation** trains a faster policy to reproduce a planner’s decisions. It trades some planning flexibility for lower decision-time cost.
 
-A learned dynamics model can be accurate for ordinary moves but poor for a long imagined sequence. Repeatedly feeding its own predictions back can compound error, making planning horizon a model-trust decision.
+A sample-efficient planner may still miss a millisecond control deadline. Measure interaction and inference cost separately.

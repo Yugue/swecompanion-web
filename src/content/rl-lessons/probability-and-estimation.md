@@ -2,60 +2,62 @@
 
 ## 1. Distinguish two kinds of uncertainty
 
-A robot's wheel can slip even when its dynamics are well understood. That is randomness in the outcome. Having observed a surface only twice creates uncertainty about its slip probability.
+Wheel slip is outcome randomness. Having tried a surface only twice creates uncertainty about its slip probability.
 
-More observations can reduce uncertainty in the estimated probability without removing the underlying randomness. This distinction later explains why exploration should target missing knowledge rather than merely noisy outcomes.
+More trials reduce uncertainty about that probability; they need not remove slipping. Exploration should target missing knowledge, not merely noisy outcomes.
 
 ## 2. Random variables and conditional probabilities
 
-A **random variable** assigns a quantity to an uncertain outcome. A distribution assigns probabilities to its possible values. For a discrete variable X, probabilities are nonnegative and sum to one.
+A **random variable** assigns a quantity to an uncertain outcome. A **distribution** assigns probabilities; discrete probabilities are nonnegative and sum to one.
 
-A conditional probability P(Y=y given X=x) describes outcomes after conditioning on information. In RL, an action distribution conditions on the available state; a transition distribution conditions on a state and action. Those are different distributions even when both involve the same trajectory.
+A **conditional probability** P(Y=y given X=x) uses known information X=x. Policy probabilities describe action choice; transition probabilities describe outcomes after a state and action.
 
 ## 3. Expectations are weighted averages
+
+An **expectation** is a probability-weighted average. Here p(x) is the probability of value x; Z divides outcomes into cases. **Total expectation** averages within cases, then across cases.
 
 \[
 \mathbb E[X]=\sum_x p(x)x,\qquad
 \mathbb E[X]=\mathbb E_Z[\mathbb E[X\mid Z]]
 \]
 
-Here p(x) is the probability of value x; Z is another random variable used to divide the outcomes into cases. The second expression is the **law of total expectation**: average within each case, then average across cases.
-
-A reward is 10 with probability 0.2 and −1 otherwise. Its expected reward is 0.2 × 10 + 0.8 × (−1) = 1.2. No single trial needs to produce 1.2. The nested averaging rule will become the basis of Bellman equations.
+Reward 10 with probability 0.2 and −1 otherwise has expectation 0.2×10+0.8×(−1)=1.2. No individual trial must equal 1.2.
 
 ## 4. Estimate expectations from samples
+
+The **sample mean** estimates an expectation from observations:
 
 \[
 \bar X_N=\frac1N\sum_{i=1}^N X_i,\qquad
 \operatorname{Var}(\bar X_N)=\frac{\sigma^2}{N}
 \]
 
-N is the sample count and sigma squared is the variance of each observation. The variance formula assumes independent samples with the same variance. Sequential transitions are generally correlated, so treating them as independent overstates the effective sample size.
+N is sample count, Xᵢ observation i, and σ² individual-outcome variance. **Variance** measures spread. The mean-variance formula assumes independent, equally variable samples; correlated transitions provide less evidence.
 
-Variance measures spread around an expectation. **Bias** is the difference between an estimator's expectation and the desired quantity. A low-variance estimator can be consistently wrong; an unbiased estimator can be too noisy to use.
+**Bias** is an estimator’s expected error. Low variance can coexist with systematic bias; unbiased estimates can still be too noisy to use.
 
 ## 5. Policies need discrete and continuous distributions
 
-A **categorical distribution** selects one of a finite set of actions. **Softmax** converts real scores z into probabilities:
+A **categorical distribution** chooses among discrete actions. **Softmax** converts scores zᵢ into action probabilities pᵢ; j indexes all actions. Raising one score relative to others raises its probability.
 
 \[
 p_i=\frac{e^{z_i}}{\sum_j e^{z_j}}
 \]
 
-A **Gaussian distribution** describes a continuous scalar using mean mu and standard deviation sigma. Its probability density can exceed one; probability is the integral over a region, not the density at one point. For independent action coordinates, a diagonal Gaussian uses a separate mean and variance per coordinate.
+A **Gaussian distribution** describes continuous outcomes using mean μ and standard deviation σ. Its **density** integrates to probability over a region; density itself can exceed one. A diagonal Gaussian models action coordinates independently.
 
 ## 6. Likelihoods and log probabilities
 
-A **likelihood** treats the observed outcomes as fixed and asks how plausible they are under a model's parameters. Independent probabilities multiply; their logarithms add. Log probabilities are useful for numerical stability and policy learning.
+A **likelihood** measures how plausible observed data is under model parameters. Independent probabilities multiply; their logarithms add. **Log probabilities** help avoid numerical underflow.
 
-Bayes' rule combines a prior belief about a hypothesis with the likelihood of observed data to form a posterior. In bandits, a posterior over an action's unknown reward parameter represents uncertainty about what that action is worth.
+**Bayes’ rule** updates a **prior** belief using observed-data likelihood to obtain a **posterior**. A bandit posterior can represent uncertainty about an action’s mean reward.
 
 ```python
 mean_return = sum(episode_returns) / len(episode_returns)
 log_trajectory_prob = sum(action_log_probs)
 ```
 
-The second line covers action probabilities only; environment and initial-state probabilities are separate factors in a full trajectory probability.
+The trajectory snippet sums action log probabilities only. A full trajectory probability also includes initial conditions and environment outcomes.
 
 ## 7. Compare estimates honestly
 
@@ -66,6 +68,6 @@ The second line covers action probabilities only; environment and initial-state 
 | Many correlated transitions | Less independent evidence than the count suggests |
 | Narrow interval on biased data | Precision under the wrong sampling assumptions |
 
-A standard error describes uncertainty in an estimated mean under assumptions. It is different from the standard deviation of outcomes.
+A **standard error** describes uncertainty in an estimated mean under sampling assumptions. A **standard deviation** describes spread of outcomes.
 
-Ten high-return episodes from one lucky seed provide different evidence from similar returns across many independent seeds. Separate randomness within evaluation episodes from variability in the learned policy across training runs.
+Ten episodes from one trained policy measure different variation from ten independently trained policies. Keep episode randomness and training-run variation separate.

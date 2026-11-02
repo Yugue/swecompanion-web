@@ -2,13 +2,13 @@
 
 ## 1. Learn a decision, not just a prediction
 
-A warehouse robot can take a short route through congestion or a longer clear route. A predictor might estimate travel time. A decision-maker must choose a route, observe the result, and account for how its movement affects later decisions.
+A robot can take a short congested route or a longer clear one. Its choice changes both delivery time and where it can go next.
 
-**Reinforcement Learning (RL)** learns behavior from consequences. Its central difficulty is that an action changes both future outcomes and the evidence available for learning.
+**Reinforcement learning (RL)** learns behavior from consequences. Actions affect future outcomes and the experience available for learning.
 
 ## 2. The interaction loop
 
-An **agent** chooses actions. An **environment** responds with observations and rewards. A **policy** is the rule the agent uses to choose an action. A **reward** is a numerical feedback signal supplied by the task.
+An **agent** chooses actions using a **policy**, its action-selection rule. The **environment** responds with an **observation** (available information) and a **reward** (numerical task feedback).
 
 ```text
 observation → agent / policy → action
@@ -16,15 +16,13 @@ observation → agent / policy → action
      └──── reward + next observation ← environment
 ```
 
-The environment can be a simulator, a physical process, or a software workflow. Learning is possible from previously logged interactions too; fresh exploration is not always permitted.
+The environment may be a simulator, physical system, or software workflow. Learning can also use logged interactions when fresh trials are unavailable.
 
 ## 3. Decisions have delayed effects
 
-Picking up a key gives no immediate reward but makes a later door passable. Optimizing only the next reward would miss its value.
+Picking up a key earns nothing now but unlocks a later reward. **Credit assignment** asks which earlier decisions contributed to the outcome.
 
-**Credit assignment** asks which earlier decisions contributed to an outcome. Delayed feedback makes this difficult because many actions, random events, and other decisions occurred before success or failure became visible.
-
-A **trajectory** records an interaction sequence: observation, action, reward, next observation, and so on. Order matters; shuffling individual decisions can destroy the information needed to understand their consequences.
+A **trajectory** records observations, actions, and rewards in order. An **episode** is one task attempt, from its initial condition to its end. Preserve sequence order to interpret delayed effects.
 
 ## 4. Feedback differs from a correct action label
 
@@ -35,24 +33,24 @@ A **trajectory** records an interaction sequence: observation, action, reward, n
 | Bandit | Outcome of the chosen action | Choose well under uncertainty |
 | Sequential RL | Rewards along a trajectory | Account for action-dependent futures |
 
-In RL, a low reward does not identify the correct action. The agent must compare possibilities from incomplete evidence. An unchosen action's outcome is usually unobserved.
+A low reward does not label the correct action. Usually, only the chosen action’s outcome is observed.
+
+
 
 ## 5. Exploration changes the data
 
-The robot cannot learn about a never-visited corridor from its own experience. Trying it may provide useful information but can cause delay or failure.
+Trying an unknown corridor may reveal a shortcut or cause delay. **Exploration** seeks information; **exploitation** uses current knowledge.
 
-**Exploration** seeks information; **exploitation** uses current knowledge. Because the policy determines what gets observed, improvements and mistakes can reinforce their own data distribution. A model can therefore fit its collected data well and still make poor decisions elsewhere.
+The policy determines its training data. Fitting visited corridors well says little about corridors never tried.
 
 ## 6. Decide whether RL is justified
 
-Use a fixed rule or ordinary optimization when the objective and system are already known well enough. Use supervised prediction when an accurate prediction directly solves the task. A **contextual bandit** fits decisions whose context matters but whose chosen action does not change later decision states in the problem being optimized.
+Use prediction when a prediction solves the task; use known-system optimization when the model and objective suffice. A **contextual bandit** chooses using current information without modeling action-dependent future decision states.
 
-RL becomes useful when actions materially affect future opportunities, feedback is incomplete, and a credible source of interaction or logged trajectories exists. It also introduces evaluation and collection costs that a simpler baseline may avoid.
+Use RL when actions change future opportunities and credible interactions or logged trajectories exist. Compare its collection and evaluation cost with a simple baseline.
 
 ## 7. Specify success before training
 
-For the robot, define completed deliveries, collision rate, energy, and deadlines. A training reward such as forward movement may help learning but is only a proxy for those outcomes.
+For the robot, measure deliveries, collisions, energy, and deadlines independently of training reward. Rewarding movement alone could teach circling.
 
-**Sample efficiency** measures useful improvement per unit of experience. **Compute efficiency** concerns resources used to process that experience. Fast simulated learning can still require an unacceptable number of real interactions.
-
-A thermostat action changes both current comfort and future temperature. This delayed effect distinguishes control from predicting tomorrow's temperature without acting. Specify the reward and what actions can actually influence.
+**Sample efficiency** is improvement per unit of experience. **Compute efficiency** concerns resources spent processing it. Fast simulation does not imply few real-world trials.

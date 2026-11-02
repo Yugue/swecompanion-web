@@ -2,41 +2,43 @@
 
 ## 1. Maximization can turn noise into optimism
 
-Suppose two actions have equal true value zero. Each estimate is unbiased but noisy. Selecting whichever estimate happens to be larger preferentially selects positive estimation noise.
+Two actions have true value zero but noisy unbiased estimates. Choosing the larger estimate preferentially selects positive noise.
 
-Thus the expectation of the maximum estimate can exceed the maximum true value. Repeatedly placing that maximum in bootstrapped targets can propagate overestimation.
+This **maximization bias** makes the expected maximum optimistic. Bootstrapping can propagate it.
 
 ## 2. Separate selection from evaluation
 
-**Double Q-learning** uses separate estimates to reduce the coupling between selecting a maximizing action and evaluating it. **Double Deep Q-Network (Double DQN)** adapts that principle using the online and target networks already present in DQN.
+**Double Q-learning** separates action selection from evaluation. **Double DQN** uses DQN’s online and target networks for these separate jobs:
 
 \[
 a^*=\arg\max_a Q_\theta(s',a),\qquad
 y=r+\gamma(1-d)Q_{\bar\theta}(s',a^*)
 \]
 
-Theta selects the next action; theta bar evaluates that selected action. R, gamma, and d retain the reward, discount, and termination meanings from 3.2.
+θ selects action a* at successor s′; θ̄ evaluates it. r is reward, γ discount, and d genuine termination.
 
 ## 3. A target comparison
 
-At a successor state, let online values be [5,4] and target values [2,6]. DQN's target continuation is max(2,6)=6. Double DQN selects action zero using [5,4] and evaluates it as 2.
+Online values [5,4] select action zero. Target values [2,6] evaluate it as 2; ordinary DQN instead uses maximum target value 6.
 
-This example shows the computation, not that 2 must be closer to the unknown truth. Online and target networks remain correlated, so Double DQN reduces a bias mechanism without guaranteeing unbiased or conservative predictions.
+This demonstrates the operation, not which estimate is correct. Correlated networks need not produce unbiased or conservative values.
 
 ```python
 next_action = online_net(next_states).argmax(dim=1)
 next_value = target_net(next_states).gather(1, next_action[:, None]).squeeze(1)
 ```
 
-Run target construction without gradient recording. Action selection and evaluation serve different roles even when network architectures match.
+Construct this target without gradient recording.
 
 ## 4. Not every stored transition is equally informative
 
-Uniform replay spends equal expected effort on common easy transitions and rare surprising ones. **Prioritized experience replay** samples transitions using a proxy for learning value, often absolute Temporal-Difference (TD) error.
+**Prioritized experience replay** samples some stored transitions more often, commonly using absolute TD error as a priority.
 
-A large error can indicate an underlearned useful outcome. It can also indicate noise, outliers, incorrect boundary labels, or an impossible target. Priority is a heuristic, not a direct measurement of future policy improvement.
+High error may indicate useful underlearned evidence, noise, or a broken target. Priority is a heuristic for learning value.
 
 ## 5. Priority changes the sampled objective
+
+Priorities change replay probabilities and therefore the training average:
 
 \[
 P(i)=\frac{(|\delta_i|+\varepsilon)^{\alpha_p}}
@@ -44,15 +46,15 @@ P(i)=\frac{(|\delta_i|+\varepsilon)^{\alpha_p}}
 w_i=\left(NP(i)\right)^{-\beta}
 \]
 
-P is the replay sampling probability, delta the latest stored TD error, epsilon a positive floor, alpha subscript p the priority exponent, N the buffer size, and beta the correction exponent.
+P(i) is sampling probability; δᵢ stored TD error; ε a positive floor; αₚ priority strength; N buffer size; β correction strength. wᵢ is a loss weight.
 
-Alpha p=0 yields uniform sampling. Beta=1 supplies the inverse-probability correction for a uniform-buffer average, before optional weight normalization. Smaller beta leaves a biased emphasis on priorities. These correction weights address replay sampling, not every behavior-policy mismatch.
+αₚ=0 gives uniform sampling. β=1 corrects to the uniform-buffer average before optional normalization; smaller β retains priority bias. This corrects replay sampling, not all behavior-policy mismatch.
 
 ## 6. Numerical weight intuition
 
-With N=100 and P(i)=0.04, the transition is sampled four times as often as under uniform replay. At beta=1 its unnormalized weight is 1/4.
+With N=100 and P(i)=0.04, sample i appears four times as often as under uniform replay. At β=1 its weight is 0.25.
 
-In expectation, probability 0.04 times weight 0.25 restores its uniform contribution 0.01. Normalizing all weights by their maximum changes overall gradient scale; it does not supply additional coverage.
+Its expected contribution becomes 0.04×0.25=0.01. Normalizing weights changes gradient scale; it does not add coverage.
 
 ## 7. Compare the two mechanisms
 
@@ -62,6 +64,4 @@ In expectation, probability 0.04 times weight 0.25 restores its uniform contribu
 | Prioritized replay | Unequal usefulness of stored samples | Reliable priorities or broad exploration |
 | Importance weights | Nonuniform replay sampling | Correct full target-policy trajectory distribution |
 
-Both mechanisms can be combined. Neither substitutes for a useful reward, valid target masks, or representative data. Repeatedly selecting noisy transitions can reduce effective diversity.
-
-Selecting the highest noisy estimate tends to select positive noise too. Double estimation separates selection and evaluation, reducing this mechanism without guaranteeing unbiased values under every approximation or dataset.
+Double estimation and prioritized replay address different problems and can be combined. Repeatedly prioritizing noise can reduce useful sample diversity.

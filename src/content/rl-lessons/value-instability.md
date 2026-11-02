@@ -2,20 +2,22 @@
 
 ## 1. A prediction can become its own teacher
 
-In supervised learning, a stored label often stays fixed. In bootstrapped value learning, the network helps generate the target it is trying to predict. Improving the predictor changes future targets.
+Bootstrapped learning helps generate its own targets. Changing a prediction therefore changes what later updates try to fit.
 
-With a table, changing one entry primarily changes that entry. With shared neural parameters, changing a prediction can alter many other states' and actions' values, including values used as targets.
+Shared parameters couple states and actions: fitting one value can alter successor values used as targets.
 
 ## 2. The semi-gradient update
+
+A neural value update often treats its target as fixed:
 
 \[
 y=r+\gamma Q_{\bar\theta}(s',a'),\qquad
 \theta\leftarrow\theta+\eta(y-Q_\theta(s,a))\nabla_\theta Q_\theta(s,a)
 \]
 
-Theta is the trainable parameter vector, theta bar supplies the target prediction, eta is the step size, and a prime is the continuation action selected by the algorithm. Terminal targets omit the continuation.
+θ is the trainable parameter vector; θ̄ supplies target values; η is step size; r reward; γ discount; a′ the algorithm’s continuation action. Omit continuation at genuine termination.
 
-A **semi-gradient** treats y as fixed during the update, even if its value ultimately depends on learned parameters. Detaching a target enforces that computational choice. It does not make the target correct or stationary across updates.
+A **semi-gradient** ignores the target’s parameter dependence within this update. Detaching implements that choice; it does not make targets correct or fixed across updates.
 
 ## 3. The deadly triad
 
@@ -25,19 +27,19 @@ A **semi-gradient** treats y as fixed during the update, even if its value ultim
 | Bootstrapping | Targets depend on current predictions |
 | Off-policy learning | Updated inputs can differ from the target behavior's distribution |
 
-Their combination is known as the **deadly triad**. It identifies a setting in which divergence can occur, not a claim that all such methods always fail. Many useful deep algorithms intentionally operate in this setting with safeguards.
+The **deadly triad** combines these three ingredients. Divergence is possible, not inevitable; useful algorithms employ safeguards while operating in this setting.
 
 ## 4. A simple error-amplification example
 
-Consider a fixed zero-reward dataset containing only a nonterminal transition s→s prime. A scalar approximator predicts Q(s)=w and Q(s prime)=2w. With gamma=0.9, a semi-gradient update on s and learning rate 0.1 gives:
+A zero-reward dataset contains only nonterminal s→s′. Shared parameter w gives Q(s)=w and Q(s′)=2w. At γ=0.9 and step size 0.1:
 
 \[
 w_{\mathrm{new}}=w+0.1(0.9\cdot2w-w)=1.08w
 \]
 
-Starting from w=1, repeated updates give 1.08, 1.1664, and continued growth. Zero values would fit a zero-return task, but unsupported successor estimates amplify themselves through shared parameters.
+Starting at 1 gives 1.08, 1.1664, and further growth. Unsupported successor predictions amplify themselves.
 
-This example deliberately lacks successor-state training coverage. It illustrates the mechanism rather than proving divergence under adequate tabular coverage assumptions.
+The example lacks successor-state training coverage; it does not contradict tabular convergence under adequate coverage.
 
 ## 5. A small training error can hide a bad solution
 
@@ -47,20 +49,18 @@ optimistic successor estimate → larger target → larger fitted value
               └──── shared parameters ───┘
 ```
 
-The learner can chase targets that move upward as it fits them. Alternatively, it may fit an internally consistent but poorly supported set of predictions. Evaluate held-out behavior and value scale alongside loss.
+Prediction and target can drift upward together, or settle into mutually consistent unsupported estimates. Inspect behavior and value scale alongside loss.
 
-For reward magnitude bounded by Rmax in a discounted task, absolute true values are bounded by Rmax/(1−gamma). Predictions greatly beyond that range deserve investigation, although regularized objectives can have different bounds.
+For rewards bounded in magnitude by Rmax and γ<1, unregularized true values satisfy |V|≤Rmax/(1−γ). Much larger predictions warrant investigation.
 
 ## 6. Why familiar safeguards help
 
-A target network slows the feedback loop. Replay broadens reuse and weakens immediate temporal correlations. Conservative updates, smaller learning rates, appropriate normalization, and gradient clipping can reduce amplification.
+A target network slows target changes. Replay reduces immediate temporal correlation. Smaller updates and gradient clipping can limit amplification.
 
-None supplies missing environmental evidence. Replay can repeatedly train on a narrow dataset, a frozen target can be wrong, and clipped gradients can keep fitting a misspecified objective indefinitely.
+These controls do not supply missing evidence: broad reuse of a narrow dataset still leaves unsupported predictions.
 
 ## 7. Distinguish instability from ordinary uncertainty
 
-Large Temporal-Difference (TD) errors may reflect rare real rewards, changing policies, bad episode masks, or a divergent predictor. Check the environment and target computation before attributing every fluctuation to the algorithm family.
+Large TD errors can reflect rare rewards, changed policies, wrong episode masks, or divergence. Check transitions and target code first.
 
-Monitor actual return, prediction ranges, target ranges, gradient norms, state-action coverage, and behavior changes. A value-network loss has no universal interpretation without its data and target definition.
-
-If one value estimate becomes too high, bootstrapping can spread that overestimate into other targets. Monitoring small prediction errors alone can miss the fact that both prediction and moving target are drifting together.
+Compare returns, prediction/target ranges, gradient norms, coverage, and behavior changes. Loss alone cannot distinguish these causes.

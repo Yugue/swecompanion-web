@@ -2,21 +2,21 @@
 
 ## 1. Start with the decision and its consequences
 
-Suppose a warehouse robot must deliver parcels before deadlines while limiting energy and collisions. Clarify what decisions can change, which outcomes are delayed, and what constraints are mandatory.
+For a delivery robot, identify delayed consequences, energy costs, deadlines, and mandatory limits.
 
-A supervised travel-time predictor plus a conventional planner might already solve the problem. Establishing that baseline makes the benefit and cost of RL measurable.
+Compare RL with a travel-time predictor plus conventional planner. A baseline makes added value and cost measurable.
 
 ## 2. Specify the information and action interface
 
-Define deployable observations, history requirements, valid actions, action timing, and resets. A continuous torque controller has different requirements from a discrete choice among predefined routes.
+Specify observations, memory, allowed actions, timing, and resets. Route selection and continuous torque control need different interfaces.
 
-Separate task state from sensor observation. If battery charge, velocity, or a pending command affects outcomes, include or infer it. Preserve time-to-deadline when it changes the best action.
+Include or infer relevant velocity, battery, and pending commands. Preserve time-to-deadline when it changes decisions.
 
 ## 3. Choose the experience source
 
-Known dynamics support planning. A cheap simulator supports controlled online exploration. Demonstrations can initialize useful behavior. Fixed logs require offline learning and evaluation assumptions.
+Known dynamics support planning; simulation supports interaction; demonstrations initialize behavior; fixed logs require offline assumptions.
 
-Quantify interaction costs and reset access before selecting an algorithm. A method that needs millions of trials is a poor first choice when only a few physical trials are feasible.
+Budget interactions and resets before choosing a method. Millions of required physical trials may rule out an otherwise attractive approach.
 
 ## 4. Select a family from constraints
 
@@ -31,31 +31,31 @@ Quantify interaction costs and reset access before selecting an algorithm. A met
 | Fixed logs only | Offline-constrained or conservative learning | Is improvement identifiable? |
 | Reliable model and planning budget | Model-based planning | Does model error grow over the horizon? |
 
-This table gives candidates to test, not a universal ranking. Algorithm families overlap: an actor–critic can be on-policy or off-policy, and models can be combined with learned values or policies.
+Use these candidates as experiments, not universal rankings. Actor–critics can be on- or off-policy; learned models can complement policies and values.
 
 ## 5. Define rewards and independent success measures
 
-Use task completion and timing as primary outcomes. If shaping is added, check its boundary conditions and search for loops. Keep completion, energy, collision rate, and abandonment visible separately.
+Report completion, energy, collisions, and abandonment separately. Check shaping boundaries and high-reward failure loops.
 
-Hard actuator limits should be enforced by the action interface. An expected penalty does not guarantee per-action feasibility. Compare any learned policy with the baseline on the same success and resource criteria.
+Enforce hard action limits in the interface. Compare learned and baseline behavior using the same outcomes and budgets.
 
 ## 6. Train with diagnostic milestones
 
-First solve a tiny deterministic environment, then a representative small scenario, then broader randomized training conditions. Verify targets and gradient paths before scaling up collection.
+Solve a tiny deterministic task, then a small representative scenario, then broader variations. Verify targets and gradients before scaling collection.
 
-For the continuous robot example, SAC is a reasonable experiment if simulation is cheap and data reuse matters. Behavior cloning may provide a stronger starting point when demonstrations are available. With logs alone, do not assume an ordinary online SAC implementation is an adequate offline solution.
+For continuous control, test SAC when replay matters or BC when demonstrations are strong. Logs alone need an offline-capable approach, not an unchanged online SAC setup.
 
 ## 7. Evaluate before expanding exposure
 
-Use held-out scenarios, multiple training seeds, disturbances, and deployment-matched observations. Compare success, lower-tail outcomes, costs, and latency against the baseline.
+Use held-out scenarios, independent training runs, disturbances, and deployable sensors. Compare success, poor-outcome tails, costs, and latency with the baseline.
 
-When simulation differs from reality, identify which dynamics uncertainties remain and test them in controlled stages. Set concrete rollout gates in advance so selection does not drift toward whichever metric improved.
+Test remaining simulation gaps in controlled stages. Set acceptance criteria before results arrive.
 
 ## 8. Package the whole policy contract
 
-Version the weights, preprocessing, observation schema, action scaling, memory/reset behavior, and environment assumptions together. A compatible model file alone is insufficient.
+Version weights, preprocessing, observation schema, action scale, memory/reset rules, and environment assumptions together. Weights alone omit the operational policy.
 
-Measure inference latency and memory on the actual target hardware. Define a fallback controller or stopping behavior for invalid observations, out-of-range outputs, budget exhaustion, or monitored deterioration.
+Measure target-hardware latency and memory. Define fallback behavior for invalid observations, outputs, exhausted budgets, or deteriorating outcomes.
 
 ## 9. Monitor outcomes and close the loop
 
@@ -67,8 +67,6 @@ train → evaluate independently → diagnose → stage deployment → monitor
                                   └──── new evidence ────────┘
 ```
 
-Track real completion, constraint violations, input shifts, action saturation, intervention rates, and latency. Learned Q-values and reward-model scores are internal diagnostics, not independent success evidence.
+Monitor completion, violations, input changes, actions hitting their limits, interventions, and latency. Q-values and reward-model scores remain internal diagnostics.
 
-Preserve data lineage when retraining. Changes to reward definitions, tools, sensors, or environment dynamics require renewed evaluation because they change the effective decision problem.
-
-Saving network weights alone omits observation normalization, action scaling, and state-reset rules. A policy consuming meters during training and centimeters during deployment is a different operational controller despite identical weights.
+Keep records linking experience to its collection settings. Changes to rewards, tools, sensors, or dynamics require renewed evaluation.
