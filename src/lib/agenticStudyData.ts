@@ -3,7 +3,7 @@
 // file is hand-authored and deliberately independent of the generated deep-learning data - the
 // shared component props are structural, not nominal.
 //
-// ML quiz questions and answers are free and included in exported quiz pages.
+// ML quiz questions and answers are static content included in exported quiz pages.
 // Only question counts are needed in curriculum data.
 
 export interface AgenticTopic {

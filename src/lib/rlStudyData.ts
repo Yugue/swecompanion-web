@@ -6,7 +6,7 @@ export interface RlPart extends Omit<MlPart, "topics"> {
   topics: RlTopic[];
 }
 
-// Six Parts, 33 lessons, and 60 original free domain-practice questions.
+// Six Parts, 33 lessons, and 60 original domain-practice questions.
 export const rlParts: RlPart[] = [
   {
     "id": "foundations",

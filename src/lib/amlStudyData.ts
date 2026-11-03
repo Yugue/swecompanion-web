@@ -3,7 +3,7 @@
 // are deliberately independent: mlStudyData.ts is generated from the Flutter app's Dart source,
 // this one is hand-authored, and the shared component props are structural, not nominal.
 //
-// ML quiz questions and answers are free and included in exported quiz pages.
+// ML quiz questions and answers are static content included in exported quiz pages.
 // Only question counts are needed in curriculum data.
 
 export interface AmlTopic {

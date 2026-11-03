@@ -5,13 +5,11 @@ import { QuizQuestions } from "./QuizQuestions";
 export function QuizSection({
   quizId,
   title,
-  covers,
   questionCount,
   proof,
 }: {
   quizId: string;
   title: string;
-  covers: string;
   questionCount: number;
   proof?: string;
 }) {
@@ -34,10 +32,9 @@ export function QuizSection({
             background: "color-mix(in srgb, var(--accent) 15%, transparent)",
           }}
         >
-          MOCK INTERVIEW · FREE
+          MOCK INTERVIEW
         </span>
       </div>
-      <p className="mb-4 text-sm leading-relaxed text-text-muted">Covers: {covers}</p>
       {proof && <p className="mb-4 text-sm font-semibold text-text">{proof}</p>}
       <QuizQuestions key={quizId} quiz={quiz} />
     </section>

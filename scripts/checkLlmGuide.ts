@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import path from "node:path";
 import katex from "katex";
 import { llmParts, llmTopics, llmLessonNumbers } from "../src/lib/llmStudyData";
 import { isLlmVisualId, llmVisuals, packedAttentionAllowed, decoderPipelineExample } from "../src/lib/llmVisuals";
@@ -25,9 +24,9 @@ assert.doesNotMatch(fs.readFileSync("src/lib/llmStudyData.ts", "utf8"), /^import
 const urls = sitemap().map(e => new URL(e.url).pathname).filter(p => p === LLM_PATH || p.startsWith(`${LLM_PATH}/`));
 const routeCount = 1 + lessonCount + llmParts.filter(part => part.quizQuestionCount > 0).length;
 assert.equal(urls.length, routeCount); assert.equal(new Set(urls).size, routeCount);
-const quizzes = JSON.parse(fs.readFileSync("scripts/quizzes.json", "utf8")) as Record<string, { questions: string[]; answers: string[] }>;
+const quizzes = JSON.parse(fs.readFileSync("src/content/ml-quizzes.json", "utf8")) as Record<string, { questions: string[]; answers: string[] }>;
 assert.deepEqual(Object.keys(quizzes).filter(k => k.startsWith("llm-")).sort(), llmParts.map(p => `llm-${p.id}`).sort());
-const privateText: string[] = [], passages = new Map<string, string>(), usedVisuals = new Set<string>(), counts: number[] = [];
+const quizText: string[] = [], passages = new Map<string, string>(), usedVisuals = new Set<string>(), counts: number[] = [];
 const teaching: { id: string; text: string }[] = [];
 let sections = 0, tables = 0, formulas = 0, figures = 0;
 function htmlAt(url: string) { return fs.readFileSync(`out${url}.html`, "utf8"); }
@@ -35,8 +34,8 @@ for (const [pi, part] of llmParts.entries()) {
   assert.equal(part.number, String(pi + 1)); assert.ok(part.topics.length > 0);
   const quiz = quizzes[`llm-${part.id}`]; assert.ok(quiz);
   assert.equal(quiz.questions.length, part.quizQuestionCount); assert.equal(quiz.answers.length, part.quizQuestionCount);
-  privateText.push(...quiz.questions, ...quiz.answers);
-  if (built) { const h = htmlAt(`${LLM_PATH}/${part.id}/quiz`); assert.ok(h.includes(`llm-${part.id}`) && h.includes("PREMIUM")); }
+  quizText.push(...quiz.questions, ...quiz.answers);
+  if (built) { const h = htmlAt(`${LLM_PATH}/${part.id}/quiz`); assert.ok(h.includes(`llm-${part.id}`) && h.includes("MOCK INTERVIEW")); }
   for (const [ti, topic] of part.topics.entries()) {
     assert.equal(llmLessonNumbers[topic.id], `${pi + 1}.${ti + 1}`); assert.equal(topic.keyPoints.length, 3);
     assert.ok(topic.summary && topic.interviewPrompt); assert.ok(topic.summary.split(/\s+/).length <= 35);
@@ -75,7 +74,7 @@ for (const [pi, part] of llmParts.entries()) {
     }
   }
 }
-assert.equal(privateText.length, 2 * quizPairCount); assert.equal(new Set(privateText).size, 2 * quizPairCount);
+assert.equal(quizText.length, 2 * quizPairCount); assert.equal(new Set(quizText).size, 2 * quizPairCount);
 for (const id of Object.keys(llmVisuals)) assert.ok(usedVisuals.has(id));
 // Teaching-order checks operate on lesson bodies, excluding title and overview previews.
 const definitions: [string, RegExp, string][] = [
@@ -157,12 +156,7 @@ if (built) {
   const hub = htmlAt(LLM_PATH).replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]+>/g, " ");
   assert.match(hub, new RegExp(`${lessonCount}\\s+lessons`)); assert.match(hub, new RegExp(`${chapterCount}\\s+chapters`));
   const xml = fs.readFileSync("out/sitemap.xml", "utf8"); urls.forEach(url => assert.ok(xml.includes(`${url}</loc>`)));
-  const variants = privateText.flatMap(t => [t, JSON.stringify(t).slice(1, -1), t.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")]);
-  for (const file of fs.readdirSync("out", { recursive: true })) {
-    if (typeof file !== "string" || !/\.(html|txt|js|json|xml)$/.test(file)) continue;
-    const text = fs.readFileSync(path.join("out", file), "utf8"); assert.ok(!variants.some(v => text.includes(v)), `Private chapter payload bundled: ${file}`);
-  }
 }
-console.log(`LLM validated: ${chapterCount} chapters, ${lessonCount} lessons, ${sections} sections, ${figures} figures, ${tables} tables, ${formulas} display formulas, ${quizPairCount} private quiz pairs.`);
+console.log(`LLM validated: ${chapterCount} chapters, ${lessonCount} lessons, ${sections} sections, ${figures} figures, ${tables} tables, ${formulas} display formulas, ${quizPairCount} static quiz pairs.`);
 console.log(`Source words: ${counts.reduce((a, b) => a + b, 0).toLocaleString("en-US")}; ${Math.min(...counts)}–${Math.max(...counts)} per lesson.`);
-if (built) console.log(`All ${routeCount} LLM routes, canonical URLs, structured data, links, figure rendering, premium gates, and public-export quiz privacy passed.`);
+if (built) console.log(`All ${routeCount} LLM routes, canonical URLs, structured data, links, figure rendering, static quiz delivery passed.`);

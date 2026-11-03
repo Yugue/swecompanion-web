@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!part || part.quizQuestionCount === 0) return {};
   return {
     title: `Large Language Models ${part.title} Mock Interview Quiz`,
-    description: `${part.quizQuestionCount} Large Language Models reasoning questions with model answers covering ${part.title.toLowerCase()}. Uses the foundations taught within this topic. Free.`,
+    description: `${part.quizQuestionCount} Large Language Models technical knowledge questions with model answers covering ${part.title.toLowerCase()}. Uses the foundations taught within this topic.`,
     alternates: { canonical: `${LLM_PATH}/${id}/quiz` },
   };
 }
@@ -35,13 +35,12 @@ export default async function LlmChapterQuizPage({ params }: { params: Promise<{
         </Link>
         <h1 className="mb-2 text-3xl font-bold leading-tight tracking-tight text-text">{part.title} mock interview quiz</h1>
         <p className="mb-6 text-base leading-relaxed text-text-muted">
-          {part.quizQuestionCount} questions with model answers. Explain mechanisms, diagnose failures,
-          and defend tradeoffs using lessons from this chapter and earlier chapters.
+          {part.quizQuestionCount} technical knowledge questions with model answers. Review core concepts,
+          how the methods work, and their assumptions and limitations.
         </p>
         <QuizSection
           quizId={`llm-${part.id}`}
           title={`Chapter ${part.number} quiz`}
-          covers={part.description}
           questionCount={part.quizQuestionCount}
         />
       </main>

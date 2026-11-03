@@ -40,7 +40,7 @@ service cloud.firestore {
 
     // Customer mappings, webhook receipts, and locks are server-only (default deny).
     // Legacy database-backed quiz copies remain restricted to premium accounts.
-    // Public ML quizzes are included in their static pages from scripts/quizzes.json
+    // ML quizzes are included in their static pages from src/content/ml-quizzes.json
     // and do not read this collection. Client writes remain prohibited.
     match /quizzes/{quizId} {
       allow read: if isPremium();

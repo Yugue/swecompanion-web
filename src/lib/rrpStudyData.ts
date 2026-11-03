@@ -6,7 +6,7 @@
 // referenced before the lesson that teaches it, which is why the ranking metrics sit in
 // chapter 1 rather than in the evaluation chapter.
 //
-// ML quiz questions and answers are free and included in exported quiz pages.
+// ML quiz questions and answers are static content included in exported quiz pages.
 // Only question counts are needed in curriculum data.
 
 export interface RrpTopic {

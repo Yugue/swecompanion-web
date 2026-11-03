@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import path from "node:path";
 import katex from "katex";
 import { genaiParts, genaiTopics, genaiLessonNumbers } from "../src/lib/genaiStudyData";
 import { genaiVisuals, isGenaiVisualId } from "../src/lib/genaiVisuals";
@@ -14,7 +13,7 @@ const close = (actual: number, expected: number, epsilon = 1e-9) => assert.ok(Ma
 const sum = (xs: readonly number[]) => xs.reduce((a, b) => a + b, 0);
 const built = process.argv.includes("--built");
 
-// Values used in lessons, captions, native diagrams, and private numerical questions.
+// Values used in lessons, captions, native diagrams, and quiz numerical questions.
 softmax(samplingExample.logits).forEach((value, i) => close(value, [4 / 7, 2 / 7, 1 / 7][i]));
 softmax(samplingExample.logits, 0.5).forEach((value, i) => close(value, [16 / 21, 4 / 21, 1 / 21][i]));
 assert.deepEqual(softmax([0, 0]), [0.5, 0.5]); assert.deepEqual(softmax([7, 7]), [0.5, 0.5]);
@@ -74,19 +73,19 @@ assert.ok(ML_DOMAINS.some(domain => domain.name === "Generative AI" && domain.hr
 assert.ok(fs.readFileSync("src/components/genai/GenaiHub.tsx", "utf8").includes('useProgress("genai", [])'));
 assert.doesNotMatch(fs.readFileSync("src/lib/genaiStudyData.ts", "utf8"), /^import .*StudyData/m);
 const urls = sitemap().map(entry => new URL(entry.url).pathname);
-const quizzes = JSON.parse(fs.readFileSync("scripts/quizzes.json", "utf8")) as Record<string, { questions: string[]; answers: string[] }>;
-const privateText: string[] = [], figures = new Set<string>(), prose = new Map<string, string>(), wordCounts: number[] = [];
+const quizzes = JSON.parse(fs.readFileSync("src/content/ml-quizzes.json", "utf8")) as Record<string, { questions: string[]; answers: string[] }>;
+const quizText: string[] = [], figures = new Set<string>(), prose = new Map<string, string>(), wordCounts: number[] = [];
 let sections = 0, tables = 0, formulas = 0, quizCount = 0;
 for (const [chapterIndex, chapter] of genaiParts.entries()) {
   assert.equal(chapter.number, String(chapterIndex + 1));
   const quizId = `genai-${chapter.id}`, quiz = quizzes[quizId]; assert.ok(quiz);
   assert.equal(quiz.questions.length, chapter.quizQuestionCount); assert.equal(quiz.answers.length, chapter.quizQuestionCount);
   quizCount += quiz.questions.length;
-  for (const text of [...quiz.questions, ...quiz.answers]) { assert.ok(text.length > 25); privateText.push(text); }
+  for (const text of [...quiz.questions, ...quiz.answers]) { assert.ok(text.length > 25); quizText.push(text); }
   assert.equal(urls.filter(url => url === `${GENAI_PATH}/${chapter.id}/quiz`).length, 1);
   if (built) {
     const html = fs.readFileSync(`out${GENAI_PATH}/${chapter.id}/quiz.html`, "utf8");
-    assert.ok(html.includes(quizId) && html.includes("PREMIUM")); assert.ok(html.includes(`Chapter ${chapter.number} quiz`));
+    assert.ok(html.includes(quizId) && html.includes("MOCK INTERVIEW")); assert.ok(html.includes(`Chapter ${chapter.number} quiz`));
   }
   for (const [lessonIndex, topic] of chapter.topics.entries()) {
     assert.equal(genaiLessonNumbers[topic.id], `${chapterIndex + 1}.${lessonIndex + 1}`);
@@ -132,7 +131,7 @@ for (const [chapterIndex, chapter] of genaiParts.entries()) {
     }
   }
 }
-assert.equal(quizCount, 64); assert.equal(new Set(privateText).size, privateText.length);
+assert.equal(quizCount, 64); assert.equal(new Set(quizText).size, quizText.length);
 assert.deepEqual(new Set(Object.keys(quizzes).filter(id => id.startsWith("genai-"))), new Set(genaiParts.map(part => `genai-${part.id}`)));
 assert.deepEqual(figures, new Set(Object.keys(genaiVisuals)));
 Object.values(genaiVisuals).forEach(spec => assert.ok(spec.title && spec.caption && spec.alt));
@@ -182,13 +181,8 @@ if (built) {
   assert.match(text, /60\s+lessons/); assert.match(text, /8\s+chapters/); assert.ok(hub.includes("Start here"));
   const exportedSitemap = fs.readFileSync("out/sitemap.xml", "utf8");
   urls.filter(url => url === GENAI_PATH || url.startsWith(`${GENAI_PATH}/`)).forEach(url => assert.ok(exportedSitemap.includes(`${url}</loc>`)));
-  const privateVariants = privateText.flatMap(value => [value, JSON.stringify(value).slice(1, -1), value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")]);
-  for (const file of fs.readdirSync("out", { recursive: true })) {
-    if (typeof file !== "string" || !/\.(html|txt|js|json|xml)$/.test(file)) continue;
-    const output = fs.readFileSync(path.join("out", file), "utf8"); assert.ok(!privateVariants.some(value => output.includes(value)), `Private quiz text bundled: ${file}`);
-  }
 }
 console.log(`Generative AI validated: 8 chapters, 60 lessons, ${sections} sections, ${figures.size} figures, ${tables} tables, ${formulas} display formulas.`);
 console.log(`Source words: ${sum(wordCounts).toLocaleString("en-US")} total; ${Math.min(...wordCounts)}–${Math.max(...wordCounts)} per lesson.`);
-console.log("Definitions, duplicate passages, numerical examples, parser, sitemap and 64 private quiz pairs passed.");
-if (built) console.log("All 69 Generative AI pages, metadata, links, figures, premium gates and static quiz privacy passed.");
+console.log("Definitions, duplicate passages, numerical examples, parser, sitemap and 64 static quiz pairs passed.");
+if (built) console.log("All 69 Generative AI pages, metadata, links, figures, static quizzes passed.");

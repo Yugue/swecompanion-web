@@ -21,7 +21,7 @@ export async function generateMetadata({
   if (!part) return {};
   return {
     title: `${part.title} Mock Interview Quiz`,
-    description: `${part.quizQuestionCount} realistic interview-style questions covering computer vision ${part.title.toLowerCase()}, written to match a real L4-L6 interview. Free.`,
+    description: `${part.quizQuestionCount} technical knowledge questions with model answers covering computer vision ${part.title.toLowerCase()}.`,
     alternates: { canonical: `${CV_PATH}/${id}/quiz` },
   };
 }
@@ -47,8 +47,8 @@ export default async function CvPartQuizPage({
           {part.title} mock interview quiz
         </h1>
         <p className="mb-6 text-base leading-relaxed text-text-muted">
-          {part.quizQuestionCount} questions designed to reflect real interview questions on{" "}
-          {part.title.toLowerCase()} - answer like you&apos;re in the room.
+          {part.quizQuestionCount} technical knowledge questions on{" "}
+          {part.title.toLowerCase()}. Review core concepts, how the methods work, and their limitations.
         </p>
 
         <QuizSection
@@ -56,9 +56,8 @@ export default async function CvPartQuizPage({
           // identically-named chapter ids (every track has a `foundations`).
           quizId={`cv-${part.id}`}
           title={`Part ${part.number} quiz`}
-          covers={part.description}
           questionCount={part.quizQuestionCount}
-          proof="Written by people who passed the ML domain interview using this guide."
+          proof="Practice technical definitions, core mechanisms, assumptions, and limitations."
         />
       </main>
     </div>

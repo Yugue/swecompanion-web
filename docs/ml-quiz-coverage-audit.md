@@ -1,9 +1,19 @@
 # ML quiz coverage and content audit
 
-Current access: all 77 ML quizzes are free, with no account or membership required.
-Questions and model answers ship in the static quiz pages. The historical remote
+Current delivery: all 77 ML quiz banks live in `src/content/ml-quizzes.json`.
+Questions and model answers ship in the static quiz pages, without Firebase reads. The historical remote
 checks below describe the earlier Firestore setup; current export checks verify
-public payloads and absence of membership gates.
+static payloads and absence of membership gates.
+
+Current format: every prompt is a technical knowledge question about concepts,
+mechanisms, assumptions, distinctions, or limitations. Calculation exercises,
+debugging scenarios, and project walkthrough prompts have been replaced.
+See [the current review](ml-interview-quiz-review.md) for the topic inventory.
+
+## Historical coverage work
+
+The sections below record the earlier coverage implementation; numerical quiz
+formats and four-skill requirements described there have been superseded.
 
 ## Gaps found and fixed
 

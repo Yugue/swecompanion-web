@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Mic } from "lucide-react";
 
 /**
- * Funnel step 1: a short, curiosity-sparking prompt shown next to the free content. It only has
+ * A short practice prompt shown next to the lesson content. It only has
  * to earn the click - the quiz page (QuizSection) does the actual explaining. Expects an
  * ancestor to set the `--accent` CSS variable.
  */
@@ -34,16 +34,10 @@ export function QuizTeaser({
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
           <span className="text-sm font-bold text-text">{title}</span>
-          <span
-            className="rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-accent-ink"
-            style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)" }}
-          >
-            FREE
-          </span>
         </span>
         <span className="block text-[13px] leading-snug text-text-muted">
-          {questionCount} question{questionCount === 1 ? "" : "s"} on core concepts, examples,
-          and tradeoffs
+          {questionCount} question{questionCount === 1 ? "" : "s"} on core concepts, mechanisms,
+          and limitations
         </span>
       </span>
       <span

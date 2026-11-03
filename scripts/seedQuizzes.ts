@@ -1,8 +1,9 @@
 // Local owner command; never runs during the site build or deployment.
 //   npm run seed:quizzes
-//   npm run seed:quizzes -- --prefix=nlp- --dry-run
-//   npm run seed:quizzes -- --prefix=nlp-
-// Questions AND answers belong in premium-gated Firestore, not the static site.
+//   npm run seed:quizzes -- --prefix=lc- --dry-run
+//   npm run seed:quizzes -- --prefix=lc-
+// Legacy LeetCode bank maintenance only. ML banks live in src/content/ml-quizzes.json
+// and are included in static quiz pages; this script does not upload them.
 // Credentials: GOOGLE_APPLICATION_CREDENTIALS or scripts/serviceAccountKey.json.
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -16,7 +17,7 @@ async function main() {
   const args = process.argv.slice(2);
   for (const arg of args) {
     if (arg !== "--dry-run" && !/^--prefix=[a-z0-9-]+$/.test(arg)) {
-      throw new Error(`Unsupported argument: ${arg}. Use --dry-run or --prefix=nlp-.`);
+      throw new Error(`Unsupported argument: ${arg}. Use --dry-run or --prefix=lc-.`);
     }
   }
   const prefixes = args.filter(arg => arg.startsWith("--prefix="));

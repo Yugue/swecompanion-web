@@ -9,7 +9,7 @@ export function QuizQuestions({ quiz }: { quiz: { questions: string[]; answers: 
   return (
     <div className="flex flex-col gap-2.5">
       <p className="mb-1 text-sm text-text-muted">
-        Answer out loud first, then reveal the model answer.
+        Explain each concept in your own words, then reveal the model answer.
       </p>
       {quiz.questions.map((question, i) => {
         const isRevealed = revealed.has(i);

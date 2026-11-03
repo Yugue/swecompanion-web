@@ -4,63 +4,63 @@
       "lessons": [
         "rl-problem"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "probability-and-estimation"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "function-approximation"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "markov-decision-processes"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "policies-and-returns"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "policies-and-returns"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "values-and-bellman"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "values-and-bellman"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "rl-problem",
         "values-and-bellman"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "policies-and-returns",
         "probability-and-estimation"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     }
   ],
   "rl-learning-values": [
@@ -68,63 +68,63 @@
       "lessons": [
         "planning-and-dynamic-programming"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "monte-carlo-and-td"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "monte-carlo-and-td"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "multi-step-credit"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "exploration-and-bandits"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "on-and-off-policy"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "tabular-control"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "tabular-control"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "on-and-off-policy",
         "exploration-and-bandits"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "planning-and-dynamic-programming",
         "multi-step-credit"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     }
   ],
   "rl-deep-values": [
@@ -132,62 +132,62 @@
       "lessons": [
         "value-instability"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "deep-q-networks"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "deep-q-networks"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "better-value-estimates"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "better-value-estimates"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "partial-observability"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "deep-q-networks",
         "value-instability"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "better-value-estimates"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "partial-observability"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "deep-q-networks"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     }
   ],
   "rl-policy-optimization": [
@@ -195,64 +195,64 @@
       "lessons": [
         "policy-gradients"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "policy-gradients",
         "actor-critic-and-gae"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "actor-critic-and-gae"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "proximal-policy-optimization"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "proximal-policy-optimization"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "continuous-actor-critics"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "continuous-actor-critics",
         "soft-actor-critic"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "soft-actor-critic"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "actor-critic-and-gae"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "policy-gradients",
         "continuous-actor-critics"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     }
   ],
   "rl-models-and-data": [
@@ -260,63 +260,63 @@
       "lessons": [
         "models-and-planning"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "models-and-planning"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "learning-from-demonstrations"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "offline-reinforcement-learning"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "offline-reinforcement-learning",
         "learning-from-demonstrations"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "off-policy-evaluation"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "off-policy-evaluation"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "feedback-and-preferences"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "language-model-decisions"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "feedback-and-preferences",
         "language-model-decisions"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     }
   ],
   "rl-practical-systems": [
@@ -324,63 +324,63 @@
       "lessons": [
         "reward-design"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "reward-design"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "sparse-rewards-and-exploration"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "training-systems"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "training-systems"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "training-diagnostics"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "training-diagnostics",
         "evaluation-and-generalization"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "evaluation-and-generalization"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "selection-and-deployment"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "selection-and-deployment",
         "evaluation-and-generalization"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     }
   ],
   "speech-audio-signals": [
@@ -388,63 +388,63 @@
       "lessons": [
         "sound-and-speech"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "digital-audio"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "digital-audio"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "frequency-domain"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "short-time-analysis"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "short-time-analysis"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "perceptual-features"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "filtering-and-preprocessing"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "short-time-analysis",
         "filtering-and-preprocessing"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "digital-audio",
         "perceptual-features"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     }
   ],
   "speech-learning-foundations": [
@@ -452,63 +452,63 @@
       "lessons": [
         "mathematical-tools"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "neural-learning"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "convolutional-encoders"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "convolutional-encoders"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "sequence-modeling"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "sequence-modeling",
         "attention-transformers"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "attention-transformers"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "pretraining-transfer"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "pretraining-transfer"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "mathematical-tools",
         "neural-learning"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     }
   ],
   "speech-speech-recognition": [
@@ -516,61 +516,61 @@
       "lessons": [
         "recognition-targets"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "recognition-targets"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "ctc-alignment"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "ctc-alignment"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "ctc-alignment"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "ctc-alignment"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "transducers-attention"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "transducers-attention"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "recognition-decoding"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "recognition-decoding"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     }
   ],
   "speech-audio-understanding": [
@@ -578,62 +578,62 @@
       "lessons": [
         "audio-events"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "audio-events"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "speaker-recognition"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "speaker-recognition"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "diarization"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "diarization"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "enhancement-separation"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "enhancement-separation"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "audio-text-understanding"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "speaker-recognition",
         "audio-text-understanding"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     }
   ],
   "speech-audio-generation": [
@@ -641,63 +641,63 @@
       "lessons": [
         "text-to-speech"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "text-to-speech"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "text-to-speech"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "generative-modeling"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "generative-modeling"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "vocoders-codecs"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "vocoders-codecs"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "speech-language-systems"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "generative-modeling",
         "text-to-speech"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "speech-language-systems",
         "vocoders-codecs"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     }
   ],
   "speech-practical-systems": [
@@ -705,64 +705,64 @@
       "lessons": [
         "data-and-baselines"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "data-and-baselines",
         "robustness-adaptation"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "evaluation-errors"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "evaluation-errors"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "streaming-latency"
       ],
-      "skill": "calculation"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "streaming-latency"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "efficient-deployment"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "system-design"
       ],
-      "skill": "mechanism"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "system-design",
         "evaluation-errors"
       ],
-      "skill": "diagnosis"
+      "skill": "knowledge"
     },
     {
       "lessons": [
         "robustness-adaptation",
         "efficient-deployment"
       ],
-      "skill": "tradeoff"
+      "skill": "knowledge"
     }
   ]
 }

@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import path from "node:path";
 import katex from "katex";
 import { nlpParts, nlpTopics, nlpTopicsById, nlpLessonNumbers, nlpReferencesByTopic } from "../src/lib/nlpStudyData";
 import { getLessonBlocks } from "../src/lib/getLessonBlocks";
@@ -137,19 +136,19 @@ assert.deepEqual(fs.readdirSync("src/content/nlp-lessons").filter(file => file.e
 assert.ok(fs.readFileSync("src/components/nlp/NlpHub.tsx", "utf8").includes('useProgress("nlp", [])'));
 assert.ok(!/^import .*StudyData/m.test(fs.readFileSync("src/lib/nlpStudyData.ts", "utf8")), "No required content imported from other topics");
 const urls = sitemap().map(entry => new URL(entry.url).pathname), usedFigures = new Set<string>(), prose = new Map<string, string>();
-const quizData = JSON.parse(fs.readFileSync("scripts/quizzes.json", "utf8")) as Record<string, { questions: string[]; answers: string[] }>;
-const quizIds = new Set<string>(), privateText: string[] = [], wordCounts: number[] = [], sectionReviews: string[] = [];
+const quizData = JSON.parse(fs.readFileSync("src/content/ml-quizzes.json", "utf8")) as Record<string, { questions: string[]; answers: string[] }>;
+const quizIds = new Set<string>(), quizText: string[] = [], wordCounts: number[] = [], sectionReviews: string[] = [];
 let sections = 0, formulas = 0, tables = 0, quizCount = 0;
 for (const [chapterIndex, chapter] of nlpParts.entries()) {
   assert.equal(chapter.number, String(chapterIndex + 1));
   const quizId = `nlp-${chapter.id}`, quiz = quizData[quizId]; quizIds.add(quizId);
   assert.ok(quiz); assert.equal(quiz.questions.length, chapter.quizQuestionCount); assert.equal(quiz.answers.length, chapter.quizQuestionCount);
   assert.ok(quiz.questions.length > 0); quizCount += quiz.questions.length;
-  quiz.questions.forEach((question, i) => { assert.ok(question.length > 25 && quiz.answers[i].length > 25); privateText.push(question, quiz.answers[i]); });
+  quiz.questions.forEach((question, i) => { assert.ok(question.length > 25 && quiz.answers[i].length > 25); quizText.push(question, quiz.answers[i]); });
   assert.equal(urls.filter(url => url === `${NLP_PATH}/${chapter.id}/quiz`).length, 1);
   if (built) {
     const html = fs.readFileSync(`out${NLP_PATH}/${chapter.id}/quiz.html`, "utf8");
-    assert.ok(html.includes(quizId) && html.includes("PREMIUM")); assert.ok(html.includes('rel="canonical"'));
+    assert.ok(html.includes(quizId) && html.includes("MOCK INTERVIEW")); assert.ok(html.includes('rel="canonical"'));
     assert.ok(html.includes(`Chapter ${chapter.number} quiz`) && !/Part \d+ quiz/.test(html));
   }
   for (const [lessonIndex, topic] of chapter.topics.entries()) {
@@ -198,7 +197,7 @@ for (const [chapterIndex, chapter] of nlpParts.entries()) {
     }
   }
 }
-assert.equal(new Set(privateText.filter((_, i) => i % 2 === 0)).size, quizCount, "Duplicate quiz prompts");
+assert.equal(new Set(quizText.filter((_, i) => i % 2 === 0)).size, quizCount, "Duplicate quiz prompts");
 assert.deepEqual(quizIds, new Set(Object.keys(quizData).filter(id => id.startsWith("nlp-"))));
 assert.deepEqual(usedFigures, new Set(Object.keys(nlpVisuals)));
 Object.values(nlpVisuals).forEach(spec => assert.ok(spec.title && spec.caption && spec.alt));
@@ -244,14 +243,9 @@ if (built) {
   retired.forEach(id => assert.ok(!fs.existsSync(`out${NLP_PATH}/${id}.html`), `Stale exported lesson: ${id}`));
   const exportedSitemap = fs.readFileSync("out/sitemap.xml", "utf8");
   urls.filter(url => url === NLP_PATH || url.startsWith(`${NLP_PATH}/`)).forEach(url => assert.ok(exportedSitemap.includes(`${url}</loc>`)));
-  const privateVariants = privateText.flatMap(value => [value, JSON.stringify(value).slice(1, -1), value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")]);
-  for (const file of fs.readdirSync("out", { recursive: true })) {
-    if (typeof file !== "string" || !/\.(html|txt|js|json|xml)$/.test(file)) continue;
-    const text = fs.readFileSync(path.join("out", file), "utf8"); assert.ok(!privateVariants.some(value => text.includes(value)), `Private quiz content bundled: ${file}`);
-  }
 }
 console.log(`NLP validated: 10 chapters, 55 lessons, ${sections} sections, ${usedFigures.size} figures, ${tables} tables and ${formulas} display formulas.`);
 console.log(`Lesson source words: ${sum(wordCounts).toLocaleString("en-US")} total; ${Math.min(...wordCounts)}–${Math.max(...wordCounts)} per lesson. No fixed lesson word ceiling.`);
-console.log(`Definitions, duplicate-passage, numerical and parser checks passed. ${quizIds.size} local chapter quizzes contain ${quizCount} paired private questions/answers.`);
+console.log(`Definitions, duplicate-passage, numerical and parser checks passed. ${quizIds.size} local chapter quizzes contain ${quizCount} paired static questions/answers.`);
 if (sectionReviews.length) console.log(`Editorial section-count reviews: ${sectionReviews.join("; ")}`);
-if (built) console.log("All 66 NLP pages, links, canonical URLs, structured metadata, figures and sitemap passed; no private quiz text in static output.");
+if (built) console.log("All 66 NLP pages, links, canonical URLs, structured metadata, figures and sitemap passed; static quiz content included.");

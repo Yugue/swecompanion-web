@@ -1,0 +1,387 @@
+{
+  "ml-foundations": [
+    5,
+    3,
+    8
+  ],
+  "ml-learning": [
+    1,
+    4,
+    7
+  ],
+  "ml-architectures": [
+    1,
+    6,
+    10
+  ],
+  "ml-transformers": [
+    1,
+    5,
+    10
+  ],
+  "ml-modern-deep-learning": [
+    2,
+    3,
+    9
+  ],
+  "ml-practical-reasoning": [
+    3,
+    5,
+    4
+  ],
+  "aml-foundations": [
+    3,
+    4,
+    6
+  ],
+  "aml-data-and-features": [
+    8,
+    5,
+    2
+  ],
+  "aml-supervised-algorithms": [
+    2,
+    9,
+    10
+  ],
+  "aml-training-and-generalization": [
+    1,
+    8,
+    9
+  ],
+  "aml-evaluation": [
+    1,
+    3,
+    4
+  ],
+  "aml-unsupervised": [
+    7,
+    8,
+    9
+  ],
+  "aml-applied-practice": [
+    1,
+    6,
+    7
+  ],
+  "agentic-foundations": [
+    8,
+    3,
+    5
+  ],
+  "agentic-tool-use": [
+    2,
+    4,
+    6
+  ],
+  "agentic-reasoning": [
+    3,
+    5,
+    6
+  ],
+  "agentic-memory-and-retrieval": [
+    4,
+    8,
+    10
+  ],
+  "agentic-multi-agent": [
+    1,
+    8,
+    9
+  ],
+  "agentic-evaluation-and-safety": [
+    1,
+    4,
+    9
+  ],
+  "agentic-production": [
+    1,
+    6,
+    7
+  ],
+  "rrp-foundations": [
+    1,
+    2,
+    5
+  ],
+  "rrp-classical-recommenders": [
+    7,
+    6,
+    8
+  ],
+  "rrp-retrieval": [
+    4,
+    6,
+    9
+  ],
+  "rrp-ranking": [
+    2,
+    3,
+    8
+  ],
+  "rrp-evaluation": [
+    3,
+    6,
+    8
+  ],
+  "rrp-production": [
+    4,
+    5,
+    2
+  ],
+  "rrp-applied-practice": [
+    9,
+    3,
+    7
+  ],
+  "cv-images-and-signals": [
+    6,
+    4,
+    1
+  ],
+  "cv-classical-vision": [
+    6,
+    7,
+    9
+  ],
+  "cv-learning-foundations": [
+    2,
+    4,
+    6
+  ],
+  "cv-cnn-representations": [
+    1,
+    6,
+    10
+  ],
+  "cv-vision-tasks": [
+    1,
+    4,
+    6
+  ],
+  "cv-modern-vision": [
+    4,
+    3,
+    8
+  ],
+  "cv-practical-cv": [
+    3,
+    4,
+    8
+  ],
+  "nlp-foundations": [
+    3,
+    2,
+    1
+  ],
+  "nlp-mathematics-and-probability": [
+    4,
+    5,
+    3
+  ],
+  "nlp-text-representations": [
+    1,
+    4,
+    6
+  ],
+  "nlp-classical-models": [
+    4,
+    2,
+    3
+  ],
+  "nlp-neural-foundations": [
+    2,
+    3,
+    1
+  ],
+  "nlp-embeddings-and-sequences": [
+    4,
+    5,
+    7
+  ],
+  "nlp-transformers": [
+    2,
+    1,
+    4
+  ],
+  "nlp-pretraining-and-adaptation": [
+    1,
+    2,
+    5
+  ],
+  "nlp-understanding-tasks": [
+    3,
+    7,
+    10
+  ],
+  "nlp-retrieval-and-generation": [
+    1,
+    2,
+    10
+  ],
+  "genai-foundations": [
+    1,
+    3,
+    5
+  ],
+  "genai-language-and-transformers": [
+    3,
+    5,
+    7
+  ],
+  "genai-training-and-adaptation": [
+    1,
+    7,
+    5
+  ],
+  "genai-generation-and-reasoning": [
+    3,
+    4,
+    8
+  ],
+  "genai-image-and-multimodal": [
+    4,
+    1,
+    8
+  ],
+  "genai-grounding-and-retrieval": [
+    8,
+    5,
+    3
+  ],
+  "genai-evaluation-and-safety": [
+    1,
+    4,
+    6
+  ],
+  "genai-inference-and-diagnosis": [
+    1,
+    2,
+    8
+  ],
+  "llm-foundations": [
+    1,
+    4,
+    6
+  ],
+  "llm-transformers": [
+    2,
+    1,
+    8
+  ],
+  "llm-pretraining": [
+    1,
+    3,
+    6
+  ],
+  "llm-post-training": [
+    1,
+    6,
+    2
+  ],
+  "llm-generation-and-grounding": [
+    4,
+    6,
+    2
+  ],
+  "llm-evaluation-and-safety": [
+    1,
+    3,
+    8
+  ],
+  "llm-inference-and-serving": [
+    1,
+    2,
+    7
+  ],
+  "distributed-execution-foundations": [
+    1,
+    2,
+    3
+  ],
+  "distributed-data-and-optimization": [
+    3,
+    8,
+    9
+  ],
+  "distributed-memory-and-partitioning": [
+    1,
+    3,
+    9
+  ],
+  "distributed-scaling-training": [
+    4,
+    5,
+    7
+  ],
+  "distributed-correctness-and-recovery": [
+    1,
+    5,
+    6
+  ],
+  "distributed-distributed-inference": [
+    2,
+    4,
+    5
+  ],
+  "rl-foundations": [
+    1,
+    7,
+    8
+  ],
+  "rl-learning-values": [
+    3,
+    6,
+    7
+  ],
+  "rl-deep-values": [
+    2,
+    4,
+    7
+  ],
+  "rl-policy-optimization": [
+    1,
+    2,
+    4
+  ],
+  "rl-models-and-data": [
+    3,
+    4,
+    7
+  ],
+  "rl-practical-systems": [
+    1,
+    6,
+    7
+  ],
+  "speech-audio-signals": [
+    3,
+    7,
+    9
+  ],
+  "speech-learning-foundations": [
+    2,
+    6,
+    8
+  ],
+  "speech-speech-recognition": [
+    3,
+    7,
+    10
+  ],
+  "speech-audio-understanding": [
+    2,
+    3,
+    10
+  ],
+  "speech-audio-generation": [
+    2,
+    4,
+    8
+  ],
+  "speech-practical-systems": [
+    1,
+    3,
+    6
+  ]
+}
