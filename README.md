@@ -4,6 +4,9 @@ A free, SEO-optimized study guide for software engineering interviews: LeetCode 
 topic, and a 57-lesson Google ML domain interview curriculum. Built with Next.js (static export)
 and Firebase (Auth + Firestore).
 
+Email/password and Google authentication, Pro subscriptions, invoice history, and account
+settings are documented in [Authentication and sandbox billing](docs/auth-billing.md).
+
 - Every LeetCode topic and every ML lesson has its own indexable page.
 - Progress is stored locally and, once signed in, synced to Firestore across devices.
 - All ML domain quizzes and model answers are free, with no sign-in or membership required.

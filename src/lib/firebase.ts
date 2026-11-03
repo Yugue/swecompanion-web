@@ -2,8 +2,9 @@
 
 import { type FirebaseApp, getApps, initializeApp } from "firebase/app";
 import { type Analytics, isSupported as analyticsIsSupported } from "firebase/analytics";
-import { getAuth, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { connectAuthEmulator, getAuth, GoogleAuthProvider } from "firebase/auth";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -18,8 +19,19 @@ const firebaseConfig = {
 export const firebaseApp: FirebaseApp = getApps()[0] ?? initializeApp(firebaseConfig);
 export const auth = getAuth(firebaseApp);
 export const db = getFirestore(firebaseApp);
+export const functions = getFunctions(firebaseApp, process.env.NEXT_PUBLIC_FUNCTIONS_REGION ?? "us-central1");
 export const googleProvider = new GoogleAuthProvider();
-export const githubProvider = new GithubAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
+
+if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true") {
+  const emulatorApp = firebaseApp as FirebaseApp & { emulatorsConnected?: boolean };
+  if (!emulatorApp.emulatorsConnected) {
+    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+    connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+    emulatorApp.emulatorsConnected = true;
+  }
+}
 
 let analyticsPromise: Promise<Analytics | null> | null = null;
 

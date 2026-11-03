@@ -1,78 +1,102 @@
 "use client";
 
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
-import {
-  type User,
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut as firebaseSignOut,
+  type User, onIdTokenChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signInWithPopup, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential,
+  updatePassword, signOut as firebaseSignOut,
 } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db, googleProvider, githubProvider } from "./firebase";
+import { doc, onSnapshot, runTransaction, serverTimestamp } from "firebase/firestore";
+import { auth, db, googleProvider } from "./firebase";
 
 interface AuthContextValue {
   user: User | null;
+  subscribed: boolean;
   loading: boolean;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  signInWithGithub: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  refreshClaims: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+async function refreshCurrentClaims() { await auth.currentUser?.getIdToken(true); }
+
 async function ensureUserProfile(user: User) {
-  await setDoc(
-    doc(db, "users", user.uid),
-    {
-      email: user.email,
-      displayName: user.displayName,
-      // `premium` is intentionally only ever set here on first creation, with merge:true so an
-      // existing value is preserved on subsequent sign-ins - see firestore.rules, which makes it
-      // immutable from any client update after that.
-      premium: false,
-      createdAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
+  const ref = doc(db, "users", user.uid);
+  await runTransaction(db, async (transaction) => {
+    if (!(await transaction.get(ref)).exists()) {
+      transaction.set(ref, { email: user.email, displayName: user.displayName, createdAt: serverTimestamp() });
+    }
+  });
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<{ user: User | null; subscribed: boolean; loading: boolean }>({
+    user: null, subscribed: false, loading: true,
+  });
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (nextUser) => {
-      setUser(nextUser);
-      setLoading(false);
-      if (nextUser) void ensureUserProfile(nextUser);
+    let active = true;
+    const unsubscribe = onIdTokenChanged(auth, async (user) => {
+      if (!user) {
+        if (active) setSession({ user: null, subscribed: false, loading: false });
+        return;
+      }
+      try {
+        const token = await user.getIdTokenResult();
+        if (active && auth.currentUser?.uid === user.uid) {
+          setSession({ user, subscribed: token.claims.subscribed === true, loading: false });
+        }
+      } catch {
+        if (active && auth.currentUser?.uid === user.uid) setSession({ user, subscribed: false, loading: false });
+      }
     });
+    return () => { active = false; unsubscribe(); };
   }, []);
 
+  const uid = session.user?.uid;
+  useEffect(() => {
+    if (!uid) return;
+    const user = auth.currentUser;
+    if (!user || user.uid !== uid) return;
+    void ensureUserProfile(user).catch(() => {});
+    const unsubscribe = onSnapshot(doc(db, "billing", uid), (snapshot) => {
+      const version: unknown = snapshot.data()?.claimsVersion;
+      if (typeof version !== "string") return;
+      void user.getIdTokenResult().then((token) => {
+        if (auth.currentUser?.uid === uid && token.claims.billingVersion !== version) return user.getIdToken(true);
+      }).catch(() => {});
+    }, () => {});
+    const refreshOnFocus = () => {
+      if (auth.currentUser?.uid === uid) void user.getIdToken(true).catch(() => {});
+    };
+    window.addEventListener("focus", refreshOnFocus);
+    return () => { unsubscribe(); window.removeEventListener("focus", refreshOnFocus); };
+  }, [uid]);
+
   const value: AuthContextValue = {
-    user,
-    loading,
-    signUpWithEmail: async (email, password) => {
-      await createUserWithEmailAndPassword(auth, email, password);
+    ...session,
+    signUpWithEmail: async (email, password) => { await createUserWithEmailAndPassword(auth, email.trim(), password); },
+    signInWithEmail: async (email, password) => { await signInWithEmailAndPassword(auth, email.trim(), password); },
+    signInWithGoogle: async () => { await signInWithPopup(auth, googleProvider); },
+    resetPassword: async (email) => {
+      try { await sendPasswordResetEmail(auth, email.trim()); }
+      catch (error) {
+        if ((error as { code?: string }).code !== "auth/user-not-found") throw error;
+      }
     },
-    signInWithEmail: async (email, password) => {
-      await signInWithEmailAndPassword(auth, email, password);
+    changePassword: async (currentPassword, newPassword) => {
+      const user = auth.currentUser;
+      if (!user?.email) throw new Error("Authentication required");
+      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, currentPassword));
+      await updatePassword(user, newPassword);
     },
-    signInWithGoogle: async () => {
-      await signInWithPopup(auth, googleProvider);
-    },
-    signInWithGithub: async () => {
-      await signInWithPopup(auth, githubProvider);
-    },
+    refreshClaims: refreshCurrentClaims,
     signOut: () => firebaseSignOut(auth),
   };
 
@@ -80,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
 }

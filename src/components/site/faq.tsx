@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Container, SectionHeading } from './primitives'
+import { PRICING, formatPrice } from '@shared/pricing'
 
 const faqs = [
   {
@@ -16,7 +17,7 @@ const faqs = [
   },
   {
     q: 'What does the subscription cost?',
-    a: 'Pro is $299 per month, or $249 per month billed annually. You can cancel anytime, and the app keeps working through the end of your billing period.',
+    a: `Pro is ${formatPrice(PRICING.monthly.amount)} USD per month, or ${formatPrice(PRICING.yearly.amount / PRICING.yearly.months)} USD per month billed annually at ${formatPrice(PRICING.yearly.amount)} USD. You can cancel anytime, and the app keeps working through the end of your billing period.`,
   },
   {
     q: 'What kinds of problems does it handle?',

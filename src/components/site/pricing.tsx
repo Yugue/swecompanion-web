@@ -2,9 +2,11 @@
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { ArrowRight, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { Container, SectionHeading } from './primitives'
+import { PRICING, ANNUAL_SAVINGS_PERCENT, formatPrice } from '@shared/pricing'
+import { UpgradeButton } from '@/components/auth/UpgradeButton'
 
 const features = [
   'Unlimited problem reads & solutions',
@@ -17,8 +19,6 @@ const features = [
 
 export function Pricing() {
   const [annual, setAnnual] = useState(false)
-  const monthly = 299
-  const annualPerMonth = 249
 
   return (
     <section id="pricing" className="scroll-mt-16 border-b border-border py-20 md:py-28">
@@ -65,7 +65,7 @@ export function Pricing() {
           >
             Annual
             <span className="rounded-full border border-border bg-card px-2 py-0.5 font-mono text-xs text-signal">
-              save 2 months
+              save {ANNUAL_SAVINGS_PERCENT}%
             </span>
           </span>
         </div>
@@ -123,13 +123,13 @@ export function Pricing() {
             </div>
             <div className="mt-4 flex items-baseline gap-1.5">
               <span className="text-4xl font-medium tracking-tight">
-                ${annual ? annualPerMonth : monthly}
+                {formatPrice(annual ? PRICING.yearly.amount / PRICING.yearly.months : PRICING.monthly.amount)}
               </span>
               <span className="text-sm text-muted-foreground">/ month</span>
             </div>
             {annual && (
               <p className="mt-2 text-xs text-muted-foreground">
-                Billed annually at ${annualPerMonth * 12}. One offer pays for years.
+                Billed annually at {formatPrice(PRICING.yearly.amount)} USD. Cancel anytime.
               </p>
             )}
             <div className="mt-4 rounded-lg border border-brand-blue/20 bg-brand-blue/5 p-3">
@@ -149,15 +149,8 @@ export function Pricing() {
                 </li>
               ))}
             </ul>
-            <Button
-              className="mt-7 h-11 w-full"
-              render={
-                <a href="#download">
-                  Start free, then subscribe
-                  <ArrowRight className="size-4" />
-                </a>
-              }
-            />
+            <p className="mt-5 text-xs text-muted-foreground">Prices in USD. Renews automatically until canceled.</p>
+            <UpgradeButton plan={annual ? 'yearly' : 'monthly'} className="mt-4 h-11 w-full" />
           </div>
         </div>
       </Container>

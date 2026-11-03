@@ -13,26 +13,32 @@ service cloud.firestore {
 
     function isPremium() {
       return isSignedIn() &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.premium == true;
+        request.auth.token.subscribed == true &&
+        exists(/databases/$(database)/documents/billing/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/billing/$(request.auth.uid)).data.subscribed == true;
     }
 
     match /users/{userId} {
       allow read: if isOwner(userId);
 
-      // First-time profile creation must start non-premium.
-      allow create: if isOwner(userId) && request.resource.data.premium == false;
+      allow create: if isOwner(userId) &&
+        request.resource.data.keys().hasOnly(['email', 'displayName', 'createdAt']);
 
-      // `premium` can never change from a client write - only the Firestore console
-      // (or a future billing Cloud Function using the Admin SDK, which bypasses rules) can flip it.
+      // Legacy fields are preserved but cannot be added or changed by clients.
       allow update: if isOwner(userId) &&
-        request.resource.data.premium == resource.data.premium;
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email', 'displayName']);
 
       match /progress/{kind} {
         allow read, write: if isOwner(userId);
       }
     }
 
+    match /billing/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+    }
+
+    // Customer mappings, webhook receipts, and locks are server-only (default deny).
     // Legacy database-backed quiz copies remain restricted to premium accounts.
     // Public ML quizzes are included in their static pages from scripts/quizzes.json
     // and do not read this collection. Client writes remain prohibited.
