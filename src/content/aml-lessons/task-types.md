@@ -42,7 +42,3 @@ Politics risk 0.8 and economics risk 0.7 need not sum to one because they descri
 **Recall@500** is the fraction of all positives captured in the first 500 positions. **Calibration** asks whether predicted probabilities match event frequencies.
 
 Good ordering need not imply accurate probabilities. Finding high-risk customers also does not establish that contacting them changes their behavior.
-
-## 6. Work a concrete case
-
-A store selecting ten products needs an ordering. A model can predict purchase probabilities, but the final task is ranking the eligible products; classifying every product above a fixed cutoff may return too many or too few.

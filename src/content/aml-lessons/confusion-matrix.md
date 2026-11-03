@@ -49,7 +49,3 @@ F_1=\frac{2TP}{2TP+FP+FN}
 **Macro** averages class scores equally. **Weighted** averaging uses class counts. **Micro** pools counts before computing the score.
 
 For ordinary single-label classification over all classes, micro-F1 equals accuracy. Keep class-level results when a rare class matters.
-
-## 6. Work a concrete case
-
-Among ten flagged transactions, six are fraud; four frauds were missed. Precision is 6/10 and recall is 6/(6+4). The equal numbers here are coincidental: the denominators describe different populations.

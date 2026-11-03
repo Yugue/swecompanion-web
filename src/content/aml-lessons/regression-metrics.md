@@ -41,7 +41,3 @@ Zero matches that reference; negative is worse. Constant targets require a zero-
 | RMSLE | RMSE after \(\log(1+y)\) transforms | Usually requires nonnegative values |
 
 **Residuals** are actual minus predicted. Plot them against predictions and time to find systematic misses. Asymmetric costs may require a percentile target; the loss-functions lesson develops that choice.
-
-## 6. Work a concrete case
-
-Errors [0,0,6] give MAE 2 and RMSE about 3.46, in the target's units. RMSE emphasizes the single large miss; choosing between them depends on whether large misses deserve disproportionate cost.

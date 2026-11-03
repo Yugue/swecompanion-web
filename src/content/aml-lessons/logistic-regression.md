@@ -56,7 +56,3 @@ The extra sigmoid factor makes squared-error gradients small near probabilities 
 It is a fast baseline. Scale inputs when penalties or optimization require it. Add useful interactions when a linear score is too restrictive.
 
 Its probabilities still need calibration checks. Model mismatch, sampling, and population changes can distort them.
-
-## 8. Work a concrete case
-
-A score of zero maps to probability 0.5. Adding log(3) to the score triples the odds, giving probability 0.75 from that starting point. Coefficients change log-odds linearly, not probabilities by a fixed amount.

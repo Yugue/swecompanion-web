@@ -40,7 +40,3 @@ Existing customers can appear across a forward-time split when deployment predic
 After a sudden score jump, inspect joins, timestamps, copies, target-derived columns, and split assignment. Remove suspect features and rebuild the evaluation as a diagnostic experiment.
 
 For target encoding, check inner fold restrictions too. Excluding a row's label still leaks when future labels influence its input.
-
-## 6. Work a concrete case
-
-A random customer identifier can look predictive if repeated customers cross the split. The concern is not the column's name: ask whether the evaluation allows the model to recognize entities it will genuinely encounter again.

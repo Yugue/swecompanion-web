@@ -38,7 +38,3 @@ Probabilities 0.9 and 0.1 cost approximately 0.105 and 2.303. This explains the 
 | Live probabilities lose frequency meaning | Investigate drift and calibration |
 
 These apply earlier mechanisms; adding model names does not strengthen the argument.
-
-## 6. Work a concrete case
-
-A useful proposal can fit on one chain: decision → information available now → baseline → held-out comparison → rollout → outcomes. A missing link identifies an unanswered system question, even when the model choice is sophisticated.

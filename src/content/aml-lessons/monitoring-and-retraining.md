@@ -39,7 +39,3 @@ Compare meaningful windows and effect sizes. Huge samples can flag tiny changes;
 Assess candidates on recent suitable holdouts, slices, calibration, and serving constraints. Recheck the action policy and keep rollback available.
 
 A **feedback loop** occurs when decisions affect later observations. A blocked purchase may never reveal whether fraud would have occurred. Log actions and label availability; unobserved outcomes cannot simply become negative labels.
-
-## 6. Work a concrete case
-
-A broken category lookup can change input distributions overnight. Retraining on those corrupted inputs teaches the fault rather than fixing it. Diagnose service and data changes before selecting a replacement model.

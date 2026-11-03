@@ -44,7 +44,3 @@ A **canary rollout** exposes limited eligible traffic before expansion. Define h
 Specify acceptable cached age, a trained missing-input path, or a validated fallback. Test actual timeouts.
 
 Blocking, allowing, deferring, and requesting review have different costs. A fallback model must be evaluated with the inputs it will really receive.
-
-## 7. Work a concrete case
-
-A feature computed as dollars during training and cents during serving has matching names but different meaning. Test a known input through both pipelines and compare intermediate values before blaming model drift.

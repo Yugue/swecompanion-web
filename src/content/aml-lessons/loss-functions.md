@@ -44,7 +44,3 @@ At \(q=0.8\), underpredicting by 10 costs 8; overpredicting by 10 costs 2. With 
 Logistic regression develops log loss for probabilities; SVMs develop hinge loss for margins.
 
 **Class weights** multiply selected training losses. A threshold instead changes actions after fitting. Accuracy and F1 are discontinuous in thresholded outputs, so gradient methods commonly train a useful **surrogate**, or substitute objective, then tune decisions separately.
-
-## 6. Work a concrete case
-
-For targets [0,0,9], a constant squared-loss fit predicts the mean, 3; an absolute-loss fit can predict the median, 0. The loss changes the desired answer, even before choosing an optimizer.

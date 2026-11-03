@@ -44,7 +44,3 @@ ICE can expose differing effects hidden by an average. Both can evaluate unreali
 Tree impurity importance summarizes training split gains and can favor features with many split opportunities. It is different from held-out importance.
 
 If support contacts predict churn, discouraging contact is not thereby a valid retention action. Model explanations do not establish intervention effects; use experiments or a justified causal design.
-
-## 6. Work a concrete case
-
-If age and years-employed closely track each other, shuffling only age may show little loss because the other column substitutes. Low permutation importance can reflect redundancy, not absence of predictive information.

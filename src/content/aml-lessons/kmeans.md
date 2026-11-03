@@ -35,7 +35,3 @@ Nearest-center regions have straight boundaries in Euclidean feature space. This
 Supply \(k\); fitting does not discover the intended count. The cluster-evaluation lesson develops that choice. IDs are arbitrary: group 2 is not twice group 1.
 
 One assignment pass costs roughly \(O(nkd)\) for \(n\) examples and \(d\) features. **Mini-batch k-means** updates from subsets to reduce work, trading some fit quality for speed. New points use the stored centers.
-
-## 6. Work a concrete case
-
-Points [0,2] assigned to one center move it to 1. That minimizes their summed squared distance. The objective prefers compact Euclidean groups; it does not discover arbitrary curved shapes just by increasing iterations.

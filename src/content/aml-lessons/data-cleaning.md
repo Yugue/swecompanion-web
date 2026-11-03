@@ -37,7 +37,3 @@ Correct verified errors. For real extremes, compare suitable transforms, losses,
 An accidental duplicate adds unintended weight and can contaminate evaluation across splits. Keep copies together when assigning splits.
 
 Genuine repeated purchases are separate events when purchases are the prediction unit. Matching visible values alone does not justify deletion.
-
-## 6. Work a concrete case
-
-“Temperature = 999” may be a sensor's missing-value code rather than extreme heat. Treating it as a measurement changes averages and fitted relationships. Check the recording convention before clipping, imputing, or deleting it.

@@ -38,7 +38,3 @@ Flagging 0.1% of ten million daily events creates 10,000 alerts. A 500-case team
 Measure known-positive recall and reviewed-alert precision, acknowledging selection. Review some unflagged cases where feasible to investigate misses.
 
 Synthetic anomalies test specific mechanisms, not total real-world quality. New reviewed labels can support a supervised model, but the reviewed sample may be unrepresentative.
-
-## 6. Work a concrete case
-
-A rare holiday purchase may be unusual but legitimate; a common low-value fraud pattern may look ordinary. An anomaly score measures departure from a reference pattern, so labels are still needed to assess fraud detection.

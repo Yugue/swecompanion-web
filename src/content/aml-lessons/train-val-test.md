@@ -47,7 +47,3 @@ scores = pipe.predict_proba(X_val)[:, 1]
 ```
 
 Validation receives stored transformations. Repeated test-driven edits turn the test set into development data; a fresh assessment is then needed.
-
-## 6. Work a concrete case
-
-If one patient contributes ten scans, row-wise splitting can put nearly identical evidence on both sides. Holding out patients answers “new patient”; holding out later scans answers a different deployment question.

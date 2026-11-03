@@ -48,7 +48,3 @@ The first may be too restricted; the second may be sample-sensitive. Shift, weak
 | Inputs cannot distinguish outcomes | Better measurements or labels |
 
 The diagnosis lesson develops the curve-based checks. More complexity cannot create absent information.
-
-## 6. Work a concrete case
-
-Fit the same procedure to several resampled datasets. If predictions at one fixed input swing widely, that demonstrates instability across samples. One train–validation gap alone cannot reveal that behavior directly.

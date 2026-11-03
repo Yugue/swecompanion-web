@@ -50,7 +50,3 @@ The cluster count emerges from density settings. Noise is commonly labelled −1
 A single radius struggles with strongly varying density. Irrelevant dimensions can make neighborhoods uninformative.
 
 For GPS data, choose an appropriate geographic distance and units. Treating longitude and latitude as ordinary Cartesian coordinates everywhere distorts neighborhoods.
-
-## 7. Work a concrete case
-
-Imagine two dense islands separated by a few isolated points. DBSCAN can leave those points unassigned; a core-point chain can connect islands. A sparse border-only chain cannot propagate the expansion.

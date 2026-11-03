@@ -41,7 +41,3 @@ Selecting columns from all labels before CV leaks information. Target encoders a
 Alternatively, choose settings with development CV and assess once on a reserved test set. Refit the chosen procedure on designated development data before that final assessment.
 
 Fold spread describes variation across folds; overlapping training sets mean it is not automatically a confidence interval. The model-comparison lesson develops paired uncertainty.
-
-## 6. Work a concrete case
-
-In three folds, each row is assessed once using a model fitted without its fold. The scaler must also exclude that fold. The evaluation unit is the entire fit-and-transform procedure, not just the final estimator.

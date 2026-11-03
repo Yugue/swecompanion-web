@@ -39,7 +39,3 @@ OOB works for suitable independent rows. It does not enforce unseen-patient or f
 Tune leaf size and feature sampling as well as tree count. Extra trees increase memory and serving work; a finite validation score need not improve with every addition.
 
 Forests are usually more stable than one deep tree. Correlated errors, poor inputs, and miscalibrated probabilities can remain.
-
-## 6. Work a concrete case
-
-If ten trees all make the same mistake, averaging does little. If their errors differ, averaging can cancel some variation. Row resampling and random feature choices aim to diversify errors without making each tree useless.

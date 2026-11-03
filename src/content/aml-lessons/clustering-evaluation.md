@@ -44,7 +44,3 @@ If external reference groups exist, ARI can compare against them too.
 Inspect sizes, representative examples, and feature distributions. Silhouette favors certain compact shapes and may undervalue useful irregular clusters.
 
 Ask whether the groups support a meaningful action. Distinct customer segments do not establish different responses to a campaign; test that claimed benefit separately.
-
-## 6. Work a concrete case
-
-A customer split can have clean geometric separation while assigning groups that need the same marketing action. Check both reproducible structure and whether a different group assignment changes a useful decision.

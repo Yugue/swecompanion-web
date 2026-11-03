@@ -37,7 +37,3 @@ Falling training loss with rising validation loss suggests later steps fit less 
 Check population match, feature consistency, label alignment, and incomplete outcomes before prescribing regularization.
 
 Try fitting a flexible model to a small subset as a pipeline check. Failure may expose fitting or label problems, but a constrained linear model cannot memorize arbitrary outcomes, and identical inputs with conflicting labels remain inseparable.
-
-## 6. Work a concrete case
-
-A model that cannot fit twenty clean examples probably needs a pipeline or optimization check before more regularization. A model fitting those examples perfectly but failing held-out cases needs a different diagnosis.

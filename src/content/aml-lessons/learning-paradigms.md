@@ -46,7 +46,3 @@ Withhold the hidden answer from the input. The learned **representation**, or re
 | Reinforcement learning | Learn actions from rewards received through interaction |
 
 These approaches can be combined. Check whether the available signal actually supports the intended task.
-
-## 6. Work a concrete case
-
-Predicting a masked word creates a target from existing text. Predicting whether that message is spam needs a spam label. The same message can support both objectives, but success on one does not establish success on the other.

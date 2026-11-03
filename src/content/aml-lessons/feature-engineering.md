@@ -47,7 +47,3 @@ These two features locate the hour on a daily cycle. Both coordinates distinguis
 For nonnegative amount \(a\), \(\log(1+a)\) compresses large values. It changes the input, not the target loss.
 
 A linear model needs an explicit product feature to express that interaction. A tree can express one through nested tests. Keep features that improve validation enough to justify their live data dependencies.
-
-## 6. Work a concrete case
-
-A price model can use both distance and duration, but speed = distance/duration exposes a relationship directly. Handle zero duration explicitly; a useful derived feature must also be reproducible from information available when predicting.

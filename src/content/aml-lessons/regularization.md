@@ -43,7 +43,3 @@ Scale inputs when coefficients should face comparable penalties. Fit the transfo
 Larger `alpha` commonly strengthens regularization; smaller `C` does so in estimators using inverse strength. Conventions differ. Intercepts are commonly unpenalized to avoid pulling the baseline toward zero.
 
 Tree depth limits and early stopping impose related restrictions outside coefficient penalties. Excessive restriction underfits.
-
-## 6. Work a concrete case
-
-Two correlated columns can share a prediction in many ways. A penalty chooses among those fits and changes their sensitivity to noise. Stable predictions do not imply that either individual coefficient identifies a causal effect.

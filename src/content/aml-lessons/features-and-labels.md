@@ -48,7 +48,3 @@ Ten observed days cannot establish a negative 30-day label.
 “One row per user” differs from “one row per user per week.” The choice changes labels, dependence between rows, and evaluation.
 
 Every feature must also be available within the live decision's time budget. Today's warehouse contents do not establish historical availability.
-
-## 6. Work a concrete case
-
-For a loan decision at noon, the applicant's recorded income can be a feature. Next month's repayment is a label. Writing the decision time beside each column exposes future information before any model is trained.

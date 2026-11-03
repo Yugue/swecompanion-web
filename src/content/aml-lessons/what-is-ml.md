@@ -42,7 +42,3 @@ The model estimates risk; the threshold reflects review capacity and error costs
 **Generalization** means useful performance on new examples. Memorizing every training answer does not establish it.
 
 Use ML when representative data contains patterns that are difficult to specify manually. If the requirement is already a complete rule, measure that rule first. Include data, serving, and maintenance costs when judging improvement.
-
-## 6. Work a concrete case
-
-A rule that blocks every message containing “prize” is fixed by its author. A learned filter can combine words and sender history; its value is fewer costly mistakes on new messages, not its training score.

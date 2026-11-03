@@ -39,7 +39,3 @@ Depth 4 transfers better in this comparison. Perfect training fit does not justi
 Choosing median filling is configuration; the median computed from training rows is fitted state.
 
 **Early stopping** chooses when to stop iterative fitting from validation performance. It is another data-informed choice. Repeated configuration searches can also fit validation noise, so reserve independent final evaluation.
-
-## 6. Work a concrete case
-
-In y = wx + b, fitting changes w and b. Choosing a penalty strength changes which fits are preferred. A fitted scaler also stores learned values, so deployment must preserve more than the model's coefficients.

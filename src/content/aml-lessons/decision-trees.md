@@ -45,7 +45,3 @@ A deep tree can memorize noise. Identical inputs with conflicting labels still c
 Trees express nonlinear thresholds without ordinary scaling. Small data changes can alter early splits; ensembles reduce that sensitivity.
 
 A standard regression tree is piecewise constant. Outside observed input ranges it reuses existing leaves, rather than extending a trend. Category and missing-value support depend on the estimator.
-
-## 6. Work a concrete case
-
-A split at age 30 assigns every value below 30 to one branch. Predictions jump at the boundary and are constant within a leaf; a deeper tree adds smaller regions rather than fitting one smooth global slope.

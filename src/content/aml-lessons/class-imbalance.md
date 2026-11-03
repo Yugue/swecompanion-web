@@ -39,7 +39,3 @@ A lower cutoff may meet the objective without changing fitting. Choose from vali
 Resample only within training folds. Keep evaluation representative of deployment.
 
 Changed class proportions or weights can distort probability estimates; follow the calibration procedure when probabilities matter. More emphasis on incorrect minority labels can amplify their errors, so audit labels and coverage too.
-
-## 6. Work a concrete case
-
-With 100 positives and 9,900 negatives, always predicting negative gives 99% accuracy and zero recall. Report the errors the decision actually pays for, and choose thresholds using the expected deployment prevalence.

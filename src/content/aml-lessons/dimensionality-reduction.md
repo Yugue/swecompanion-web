@@ -37,7 +37,3 @@ Center inputs, and scale when units should contribute comparably. Validate the d
 Use selection to retain identifiable measurements or remove expensive inputs. PCA combines inputs, so computing its components may still require every raw measurement.
 
 **t-SNE** and **UMAP** are nonlinear methods often used to explore local neighborhoods in low-dimensional plots. Apparent global distances and cluster sizes need caution. UMAP can also transform new inputs when fitted and validated appropriately.
-
-## 6. Work a concrete case
-
-Two measurements may vary together along a diagonal. One principal coordinate can retain most of that variation, but a small perpendicular separation may encode the class. Unsupervised compression does not optimize label separation.

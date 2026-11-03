@@ -50,7 +50,3 @@ Here \(x\) is one scalar measurement and \(w_1,w_2\) its fitted coefficients. Th
 Residual patterns can expose a missing relationship. Unequal error variance or dependent errors affect conventional uncertainty estimates. Normally distributed errors are not required merely to fit a useful predictor.
 
 Linear models can extend trends beyond observed inputs; an incorrect trend can also extrapolate badly.
-
-## 7. Work a concrete case
-
-For predicted fare = 3 + 2 × kilometers, a 4 km trip predicts 11 currency units. The intercept represents the prediction at zero distance; it is not necessarily meaningful outside the observed operating range.

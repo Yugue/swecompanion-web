@@ -41,7 +41,3 @@ Freeze choices before final assessment. Version the pipeline and decision policy
 A weekly queue may suit batch serving. Keep a supported fallback and rollback.
 
 High churn risk does not imply high benefit from calling. Use an appropriate experiment to measure the intervention, since decisions can change observed outcomes.
-
-## 6. Work a concrete case
-
-For churn prevention, predict cancellation before the outreach decision and measure whether outreach helps. A highly accurate churn score cannot establish intervention benefit: people at highest risk may also be hardest to retain.

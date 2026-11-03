@@ -41,7 +41,3 @@ Learn baseline values from training data; compare on shared evaluation examples.
 Keep rules when they meet the requirement and added modelling does not justify its cost. Keep a useful baseline available as a regression check or supported fallback.
 
 Failure to beat a trivial reference warrants investigation. Weak available signal can also be the explanation.
-
-## 6. Work a concrete case
-
-If predicting tomorrow's demand as today's demand beats a complex model, the model has not earned deployment. Evaluate both on identical future periods, including holidays, rather than comparing their training losses.

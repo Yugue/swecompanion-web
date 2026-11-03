@@ -51,7 +51,3 @@ Sampled updates are cheaper and noisier; full-data loss need not fall after each
 A **convex objective** has no nonglobal local minima. It may still lack a unique finite minimizer. Least squares and logistic log loss are convex in weights; k-means is not.
 
 **Coordinate descent** updates one coefficient at a time. **Quasi-Newton methods** approximate curvature. Match the solver to the objective and check convergence.
-
-## 7. Work a concrete case
-
-With L(w) = (w−2)², w=0 has gradient −4. A step of 0.1 moves w to 0.4 and reduces loss from 4 to 2.56. Recompute the gradient there; the old slope is already stale.

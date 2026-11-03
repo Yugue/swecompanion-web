@@ -47,7 +47,3 @@ P(\text{word }j\mid y)=\frac{N_{jy}+\alpha}{N_y+\alpha V}
 \(N_{jy}\) counts word \(j\) in class \(y\); \(N_y\) counts all word occurrences there; \(V\) is vocabulary size; \(\alpha>0\) controls smoothing. At \(\alpha=1\), this is add-one smoothing.
 
 Sum log-probabilities to avoid numerical underflow from tiny products.
-
-## 6. Work a concrete case
-
-“Cheap” and “discount” may co-occur in spam. Treating them as independent given the class can multiply overlapping evidence twice. The predicted class can remain useful even while its reported probability becomes too extreme.

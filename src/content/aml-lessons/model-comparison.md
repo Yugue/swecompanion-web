@@ -35,7 +35,3 @@ Repeat fits if training randomness matters. Use the independent final assessment
 Measure important slices, memory, latency, reliability, and maintenance alongside quality. A small dependable gain can matter at scale.
 
 An **A/B test** randomly assigns eligible experimental units to policies and compares outcomes. Choose the unit and protective metrics to fit the product; offline prediction improvement does not establish the effect of acting differently.
-
-## 6. Work a concrete case
-
-Across the same three folds, A scores [70,80,90] and B [72,82,92]. Both vary widely with fold difficulty, while B's paired gain is consistently two points. Assess paired differences and their dependence, not separate score spreads alone.

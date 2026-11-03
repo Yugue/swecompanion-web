@@ -46,7 +46,3 @@ X_val_scaled = scaler.transform(X_val)
 ```
 
 **Row normalization** instead rescales each example vector, often to unit length. Standardization does not make data Gaussian; min-max scaling does not bound future values; robust scaling does not remove outliers.
-
-## 6. Work a concrete case
-
-Two points differing by 1 kilometer and 100 meters should not have different physical distance merely because of units. Convert to a consistent representation before interpreting nearest neighbors; scaling defines the geometry the model sees.

@@ -41,7 +41,3 @@ Below the diagonal means overpredicted positive risk. Inspect counts: two positi
 Fit using held-out or out-of-fold predictions, then assess separately on the intended population. Recheck relevant subgroups after resampling or population change.
 
 Recalibration cannot repair lost ranking signal. For expected fraud cost, risk 0.25 times a $500 loss gives $125; reporting risk 0.8 would give $400.
-
-## 6. Work a concrete case
-
-Two hundred cases scored near 0.3 should produce roughly sixty positives if calibrated in that population. Ordering those cases perfectly is a separate property; calibration checks probability magnitudes against observed frequencies.

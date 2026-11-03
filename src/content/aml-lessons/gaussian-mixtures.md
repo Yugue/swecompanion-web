@@ -46,7 +46,3 @@ For example, a component mean becomes the responsibility-weighted average of obs
 Spherical covariance gives round components; diagonal gives axis-aligned spreads; full covariance allows rotation. For \(d\) features, full covariance needs \(d(d+1)/2\) values per component.
 
 Use restarts and covariance regularization to avoid poor starts or collapse onto one observation. **Akaike information criterion (AIC)** and **Bayesian information criterion (BIC)** compare likelihood with parameter-count penalties; lower is preferred under each criterion. Held-out likelihood and usefulness offer separate evidence.
-
-## 6. Work a concrete case
-
-A point can receive component probabilities [0.55,0.45] instead of one hard cluster ID. These are responsibilities under the fitted densities, not probabilities that the world has two objectively correct social or product categories.

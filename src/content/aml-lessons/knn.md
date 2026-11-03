@@ -35,7 +35,3 @@ The features and units decide what nearby means. Geographic proximity need not i
 Brute-force prediction costs roughly \(O(nd)\) for \(n\) stored examples with \(d\) features. Fitting also stores data and may build a search index.
 
 **Approximate nearest-neighbor search** trades some retrieval accuracy for speed. Check the resulting prediction quality as well as lookup latency.
-
-## 6. Work a concrete case
-
-Three nearest examples with targets [10,12,20] predict 14 under uniform regression averaging. A different distance scaling can change which three are nearest; there is no separate learned coefficient to repair a poor neighborhood definition.

@@ -43,7 +43,3 @@ Later trees depend on earlier fits, unlike bagging. The ensemble diagram in the 
 Tune learning rate, tree size, and tree count together. Early stopping chooses the count from validation behavior; too many corrections can fit noise.
 
 Boosted trees are strong tabular candidates, but compare measured benefit and serving cost. Their additive predictions can exceed observed target ranges, yet they generally do not extrapolate trends naturally.
-
-## 6. Work a concrete case
-
-An ensemble predicts 8 where the target is 10. Under squared loss, the next tree learns a positive correction; a learning rate of 0.1 applies only part of it. Later trees correct the updated ensemble, not the original prediction.

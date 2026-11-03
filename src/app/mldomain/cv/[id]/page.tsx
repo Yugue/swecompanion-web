@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
-import { cvTopics, cvTopicsById, cvPartsById, cvPartIdForTopic, cvLessonNumbers, cvReferencesByTopic } from "@/lib/cvStudyData";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { cvTopics, cvTopicsById, cvPartsById, cvPartIdForTopic, cvLessonNumbers } from "@/lib/cvStudyData";
 import { CV_PATH } from "@/lib/mlDomains";
 import { lessonExists } from "@/lib/getLessonBlocks";
 import { TopBar } from "@/components/TopBar";
@@ -34,7 +34,6 @@ export default async function CvLessonPage({ params }: { params: Promise<{ id: s
   const index = cvTopics.findIndex((item) => item.id === id);
   const previous = cvTopics[index - 1];
   const next = cvTopics[index + 1];
-  const references = cvReferencesByTopic[id] ?? part.references;
   const jsonLd = {
     "@context": "https://schema.org", "@type": "LearningResource",
     name: topic.title, description: topic.summary, learningResourceType: "Lesson",
@@ -70,20 +69,6 @@ export default async function CvLessonPage({ params }: { params: Promise<{ id: s
           <h2 className="sr-only">Full lesson</h2>
           <LessonView topicId={id} track="cv" />
         </article>
-        {references.length > 0 && (
-          <section className="mt-8 border-t border-outline/55 pt-5">
-            <h2 className="mb-2 text-sm font-bold text-text">Further reading — official documentation and original papers</h2>
-            <ul className="flex flex-col gap-2">
-              {references.map((reference) => (
-                <li key={reference.url}>
-                  <a href={reference.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-[var(--accent)] hover:underline">
-                    {reference.title} <ExternalLink size={13} />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
         <nav aria-label="Lesson navigation" className="mt-8 grid gap-3 border-t border-outline/55 pt-5 sm:grid-cols-2">
           {previous ? (
             <Link href={`${CV_PATH}/${previous.id}`} className="rounded-lg border border-outline bg-surface p-4 hover:bg-surface-high">

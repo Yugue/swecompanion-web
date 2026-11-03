@@ -44,7 +44,3 @@ Respect group and time restrictions inside those folds too. Excluding one row ca
 | Embedding: learn dense category vectors | Compact learned representation | Needs adequate training evidence |
 
 Some estimators handle categories internally. Plan rare and unseen values explicitly; a fallback code does not supply knowledge about a new category.
-
-## 6. Work a concrete case
-
-Coding red=1, green=2, blue=3 gives a linear model an invented ordering. Three indicators let each color have a separate effect. Fit the category mapping on training data and define what an unseen color becomes.

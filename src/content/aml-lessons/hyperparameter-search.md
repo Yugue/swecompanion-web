@@ -33,7 +33,3 @@ These give comparable attention to orders of magnitude. Uniform sampling from 0.
 Thirty configurations with five-fold CV cost roughly 150 fits, plus a final refit. Thirty total fits permit only about six such configurations.
 
 Log data version, folds, settings, score, and runtime. Search complete pipelines; use the independent testing or nested-CV strategy already established. More trials also create more opportunities to select a lucky validation score.
-
-## 6. Work a concrete case
-
-Eight configurations with five folds require 40 fits before the final refit. A ten-fit budget cannot support that design. Reduce configurations or change the evaluation budget before interpreting an incomplete comparison as a search result.
