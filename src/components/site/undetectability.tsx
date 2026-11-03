@@ -4,7 +4,7 @@ import { Container } from './primitives'
 const specs = [
   {
     label: 'Screen sharing',
-    detail: 'Excluded from Zoom, Meet, Teams, and Slack share streams.',
+    detail: 'Invisible to Zoom, Google Meet, Teams, Slack, Webex, HackerRank, CoderPad, CodeSignal, and much more.',
     status: 'Invisible',
   },
   {
@@ -48,8 +48,7 @@ export function Undetectability() {
               Built to leave no trace.
             </h2>
             <p className="max-w-2xl text-pretty leading-relaxed text-muted-foreground">
-              Undetectability is not a setting — it is the architecture. Here is
-              exactly what every capture surface receives from the companion.
+              Undetectability is not a setting — it is our promise.
             </p>
           </div>
 

@@ -1,6 +1,8 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { AccountMenu } from '@/components/auth/AccountMenu'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -12,7 +14,6 @@ const links = [
   { label: 'How it works', href: '#how' },
   { label: 'Pricing', href: '#pricing' },
   { label: 'FAQ', href: '#faq' },
-  { label: 'Interview Prep Guides', href: '/coding', featured: true },
 ]
 
 export function Nav() {
@@ -33,8 +34,8 @@ export function Nav() {
         scrolled ? 'border-b border-border' : 'border-b border-transparent',
       )}
     >
-      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between px-5 md:px-8">
-        <a href="#top" className="flex items-center gap-2" aria-label="SWECompanion home">
+      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-[minmax(0,0.44fr)_minmax(0,0.56fr)] items-center gap-2 px-3 py-2 sm:grid-cols-2 md:flex md:gap-3 md:px-8 md:py-3">
+        <a href="#top" className="col-span-2 col-start-1 row-start-1 flex w-fit items-center gap-2" aria-label="SWECompanion home">
           <Wordmark />
         </a>
 
@@ -43,32 +44,47 @@ export function Nav() {
             <a
               key={l.href}
               href={l.href}
-              className={cn(
-                'rounded-md px-3 py-1.5 text-sm whitespace-nowrap transition-colors',
-                l.featured
-                  ? 'bg-primary/10 font-semibold text-primary ring-1 ring-inset ring-primary/20 hover:bg-primary/15'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
+              className="rounded-md px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
             >
               {l.label}
             </a>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 min-[1440px]:flex">
-          <Button variant="ghost" size="sm" render={<a href="#pricing">Sign in</a>} />
-          <Button size="sm" render={<a href="#download">Download for macOS</a>} />
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="col-start-1 row-start-2 h-9 w-full px-1.5 sm:px-3 md:ml-2 md:w-auto"
+          render={
+            <Link href="/coding" aria-label="Interview Prep Guides">
+              <span className="whitespace-nowrap md:hidden">Interview Prep</span>
+              <span className="hidden whitespace-nowrap md:inline">Interview Prep Guides</span>
+            </Link>
+          }
+        />
 
-        <button
-          type="button"
-          className="inline-flex size-9 items-center justify-center rounded-md border border-border text-foreground min-[1440px]:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-label={open ? 'Close menu' : 'Open menu'}
-          aria-expanded={open}
-        >
-          {open ? <X className="size-4" /> : <Menu className="size-4" />}
-        </button>
+        <div className="contents md:ml-auto md:flex md:items-center md:gap-3">
+          <Button
+            size="sm"
+            className="col-start-2 row-start-2 h-9 w-full px-1.5 sm:px-3 md:w-auto"
+            render={<a href="#download"><span className="whitespace-nowrap">Download for Free</span></a>}
+          />
+          <div className="col-start-2 row-start-1 flex items-center justify-self-end gap-2">
+            <AccountMenu
+              signInLabel="Login"
+              signInClassName="rounded-md bg-transparent px-2 font-mono font-normal text-muted-foreground hover:bg-muted hover:text-foreground hover:brightness-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-2"
+            />
+            <button
+              type="button"
+              className="inline-flex size-9 items-center justify-center rounded-md border border-border text-foreground min-[1440px]:hidden"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+            >
+              {open ? <X className="size-4" /> : <Menu className="size-4" />}
+            </button>
+          </div>
+        </div>
       </div>
 
       {open ? (
@@ -79,21 +95,11 @@ export function Nav() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className={cn(
-                  'rounded-md px-3 py-2 text-sm transition-colors',
-                  l.featured
-                    ? 'bg-primary/10 font-semibold text-primary ring-1 ring-inset ring-primary/20 hover:bg-primary/15'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                )}
+                className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 {l.label}
               </a>
             ))}
-            <Button
-              className="mt-2 w-full"
-              size="sm"
-              render={<a href="#download" onClick={() => setOpen(false)}>Download for macOS</a>}
-            />
           </div>
         </div>
       ) : null}

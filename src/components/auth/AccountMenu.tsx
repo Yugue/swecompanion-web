@@ -1,12 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { CircleUserRound, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { usePremium } from "@/lib/usePremium";
 import { SignInDialog } from "./SignInDialog";
+import { cn } from "@/lib/utils";
 
-export function AccountMenu() {
+export function AccountMenu({
+  signInLabel = "Sign in",
+  signInClassName,
+}: {
+  signInLabel?: string;
+  signInClassName?: string;
+}) {
   const { user, loading, signOut } = useAuth();
   const { premium } = usePremium();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -20,11 +28,14 @@ export function AccountMenu() {
         <button
           type="button"
           onClick={() => setDialogOpen(true)}
-          className="whitespace-nowrap rounded-lg bg-accent-blue px-3 py-2 sm:px-3.5 text-sm font-semibold text-white hover:brightness-110"
+          className={cn(
+            "whitespace-nowrap rounded-lg bg-accent-blue px-3 py-2 sm:px-3.5 text-sm font-semibold text-white hover:brightness-110",
+            signInClassName,
+          )}
         >
-          Sign in
+          {signInLabel}
         </button>
-        {dialogOpen && <SignInDialog onClose={() => setDialogOpen(false)} />}
+        {dialogOpen && createPortal(<SignInDialog onClose={() => setDialogOpen(false)} />, document.body)}
       </>
     );
   }
