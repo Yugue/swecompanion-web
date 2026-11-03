@@ -135,21 +135,9 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_16px_60px_-24px_color-mix(in_oklch,var(--brand-blue)_25%,transparent)]">
-          <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-3 sm:px-5">
-            <span className="flex gap-1.5" aria-hidden="true">
-              <span className="size-2.5 rounded-full border border-border bg-background" />
-              <span className="size-2.5 rounded-full border border-border bg-background" />
-              <span className="size-2.5 rounded-full border border-border bg-background" />
-            </span>
-            <span className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-destructive" />
-              Zoom · screen shared
-            </span>
-          </div>
-
-          <div className="border-b border-border px-3 py-3 sm:px-5">
-            <div role="tablist" aria-label="Choose a problem type" className="grid grid-cols-3 gap-1 rounded-lg bg-muted/60 p-1">
+        <div className="min-w-0 space-y-4">
+          <div className="mx-auto w-full max-w-md">
+            <div role="tablist" aria-label="Choose a problem type" className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-card p-1 shadow-sm">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -175,53 +163,67 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Overlap panels so the preview height stays stable as the demo rotates. */}
-          <div className="grid">
-            {tabs.map((tab) => {
-              const panel = panels[tab.id]
-              const isActive = active === tab.id
-              return (
-                <div
-                  key={tab.id}
-                  id={`demo-panel-${tab.id}`}
-                  role="tabpanel"
-                  aria-labelledby={`demo-tab-${tab.id}`}
-                  aria-hidden={!isActive}
-                  inert={!isActive}
-                  className={cn('col-start-1 row-start-1 min-w-0', !isActive && 'invisible pointer-events-none')}
-                >
-                  <div className="border-b border-border bg-muted/15 px-4 py-4 sm:px-5">
-                    <p className="font-mono text-xs text-muted-foreground">problem.md</p>
-                    <h3 className="mt-1.5 text-base font-medium tracking-tight text-foreground">{tab.problem}</h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{tab.prompt}</p>
-                  </div>
+          <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_16px_60px_-24px_color-mix(in_oklch,var(--brand-blue)_25%,transparent)]">
+            <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-3 sm:px-5">
+              <span className="flex gap-1.5" aria-hidden="true">
+                <span className="size-2.5 rounded-full border border-border bg-background" />
+                <span className="size-2.5 rounded-full border border-border bg-background" />
+                <span className="size-2.5 rounded-full border border-border bg-background" />
+              </span>
+              <span className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+                <span className="size-1.5 rounded-full bg-destructive" />
+                Zoom · screen shared
+              </span>
+            </div>
 
-                  <div className="px-4 py-5 sm:px-5">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="flex items-center gap-1.5 text-xs font-medium text-signal">
-                        <Sparkles className="size-3.5" />
-                        SWECompanion
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[10px] text-muted-foreground">
-                        <EyeOff className="size-3" />
-                        Hidden from screen share
-                      </span>
+            {/* Overlap panels so the preview height stays stable as the demo rotates. */}
+            <div className="grid">
+              {tabs.map((tab) => {
+                const panel = panels[tab.id]
+                const isActive = active === tab.id
+                return (
+                  <div
+                    key={tab.id}
+                    id={`demo-panel-${tab.id}`}
+                    role="tabpanel"
+                    aria-labelledby={`demo-tab-${tab.id}`}
+                    aria-hidden={!isActive}
+                    inert={!isActive}
+                    className={cn('col-start-1 row-start-1 min-w-0', !isActive && 'invisible pointer-events-none')}
+                  >
+                    <div className="border-b border-border bg-muted/15 px-4 py-4 sm:px-5">
+                      <p className="font-mono text-xs text-muted-foreground">problem.md</p>
+                      <h3 className="mt-1.5 text-base font-medium tracking-tight text-foreground">{tab.problem}</h3>
+                      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{tab.prompt}</p>
                     </div>
-                    <p className="mt-3 text-sm font-medium leading-relaxed">{panel.title}</p>
-                    <pre className="mt-3 whitespace-pre-wrap break-words rounded-lg border border-brand-navy bg-brand-navy p-3 font-mono text-[12px] leading-relaxed text-brand-navy-foreground [overflow-wrap:anywhere] sm:p-4">
-                      <code>
-                        {panel.lines.map((line, i) => (
-                          <span key={i} className={cn('block', line.dim && 'text-brand-cyan/80')}>
-                            {line.t}
-                          </span>
-                        ))}
-                      </code>
-                    </pre>
-                    <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{panel.footer}</p>
+
+                    <div className="px-4 py-5 sm:px-5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-signal">
+                          <Sparkles className="size-3.5" />
+                          SWECompanion
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[10px] text-muted-foreground">
+                          <EyeOff className="size-3" />
+                          Hidden from screen share
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm font-medium leading-relaxed">{panel.title}</p>
+                      <pre className="mt-3 whitespace-pre-wrap break-words rounded-lg border border-brand-navy bg-brand-navy p-3 font-mono text-[12px] leading-relaxed text-brand-navy-foreground [overflow-wrap:anywhere] sm:p-4">
+                        <code>
+                          {panel.lines.map((line, i) => (
+                            <span key={i} className={cn('block', line.dim && 'text-brand-cyan/80')}>
+                              {line.t}
+                            </span>
+                          ))}
+                        </code>
+                      </pre>
+                      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{panel.footer}</p>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         </div>
       </Container>
