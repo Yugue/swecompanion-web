@@ -69,7 +69,7 @@ for (const part of speechParts) {
 assert.ok(figures === 6 && equations >= 25 && tables >= 12 && diagrams >= 15 && examples >= 5);
 
 if (process.argv.includes("--export")) {
-  const validPaths = new Set([SPEECH_PATH, ...speechTopics.map((topic) => SPEECH_PATH + "/" + topic.id)]);
+  const validPaths = new Set([SPEECH_PATH, ...speechTopics.map((topic) => SPEECH_PATH + "/" + topic.id), ...speechParts.map((part) => SPEECH_PATH + "/" + part.id + "/quiz")]);
   const hub = fs.readFileSync(path.join("out", SPEECH_PATH.slice(1) + ".html"), "utf8");
   assert.ok(hub.includes("31") && hub.includes("Speech / Audio"));
   const sitemap = fs.readFileSync("out/sitemap.xml", "utf8");

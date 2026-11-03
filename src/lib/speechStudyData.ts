@@ -8,7 +8,7 @@ export interface SpeechPart extends Omit<MlPart, "topics"> {
 }
 
 // The six-part curriculum: 31 core lessons.
-// No unavailable premium quiz is advertised.
+// Only quizzes with authored questions and answers are advertised.
 export const speechParts: SpeechPart[] = [
   {
     "id": "audio-signals",
@@ -17,7 +17,7 @@ export const speechParts: SpeechPart[] = [
     "description": "Understand audio capture, frequency structure, feature extraction, and the information preprocessing changes.",
     "color": "#4285F4",
     "icon": "LineChart",
-    "quizQuestionCount": 0,
+    "quizQuestionCount": 10,
     "references": [
       {
         "title": "Aalto University — Introduction to Speech Processing",
@@ -110,7 +110,7 @@ export const speechParts: SpeechPart[] = [
     "description": "Learn the mathematics, neural networks, sequence models, and pretraining needed for speech and audio.",
     "color": "#34A853",
     "icon": "Network",
-    "quizQuestionCount": 0,
+    "quizQuestionCount": 10,
     "references": [
       {
         "title": "PyTorch neural-network fundamentals",
@@ -219,7 +219,7 @@ export const speechParts: SpeechPart[] = [
     "description": "Connect acoustic evidence to linguistic targets through alignment, modeling, and decoding.",
     "color": "#EA4335",
     "icon": "GitBranch",
-    "quizQuestionCount": 0,
+    "quizQuestionCount": 10,
     "references": [
       {
         "title": "Sequence Modeling with CTC",
@@ -297,7 +297,7 @@ export const speechParts: SpeechPart[] = [
     "description": "Recognize events and speakers, assign turns, restore mixtures, and connect sound with language.",
     "color": "#A142F4",
     "icon": "Search",
-    "quizQuestionCount": 0,
+    "quizQuestionCount": 10,
     "references": [
       {
         "title": "CLAP: Learning Audio Concepts From Natural Language Supervision",
@@ -394,7 +394,7 @@ export const speechParts: SpeechPart[] = [
     "description": "Understand linguistic conditioning, acoustic generation, waveform synthesis, and speech interactions.",
     "color": "#F29900",
     "icon": "Sparkles",
-    "quizQuestionCount": 0,
+    "quizQuestionCount": 10,
     "references": [
       {
         "title": "SoundStream: An End-to-End Neural Audio Codec",
@@ -480,7 +480,7 @@ export const speechParts: SpeechPart[] = [
     "description": "Collect trustworthy data, measure quality, diagnose failures, and serve reliable real-time systems.",
     "color": "#12A89D",
     "icon": "Wrench",
-    "quizQuestionCount": 0,
+    "quizQuestionCount": 10,
     "references": [
       {
         "title": "Aalto University — Introduction to Speech Processing",

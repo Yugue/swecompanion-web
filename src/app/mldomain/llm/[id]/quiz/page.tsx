@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!part || part.quizQuestionCount === 0) return {};
   return {
     title: `Large Language Models ${part.title} Mock Interview Quiz`,
-    description: `${part.quizQuestionCount} Large Language Models reasoning questions with model answers covering ${part.title.toLowerCase()}. Uses the foundations taught within this topic. Premium.`,
+    description: `${part.quizQuestionCount} Large Language Models reasoning questions with model answers covering ${part.title.toLowerCase()}. Uses the foundations taught within this topic. Free.`,
     alternates: { canonical: `${LLM_PATH}/${id}/quiz` },
   };
 }

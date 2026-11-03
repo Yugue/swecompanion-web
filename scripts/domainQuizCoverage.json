@@ -1,0 +1,768 @@
+{
+  "rl-foundations": [
+    {
+      "lessons": [
+        "rl-problem"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "probability-and-estimation"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "function-approximation"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "markov-decision-processes"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "policies-and-returns"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "policies-and-returns"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "values-and-bellman"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "values-and-bellman"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "rl-problem",
+        "values-and-bellman"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "policies-and-returns",
+        "probability-and-estimation"
+      ],
+      "skill": "mechanism"
+    }
+  ],
+  "rl-learning-values": [
+    {
+      "lessons": [
+        "planning-and-dynamic-programming"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "monte-carlo-and-td"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "monte-carlo-and-td"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "multi-step-credit"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "exploration-and-bandits"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "on-and-off-policy"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "tabular-control"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "tabular-control"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "on-and-off-policy",
+        "exploration-and-bandits"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "planning-and-dynamic-programming",
+        "multi-step-credit"
+      ],
+      "skill": "tradeoff"
+    }
+  ],
+  "rl-deep-values": [
+    {
+      "lessons": [
+        "value-instability"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "deep-q-networks"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "deep-q-networks"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "better-value-estimates"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "better-value-estimates"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "partial-observability"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "deep-q-networks",
+        "value-instability"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "better-value-estimates"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "partial-observability"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "deep-q-networks"
+      ],
+      "skill": "diagnosis"
+    }
+  ],
+  "rl-policy-optimization": [
+    {
+      "lessons": [
+        "policy-gradients"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "policy-gradients",
+        "actor-critic-and-gae"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "actor-critic-and-gae"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "proximal-policy-optimization"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "proximal-policy-optimization"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "continuous-actor-critics"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "continuous-actor-critics",
+        "soft-actor-critic"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "soft-actor-critic"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "actor-critic-and-gae"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "policy-gradients",
+        "continuous-actor-critics"
+      ],
+      "skill": "tradeoff"
+    }
+  ],
+  "rl-models-and-data": [
+    {
+      "lessons": [
+        "models-and-planning"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "models-and-planning"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "learning-from-demonstrations"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "offline-reinforcement-learning"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "offline-reinforcement-learning",
+        "learning-from-demonstrations"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "off-policy-evaluation"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "off-policy-evaluation"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "feedback-and-preferences"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "language-model-decisions"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "feedback-and-preferences",
+        "language-model-decisions"
+      ],
+      "skill": "diagnosis"
+    }
+  ],
+  "rl-practical-systems": [
+    {
+      "lessons": [
+        "reward-design"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "reward-design"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "sparse-rewards-and-exploration"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "training-systems"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "training-systems"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "training-diagnostics"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "training-diagnostics",
+        "evaluation-and-generalization"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "evaluation-and-generalization"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "selection-and-deployment"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "selection-and-deployment",
+        "evaluation-and-generalization"
+      ],
+      "skill": "tradeoff"
+    }
+  ],
+  "speech-audio-signals": [
+    {
+      "lessons": [
+        "sound-and-speech"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "digital-audio"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "digital-audio"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "frequency-domain"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "short-time-analysis"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "short-time-analysis"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "perceptual-features"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "filtering-and-preprocessing"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "short-time-analysis",
+        "filtering-and-preprocessing"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "digital-audio",
+        "perceptual-features"
+      ],
+      "skill": "tradeoff"
+    }
+  ],
+  "speech-learning-foundations": [
+    {
+      "lessons": [
+        "mathematical-tools"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "neural-learning"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "convolutional-encoders"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "convolutional-encoders"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "sequence-modeling"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "sequence-modeling",
+        "attention-transformers"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "attention-transformers"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "pretraining-transfer"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "pretraining-transfer"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "mathematical-tools",
+        "neural-learning"
+      ],
+      "skill": "tradeoff"
+    }
+  ],
+  "speech-speech-recognition": [
+    {
+      "lessons": [
+        "recognition-targets"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "recognition-targets"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "ctc-alignment"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "ctc-alignment"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "ctc-alignment"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "ctc-alignment"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "transducers-attention"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "transducers-attention"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "recognition-decoding"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "recognition-decoding"
+      ],
+      "skill": "diagnosis"
+    }
+  ],
+  "speech-audio-understanding": [
+    {
+      "lessons": [
+        "audio-events"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "audio-events"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "speaker-recognition"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "speaker-recognition"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "diarization"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "diarization"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "enhancement-separation"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "enhancement-separation"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "audio-text-understanding"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "speaker-recognition",
+        "audio-text-understanding"
+      ],
+      "skill": "diagnosis"
+    }
+  ],
+  "speech-audio-generation": [
+    {
+      "lessons": [
+        "text-to-speech"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "text-to-speech"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "text-to-speech"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "generative-modeling"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "generative-modeling"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "vocoders-codecs"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "vocoders-codecs"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "speech-language-systems"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "generative-modeling",
+        "text-to-speech"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "speech-language-systems",
+        "vocoders-codecs"
+      ],
+      "skill": "diagnosis"
+    }
+  ],
+  "speech-practical-systems": [
+    {
+      "lessons": [
+        "data-and-baselines"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "data-and-baselines",
+        "robustness-adaptation"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "evaluation-errors"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "evaluation-errors"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "streaming-latency"
+      ],
+      "skill": "calculation"
+    },
+    {
+      "lessons": [
+        "streaming-latency"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "efficient-deployment"
+      ],
+      "skill": "tradeoff"
+    },
+    {
+      "lessons": [
+        "system-design"
+      ],
+      "skill": "mechanism"
+    },
+    {
+      "lessons": [
+        "system-design",
+        "evaluation-errors"
+      ],
+      "skill": "diagnosis"
+    },
+    {
+      "lessons": [
+        "robustness-adaptation",
+        "efficient-deployment"
+      ],
+      "skill": "tradeoff"
+    }
+  ]
+}

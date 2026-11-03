@@ -38,12 +38,12 @@ export function QuizTeaser({
             className="rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-accent-ink"
             style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)" }}
           >
-            PREMIUM
+            FREE
           </span>
         </span>
         <span className="block text-[13px] leading-snug text-text-muted">
-          {questionCount} question{questionCount === 1 ? "" : "s"} designed to reflect real
-          interview questions
+          {questionCount} question{questionCount === 1 ? "" : "s"} on core concepts, examples,
+          and tradeoffs
         </span>
       </span>
       <span

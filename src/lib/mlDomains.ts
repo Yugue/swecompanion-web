@@ -4,7 +4,7 @@
  *   /mldomain                              redirects to the default domain's hub
  *   /mldomain/<domain>                     that domain's hub (chapters + lessons)
  *   /mldomain/<domain>/<lesson>            a lesson
- *   /mldomain/<domain>/<chapter>/quiz      a chapter's premium mock-interview quiz
+ *   /mldomain/<domain>/<chapter>/quiz      a chapter's free mock-interview quiz
  *
  * Every link, canonical URL and sitemap entry derives from these constants, so a domain's
  * path is only ever spelled once.

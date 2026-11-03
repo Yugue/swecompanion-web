@@ -33,9 +33,9 @@ service cloud.firestore {
       }
     }
 
-    // Quiz questions AND answers are premium-only content - neither ships in the static site
-    // bundle. Seeded once via scripts/seedQuizzes.ts (Admin SDK, bypasses rules) - clients may
-    // only ever read them, and only when premium.
+    // Legacy database-backed quiz copies remain restricted to premium accounts.
+    // Public ML quizzes are included in their static pages from scripts/quizzes.json
+    // and do not read this collection. Client writes remain prohibited.
     match /quizzes/{quizId} {
       allow read: if isPremium();
       allow write: if false;

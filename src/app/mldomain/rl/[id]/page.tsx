@@ -8,6 +8,7 @@ import { lessonExists } from "@/lib/getLessonBlocks";
 import { TopBar } from "@/components/TopBar";
 import { LessonView } from "@/components/lesson/LessonView";
 import { InlineMarkdown } from "@/components/lesson/InlineMarkdown";
+import { QuizTeaser } from "@/components/quiz/QuizTeaser";
 import { LessonCompleteToggle } from "@/components/ml/LessonCompleteToggle";
 
 export function generateStaticParams() {
@@ -69,6 +70,15 @@ export default async function RlLessonPage({ params }: { params: Promise<{ id: s
           <h2 className="sr-only">Full lesson</h2>
           <LessonView topicId={id} track="rl" />
         </article>
+        {part.quizQuestionCount > 0 && (
+          <aside aria-label="Part quiz" className="mt-8 overflow-hidden rounded-xl border border-outline/60">
+            <QuizTeaser
+              href={`${RL_PATH}/${part.id}/quiz`}
+              title={`Part ${part.number} mock interview`}
+              questionCount={part.quizQuestionCount}
+            />
+          </aside>
+        )}
         <nav aria-label="Lesson navigation" className="mt-8 grid gap-3 border-t border-outline/55 pt-5 sm:grid-cols-2">
           {previous ? (
             <Link href={`${RL_PATH}/${previous.id}`} className="rounded-lg border border-outline bg-surface p-4 hover:bg-surface-high">

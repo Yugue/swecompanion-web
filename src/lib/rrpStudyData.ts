@@ -6,8 +6,8 @@
 // referenced before the lesson that teaches it, which is why the ranking metrics sit in
 // chapter 1 rather than in the evaluation chapter.
 //
-// Quiz questions AND answers are premium content, served only from Firestore
-// (quizzes/{quizId}, gated by firestore.rules) - only the count is public here.
+// ML quiz questions and answers are free and included in exported quiz pages.
+// Only question counts are needed in curriculum data.
 
 export interface RrpTopic {
   id: string;

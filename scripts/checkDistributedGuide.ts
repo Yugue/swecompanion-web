@@ -10,6 +10,7 @@ import { getLessonBlocks } from "../src/lib/getLessonBlocks";
 import { parseInline, parseTableRows } from "../src/lib/lessonParser";
 import { DISTRIBUTED_ML_PATH, ML_DOMAINS } from "../src/lib/mlDomains";
 import { ICONS } from "../src/lib/icons";
+import { checkDistributedQuizzes } from "./checkDistributedQuizzes";
 
 assert.deepEqual(distributedParts.map((p) => p.topics.length), [5, 5, 6, 4, 3, 5]);
 assert.equal(new Set(distributedParts.map((p) => p.id)).size, 6);
@@ -31,7 +32,7 @@ const paragraphs = new Map<string, string>();
 const sources = new Map<string, string>();
 for (const part of distributedParts) {
   assert.ok(ICONS[part.icon], "Unknown icon: " + part.icon);
-  assert.equal(part.quizQuestionCount, 0);
+  assert.ok(part.quizQuestionCount > 0);
 }
 for (const topic of distributedTopics) {
   assert.ok(topic.summary && topic.keyPoints.length >= 2);
@@ -215,7 +216,7 @@ if (process.argv.includes("--export")) {
   const readPage = (url: string) => fs.readFileSync(path.join("out", url.slice(1) + ".html"), "utf8");
   const hub = readPage(DISTRIBUTED_ML_PATH);
   const sitemap = fs.readFileSync("out/sitemap.xml", "utf8");
-  const valid = new Set([DISTRIBUTED_ML_PATH, ...distributedTopics.map((t) => DISTRIBUTED_ML_PATH + "/" + t.id)]);
+  const valid = new Set([DISTRIBUTED_ML_PATH, ...distributedTopics.map((t) => DISTRIBUTED_ML_PATH + "/" + t.id), ...distributedParts.map((p) => DISTRIBUTED_ML_PATH + "/" + p.id + "/quiz")]);
   assert.ok(hub.includes("28") && hub.includes("Study Guide"));
   assert.ok(sitemap.includes(DISTRIBUTED_ML_PATH + "</loc>"));
   assert.doesNotMatch(hub, /How the Google ML domain interview works|Interview probe:/i);
@@ -243,3 +244,5 @@ if (process.argv.includes("--export")) {
 }
 console.log("Distributed ML guide: " + JSON.stringify({ lessons: distributedTopics.length, words, sections: sectionsTotal, equations, tables, diagrams, examples: code.length }));
 console.log("Passed: Python syntax, finite-difference gradients, weighted aggregation, ring simulation, tensor layouts, memory, scaling, clipping, recovery-cost and serving calculations.");
+
+checkDistributedQuizzes(process.argv.includes("--export"));

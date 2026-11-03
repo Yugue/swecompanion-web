@@ -3,8 +3,8 @@
 // are deliberately independent: mlStudyData.ts is generated from the Flutter app's Dart source,
 // this one is hand-authored, and the shared component props are structural, not nominal.
 //
-// Quiz questions AND answers are premium content, served only from Firestore
-// (quizzes/{quizId}, gated by firestore.rules) - only the count is public here.
+// ML quiz questions and answers are free and included in exported quiz pages.
+// Only question counts are needed in curriculum data.
 
 export interface AmlTopic {
   id: string;

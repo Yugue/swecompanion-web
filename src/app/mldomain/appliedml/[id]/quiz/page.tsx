@@ -21,7 +21,7 @@ export async function generateMetadata({
   if (!part) return {};
   return {
     title: `${part.title} Mock Interview Quiz`,
-    description: `${part.quizQuestionCount} realistic interview-style questions covering applied ML ${part.title.toLowerCase()}, written to match a real L4-L6 interview. Premium.`,
+    description: `${part.quizQuestionCount} realistic interview-style questions covering applied ML ${part.title.toLowerCase()}, written to match a real L4-L6 interview. Free.`,
     alternates: { canonical: `${APPLIED_ML_PATH}/${id}/quiz` },
   };
 }

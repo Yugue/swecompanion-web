@@ -6,7 +6,7 @@ export interface RlPart extends Omit<MlPart, "topics"> {
   topics: RlTopic[];
 }
 
-// Six Parts, 33 lessons. Quizzes are not advertised without published quiz content.
+// Six Parts, 33 lessons, and 60 original free domain-practice questions.
 export const rlParts: RlPart[] = [
   {
     "id": "foundations",
@@ -93,7 +93,7 @@ export const rlParts: RlPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 10
   },
   {
     "id": "learning-values",
@@ -184,7 +184,7 @@ export const rlParts: RlPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 10
   },
   {
     "id": "deep-values",
@@ -250,7 +250,7 @@ export const rlParts: RlPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 10
   },
   {
     "id": "policy-optimization",
@@ -330,7 +330,7 @@ export const rlParts: RlPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 10
   },
   {
     "id": "models-and-data",
@@ -425,7 +425,7 @@ export const rlParts: RlPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 10
   },
   {
     "id": "practical-systems",
@@ -523,7 +523,7 @@ export const rlParts: RlPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 10
   }
 ];
 

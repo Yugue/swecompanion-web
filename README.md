@@ -6,8 +6,8 @@ and Firebase (Auth + Firestore).
 
 - Every LeetCode topic and every ML lesson has its own indexable page.
 - Progress is stored locally and, once signed in, synced to Firestore across devices.
-- Mock-interview quizzes (questions public, answers premium) exist for both guides - see
-  [SETUP.md](SETUP.md) for the one-time setup and content-review steps.
+- All ML domain quizzes and model answers are free, with no sign-in or membership required.
+  Each quiz is included in its static page from `scripts/quizzes.json`.
 
 ## Run locally
 
@@ -107,14 +107,31 @@ prerequisite links are defined in `src/lib/distributedStudyData.ts`.
 
 Each lesson has 8–9 concise sections, with worked examples, equations, comparison
 tables, and execution diagrams. Progress is independent of other topics and uses
-the existing local/account sync. This guide does not add interview-practice,
-recap, or reading-list sections.
+the existing local/account sync. The lessons do not add interview-practice,
+recap, or reading-list sections. Six separate Part quizzes provide 60 questions
+with model answers, free without signing in. Questions and answers live in
+`scripts/quizzes.json` and are included in each exported quiz page. No database
+seeding is required for ML domain quizzes.
 
 Run `npm run check:distributed` to validate curriculum coverage, dependencies,
 parsed equations/tables/diagrams, Python syntax, and independent numerical examples.
 After building, `npm run check:distributed -- --export` verifies all 28 lesson
 pages, prerequisites, sequential navigation, canonical URLs, and sitemap entries.
 GPU snippets are illustrative excerpts; the checks do not launch distributed GPU jobs.
+
+## ML quiz coverage
+
+All 11 ML domains have Part/chapter quizzes: 77 quizzes and 708 paired questions
+and model answers. Speech / Audio and Reinforcement Learning each have six
+10-question quizzes with concrete examples, worked calculations, diagnostics,
+and tradeoffs. Their lesson pages and curriculum link to the corresponding quiz.
+
+Run `npm run check:ml-quizzes` to audit local coverage and new question quality.
+ML quiz pages render their questions and model answers directly in the static export.
+Add `-- --export` after building to verify free access and public question/answer payloads
+on every quiz page. `--remote` only checks legacy Firestore copies. These are original practice questions, not actual Google
+interview questions. See [the audit](docs/ml-quiz-coverage-audit.md) for the initial
+gaps, content scope, inventory, and validation results.
 
 ## Build the static site
 

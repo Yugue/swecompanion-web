@@ -78,7 +78,7 @@ export const distributedParts: DistributedPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 10
   },
   {
     "id": "data-and-optimization",
@@ -156,7 +156,7 @@ export const distributedParts: DistributedPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 12
   },
   {
     "id": "memory-and-partitioning",
@@ -251,7 +251,7 @@ export const distributedParts: DistributedPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 12
   },
   {
     "id": "scaling-training",
@@ -319,7 +319,7 @@ export const distributedParts: DistributedPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 8
   },
   {
     "id": "correctness-and-recovery",
@@ -373,7 +373,7 @@ export const distributedParts: DistributedPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 8
   },
   {
     "id": "distributed-inference",
@@ -453,7 +453,7 @@ export const distributedParts: DistributedPart[] = [
         ]
       }
     ],
-    "quizQuestionCount": 0
+    "quizQuestionCount": 10
   }
 ];
 

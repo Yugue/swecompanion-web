@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!part || part.quizQuestionCount === 0) return {};
   return {
     title: `Generative AI ${part.title} Mock Interview Quiz`,
-    description: `${part.quizQuestionCount} Generative AI reasoning questions with model answers covering ${part.title.toLowerCase()}. Uses the foundations taught within this topic. Premium.`,
+    description: `${part.quizQuestionCount} Generative AI reasoning questions with model answers covering ${part.title.toLowerCase()}. Uses the foundations taught within this topic. Free.`,
     alternates: { canonical: `${GENAI_PATH}/${id}/quiz` },
   };
 }

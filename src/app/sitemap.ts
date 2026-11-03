@@ -8,9 +8,9 @@ import { rrpParts } from "@/lib/rrpStudyData";
 import { nlpParts } from "@/lib/nlpStudyData";
 import { llmParts } from "@/lib/llmStudyData";
 import { genaiParts } from "@/lib/genaiStudyData";
-import { distributedTopics } from "@/lib/distributedStudyData";
-import { rlTopics } from "@/lib/rlStudyData";
-import { speechTopics } from "@/lib/speechStudyData";
+import { distributedParts, distributedTopics } from "@/lib/distributedStudyData";
+import { rlParts, rlTopics } from "@/lib/rlStudyData";
+import { speechParts, speechTopics } from "@/lib/speechStudyData";
 import { cvParts } from "@/lib/cvStudyData";
 import { nlpDesignProblems } from "@/lib/nlpSystemDesignData";
 import { ML_SYSTEM_DESIGN_PATH, NLP_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
@@ -114,5 +114,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const topic of speechTopics) entries.push({ url: `${siteUrl}${SPEECH_PATH}/${topic.id}`, priority: 0.8 });
   for (const topic of rlTopics) entries.push({ url: `${siteUrl}${RL_PATH}/${topic.id}`, priority: 0.8 });
   for (const topic of distributedTopics) entries.push({ url: `${siteUrl}${DISTRIBUTED_ML_PATH}/${topic.id}`, priority: 0.8 });
+  for (const part of distributedParts) {
+    if (part.quizQuestionCount > 0) entries.push({ url: `${siteUrl}${DISTRIBUTED_ML_PATH}/${part.id}/quiz`, priority: 0.6 });
+  }
+  for (const [basePath, parts] of [[RL_PATH, rlParts], [SPEECH_PATH, speechParts]] as const) {
+    for (const part of parts) {
+      if (part.quizQuestionCount > 0) entries.push({ url: `${siteUrl}${basePath}/${part.id}/quiz`, priority: 0.6 });
+    }
+  }
   return entries;
 }

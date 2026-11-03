@@ -12,9 +12,12 @@ Steps only you can do (need your Firebase/GitHub account access):
    Firestore Database → Create database.
 4. **Deploy Firestore rules**: from the repo root, `firebase login`, `firebase use swecompanion`,
    then `firebase deploy --only firestore:rules`.
-5. **Seed quizzes** (once, and again any time quiz content changes): from the repo root, run
-   `npm run seed:quizzes`. This writes both questions and answers to Firestore - neither ships in
-   the static site, so nothing about a quiz is visible until this has run. Needs Admin SDK
+ML domain quizzes need no account, membership, Firestore seed, or premium grant.
+They are published directly from `scripts/quizzes.json` when the site is built.
+The following legacy quiz setup applies only to any remaining database-backed content.
+
+5. **Seed database-backed quizzes** (once, and again any time that content changes): from the repo root, run
+   `npm run seed:quizzes`. This writes both questions and answers to Firestore - ML quiz pages already include their own public questions and answers and do not depend on this step. Needs Admin SDK
    credentials - either run it while `gcloud auth application-default login`'d against the
    project, or drop a service-account key at `scripts/serviceAccountKey.json` (gitignored, never
    commit it).
@@ -27,4 +30,6 @@ Steps only you can do (need your Firebase/GitHub account access):
 
 `scripts/leetcodeQuizContent.mjs` has newly-authored mock-interview Q&A for the LeetCode guide -
 please review it for accuracy/tone before treating it as final, since it's a claim of interview
-realism made directly to users. The ML quiz content was ported unchanged from the Flutter app.
+realism made directly to users. The original ML banks were ported from the Flutter app; newer domain banks are
+original practice content. See `docs/ml-quiz-coverage-audit.md` for the ML inventory,
+new-question review scope, and validation commands. Run `npm run check:ml-quizzes -- --remote` with owner credentials to detect missing or outdated stored banks.

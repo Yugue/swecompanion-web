@@ -69,7 +69,7 @@ for (const topic of rlTopics) {
 }
 for (const part of rlParts) {
   assert.ok(ICONS[part.icon], "Unregistered icon: " + part.icon);
-  assert.equal(part.quizQuestionCount, 0, "Do not advertise unavailable quizzes");
+  assert.equal(part.quizQuestionCount, 10, "Each Part has a published 10-question quiz");
 }
 assert.ok(equations >= 45 && tables >= 20 && diagrams >= 12 && examples >= 8);
 
@@ -127,7 +127,7 @@ if (process.argv.includes("--export")) {
   assert.ok(hub.includes("33") && hub.includes("Reinforcement Learning"));
   const sitemap = fs.readFileSync("out/sitemap.xml", "utf8");
   assert.ok(sitemap.includes(RL_PATH + "</loc>"));
-  const validPaths = new Set([RL_PATH, ...rlTopics.map((t) => `${RL_PATH}/${t.id}`)]);
+  const validPaths = new Set([RL_PATH, ...rlTopics.map((t) => `${RL_PATH}/${t.id}`), ...rlParts.map((p) => `${RL_PATH}/${p.id}/quiz`)]);
   for (const topic of rlTopics) {
     const lessonPath = `${RL_PATH}/${topic.id}`;
     const html = fs.readFileSync(path.join("out", lessonPath.slice(1) + ".html"), "utf8");

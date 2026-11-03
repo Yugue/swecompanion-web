@@ -57,8 +57,8 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <p className="mb-4 text-sm leading-relaxed text-text-muted">
-          Save your progress across devices, and unlock mock-interview quizzes once you go
-          premium.
+          Sign in to save your progress across devices. ML domain quizzes are free to access,
+          with no account or membership required.
         </p>
 
         <div className="mb-4 flex flex-col gap-2">
