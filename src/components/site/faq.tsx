@@ -13,7 +13,7 @@ const faqs = [
   },
   {
     q: 'Do I need a subscription to download it?',
-    a: 'No. The app is free to download and install. You can open it, run it, and confirm the invisibility on your own machine. A Pro subscription unlocks unlimited use of the solutions.',
+    a: 'No. The app is free to download and install. You can open it, run it, and confirm the invisibility on your own machine. A Pro subscription unlocks AI-powered solutions.',
   },
   {
     q: 'What does the subscription cost?',

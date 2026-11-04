@@ -42,7 +42,7 @@ before(async () => {
 test("billing and profile writes preserve one another in the merged user document", async () => {
   await userRef(owner.uid).set({ email: "owner@example.com", displayName: "Owner" });
   await saveSubscription(owner.uid, {
-    subscribed: true, status: "active", plan: "monthly", currentPeriodEnd: 200,
+    subscribed: true, status: "active", plan: "monthly", currentPeriodEnd: 200, billingCycleAnchor: 100,
     cancelAtPeriodEnd: false, amount: 29900, currency: "usd", claimsVersion: "v1",
   });
   const snapshot = await userRef(owner.uid).get();
@@ -104,12 +104,14 @@ test("profiles are private to the owner and progress has no client-accessible cl
 });
 
 test("all private billing, counters, Stripe records and auth codes deny client access", async () => {
-  const paths = [privateBillingRef(owner.uid).path, `users/${owner.uid}/private/rateLimits`,
+  const paths = [privateBillingRef(owner.uid).path, `users/${owner.uid}/private/rateLimits`, `users/${owner.uid}/private/usage`,
     stripeCustomerRef("cus_test").path, stripeEventRef("evt_test").path,
     "system/auth/desktopAuthCodes/hash", "system/stripe", "system/auth"];
   for (const path of paths) {
     await getFirestore().doc(path).set({ internal: true });
     assert.equal((await client(path, owner.token)).status, 403, path);
+    assert.equal((await client(path, other.token)).status, 403, path);
+    assert.equal((await client(path)).status, 403, path);
     assert.equal((await client(path, owner.token, { internal: { booleanValue: false } })).status, 403, path);
   }
 });

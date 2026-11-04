@@ -25,6 +25,7 @@ export function subscriptionSummary(subscriptions: Stripe.Subscription[]): Omit<
     status: subscription?.status ?? "none",
     plan: item?.price.recurring?.interval === "year" ? "yearly" : item ? "monthly" : null,
     currentPeriodEnd: item?.current_period_end ?? null,
+    billingCycleAnchor: subscription?.billing_cycle_anchor ?? subscription?.created ?? null,
     cancelAtPeriodEnd: Boolean(subscription?.cancel_at_period_end || subscription?.cancel_at),
     amount: item?.price.unit_amount ?? null,
     currency: item?.price.currency ?? null,

@@ -20,6 +20,18 @@ test("paid active subscriptions grant access", () => {
   assert.equal(subscriptionSummary([subscription()]).subscribed, true);
 });
 
+test("both plans publish the trusted original billing anchor for monthly usage windows", () => {
+  for (const interval of ["month", "year"] as const) {
+    const value = subscription({ billing_cycle_anchor: 123 });
+    value.items.data[0].price.recurring!.interval = interval;
+    const result = subscriptionSummary([value]);
+    assert.equal(result.billingCycleAnchor, 123);
+    assert.equal(result.plan, interval === "year" ? "yearly" : "monthly");
+  }
+  assert.equal(subscriptionSummary([subscription()]).billingCycleAnchor, 100);
+  assert.equal(subscriptionSummary([]).billingCycleAnchor, null);
+});
+
 test("canceling renewal preserves access through the paid period", () => {
   const result = subscriptionSummary([subscription({ cancel_at_period_end: true })]);
   assert.equal(result.subscribed, true);

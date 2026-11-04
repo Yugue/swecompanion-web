@@ -9,7 +9,7 @@ import { PRICING, ANNUAL_SAVINGS_PERCENT, formatPrice } from '@shared/pricing'
 import { UpgradeButton } from '@/components/auth/UpgradeButton'
 
 const features = [
-  'Unlimited problem reads & solutions',
+  'AI-powered problem reads & solutions',
   'Debug and improve your own code',
   'System-design diagram critiques',
   'Invisible to share, capture & recording',
@@ -27,7 +27,7 @@ export function Pricing() {
           align="center"
           eyebrow="Pricing"
           title="Download free. Subscribe when it earns its place."
-          description="Install and try the companion on your own machine at no cost. Unlock unlimited use with a single subscription — cancel anytime."
+          description="Install and try the companion on your own machine at no cost. Unlock Pro features with a single subscription — cancel anytime."
         />
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -115,7 +115,7 @@ export function Pricing() {
             />
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-mono text-xs tracking-widest text-brand-blue uppercase">
-                Pro — unlimited use
+                Pro membership
               </p>
               <span className="rounded-full bg-brand-blue px-2.5 py-1 font-mono text-[10px] tracking-wide text-primary-foreground uppercase">
                 Most popular

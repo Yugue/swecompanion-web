@@ -5,6 +5,7 @@ export interface SubscriptionSummary {
   status: "none" | "active" | "past_due" | "canceled" | "incomplete" | "unpaid" | "paused" | "trialing" | "incomplete_expired";
   plan: BillingPlan | null;
   currentPeriodEnd: number | null;
+  billingCycleAnchor: number | null;
   cancelAtPeriodEnd: boolean;
   amount: number | null;
   currency: string | null;
