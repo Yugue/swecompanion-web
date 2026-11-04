@@ -38,7 +38,13 @@ After claims update, the billing listener forces an ID-token refresh. The accoun
 
 Authentication uses dedicated `/login`, `/signup`, and `/forgot-password` pages. Existing signed-in users visiting login or signup are redirected home. Navigation preserves a validated local return destination for a new sign-in, including a selected monthly or yearly upgrade. After sign-in, the account page resumes checkout for that plan. External return URLs and loops back to authentication pages are rejected.
 
-The learning guides and ML quizzes already shipped in the static export remain public. Custom claims must also be verified by any separate desktop/backend service that consumes Pro features; hiding frontend content is not an authorization boundary.
+The learning guides and ML quizzes already shipped in the static export remain public. The Mac app's backend verifies the `subscribed` claim on every request; hiding frontend content is not an authorization boundary.
+
+## Mac app sign-in
+
+The Mac app signs in on this website. It opens `/login` with `/desktop-auth` as the `next` destination, passing a random `state` and the SHA-256 fingerprint of a secret it keeps in memory. Signed-in users who reach the login page with that destination continue there instead of going home. The page requires a click, then calls `createDesktopAuthCode` and redirects to `com.swecompanion.app:/auth/callback`, an address fixed in `src/lib/desktopAuth.ts` rather than read from the URL. The app exchanges the one-time code and its secret through `exchangeDesktopAuthCode` for a custom token.
+
+Those two functions live in SWECompanionCore, which documents the flow in its README, because that codebase deploys automatically and also hosts the `claude` function. The website calls them by name, like its own callables. `claude` admits only tokens with the `subscribed` claim set by the billing functions here, so this claim is what the app shows as Free or Pro. The app's Upgrade button opens `/account`.
 
 ## Checks
 

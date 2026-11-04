@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useId, useRef, useState } from "react";
+import { Suspense, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { authErrorMessage } from "@/lib/authErrors";
 import { authPageHref, safeAuthReturnPath } from "@/lib/authNavigation";
+import { isDesktopAuthPath } from "@/lib/desktopAuth";
 import { Wordmark } from "@/components/site/wordmark";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "./BrandIcons";
@@ -14,6 +15,16 @@ import { GoogleIcon } from "./BrandIcons";
 type Mode = "signin" | "signup" | "reset";
 
 export function AuthPage({ mode }: { mode: Mode }) {
+  const title = mode === "signin" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset your password";
+  const description = mode === "reset" ? "Enter your email and we’ll send you a reset link." : "Save your progress and manage your Pro membership.";
+  return <AuthShell title={title} description={description}>
+    <Suspense fallback={<p role="status" className="text-sm text-muted-foreground">Loading…</p>}>
+      <AuthForm key={mode} mode={mode} />
+    </Suspense>
+  </AuthShell>;
+}
+
+export function AuthShell({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return <>
     <header className="border-b border-border">
       <div className="mx-auto flex h-20 max-w-5xl items-center justify-between gap-4 px-5 sm:px-8">
@@ -22,13 +33,9 @@ export function AuthPage({ mode }: { mode: Mode }) {
       </div>
     </header>
     <main className="mx-auto w-full max-w-md px-5 py-12 sm:py-20">
-      <h1 className="text-3xl font-medium tracking-tight">{mode === "signin" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset your password"}</h1>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{mode === "reset" ? "Enter your email and we’ll send you a reset link." : "Save your progress and manage your Pro membership."}</p>
-      <div className="mt-8 rounded-2xl border border-border bg-card p-6 sm:p-7">
-        <Suspense fallback={<p role="status" className="text-sm text-muted-foreground">Loading…</p>}>
-          <AuthForm key={mode} mode={mode} />
-        </Suspense>
-      </div>
+      <h1 className="text-3xl font-medium tracking-tight">{title}</h1>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
+      <div className="mt-8 rounded-2xl border border-border bg-card p-6 sm:p-7">{children}</div>
     </main>
   </>;
 }
@@ -48,7 +55,7 @@ function AuthForm({ mode }: { mode: Mode }) {
   const passwordId = useId();
 
   useEffect(() => {
-    if (!loading && user && mode !== "reset") router.replace(signingIn.current ? next : "/");
+    if (!loading && user && mode !== "reset") router.replace(signingIn.current || isDesktopAuthPath(next) ? next : "/");
   }, [loading, user, mode, next, router]);
 
   async function run(action: () => Promise<void>) {
