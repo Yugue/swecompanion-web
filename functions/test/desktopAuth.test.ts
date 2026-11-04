@@ -10,7 +10,10 @@ const PAGE = `/desktop-auth?${new URLSearchParams({ state: STATE, code_challenge
 test("the page accepts only a well-formed request from the app", () => {
   assert.deepEqual(parseDesktopAuthRequest(new URLSearchParams({ state: STATE, code_challenge: CHALLENGE })), { state: STATE, codeChallenge: CHALLENGE });
   for (const query of ["", `state=${STATE}`, `code_challenge=${CHALLENGE}`, `state=short&code_challenge=${CHALLENGE}`,
-    `state=${STATE}&code_challenge=${CHALLENGE}x`, `state=${STATE}&code_challenge=%3Cscript%3E`]) {
+    `state=${STATE}&code_challenge=${CHALLENGE}x`, `state=${STATE}&code_challenge=%3Cscript%3E`,
+    `state=${STATE}%0A&code_challenge=${CHALLENGE}`, `state=${STATE}&code_challenge=${CHALLENGE}%0A`,
+    `state=${STATE}&state=${STATE}&code_challenge=${CHALLENGE}`,
+    `state=${STATE}&code_challenge=${CHALLENGE}&code_challenge=${CHALLENGE}`]) {
     assert.equal(parseDesktopAuthRequest(new URLSearchParams(query)), null, query);
   }
 });

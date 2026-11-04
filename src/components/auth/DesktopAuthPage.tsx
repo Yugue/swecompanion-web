@@ -6,7 +6,7 @@ import { httpsCallable } from "firebase/functions";
 import { useAuth } from "@/lib/AuthProvider";
 import { authPageHref } from "@/lib/authNavigation";
 import { DESKTOP_AUTH_PATH, desktopCallbackUrl, parseDesktopAuthRequest } from "@/lib/desktopAuth";
-import { functions } from "@/lib/firebase";
+import { auth, functions } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "./AuthPage";
 
@@ -35,17 +35,25 @@ function DesktopAuth() {
     if (signedOut) router.replace(loginHref);
   }, [signedOut, loginHref, router]);
 
+  const switchAccount = () => signOut().catch(() => setFailed(true));
+
   /** Always takes this click, so a link alone can never connect an account. */
   async function connect() {
-    if (!request) return;
+    if (!request || !user) return;
     setBusy(true); setFailed(false);
     try {
       const { data } = await createDesktopAuthCode({ codeChallenge: request.codeChallenge });
+      // The account changed while this was waiting, so the code is for the old one.
+      if (auth.currentUser?.uid !== user.uid) return;
       const url = desktopCallbackUrl(data.code, request.state);
       setCallbackUrl(url);
       window.location.assign(url);
-    } catch { setFailed(true); }
-    finally { setBusy(false); }
+    } catch (error) {
+      // The browser's session has ended, as after a password change elsewhere, though
+      // its token still looks valid here. Signing out sends the user back to log in.
+      if ((error as { code?: string }).code === "functions/unauthenticated") await switchAccount();
+      else setFailed(true);
+    } finally { setBusy(false); }
   }
 
   if (!request) return <p role="alert" className="text-sm text-accent-red">This link isn’t valid. Start signing in from the SWECompanion app.</p>;
@@ -62,7 +70,7 @@ function DesktopAuth() {
   return <>
     <p className="break-all text-sm text-muted-foreground">Signed in as {user.email}</p>
     <Button type="button" className="mt-5 h-11 w-full" disabled={busy} onClick={() => void connect()}>{busy ? "Please wait…" : "Continue to the app"}</Button>
-    <Button type="button" variant="outline" className="mt-3 h-11 w-full" disabled={busy} onClick={() => void signOut()}>Use a different account</Button>
+    <Button type="button" variant="outline" className="mt-3 h-11 w-full" disabled={busy} onClick={() => void switchAccount()}>Use a different account</Button>
     {failed && <p role="alert" className="mt-4 text-sm text-accent-red">Unable to connect the app. Please try again.</p>}
     <p className="mt-5 text-xs leading-relaxed text-muted-foreground">Only continue if you just clicked Sign in in the SWECompanion app.</p>
   </>;

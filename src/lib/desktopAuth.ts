@@ -17,7 +17,8 @@ export interface DesktopAuthRequest {
   codeChallenge: string;
 }
 
-export function parseDesktopAuthRequest(search: Pick<URLSearchParams, "get">): DesktopAuthRequest | null {
+export function parseDesktopAuthRequest(search: Pick<URLSearchParams, "get" | "getAll">): DesktopAuthRequest | null {
+  if (search.getAll("state").length !== 1 || search.getAll("code_challenge").length !== 1) return null;
   const state = search.get("state");
   const codeChallenge = search.get("code_challenge");
   return state && codeChallenge && VALUE_32_BYTES.test(state) && VALUE_32_BYTES.test(codeChallenge)
