@@ -17,7 +17,8 @@ export function UpgradeButton({ plan, className }: { plan: BillingPlan; classNam
   async function checkout() {
     setBusy(true); setError(null);
     try { await startCheckout(plan); }
-    catch (error) { setError(billingErrorMessage(error)); setBusy(false); }
+    catch (error) { setError(billingErrorMessage(error)); }
+    finally { setBusy(false); }
   }
 
   if (subscribed) return <Button className={className} render={<Link href="/account">Manage subscription <ArrowRight className="size-4" /></Link>} />;

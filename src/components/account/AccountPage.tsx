@@ -113,7 +113,8 @@ function AccountDetails({ uid }: { uid: string }) {
   async function manage() {
     setBusy(true); setError(null);
     try { await openBillingPortal(); }
-    catch (error) { setError(billingErrorMessage(error)); setBusy(false); }
+    catch (error) { setError(billingErrorMessage(error)); }
+    finally { setBusy(false); }
   }
 
   const status = subscription?.subscribed ? "Active" : ({
@@ -126,11 +127,10 @@ function AccountDetails({ uid }: { uid: string }) {
     {checkout === "success" && <p role="status" className="rounded-xl border border-brand-blue/20 bg-brand-blue/5 p-4 text-sm">
       {subscription?.subscribed ? "You’re on Pro. Your membership is active." : "We’re confirming your payment. Your membership will update when confirmation arrives."}
     </p>}
-    {checkout === "canceled" && <p role="status" className="rounded-xl border border-border p-4 text-sm text-muted-foreground">Checkout was canceled. You can upgrade whenever you’re ready.</p>}
     <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div><p className="flex items-center gap-2 text-xs font-medium tracking-widest text-muted-foreground uppercase"><CreditCard className="size-4" />Membership</p>
-          <h2 className="mt-4 text-2xl font-medium">{subscription?.subscribed ? "SWECompanion Pro" : "Your plan"}</h2>
+          <h2 className="mt-4 text-2xl font-medium">{subscription?.subscribed ? "SWECompanion Pro" : "Free Account"}</h2>
           <p className="mt-2 break-all text-sm text-muted-foreground">{user?.email}</p>
         </div>
         <span className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium">{loading ? "Loading…" : status}</span>
