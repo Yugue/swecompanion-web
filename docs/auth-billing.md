@@ -34,7 +34,9 @@ The signed webhook validates the raw request body and sandbox mode, resolves the
 
 `billingCustomers/{uid}` and `stripeCustomers/{customerId}` hold private mappings; `billingEvents/{eventId}` holds deduplication receipts. All are inaccessible to browser clients. `billing/{uid}` contains only owner-readable subscription information. Clients cannot write it. Firestore-protected legacy quizzes require both the signed claim and a currently subscribed billing record, so an old token cannot retain access after cancellation.
 
-After claims update, the billing listener forces an ID-token refresh. The account page also reconciles current billing state when opened or returned from Checkout; the return query alone never grants access. Password changes require reauthentication with the current password. Password-reset confirmations do not disclose whether an account exists. The modal uses native dialog focus management and supports Escape.
+After claims update, the billing listener forces an ID-token refresh. The account page also reconciles current billing state when opened or returned from Checkout; the return query alone never grants access. Password changes require reauthentication with the current password. Password-reset confirmations do not disclose whether an account exists.
+
+Authentication uses dedicated `/login`, `/signup`, and `/forgot-password` pages. Existing signed-in users visiting login or signup are redirected home. Navigation preserves a validated local return destination for a new sign-in, including a selected monthly or yearly upgrade. After sign-in, the account page resumes checkout for that plan. External return URLs and loops back to authentication pages are rejected.
 
 The learning guides and ML quizzes already shipped in the static export remain public. Custom claims must also be verified by any separate desktop/backend service that consumes Pro features; hiding frontend content is not an authorization boundary.
 

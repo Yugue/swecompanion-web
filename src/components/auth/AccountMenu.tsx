@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { CircleUserRound, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthProvider";
 import { usePremium } from "@/lib/usePremium";
-import { SignInDialog } from "./SignInDialog";
+import { usePathname } from "next/navigation";
+import { authPageHref } from "@/lib/authNavigation";
 import { cn } from "@/lib/utils";
 
 export function AccountMenu({
@@ -18,28 +18,17 @@ export function AccountMenu({
 }) {
   const { user, loading, signOut } = useAuth();
   const { premium } = usePremium();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (loading) return <div className="size-9" />;
 
   if (!user) {
-    return (
-      <>
-        <button
-          type="button"
-          onClick={() => setDialogOpen(true)}
-          className={cn(
-            "whitespace-nowrap rounded-lg bg-accent-blue px-3 py-2 sm:px-3.5 text-sm font-semibold text-white hover:brightness-110",
-            signInClassName,
-          )}
-        >
-          {signInLabel}
-        </button>
-        {dialogOpen && createPortal(<SignInDialog onClose={() => setDialogOpen(false)} />, document.body)}
-      </>
-    );
+    return <Link href={authPageHref("/login", pathname === "/" ? "/account" : pathname)} className={cn(
+      "whitespace-nowrap rounded-lg bg-accent-blue px-3 py-2 sm:px-3.5 text-sm font-semibold text-white hover:brightness-110",
+      signInClassName,
+    )}>{signInLabel}</Link>;
   }
 
   return (

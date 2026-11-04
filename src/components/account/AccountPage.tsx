@@ -2,19 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { createPortal } from "react-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { ArrowLeft, ArrowUpRight, CreditCard, FileText, LockKeyhole } from "lucide-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { db } from "@/lib/firebase";
-import { billingErrorMessage, getInvoices, openBillingPortal, refreshSubscription } from "@/lib/billing";
+import { billingErrorMessage, getInvoices, openBillingPortal, refreshSubscription, startCheckout } from "@/lib/billing";
 import { AccountMenu } from "@/components/auth/AccountMenu";
-import { SignInDialog } from "@/components/auth/SignInDialog";
 import { UpgradeButton } from "@/components/auth/UpgradeButton";
 import { Wordmark } from "@/components/site/wordmark";
 import { Button } from "@/components/ui/button";
 import { ChangePassword } from "./ChangePassword";
-import { PRICING, formatPrice } from "@shared/pricing";
+import { PRICING, formatPrice, isBillingPlan } from "@shared/pricing";
 import type { InvoiceSummary, SubscriptionSummary } from "@shared/billing";
 
 const date = (seconds: number) => new Date(seconds * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -22,7 +20,6 @@ const money = (amount: number, currency: string) => new Intl.NumberFormat("en-US
 
 export function AccountPage() {
   const { user, loading } = useAuth();
-  const [signInOpen, setSignInOpen] = useState(false);
   return <>
     <header className="border-b border-border bg-background">
       <div className="mx-auto flex h-20 max-w-5xl items-center justify-between px-5 sm:px-8">
@@ -37,10 +34,9 @@ export function AccountPage() {
         <section className="mt-10 rounded-2xl border border-border bg-card p-8">
           <h2 className="text-lg font-medium">Everything in one place</h2>
           <p className="mt-2 text-sm text-muted-foreground">Sign in to manage your membership and view invoices.</p>
-          <Button className="mt-6 h-11" onClick={() => setSignInOpen(true)}>Sign in or create an account</Button>
+          <Button className="mt-6 h-11" render={<Link href="/login">Sign in or create an account</Link>} />
         </section>}
     </main>
-    {signInOpen && createPortal(<SignInDialog onClose={() => setSignInOpen(false)} />, document.body)}
   </>;
 }
 
@@ -69,7 +65,9 @@ function AccountDetails({ uid }: { uid: string }) {
   useEffect(() => {
     let disposed = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const returnedCheckout = new URLSearchParams(window.location.search).get("checkout");
+    const search = new URLSearchParams(window.location.search);
+    const returnedCheckout = search.get("checkout");
+    const upgradePlan = search.get("upgrade");
     const unsubscribe = onSnapshot(doc(db, "billing", uid), (snapshot) => {
       setSubscription(snapshot.exists() ? snapshot.data() as SubscriptionSummary : null);
       setLoading(false);
@@ -80,6 +78,14 @@ function AccountDetails({ uid }: { uid: string }) {
         const result = await refreshSubscription();
         if (disposed) return;
         setSubscription(result); setLoading(false); setError(null); setCheckout(returnedCheckout);
+        if (isBillingPlan(upgradePlan)) {
+          window.history.replaceState(null, "", "/account");
+          if (!result?.subscribed) {
+            setBusy(true);
+            await startCheckout(upgradePlan);
+          }
+          setBusy(false);
+        }
         if (result?.subscribed) {
           await refreshClaims();
           if (!disposed) void loadInvoices();
@@ -88,6 +94,7 @@ function AccountDetails({ uid }: { uid: string }) {
         }
       } catch (error) {
         if (disposed) return;
+        setBusy(false);
         if ((error as { code?: string }).code === "functions/aborted" && attempt < 7) timer = setTimeout(() => void sync(attempt + 1), 2000);
         else { setLoading(false); setError(billingErrorMessage(error)); }
       }
