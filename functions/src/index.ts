@@ -10,6 +10,7 @@ import Stripe from "stripe";
 import { PRICING, isBillingPlan, priceLookupKey, type BillingPlan } from "./shared/pricing";
 import type { InvoicePage, SubscriptionSummary } from "./shared/billing";
 import { isOurSubscription, subscriptionSummary } from "./subscriptions";
+import { privateBillingRef, saveSubscription, stripeCustomerRef, stripeEventRef } from "./store";
 
 initializeApp();
 const db = getFirestore();
@@ -48,8 +49,18 @@ function requireUser(request: CallableRequest): string {
 
 function safeCall<T>(handler: (request: CallableRequest) => Promise<T>) {
   return onCall({ secrets: [stripeSecret], cors: true }, async (request) => {
-    requireUser(request);
+    const uid = requireUser(request);
     try {
+      // Callable token verification alone permits deleted/revoked sessions until
+      // token expiry. They must not recreate private records after an account reset.
+      const user = await adminAuth.getUser(uid).catch((error: { code?: string }) => {
+        if (error.code === "auth/user-not-found") throw new HttpsError("unauthenticated", "Please sign in again.");
+        throw error;
+      });
+      const authTime = request.auth!.token.auth_time;
+      if (user.disabled || !Number.isFinite(authTime) || authTime * 1000 < Date.parse(user.tokensValidAfterTime ?? "1970-01-01T00:00:00Z")) {
+        throw new HttpsError("unauthenticated", "Please sign in again.");
+      }
       return await handler(request);
     } catch (error) {
       if (error instanceof HttpsError) throw error;
@@ -62,7 +73,7 @@ function safeCall<T>(handler: (request: CallableRequest) => Promise<T>) {
 
 /** Serialize all subscription/claim writes and checkout creation for the same account. */
 async function withAccountLock<T>(uid: string, action: () => Promise<T>): Promise<T> {
-  const ref = db.doc(`billingCustomers/${uid}`);
+  const ref = privateBillingRef(uid);
   const lockId = randomUUID();
   await db.runTransaction(async (transaction) => {
     const snapshot = await transaction.get(ref);
@@ -84,7 +95,7 @@ async function withAccountLock<T>(uid: string, action: () => Promise<T>): Promis
 }
 
 async function customerFor(uid: string, stripe: Stripe, create = false): Promise<string | null> {
-  const ref = db.doc(`billingCustomers/${uid}`);
+  const ref = privateBillingRef(uid);
   const customerId = (await ref.get()).get("customerId") as string | undefined;
   if (customerId) return customerId;
   if (!create) return null;
@@ -97,7 +108,7 @@ async function customerFor(uid: string, stripe: Stripe, create = false): Promise
   // The reverse mapping is created atomically, and is never writable by a browser.
   const batch = db.batch();
   batch.set(ref, { customerId: customer.id }, { merge: true });
-  batch.set(db.doc(`stripeCustomers/${customer.id}`), { uid });
+  batch.set(stripeCustomerRef(customer.id), { uid });
   await batch.commit();
   return customer.id;
 }
@@ -119,7 +130,7 @@ async function syncSubscription(uid: string, stripe: Stripe, customerId: string)
   await adminAuth.setCustomUserClaims(uid, { ...prior, subscribed: summary.subscribed, billingVersion: claimsVersion });
   const result = { ...summary, claimsVersion };
   // Publish only after claims succeed, so the listener can safely force-refresh the token.
-  await db.doc(`billing/${uid}`).set({ ...result, updatedAt: FieldValue.serverTimestamp() });
+  await saveSubscription(uid, result);
   return result;
 }
 
@@ -148,7 +159,7 @@ export const createCheckout = safeCall(async (request) => {
       throw new HttpsError("already-exists", "You already have a subscription. Manage it in your account.");
     }
     const price = await catalogPrice(stripe, plan);
-    const ref = db.doc(`billingCustomers/${uid}`);
+    const ref = privateBillingRef(uid);
     const existing = await ref.get();
     const checkoutId = existing.get("checkoutId") as string | undefined;
     if (checkoutId) {
@@ -258,13 +269,13 @@ export const stripeWebhook = onRequest({ secrets: [stripeSecret, webhookSecret],
   const customerId = typeof object.customer === "string" ? object.customer : object.customer?.id;
   if (!customerId) { response.sendStatus(200); return; }
   try {
-    const uid = (await db.doc(`stripeCustomers/${customerId}`).get()).get("uid") as string | undefined;
+    const uid = (await stripeCustomerRef(customerId).get()).get("uid") as string | undefined;
     if (!uid) { response.sendStatus(200); return; }
     await withAccountLock(uid, async () => {
-      const receipt = db.doc(`billingEvents/${event.id}`);
+      const receipt = stripeEventRef(event.id);
       if ((await receipt.get()).exists) return;
       // A signed event alone cannot link itself to an arbitrary account.
-      if ((await db.doc(`billingCustomers/${uid}`).get()).get("customerId") !== customerId) throw new Error("Customer mismatch");
+      if ((await privateBillingRef(uid).get()).get("customerId") !== customerId) throw new Error("Customer mismatch");
       await syncSubscription(uid, stripe, customerId);
       await receipt.set({ processedAt: FieldValue.serverTimestamp(), type: event.type });
     });

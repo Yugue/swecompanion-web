@@ -201,7 +201,7 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
       {confirmingReset && (
         <ConfirmDialog
           title="Reset LeetCode progress?"
-          description="All completed LeetCode problems will be marked incomplete. This progress will be erased from this device (and your account, if signed in) and cannot be recovered."
+          description="All completed LeetCode problems will be marked incomplete. This progress will be erased from this browser and cannot be recovered."
           confirmLabel="Yes, reset progress"
           onConfirm={() => {
             reset();

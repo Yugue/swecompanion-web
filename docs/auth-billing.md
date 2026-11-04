@@ -32,13 +32,13 @@ Authenticated callable functions derive the user ID from the validated token. Br
 
 The signed webhook validates the raw request body and sandbox mode, resolves the customer through server-only mappings, retrieves current subscription state to handle out-of-order delivery, and ignores already processed event IDs. It merges `subscribed` into existing custom claims. Only an active subscription for our product grants access; incomplete, unpaid, overdue, paused, expired, and canceled subscriptions do not. No trial is offered. Cancellation at the period end keeps the status active and access enabled until cancellation takes effect.
 
-`billingCustomers/{uid}` and `stripeCustomers/{customerId}` hold private mappings; `billingEvents/{eventId}` holds deduplication receipts. All are inaccessible to browser clients. `billing/{uid}` contains only owner-readable subscription information. Clients cannot write it. Firestore-protected legacy quizzes require both the signed claim and a currently subscribed billing record, so an old token cannot retain access after cancellation.
+`users/{uid}` holds the owner-readable profile and server-owned `subscription` summary. Clients can edit only profile fields; they cannot change subscription access. `users/{uid}/private/billing` holds the Stripe customer mapping, checkout attempts and lock. The shared backend uses `users/{uid}/private/rateLimits` for the 60-per-minute AI limit and the separate 10-per-minute desktop-login limit. `system/stripe/customers/{customerId}` is the reverse lookup and `system/stripe/events/{eventId}` holds webhook receipts. Private documents and everything under `system` deny all browser access. Quiz content ships with the website; there is no Firestore quiz collection.
 
 After claims update, the billing listener forces an ID-token refresh. The account page also reconciles current billing state when opened or returned from Checkout; the return query alone never grants access. Password changes require reauthentication with the current password. Password-reset confirmations do not disclose whether an account exists.
 
 Authentication uses dedicated `/login`, `/signup`, and `/forgot-password` pages. Existing signed-in users visiting login or signup are redirected home. Navigation preserves a validated local return destination for a new sign-in, including a selected monthly or yearly upgrade. After sign-in, the account page resumes checkout for that plan. External return URLs and loops back to authentication pages are rejected.
 
-The learning guides and ML quizzes already shipped in the static export remain public. The Mac app's backend verifies the `subscribed` claim on every request; hiding frontend content is not an authorization boundary.
+The learning guides and ML quizzes already shipped in the static export remain public. The Mac app's backend verifies the `subscribed` claim and `users/{uid}.subscription.subscribed` on every request; hiding frontend content is not an authorization boundary.
 
 ## Mac app sign-in
 
@@ -61,3 +61,7 @@ The functions and rules were deployed to `swecompanion`. The frontend was verifi
 Nine business-rule tests, TypeScript, targeted lint checks, and the full static production build passed. A disposable account completed a real sandbox Checkout using the standard test card, received the `subscribed` claim while retaining an unrelated existing claim, and displayed its paid invoice with receipt/PDF links. The portal changed monthly billing to yearly and canceled renewal; the webhook retained active access through the paid period. An immediate test cancellation then revoked the claim and blocked an old signed token from reading protected content.
 
 Additional checks rejected unauthenticated calls, invalid plans, unapproved return origins, forged webhook signatures, browser writes to billing documents, access to private customer mappings, another customer's invoice cursor, and a duplicate subscription purchase. Replayed and out-of-order events did not corrupt access. Password reauthentication and updating were checked against the authentication service, including rejection of the old password afterward. Email privacy protection and authorized Google sign-in domains were checked in project configuration.
+
+## Firestore layout
+
+See [Firestore schema](firestore-schema.md) for the paths, access boundaries, and pre-release reset. Run `bash scripts/test_firestore.sh` to test rules, merged subscription persistence, and ended billing sessions against local Auth/Firestore emulators. Login codes are at `system/auth/desktopAuthCodes/{hash}`; the `desktopAuthCodes.expiresAt` collection-group TTL still applies.

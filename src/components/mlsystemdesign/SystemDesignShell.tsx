@@ -21,7 +21,7 @@ export function SystemDesignProgressProvider({ children }: { children: ReactNode
   return (
     <ProgressContext.Provider value={{ ...progress, requestReset: () => setConfirmingReset(true) }}>
       {children}
-      {confirmingReset && <ConfirmDialog title="Reset system design progress?" description="All completed cases in ML System Design will be marked incomplete on this device and your account if signed in." confirmLabel="Yes, reset progress" onCancel={() => setConfirmingReset(false)} onConfirm={() => { progress.reset(); setConfirmingReset(false); }} />}
+      {confirmingReset && <ConfirmDialog title="Reset system design progress?" description="All completed cases in ML System Design will be marked incomplete in this browser." confirmLabel="Yes, reset progress" onCancel={() => setConfirmingReset(false)} onConfirm={() => { progress.reset(); setConfirmingReset(false); }} />}
     </ProgressContext.Provider>
   );
 }

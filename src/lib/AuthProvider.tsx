@@ -29,9 +29,10 @@ async function refreshCurrentClaims() { await auth.currentUser?.getIdToken(true)
 async function ensureUserProfile(user: User) {
   const ref = doc(db, "users", user.uid);
   await runTransaction(db, async (transaction) => {
-    if (!(await transaction.get(ref)).exists()) {
-      transaction.set(ref, { email: user.email, displayName: user.displayName, createdAt: serverTimestamp() });
-    }
+    const snapshot = await transaction.get(ref);
+    // A webhook may create the subscription summary before the first browser visit.
+    const profile = { email: user.email, displayName: user.displayName };
+    transaction.set(ref, snapshot.data()?.createdAt ? profile : { ...profile, createdAt: serverTimestamp() }, { merge: true });
   });
 }
 
@@ -65,8 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const user = auth.currentUser;
     if (!user || user.uid !== uid) return;
     void ensureUserProfile(user).catch(() => {});
-    const unsubscribe = onSnapshot(doc(db, "billing", uid), (snapshot) => {
-      const version: unknown = snapshot.data()?.claimsVersion;
+    const unsubscribe = onSnapshot(doc(db, "users", uid), (snapshot) => {
+      const version: unknown = snapshot.data()?.subscription?.claimsVersion;
       if (typeof version !== "string") return;
       void user.getIdTokenResult().then((token) => {
         if (auth.currentUser?.uid === uid && token.claims.billingVersion !== version) return user.getIdToken(true);

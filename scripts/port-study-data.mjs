@@ -244,8 +244,7 @@ export interface StudyTopic {
   color: string;
   note: string;
   problems: StudyProblem[];
-  // Quiz questions AND answers are premium content, served only from Firestore
-  // (see quizzes/{quizId} + firestore.rules) - only the count is public.
+  // Legacy count metadata; quiz delivery does not use Firestore.
   quizQuestionCount?: number;
 }
 

@@ -11,20 +11,12 @@ Steps only you can do (need your Firebase/GitHub account access):
 4. **Deploy Firestore rules**: from the repo root, `firebase login`, `firebase use swecompanion`,
    then `firebase deploy --only firestore:rules`.
 
-ML domain quizzes are authored in `src/content/ml-quizzes.json` and included in
-their static pages during the build. They do not use Firebase for content delivery.
-The following legacy quiz setup applies only to the LeetCode banks in
-`scripts/quizzes.json`.
+Quiz content ships with the static website. There is no quiz collection or seeding step.
 
-5. **Seed database-backed quizzes** (once, and again any time that content changes): from the repo root, run
-   `npm run seed:quizzes`. This writes both questions and answers to Firestore - ML quiz pages already include their own public questions and answers and do not depend on this step. Needs Admin SDK
-   credentials - either run it while `gcloud auth application-default login`'d against the
-   project, or drop a service-account key at `scripts/serviceAccountKey.json` (gitignored, never
-   commit it).
-6. **Verify subscription access**: complete a sandbox checkout. The billing functions set
+5. **Verify subscription access**: complete a sandbox checkout. The billing functions set
    the `subscribed` custom claim and refresh the website session. The old profile `premium`
    field is no longer used for access.
-7. **Deploy the site**: `npm run build`, then `firebase deploy --only hosting` (both from the
+6. **Deploy the site**: `npm run build`, then `firebase deploy --only hosting` (both from the
    repo root).
 
 ## Content review

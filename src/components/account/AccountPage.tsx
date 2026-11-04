@@ -68,8 +68,8 @@ function AccountDetails({ uid }: { uid: string }) {
     const search = new URLSearchParams(window.location.search);
     const returnedCheckout = search.get("checkout");
     const upgradePlan = search.get("upgrade");
-    const unsubscribe = onSnapshot(doc(db, "billing", uid), (snapshot) => {
-      setSubscription(snapshot.exists() ? snapshot.data() as SubscriptionSummary : null);
+    const unsubscribe = onSnapshot(doc(db, "users", uid), (snapshot) => {
+      setSubscription(snapshot.data()?.subscription as SubscriptionSummary ?? null);
       setLoading(false);
     }, () => { setLoading(false); setError("Unable to load your membership. Please try again."); });
 

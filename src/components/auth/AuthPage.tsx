@@ -16,7 +16,7 @@ type Mode = "signin" | "signup" | "reset";
 
 export function AuthPage({ mode }: { mode: Mode }) {
   const title = mode === "signin" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset your password";
-  const description = mode === "reset" ? "Enter your email and we’ll send you a reset link." : "Save your progress and manage your Pro membership.";
+  const description = mode === "reset" ? "Enter your email and we’ll send you a reset link." : "Manage your account and Pro membership.";
   return <AuthShell title={title} description={description}>
     <Suspense fallback={<p role="status" className="text-sm text-muted-foreground">Loading…</p>}>
       <AuthForm key={mode} mode={mode} />
