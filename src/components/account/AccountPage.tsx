@@ -117,12 +117,6 @@ function AccountDetails({ uid }: { uid: string }) {
     finally { setBusy(false); }
   }
 
-  const status = subscription?.subscribed ? "Active" : ({
-    active: "Active",
-    past_due: "Payment overdue", canceled: "Canceled", incomplete: "Payment pending", unpaid: "Payment required",
-    paused: "Paused", trialing: "Trial", incomplete_expired: "Checkout expired", none: "Free account",
-  }[subscription?.status ?? "none"]);
-
   return <div className="mt-10 space-y-6">
     {checkout === "success" && <p role="status" className="rounded-xl border border-brand-blue/20 bg-brand-blue/5 p-4 text-sm">
       {subscription?.subscribed ? "You’re on Pro. Your membership is active." : "We’re confirming your payment. Your membership will update when confirmation arrives."}
@@ -133,7 +127,6 @@ function AccountDetails({ uid }: { uid: string }) {
           <h2 className="mt-4 text-2xl font-medium">{subscription?.subscribed ? "SWECompanion Pro" : "Free Account"}</h2>
           <p className="mt-2 break-all text-sm text-muted-foreground">{user?.email}</p>
         </div>
-        <span className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium">{loading ? "Loading…" : status}</span>
       </div>
       {subscription?.plan && <p className="mt-6 text-sm">
         {subscription.amount !== null ? money(subscription.amount, subscription.currency ?? PRICING.currency) : formatPrice(PRICING[subscription.plan].amount)} {subscription.currency?.toUpperCase()} / {subscription.plan === "yearly" ? "year" : "month"}
