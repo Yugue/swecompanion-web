@@ -44,7 +44,7 @@ The learning guides and ML quizzes already shipped in the static export remain p
 
 ## Mac app sign-in
 
-The Mac app signs in on this website. It opens `/login` with `/desktop-auth` as the `next` destination, passing a random `state` and the SHA-256 fingerprint of a secret it keeps in memory. Signed-in users who reach the login page with that destination continue there instead of going home. The page requires a click, then calls `createDesktopAuthCode` and redirects to `com.swecompanion.app:/auth/callback`, an address fixed in `src/lib/desktopAuth.ts` rather than read from the URL. The app exchanges the one-time code and its secret through `exchangeDesktopAuthCode` for a custom token.
+The Mac app opens `/login` with `/desktop-auth` as the `next` destination, passing a random attempt state and the SHA-256 fingerprint of a secret it keeps in memory. The browser asks the user to confirm their account, then calls `createDesktopAuthCode` to approve the attempt and tells the user to return to the app. The Mac app checks `exchangeDesktopAuthCode` in the background, proving it holds the secret to redeem the approval for a custom token. Older Mac builds still receive a link the user can click to deliver a one-time code.
 
 Those two functions live in SWECompanionCore, which documents the flow in its README, because that codebase deploys automatically and also hosts the `claude` function. The website calls them by name, like its own callables. `claude` admits only tokens with the `subscribed` claim set by the billing functions here, so this claim is what the app shows as Free or Pro. The app's Upgrade button opens `/account`.
 
