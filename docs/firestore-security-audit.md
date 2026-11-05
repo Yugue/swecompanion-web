@@ -4,9 +4,9 @@
 
 Reviewed the new `users` / `system` schema, deployed Firestore rules, both backends, desktop handoff, subscription publishing, runtime service accounts and TTL configuration. Cloud inspection was read-only; all additional behavioral checks ran on local demo-project emulators. No production rules, IAM grants, accounts or data were changed during this audit.
 
-The deployed rules match the local `firestore.rules` exactly. All eight Cloud Functions are active, and none has the `FUNCTIONS_EMULATOR` bypass enabled. At inspection time the only live top-level collection was `system`, containing the namespace documents from the reset; `users` appears when a new account creates its profile.
+At the initial audit, the deployed rules matched local `firestore.rules` exactly. The follow-up profile-validation rules were not deployed during the review. All eight Cloud Functions were active with no `FUNCTIONS_EMULATOR` bypass. At initial inspection the only live top-level collection was `system`, containing the namespace documents from the reset; `users` appears when a new account creates its profile.
 
-No cross-account data access or client subscription escalation was reproduced. Three areas remain to harden before production: profile-field validation, direct Firestore session revocation, and backend IAM scope. Cloud progress has since been removed entirely, closing the progress-write finding. Successful access-isolation tests do not imply these other controls are present.
+No cross-account data access or client subscription escalation was reproduced. Two areas remain to harden before production: direct Firestore session revocation and backend IAM scope. Profile-field validation is fixed in the follow-up source; rule deployment remains a separate step. Cloud progress has been removed entirely. Successful access-isolation tests do not imply the remaining controls are present.
 
 ## Schema and trust boundaries
 
@@ -16,21 +16,22 @@ No cross-account data access or client subscription escalation was reproduced. T
 | Browser localStorage | Completed lesson IDs for each guide | Device-local only; Firestore progress access is denied. |
 | `users/{uid}/private/billing` | Stripe customer ID, checkout attempts, checkout metadata and account lock | None. |
 | `users/{uid}/private/rateLimits` | Independent AI and desktop-login counter windows | None. |
+| `users/{uid}/private/usage` | Monthly usage, original billing anchor and active request deadlines | None. |
 | `system/stripe` | Namespace metadata only | None. |
 | `system/stripe/customers/{customerId}` | Stripe customer-to-Firebase UID lookup | None. |
 | `system/stripe/events/{eventId}` | Processed webhook type and timestamp | None. |
 | `system/auth` | Namespace metadata only | None. |
 | `system/auth/desktopAuthCodes/{hash}` | UID, browser authentication time, PKCE challenge and expiration | None. Raw codes and verifiers are not stored. |
 
-The subscription summary contains `subscribed`, `status`, `plan`, `currentPeriodEnd`, `cancelAtPeriodEnd`, `amount`, `currency`, `claimsVersion` and `updatedAt`. It is intentionally visible to the account owner. Operational billing fields remain in a separate private document because Firestore reads return entire documents.
+The subscription summary contains `subscribed`, `status`, `plan`, `currentPeriodEnd`, `billingCycleAnchor`, `cancelAtPeriodEnd`, `amount`, `currency`, `claimsVersion` and `updatedAt`. It is intentionally visible to the account owner. Operational billing fields and usage counters remain in private documents because Firestore reads return entire documents.
 
 Parent permissions do not automatically grant subcollection permissions. The owner-readable user document does not make its `private` documents readable. Admin SDK access bypasses these browser rules and is controlled by IAM plus backend authorization.
 
 ## Confirmed findings
 
-### F1 — Low: profile values lack type and size validation
+### F1 — Low: profile values lack type and size validation (fixed locally)
 
-Profile field names are allowlisted, but field types and lengths are not. The emulator accepted a map and a 5,000-character string in `displayName`. Apply email/name type and size checks and preserve the intended null display-name case. Treat the profile email as display data; Firebase Authentication remains the identity source.
+The initial audit accepted a map and a 5,000-character string in `displayName`. The follow-up rules validate profile creation and updates: email/name must be strings of at most 320/256 characters respectively, null, or absent. Emulator checks accept null and boundary-length strings and reject maps, arrays, numbers and oversized values. The opt-in audit now expects the malformed cases to be denied. These rules are pending deployment. Profile email remains display data; Firebase Authentication remains the identity source.
 
 The original progress-write finding is closed by removing cloud storage entirely. The hook now uses browser localStorage only, retains its existing keys, and has no Firebase/Auth dependency. Rules deny all progress reads and writes, including for the owner. Tests confirm both unknown and known guide paths are denied. This eliminates arbitrary cloud progress documents and malformed cloud completion lists.
 
@@ -74,7 +75,7 @@ Run:
 bash scripts/test_firestore.sh --audit
 ```
 
-The normal seven integration tests still run. The opt-in audit script performs 17 additional checks: nine successful protection checks, two accepted malformed-profile cases and six stale-session read/write cases. The latter cases deliberately characterize current gaps; their expected acceptance is not a passing production-security gate. These checks use only `demo-swecompanion-schema` emulators.
+The integration tests still run. The opt-in audit script performs 17 additional checks: eleven protection checks, including rejection of malformed profile values, and six stale-session read/write cases. The stale-session cases deliberately characterize current gaps; their expected acceptance is not a passing production-security gate. These checks use only `demo-swecompanion-schema` emulators.
 
 All 30 Core backend tests also passed, including paid authorization, ended sessions, concurrent rate limiting and code replay/expiry/PKCE. IAM and deployed-rule comparisons were read-only against `swecompanion`. The emulator demonstrates rule behavior but is not a live test of Google's token verifier; the stale-token window is also consistent with Firebase's documented token/revocation model. No exploit attempts were made against live user accounts.
 
@@ -89,4 +90,19 @@ This is a targeted schema/access audit, not a dependency, device-signing, full b
 
 ## Follow-up: local-only learning progress
 
-At the owner's request, progress is stored only on the user's device. The cloud-sync code and its rule allowance are removed. Existing localStorage keys are retained. Reset dialogs now describe browser-local reset behavior. This change does not alter the remaining profile validation, stale-token or IAM findings.
+At the owner's request, progress is stored only on the user's device. The cloud-sync code and its rule allowance are removed. Existing localStorage keys are retained. Reset dialogs now describe browser-local reset behavior. Stale-token and IAM findings remain open; profile validation is addressed in the subsequent local follow-up.
+
+## AI usage and account-lifecycle follow-up
+
+The follow-up review fixed these cases without adding normal-path network calls:
+
+- Expired or missing paid periods are now rejected at the gateway, before the provider token preflight. Generation already rejected expired periods at deduction; this removes the unnecessary preflight and minute-counter write.
+- If an instance's clock is slightly behind at an anniversary, it cannot overwrite a newer usage window and refill the account again.
+- Resetting/restoring a conversation or starting another request cancels the preceding work immediately. A delayed shared token refresh cannot later upload screenshots or append to a replacement conversation.
+- Sign-out and terminal session rejection cancel the request and clear screenshots, answer history and undo snapshots, so the next account cannot send the previous account's context. Captures finishing after sign-out, clear or restore are discarded instead of populating the replacement conversation.
+- Sign-out during either browser handoff stage prevents a late response from signing the app back in.
+- Missing login credentials produce a sign-in message instead of a connection error.
+- Absolute deadline checks before encoding, authentication, upload and streamed output prevent synchronous preparation or buffered data from outrunning the timeout task. The client still cannot preempt a single synchronous image encoding operation, but it does not start a late upload afterward.
+- Profile values are validated on both creates and updates, including null values and server creation timestamps.
+
+All 47 Core backend tests, ten rules/audit tests, native AI/authentication checks and the signed Mac release build passed. Tests cover racing deductions, annual/monthly anniversaries, clock rollback, canceled handoffs, overlapping requests, reset during authentication and malformed profile creation/updates. Read-only cloud inspection reconfirmed the Editor binding on the shared AI/billing runtime account and the absence of a production emulator bypass. No live accounts, data, rules or IAM grants were changed during this review. Validation was completed locally before committing this follow-up. Firestore rules and Mac app distribution require separate deployment; the existing Core workflow deploys backend changes on pushes to main.

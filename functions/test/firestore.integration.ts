@@ -92,6 +92,31 @@ test("users cannot create, alter or delete subscription access", async () => {
   assert.equal((await client(`users/${owner.uid}`, owner.token, { premium: { booleanValue: true } }, ["premium"])).status, 403);
 });
 
+test("profile values allow bounded strings and null, but reject other types and oversized values", async () => {
+  for (const [field, max] of [["email", 320], ["displayName", 256]] as const) {
+    for (const value of [{ nullValue: null }, { stringValue: "x".repeat(max) }]) {
+      assert.equal((await client(`users/${owner.uid}`, owner.token, { [field]: value }, [field])).status, 200);
+    }
+    for (const value of [{ stringValue: "x".repeat(max + 1) }, { integerValue: "1" }, { mapValue: { fields: {} } }, { arrayValue: { values: [] } }]) {
+      assert.equal((await client(`users/${owner.uid}`, owner.token, { [field]: value }, [field])).status, 403);
+    }
+  }
+});
+
+test("new profiles enforce the same value limits with a server creation timestamp", async () => {
+  for (const [value, expected] of [[{ nullValue: null }, 200], [{ mapValue: { fields: {} } }, 403], [{ stringValue: "x".repeat(257) }, 403]] as const) {
+    const user = await account();
+    const name = `projects/${project}/databases/(default)/documents/users/${user.uid}`;
+    const response = await fetch(`http://${process.env.FIRESTORE_EMULATOR_HOST}/v1/projects/${project}/databases/(default)/documents:commit`, {
+      method: "POST", headers: { Authorization: `Bearer ${user.token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ writes: [{ update: { name, fields: { displayName: value } },
+        updateTransforms: [{ fieldPath: "createdAt", setToServerValue: "REQUEST_TIME" }] }] }),
+    });
+    assert.equal(response.status, expected, await response.text());
+    assert.equal((await userRef(user.uid).get()).exists, expected === 200);
+  }
+});
+
 test("profiles are private to the owner and progress has no client-accessible cloud storage", async () => {
   assert.equal((await client(`users/${owner.uid}`, other.token)).status, 403);
   assert.equal((await client(`users/${owner.uid}`)).status, 403);

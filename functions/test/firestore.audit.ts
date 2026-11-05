@@ -54,8 +54,8 @@ async function main() {
   await observe("whole-document replacement cannot remove server-owned subscription", await client(path, owner.token, { email: { stringValue: "owner@example.com" } }), 403, "protected");
   await observe("subcollections underneath private billing remain denied", await client(`${path}/private/billing/extra/record`, owner.token, { data: { stringValue: "test" } }), 403, "protected");
 
-  await observe("profile fields accept maps instead of strings", await client(path, owner.token, { displayName: { mapValue: { fields: { unexpected: { booleanValue: true } } } } }, ["displayName"]), 200, "finding");
-  await observe("profile fields accept excessively long strings", await client(path, owner.token, { displayName: { stringValue: "x".repeat(5000) } }, ["displayName"]), 200, "finding");
+  await observe("profile fields reject maps instead of strings", await client(path, owner.token, { displayName: { mapValue: { fields: { unexpected: { booleanValue: true } } } } }, ["displayName"]), 403, "protected");
+  await observe("profile fields reject excessively long strings", await client(path, owner.token, { displayName: { stringValue: "x".repeat(5000) } }, ["displayName"]), 403, "protected");
   await observe("cloud progress is denied for unknown kinds", await client(`${path}/progress/arbitrary-${randomUUID()}`, owner.token, { arbitrary: { booleanValue: true } }), 403, "protected");
   await observe("cloud progress is denied even for known guides", await client(`${path}/progress/ml`, owner.token, { completed: { integerValue: "123" } }), 403, "protected");
 

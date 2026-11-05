@@ -11,16 +11,25 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function validProfile() {
+      let email = request.resource.data.get('email', null);
+      let name = request.resource.data.get('displayName', null);
+      return (email == null || (email is string && email.size() <= 320)) &&
+        (name == null || (name is string && name.size() <= 256));
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
 
       allow create: if isOwner(userId) &&
+        validProfile() &&
         request.resource.data.keys().hasOnly(['email', 'displayName', 'createdAt']) &&
         request.resource.data.createdAt == request.time;
 
       // Only profile fields are client-writable. Subscription fields are server-owned.
       // createdAt may be filled once if billing created the parent document first.
       allow update: if isOwner(userId) &&
+        validProfile() &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email', 'displayName', 'createdAt']) &&
         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt']) ||
           (!resource.data.keys().hasAny(['createdAt']) && request.resource.data.createdAt == request.time));
