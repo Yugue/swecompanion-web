@@ -3,10 +3,10 @@ import { ML_SYSTEM_DESIGN_PATH, NLP_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
 export type SystemDesignProblemSummary = { id: string; title: string; summary: string; pattern: string };
 
 export const mlSystemDesignTopics = [
-  { id: "genai", name: "GenAI", href: `${ML_SYSTEM_DESIGN_PATH}/genai`, summary: "Generative AI system design cases are coming soon." },
-  { id: "cv", name: "Computer Vision", href: `${ML_SYSTEM_DESIGN_PATH}/cv`, summary: "Computer vision system design cases are coming soon." },
+  { id: "genai", name: "GenAI", href: `${ML_SYSTEM_DESIGN_PATH}/genai`, summary: "RAG assistants, tool-using agents, LLM serving, domain adaptation, text-to-SQL, long-document synthesis, and evaluation platforms." },
+  { id: "cv", name: "Computer Vision", href: `${ML_SYSTEM_DESIGN_PATH}/cv`, summary: "Photo search, traffic detection, image moderation, invoice OCR, product search, video understanding, satellite segmentation, and defect detection." },
   { id: "nlp", name: "NLP", href: NLP_SYSTEM_DESIGN_PATH, summary: "Classification, workflow matching, entity linking, duplicates, emerging issues, grounded answers, translation, and long-document systems." },
-  { id: "rrp", name: "Recommendation, Ranking, Prediction", href: `${ML_SYSTEM_DESIGN_PATH}/rrp`, summary: "Recommendation, ranking, and prediction system design cases are coming soon." },
+  { id: "rrp", name: "Recommendation, Ranking, Prediction", href: `${ML_SYSTEM_DESIGN_PATH}/rrp`, summary: "Home feeds, search relevance, ad click and conversion prediction, real-time short-video ranking, payment fraud, and product recommendations." },
 ];
 
 export const mlSystemDesignFramework = {

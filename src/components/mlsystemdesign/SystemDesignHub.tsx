@@ -22,7 +22,7 @@ export function SystemDesignHub({ topicId, problems }: { topicId: string; proble
         {problems.length === 0 ? (
           <section className="rounded-xl border border-outline/70 bg-surface p-6">
             <h2 className="mb-2 text-lg font-bold text-text">Coming soon</h2>
-            <p className="text-sm leading-relaxed text-text-muted">System design cases for {topic.name} are on the way. Select NLP above to explore the available guide.</p>
+            <p className="text-sm leading-relaxed text-text-muted">System design cases for {topic.name} are on the way. Choose an available topic above to explore its guide.</p>
           </section>
         ) : (
           <>

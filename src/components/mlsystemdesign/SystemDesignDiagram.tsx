@@ -1,10 +1,18 @@
+import { nlpArchitectures } from "@/lib/nlpArchitectureData";
+import { SystemDesignArchitecture } from "./SystemDesignArchitecture";
 import type { NlpDesignProblem } from "@/lib/nlpSystemDesignData";
+import { DuplicateDetectionArchitecture } from "./DuplicateDetectionArchitecture";
 
 const nodeWidth = 176;
 const nodeHeight = 82;
 const centerX = (index: number) => 24 + index * 204 + nodeWidth / 2;
 
 export function SystemDesignDiagram({ problem }: { problem: NlpDesignProblem }) {
+  if (problem.id === "duplicate-detection") return <DuplicateDetectionArchitecture />;
+
+  const graph = nlpArchitectures[problem.id];
+  if (graph) return <SystemDesignArchitecture id={problem.id} title={problem.title} graph={graph} />;
+
   const { diagram } = problem;
   const markerId = `${problem.id}-arrow`;
   const titleId = `${problem.id}-diagram-title`;
@@ -120,7 +128,6 @@ export function SystemDesignDiagram({ problem }: { problem: NlpDesignProblem }) 
       </div>
       <figcaption className="border-t border-outline/55 px-5 py-4 text-sm leading-relaxed text-text-muted">
         <p>{diagram.caption}</p>
-        <p className="mt-2"><span className="font-semibold text-text">Learning loop: </span>{diagram.learningLoop}</p>
         <p className="mt-2 text-xs sm:hidden">Swipe the diagram to follow each stage.</p>
       </figcaption>
     </figure>

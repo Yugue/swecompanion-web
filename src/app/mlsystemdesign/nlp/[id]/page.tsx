@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { SystemDesignCaseCompletion } from "@/components/mlsystemdesign/SystemDesignShell";
 import { TopBar } from "@/components/TopBar";
 import { SystemDesignDiagram } from "@/components/mlsystemdesign/SystemDesignDiagram";
+import { SystemDesignLesson } from "@/components/mlsystemdesign/SystemDesignLesson";
 import { NLP_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
 import { nlpDesignProblems, getNlpDesignProblem } from "@/lib/nlpSystemDesignData";
 import { mlSystemDesignProblemFlow } from "@/lib/mlSystemDesignTopics";
@@ -29,6 +30,19 @@ function DesignDetails({ items }: { items: { label: string; text: string }[] }) 
         </div>
       ))}
     </dl>
+  );
+}
+
+function LessonProse({ items }: { items: { title: string; text: string }[] }) {
+  return (
+    <div className="max-w-prose space-y-4">
+      {items.map(({ title, text }) => (
+        <div key={title}>
+          <h3 className="text-sm font-bold text-text">{title}</h3>
+          <p className="mt-1 text-base leading-relaxed text-text-muted">{text}</p>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -65,20 +79,21 @@ export default async function NlpDesignProblemPage({ params }: { params: Promise
         </Link>
         <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-text">Problem {index + 1}: {problem.title}</h1>
         <div className="mb-5"><SystemDesignCaseCompletion caseId={problem.id} accent={accent} /></div>
+        {problem.lessonId ? <SystemDesignLesson lessonId={problem.lessonId} topicName="NLP" diagram={<SystemDesignDiagram problem={problem} />} /> : (
         <article aria-label="NLP system design lesson" className="space-y-8">
           <section id="problem-framing" aria-labelledby="problem-framing-title" className="scroll-mt-6">
             <StageHeading index={0} />
-            <p className="mb-4 text-base leading-relaxed text-text">{problem.conversation[0].text}</p>
+            <p className="mb-4 text-base leading-relaxed text-text">{problem.statement}</p>
             <h3 className="mb-3 text-sm font-bold text-text">Interview Q&A</h3>
             <div role="group" aria-label="Problem statement conversation" className="overflow-hidden rounded-xl border border-outline/70 bg-surface">
-              {problem.conversation.slice(1).map((turn, turnIndex) => (
+              {problem.conversation.map((turn, turnIndex) => (
                 <div key={turnIndex} className={`grid gap-1.5 p-4 sm:grid-cols-[100px_1fr] sm:gap-4 sm:p-5 ${turnIndex > 0 ? "border-t border-outline/45" : ""} ${turn.speaker === "Candidate" ? "bg-surface-high/30" : ""}`}>
                   <p className="text-sm font-bold text-text">{turn.speaker}</p>
                   <p className="text-sm leading-relaxed text-text-muted">{turn.text}</p>
                 </div>
               ))}
             </div>
-            <p className="mb-3 mt-5 text-sm leading-relaxed text-text-muted">From the Q&A, we can deduce:</p>
+            <p className="mb-4 mt-5 max-w-prose text-base leading-relaxed text-text">{problem.decision}</p>
             <h3 className="mb-2 text-sm font-bold text-text">Functional requirements</h3>
             <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-text-muted">{problem.requirements.map((requirement) => <li key={requirement}>{requirement}</li>)}</ul>
             <h3 className="mb-2 mt-5 text-sm font-bold text-text">Derived objectives</h3>
@@ -96,24 +111,24 @@ export default async function NlpDesignProblemPage({ params }: { params: Promise
 
           <section id="data-and-features" aria-labelledby="data-and-features-title" className="scroll-mt-6">
             <StageHeading index={1} />
-            <DesignDetails items={[
-              { label: "Where examples come from", text: problem.data.sources },
-              { label: "What counts as correct", text: problem.data.labels },
-              { label: "What the model reads", text: problem.data.features },
-              { label: "How we test fairly", text: problem.data.validation },
+            <LessonProse items={[
+              { title: "Where the data comes from", text: problem.data.sources },
+              { title: "How to get reliable labels", text: problem.data.labels },
+              { title: "What the model needs to see", text: problem.data.features },
+              { title: "How to keep the test fair", text: problem.data.validation },
             ]} />
             <dl className="mt-4 grid gap-3 rounded-xl border border-outline/70 bg-surface p-5 text-sm leading-relaxed sm:grid-cols-2 sm:gap-6">
-              <div><dt className="font-bold text-text">One training example</dt><dd className="mt-1 text-text-muted">{problem.trainingExample.input}</dd></div>
-              <div><dt className="font-bold text-text">The answer we teach</dt><dd className="mt-1 text-text-muted">{problem.trainingExample.target}</dd></div>
+              <div><dt className="font-bold text-text">One labeled example</dt><dd className="mt-1 text-text-muted">{problem.trainingExample.input}</dd></div>
+              <div><dt className="font-bold text-text">What to record</dt><dd className="mt-1 text-text-muted">{problem.trainingExample.target}</dd></div>
             </dl>
           </section>
 
           <section id="high-level-design" aria-labelledby="high-level-design-title" className="scroll-mt-6">
             <StageHeading index={2} />
-            <DesignDetails items={[
-              { label: "What model to use", text: problem.highLevel.model },
-              { label: "Why it fits", text: problem.highLevel.rationale },
-            ]} />
+            <div className="max-w-prose space-y-3 text-base leading-relaxed text-text-muted">
+              <p>{problem.highLevel.model}</p>
+              <p>{problem.highLevel.rationale}</p>
+            </div>
             <aside className="mt-4 rounded-xl border border-outline/70 bg-surface p-5" aria-label="Mental model">
               <p className="text-sm font-bold text-text">Picture it</p>
               <p className="mt-2 text-base leading-relaxed text-text">{problem.mentalModel}</p>
@@ -122,30 +137,30 @@ export default async function NlpDesignProblemPage({ params }: { params: Promise
 
           <section id="model-and-training" aria-labelledby="model-and-training-title" className="scroll-mt-6">
             <StageHeading index={3} />
-            <DesignDetails items={[
-              { label: "Compare simple baselines", text: problem.modeling.baseline },
-              { label: "How the model works", text: problem.modeling.choice },
-              { label: "How it learns", text: problem.modeling.training },
-              { label: "Live decision rule", text: problem.inference.serving },
+            <LessonProse items={[
+              { title: "What to try first", text: problem.modeling.baseline },
+              { title: "How the model makes a prediction", text: problem.modeling.choice },
+              { title: "When and how to train", text: problem.modeling.training },
+              { title: "How to act on a prediction", text: problem.inference.serving },
             ]} />
           </section>
 
           <section id="evaluation" aria-labelledby="evaluation-title" className="scroll-mt-6">
             <StageHeading index={4} />
-            <DesignDetails items={[
-              ...problem.measure.map((metric) => ({ label: metric.label === "Live" ? "After release" : "Before release", text: metric.text })),
-              { label: "Safe rollout", text: problem.inference.experiment },
+            <LessonProse items={[
+              ...problem.measure.map((metric) => ({ title: metric.label === "Live" ? "What to measure in production" : "What to measure before launch", text: metric.text })),
+              { title: "How to roll it out", text: problem.inference.experiment },
             ]} />
           </section>
 
           <section id="monitoring-and-scaling" aria-labelledby="monitoring-and-scaling-title" className="scroll-mt-6">
             <StageHeading index={5} />
-            <p className="mb-4 text-sm leading-relaxed text-text-muted">{problem.monitoring}</p>
+            <p className="max-w-prose text-base leading-relaxed text-text-muted">{problem.monitoring}</p>
             <div className="mt-4 rounded-xl border border-outline/60 bg-surface px-5 py-4 text-sm">
               <h3 className="font-semibold text-text">Capacity planning</h3>
-              <p className="mt-2 leading-relaxed text-text-muted">{problem.capacity}</p>
+              <p className="mt-2 text-base leading-relaxed text-text-muted">{problem.capacity}</p>
             </div>
-            <p className="mt-4 text-sm leading-relaxed text-text-muted"><span className="font-semibold text-text">The tradeoff: </span>{problem.tradeoff}</p>
+            <p className="mt-4 max-w-prose text-base leading-relaxed text-text-muted">{problem.tradeoff}</p>
             <div className="mt-4 rounded-xl border border-outline/70 bg-surface p-5 sm:p-6">
               <h3 className="text-sm font-bold leading-relaxed text-text">Interviewer: {problem.followUp.question}</h3>
               <p className="mt-2 text-sm leading-relaxed text-text-muted"><span className="font-bold text-text">Candidate: </span>{problem.followUp.answer}</p>
@@ -161,12 +176,13 @@ export default async function NlpDesignProblemPage({ params }: { params: Promise
           <section id="detailed-design" aria-labelledby="detailed-design-title" className="scroll-mt-6">
             <StageHeading index={6} />
             <ol className="mb-5 space-y-4">
-              {problem.designSteps.map((step, stepIndex) => <li key={step.title}><h3 className="text-sm font-bold text-text">{stepIndex + 1}. {step.title}</h3><p className="mt-1 text-sm leading-relaxed text-text-muted">{step.text}</p></li>)}
+              {problem.designSteps.map((step, stepIndex) => <li key={step.title} className="max-w-prose"><h3 className="text-sm font-bold text-text">{stepIndex + 1}. {step.title}</h3><p className="mt-1 text-base leading-relaxed text-text-muted">{step.text}</p></li>)}
             </ol>
             <SystemDesignDiagram problem={problem} />
           </section>
 
         </article>
+        )}
 
         <nav aria-label="Case navigation" className="mt-8 grid gap-3 border-t border-outline/55 pt-5 sm:grid-cols-2">
           <Link href={previous ? `${NLP_SYSTEM_DESIGN_PATH}/${previous.id}` : NLP_SYSTEM_DESIGN_PATH} className="rounded-xl border border-outline/70 bg-surface p-4 hover:bg-surface-high">

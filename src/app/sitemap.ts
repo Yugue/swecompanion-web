@@ -13,6 +13,12 @@ import { rlParts, rlTopics } from "@/lib/rlStudyData";
 import { speechParts, speechTopics } from "@/lib/speechStudyData";
 import { cvParts } from "@/lib/cvStudyData";
 import { nlpDesignProblems } from "@/lib/nlpSystemDesignData";
+import { genaiDesignProblems } from "@/lib/genaiSystemDesignData";
+import { cvDesignProblems } from "@/lib/cvSystemDesignData";
+import { rrpDesignProblems } from "@/lib/rrpSystemDesignData";
+import { RRP_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
+import { CV_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
+import { GENAI_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
 import { ML_SYSTEM_DESIGN_PATH, NLP_SYSTEM_DESIGN_PATH } from "@/lib/mlDomains";
 import { DEEP_LEARNING_PATH, APPLIED_ML_PATH, AGENTIC_AI_PATH, RRP_PATH, CV_PATH, DISTRIBUTED_ML_PATH, RL_PATH, SPEECH_PATH, NLP_PATH, GENAI_PATH, LLM_PATH } from "@/lib/mlDomains";
 
@@ -25,6 +31,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}${ML_SYSTEM_DESIGN_PATH}`, priority: 1 },
     { url: `${siteUrl}${NLP_SYSTEM_DESIGN_PATH}`, priority: 0.9 },
     ...nlpDesignProblems.map(({ id }) => ({ url: `${siteUrl}${NLP_SYSTEM_DESIGN_PATH}/${id}`, priority: 0.8 })),
+    { url: `${siteUrl}${GENAI_SYSTEM_DESIGN_PATH}`, priority: 0.9 },
+    ...genaiDesignProblems.map(({ id }) => ({ url: `${siteUrl}${GENAI_SYSTEM_DESIGN_PATH}/${id}`, priority: 0.8 })),
+    { url: `${siteUrl}${CV_SYSTEM_DESIGN_PATH}`, priority: 0.9 },
+    ...cvDesignProblems.map(({ id }) => ({ url: `${siteUrl}${CV_SYSTEM_DESIGN_PATH}/${id}`, priority: 0.8 })),
+    { url: `${siteUrl}${RRP_SYSTEM_DESIGN_PATH}`, priority: 0.9 },
+    ...rrpDesignProblems.map(({ id }) => ({ url: `${siteUrl}${RRP_SYSTEM_DESIGN_PATH}/${id}`, priority: 0.8 })),
     { url: `${siteUrl}${DISTRIBUTED_ML_PATH}`, priority: 1 },
     { url: `${siteUrl}${RL_PATH}`, priority: 1 },
     { url: `${siteUrl}${SPEECH_PATH}`, priority: 1 },

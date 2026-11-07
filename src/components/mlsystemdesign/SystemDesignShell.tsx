@@ -34,8 +34,8 @@ export function useSystemDesignTopicProgress(topicId: string) {
   return { completed, toggle, requestReset };
 }
 
-export function SystemDesignCaseCompletion({ caseId, accent = "#4285F4" }: { caseId: string; accent?: string }) {
-  const { completed, toggle } = useSystemDesignTopicProgress("nlp");
+export function SystemDesignCaseCompletion({ caseId, accent = "#4285F4", topicId = "nlp" }: { caseId: string; accent?: string; topicId?: string }) {
+  const { completed, toggle } = useSystemDesignTopicProgress(topicId);
   const done = completed.has(caseId);
   return (
     <button type="button" aria-pressed={done} onClick={() => toggle(caseId)} className="flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-semibold" style={{ borderColor: done ? accent : "var(--color-outline)", color: done ? accent : "var(--color-text-muted)", background: done ? `color-mix(in srgb, ${accent} 12%, transparent)` : "transparent" }}>
