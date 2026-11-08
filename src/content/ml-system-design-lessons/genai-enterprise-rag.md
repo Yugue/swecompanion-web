@@ -40,6 +40,14 @@ Use hard business constraints: **unauthorized-content leakage rate ≈ 0** and l
 
 # 5. Data
 
+**Labeling approach:** Generate question–passage–answer pseudo-labels from authorized documents with a prompted LLM teacher. A small human gold set teaches citation, abstention and conflicting-version rules; reject unsupported claims with evidence checks. Do not fine-tune the generator merely to memorize changing policies.
+
+**Quality and escalation:** Use separate gold for prompt development, validation and locked document-family/time tests. If prompt engineering or supported soft-prompt tuning fails after retrieval is fixed, try teacher LoRA on development gold. Fund targeted human answers only for valuable remaining gaps.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Use heading-aware chunks, BM25 terms, dense embeddings, ACL, authority and version metadata; reranking combines query/passage relevance with valid evidence.
+
 **Sources:** documents + canonical URL, document ID, owner, update timestamp, ACL, source type, section hierarchy, version, language; historical user questions and independently reviewed answers; user feedback and search logs (with privacy safeguards).
 
 **Ingestion:** connector → parse/OCR where necessary → document normalization → heading/section-aware chunking → metadata/ACL attachment → sparse (BM25) index + dense embeddings index. Retain the original document and offsets to produce real citations. Avoid arbitrary fixed-size chunks splitting tables, procedures, or conditions. A typical starting chunk length is 300–800 tokens with selective overlap; validate empirically on recall and citation fidelity.
@@ -48,23 +56,26 @@ Use hard business constraints: **unauthorized-content leakage rate ≈ 0** and l
 
 **Label leakage:** split by document family/version and time; otherwise near-identical passages across splits inflate retrieval metrics. If employee documents are sensitive, do not send them to external teachers without authorization.
 
-# 6. High-level architecture
+# 6. Models, training, and prompting
 
-<!-- system-design-diagram -->
-
-**Why hybrid?** Dense search handles paraphrases; lexical search is important for exact document IDs, error codes, names, and legal phrases. Rerank only when retrieval Recall@K is already high but top-result quality is weak.
-
-**Access control:** do not retrieve unauthorized snippets and hope the LLM ignores them. Apply ACL-safe filtering in retrieval and recheck before passing content into context, including cached results. Index partitioning, ACL-aware filters, and identity-aware caches may be required.
-
-# 7. Models, training, and prompting
-
-- Start with a capable pretrained embedding model. Fine-tune bi-encoder using (query, supporting passage) positives and **hard negatives** from same-topic but wrong-answer documents; optimize contrastive retrieval.
+- Start with a capable pretrained embedding model. Only if baseline recall is inadequate, adapt with checked teacher (query, supporting passage) positives and **hard negatives** from same-topic but wrong-answer documents; optimize contrastive retrieval.
 - Add a cross-encoder reranker if evidence Recall@20 is strong but NDCG/top-5 usefulness poor. Train on explicit relevance grades; don't confuse ANN approximate recall with ground-truth evidence recall.
-- Start generation with a pretrained instruction-tuned large language model (LLM). The instruction should require cited claims, distinguish quoted evidence from instructions, and declare insufficient evidence. Fine-tune only if prompt+RAG baselines cannot meet tone, format, or domain behavior requirements at acceptable cost.
+- Start generation with a pretrained instruction-tuned large language model (LLM). The instruction should require cited claims, distinguish quoted evidence from instructions, and declare insufficient evidence. Use LoRA only if prompt+RAG baselines cannot meet tone, format, or domain behavior requirements at acceptable cost.
 - Support question decomposition for genuinely multi-hop queries, but do not automatically invoke multiple rounds for simple lookups.
 - Optionally add a lightweight answerability/evidence sufficiency verifier trained on supporting and non-supporting retrieved contexts. A high cosine similarity score alone does **not** imply the answer is present.
 
-# 8. Serving, scale, and production lifecycle
+## Training and inference cost estimate
+
+**Assumptions:** 500 questions/s; rerank 20 passages/question. One generation/question processes 4K input tokens and produces 300 output tokens. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Retrieval encoder | None | 500 requests/s × 1 query encodings/request ÷ (5K query encodings/s/GPU) → 1 GPU × ($4/GPU-h) = **$4/h** |
+| Top-20 reranker | None | 500 requests/s × 20 pairs/request ÷ (5K pairs/s/GPU) → 2 GPUs × ($4/GPU-h) = **$8/h** |
+| Prompted RAG generator | None | 2M input tokens/s ÷ (10K input tokens/s/GPU) → 200 GPUs; 150K output tokens/s ÷ (2K output tokens/s/GPU) → 75 GPUs. (200 + 75) GPUs × ($4/GPU-h) = **$1,100/h** |
+| Optional adapter | 10M tokens × 3 passes ÷ (500 tokens/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$66.67/run** | Same serving cost as baseline |
+
+# 7. Serving, scale, and production lifecycle
 
 - **Latency:** split budget across identity/auth, hybrid retrieval, rerank, prefill, token generation, checks. Generation often dominates; stream user-visible output only if policy permits provisional text.
 - **Context:** select diverse evidence up to a token budget; remove duplicate snippets, preserve exact cited anchors; adding more irrelevant context can hurt quality.
@@ -72,6 +83,14 @@ Use hard business constraints: **unauthorized-content leakage rate ≈ 0** and l
 - **Caching:** cache retrieval or final answers only with identity/ACL, document versions, and expiration in the cache key. Never share private results across users by accident.
 - **Prompt injection:** fetched documents are untrusted data. Do not execute instructions embedded in them; keep source text segregated and strip tool authority.
 - **Conflicting policies:** prefer current authorized source-of-truth; if evidence genuinely conflicts, surface it or abstain rather than silently inventing a resolution.
+
+# 8. High-level architecture
+
+<!-- system-design-diagram -->
+
+**Why hybrid?** Dense search handles paraphrases; lexical search is important for exact document IDs, error codes, names, and legal phrases. Rerank only when retrieval Recall@K is already high but top-result quality is weak.
+
+**Access control:** do not retrieve unauthorized snippets and hope the LLM ignores them. Apply ACL-safe filtering in retrieval and recheck before passing content into context, including cached results. Index partitioning, ACL-aware filters, and identity-aware caches may be required.
 
 # 9. Evaluation and diagnostics
 

@@ -42,18 +42,22 @@ Frame-level classification accuracy alone does not measure when an activity occu
 
 # 5. Data
 
+**Labeling approach:** Use a small human temporal gold set to prompt a multimodal teacher for clip captions and candidate event intervals. Combine proposals with temporal detectors and audio/transcript evidence; filter pseudo-labels using boundary consistency and sampled human audits.
+
+**Quality and escalation:** Test temporal IoU and missed brief actions on separate video/source/time gold. Tune prompts or supported soft prompts before teacher LoRA; fund targeted human interval correction only for important persistent localization failures. A caption alone is not a precise timestamp label.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Fuse sampled frames, motion, ASR/audio and shot boundaries; adaptive dense windows protect short actions and timestamps remain tied to original video.
+
 - Video files, sparse/shot-based frames, audio tracks, subtitles/automatic speech recognition (ASR), metadata.
-- Human labels for `[start, end, action]`, scene boundaries and event descriptions; negative clips with confusing motion.
+- Teacher proposals for `[start, end, action]`, scene boundaries and event descriptions, anchored by small human temporal gold; negative clips with confusing motion.
 - Sample diverse camera motion, speed, lighting, content styles and long-tail events.
 - Weak labels from user captions can initialize training but don't provide precise event boundaries.
 - Split by video/source and time; adjacent clips from the same video must not leak across train/test.
 - Privacy and copyright-aware ingestion/retention; audio may reveal extra sensitive data.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-# 7. Model and training choices
+# 6. Model and training choices
 
 - **Frame baseline:** Encode sparse frames with pretrained ViT/CLIP, pool over short windows; inexpensive but loses precise motion.
 - **Temporal model:** Temporal convolution or VideoMAE/TimeSformer-style backbone on frame sequences; better actions requiring motion (falling vs standing).
@@ -62,13 +66,26 @@ Frame-level classification accuracy alone does not measure when an activity occu
 - **Audio:** Combine ASR and sound embeddings for spoken content or off-screen events; audio is optional but can add evidence.
 - Hard negatives: similar frames with different temporal order/actions; caption-only training can create static-scene shortcuts.
 
-# 8. Scaling and serving
+## Training and inference cost estimate
+
+**Assumptions:** 1K video-hours/day. Sample one frame/video-second for the frame baseline. The temporal stage processes 10% of footage as nonoverlapping clips of 2 video-seconds each. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Frozen sparse-frame encoder | None | 3600K frames/day ÷ (1K frames/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$4/day** |
+| Optional temporal model | 100K clips × 5 passes ÷ (50 clips/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$11.11/run** | 180K clips/day ÷ (50 clips/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$4/day** |
+
+# 7. Scaling and serving
 
 - Avoid full-frame processing of every hour at high resolution. Use scene-based sampling, motion-guided denser sampling for action candidates, and tiered models.
 - Example: 1 hour video × 30 FPS = **108,000 frames**. Sampling 1 FPS yields 3,600 frames, a 30× decrease, but may miss sub-second events; use adaptive dense windows where needed.
 - Asynchronous decode/index queues and GPU batching; video processing is much heavier than text search.
 - Store per-clip embeddings and structured timestamps; main+delta searchable indexes for fresh clips.
 - For long videos, hierarchical representations: frame → clip → event → video summary; return source timestamps for verification.
+
+# 8. Architecture
+
+<!-- system-design-diagram -->
 
 # 9. Evaluation and failures
 
@@ -77,7 +94,6 @@ Frame-level classification accuracy alone does not measure when an activity occu
 **Failures:** Rare short events missed by sparse sampling, camera cuts mistaken for motion, temporal reasoning errors, duplicate near-identical clips, hallucinated captions, ASR mismatch.
 
 **L5 decision:** Separate **visual recognition**, **temporal localization**, **caption grounding**, and **clip retrieval**. Sampling policy is a first-order system-design choice.
-
 
 # 10. One-minute interview summary
 

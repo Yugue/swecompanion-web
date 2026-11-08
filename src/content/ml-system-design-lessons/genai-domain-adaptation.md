@@ -40,6 +40,14 @@ Define a weighted score only after safety constraints; do not allow high average
 
 # 5. Data and labeling
 
+**Labeling approach:** Start with a small representative human gold set split into development, validation and locked tests. Use development examples to engineer a teacher prompt for structured outputs, evidence and abstention; generate checked pseudo-labels for the long tail.
+
+**Quality and escalation:** Prompt engineering or supported soft-prompt tuning comes first. If the teacher still misses the validation target, adapt it with LoRA on development gold; full-weight tuning is exceptional. Expand paid human training labels only if this still fails and task value supports the cost. An adapted teacher can then label data for a smaller student.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Retain domain terminology, authorized evidence, task/schema IDs and severity; current policy facts come from retrieval, not adapter memory.
+
 **High-quality human gold:** a curated, representative set of inputs with ideal structured outputs, evidence links, abstain decisions, and graded severity. Reserve a clean untouched test set before generating training data.
 
 **Additional training:** historical reviewed conversations, successful agent resolutions, domain rules, public/general instruction data where legally allowed. Filter PII, stale policy, contradictions, and duplicated templates.
@@ -50,18 +58,14 @@ Define a weighted score only after safety constraints; do not allow high average
 
 **Preference labels:** for two candidate responses to the same input, experts choose the more helpful/compliant one. Make sure preferences correlate with actual task correctness, not merely verbosity or tone.
 
-# 6. High-level architecture
-
-<!-- system-design-diagram -->
-
-# 7. Model strategy and training
+# 6. Model strategy and training
 
 **Baseline ladder (in order):**
 
 1. **Prompting and few-shot examples:** establish a baseline. Cheapest engineering change, but high inference cost if the model is large and examples increase context.
 2. **RAG:** add if failures are caused by missing/stale factual knowledge, not formatting or reasoning behavior.
-3. **Full SFT:** for stable tasks with abundant high-quality labels. Train with autoregressive cross-entropy over the desired response tokens (often mask prompt tokens from loss). Monitor held-out task metrics, not just training convergence.
-4. **LoRA (low-rank adaptation) / QLoRA:** update small adapter matrices; useful when the base LLM is large and GPU memory is constrained. For a small model, full fine-tuning may be simpler and competitive. QLoRA uses quantized base weights during adapter fine-tuning; check supported deployment format.
+3. **Parameter-efficient SFT:** use LoRA/QLoRA only when prompting and supported soft-prompt tuning miss the target for stable behaviors. Train with autoregressive cross-entropy over the desired response tokens (often mask prompt tokens from loss). Monitor held-out task metrics, not just training convergence.
+4. **Full-weight SFT (rare escalation):** benchmark only if adapters fail and the improvement justifies the extra compute. LoRA/QLoRA update small adapter matrices; useful when the base LLM is large and GPU memory is constrained. For a small model, full fine-tuning may be simpler and competitive. QLoRA uses quantized base weights during adapter fine-tuning; check supported deployment format.
 5. **Knowledge distillation:** teacher → large volume of checked responses → smaller student. Choose student based on measured accuracy/cost and high-risk failure modes; not all teacher reasoning or edge cases survive distillation.
 6. **Preference optimization:** direct preference optimization (DPO) or related approaches after SFT can shift style/choices toward human preferences. It does not substitute for factual ground truth or security checks.
 
@@ -71,13 +75,27 @@ Define a weighted score only after safety constraints; do not allow high average
 
 **When not to fine-tune:** if 90% of failures are missing current policy context, fix retrieval; if all failures are invalid JSON, try constrained decoding first; if quality is already sufficient, optimize inference rather than retrain.
 
-# 8. Serving and operations
+## Training and inference cost estimate
+
+**Assumptions:** 100 requests/s × (1K input tokens + 200 output tokens)/request. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Prompt-only teacher | None | 100K input tokens/s ÷ (10K input tokens/s/GPU) → 10 GPUs; 20K output tokens/s ÷ (2K output tokens/s/GPU) → 10 GPUs. (10 + 10) GPUs × ($4/GPU-h) = **$80/h** |
+| Optional LoRA teacher | 10M tokens × 3 passes ÷ (500 tokens/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$66.67/run** | Same as baseline |
+| Optional compact student | 100M tokens × 3 passes ÷ (1K tokens/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$333.33/run** | 100K input tokens/s ÷ (20K input tokens/s/GPU) → 5 GPUs; 20K output tokens/s ÷ (5K output tokens/s/GPU) → 4 GPUs. (5 + 4) GPUs × ($4/GPU-h) = **$36/h** |
+
+# 7. Serving and operations
 
 Serve the adapted model with batching, token limits, and schema-constrained output. Choose a fallback policy for uncertainty, schema failures, high-risk cases, or detected out-of-distribution input. Use rules/validators for mandatory structured fields and domain-specific invariants; a fine-tuned generator can still hallucinate.
 
 Track versioned: base model, adapter, training dataset, tokenizer, prompt, retrieved corpus, eval suite. Canary traffic to new versions; compare against prior baseline and teacher on a common fixed evaluation slice. Recalibrate escalation thresholds when scores shift.
 
 **Online learning risk:** user thumbs-up or agent corrections can be noisy, self-selected, or malicious. Curate and audit before adding to training. Do not retrain solely because daily label volume increased; use held-out learning curves and error clusters.
+
+# 8. High-level architecture
+
+<!-- system-design-diagram -->
 
 # 9. Evaluation and diagnosis
 
@@ -96,4 +114,4 @@ Track versioned: base model, adapter, training dataset, tokenizer, prompt, retri
 
 SFT improves stable behaviors but can encode outdated facts; RAG handles factual updates but adds retrieval dependence. Larger models cost more per output token. Distillation improves cost only if quality still meets the business requirement. LoRA primarily helps training resource usage—not automatically lower inference cost.
 
-> **Interview answer:** “I would first separate knowledge failures from behavior failures. I'd benchmark prompt-only and RAG baselines, define a human-reviewed gold suite with task and high-severity metrics, then fine-tune or distill a smaller LLM for repeated domain behaviors. I'd validate JSON and policy compliance outside the model, use current evidence via RAG, calibrate escalation, and deploy through shadow/canary with quality–latency–cost monitoring.”
+> **Interview answer:** “I would first separate knowledge failures from behavior failures. I'd benchmark prompt-only and RAG baselines, define a human-reviewed gold suite with task and high-severity metrics, then consider LoRA or distillation only for persistent repeated-behavior gaps. I'd validate JSON and policy compliance outside the model, use current evidence via RAG, calibrate escalation, and deploy through shadow/canary with quality–latency–cost monitoring.”

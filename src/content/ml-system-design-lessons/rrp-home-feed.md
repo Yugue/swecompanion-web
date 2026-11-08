@@ -60,6 +60,14 @@ Avoid optimizing click-through rate (CTR) alone: high CTR with low satisfaction 
 
 # 5. Data: events, labels, and splits
 
+**Labeling approach:** Watch, skip, survey and retention events already supply inexpensive outcome labels; do not ask an LLM to invent whether a user enjoyed a video. Use a small human gold set to prompt a multimodal teacher for topic, quality and safety pseudo-labels supporting cold-start content features.
+
+**Quality and escalation:** For those semantic labels, refine prompts or supported soft prompts, then teacher LoRA on development gold if validation quality fails. Human bulk tags are a funded last resort. Keep separate human validation/test panels for relevance and safety, and real behavioral outcomes for ranking evaluation.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Use point-in-time user/session history, content embeddings, freshness and exposure/position logs. Unexposed videos are unknown, not negative preferences.
+
 **Raw entities:** user ID (privacy-protected), video ID, creator/category, upload date, title/transcript/video embeddings, device, locale, language, contextual session features.
 
 **Interactions:** exposure/impression, click, watch seconds, percentage completed, fast skip, like/dislike, survey satisfaction, repeat watch, “not interested,” subscriptions.
@@ -77,13 +85,7 @@ Avoid optimizing click-through rate (CTR) alone: high CTR with low satisfaction 
 
 **Splits:** chronological train/validation/test, with user/session-aware leakage controls. Build retrieval evaluation against the catalog that existed when each query happened. Keep dedicated cold-start and tail-content slices.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-**Why a funnel?** Ranking every video is impossible. Multiple inexpensive candidate sources create coverage; progressively expensive models score smaller sets.
-
-# 7. Candidate generation: two-tower retrieval
+# 6. Candidate generation: two-tower retrieval
 
 - **User tower:** long-term interaction history, recent watch sequence, subscriptions, language/region, time of day; output user vector `u`.
 - **Video tower:** title/transcript, multimodal content embeddings, category, creator, freshness; output video vector `v`.
@@ -95,7 +97,7 @@ Avoid optimizing click-through rate (CTR) alone: high CTR with low satisfaction 
 
 **Cold start:** item content embeddings allow retrieval before behavioral history; brand-new users get contextual/popularity/onboarding candidates until interaction history accrues.
 
-# 8. Ranking model and objective
+# 7. Ranking model and objective
 
 A ranker receives richer cross-features than a two-tower dot product:
 
@@ -121,7 +123,17 @@ score = a * expected_satisfied_watch
 
 **Loss:** binary cross-entropy for binary outcomes; Huber/quantile/regression or distributional loss for duration; weighted sum or learned multi-task balancing. Counterfactual/propensity adjustments may be required for exposure bias.
 
-# 9. Slate construction and exploration
+## Training and inference cost estimate
+
+**Assumptions:** 50K requests/s. Score 1K candidate videos/request with the cheap model, encode one user/request, then deep-rank 200 candidates/request. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| GBDT pre-ranker | 1B rows ÷ (1M rows/core-h) × ($0.05/core-h) = **$50/run** | 50K requests/s × 1000 video scores/request ÷ (200K video scores/s/CPU core) → 250 CPU cores × ($0.05/CPU core-h) = **$12.50/h** |
+| Two-tower user encoding | 1B examples × 2 passes ÷ (100K examples/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$22.22/run** | 50K requests/s × 1 user encodings/request ÷ (10K user encodings/s/GPU) → 5 GPUs × ($4/GPU-h) = **$20/h** |
+| Deep top-200 ranker | 1B examples × 2 passes ÷ (100K examples/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$22.22/run** | 50K requests/s × 200 video scores/request ÷ (100K video scores/s/GPU) → 100 GPUs × ($4/GPU-h) = **$400/h** |
+
+# 8. Slate construction and exploration
 
 Individual scores do not determine the best feed. Apply re-ranking with:
 
@@ -134,7 +146,7 @@ A simple greedy slate selection can maximize `relevance(item) - lambda * similar
 
 Exploration must be logged with action probabilities when used for unbiased off-policy analysis. Avoid unconstrained random recommendations.
 
-# 10. Serving and capacity
+# 9. Serving and capacity
 
 - **Offline:** training and bulk video embedding generation; periodic rebuilding or segmented incremental updates.
 - **Near-line:** session counters and user state, fresh uploaded-video embeddings, removal/tombstones.
@@ -143,6 +155,12 @@ Exploration must be logged with action probabilities when used for unbiased off-
 - Feature version and event-time consistency: use point-in-time correct training joins to avoid leakage and offline/online skew.
 
 **Back-of-envelope:** if 50K QPS × 500 ranker candidates/request = **25M candidate scores/sec** before pre-ranking. A cascade reducing 1,000 -> 200 -> 50 materially lowers expensive model compute. Benchmark throughput/GPU; don't infer it from parameters alone.
+
+# 10. Architecture
+
+<!-- system-design-diagram -->
+
+**Why a funnel?** Ranking every video is impossible. Multiple inexpensive candidate sources create coverage; progressively expensive models score smaller sets.
 
 # 11. Evaluation and experiments
 

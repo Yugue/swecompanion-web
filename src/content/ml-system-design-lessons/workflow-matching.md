@@ -37,23 +37,25 @@ This is **open-catalog semantic matching**, not a fixed 20K-way classification h
 
 # 5. Data
 
+**Labeling approach:** Use a small expert gold set of requests paired with action IDs or UNSUPPORTED to engineer a teacher prompt around catalog descriptions. Generate multilingual paraphrases and confusable request–action pseudo-labels; validate schema, action existence and independent authorization rules.
+
+**Quality and escalation:** Keep unseen-action and unsupported-intent human gold separate for validation and locked testing. If prompt engineering or supported soft-prompt tuning misses accepted-action precision, try teacher LoRA on development gold. Buy targeted human labels only if the remaining wrong-action cost warrants them.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Encode request text and action descriptions; use exact parameter names, locale and permissions as separate eligibility features, not inferred authority.
+
 **Catalog:** Curated action ID; concise functional description; aliases; example utterances in multiple languages; parameter schema; prerequisites; authorization scope; activation/expiry dates. Ensure descriptions differentiate actions that sound similar but have different effects.
 
 **Training pairs:** (request, correct action) positives; confusable actions, permission mismatches, and unsupported queries as hard negatives. Use reviewer-approved text, not only noisy historical action execution logs (some executions are mistakes).
 
 **Validation:** Time-based split reflecting unseen new actions and unsupported intents; verify generalization to descriptions never seen during training. Keep a special set for language, ambiguity, and wrong-action cost. Separate discovery/relevance labels from execution-eligibility checks.
 
-# 6. High-level architecture
-
-<!-- system-design-diagram -->
-
-**Key design choice:** The workflow catalog is curated; do **not** apply topic clustering to main/delta catalogs. The index's vector-space partitioning (e.g., IVF K-means) is an implementation detail, not semantic topic discovery.
-
-# 7. Model and training
+# 6. Model and training
 
 Use a multilingual Sentence-BERT (SBERT) bi-encoder. Embed each action description **offline** and each query **online**. The ANN index retrieves nearest candidates and typically returns similarity scores without re-encoding candidate text.
 
-Fine-tune the bi-encoder on positive and hard-negative (query, action) pairs with contrastive loss. New actions can become searchable by embedding their definitions—**without retraining the model**.
+Benchmark the frozen bi-encoder first; if needed, train a small projection/head or adapter on checked positive and hard-negative pseudo-labeled pairs with contrastive loss. New actions can become searchable by embedding their definitions—**without retraining the model**.
 
 A cross-encoder is **conditional**, not a default: compare retrieval Recall@K with top-1 accuracy, mean reciprocal rank (MRR), normalized discounted cumulative gain (NDCG@K), and final acceptance precision. If true actions are usually in top-K but rank poorly, cross-encode `(query text, action description)` for top-K. If Recall@K is low, fix retrieval first.
 
@@ -68,13 +70,29 @@ else:
 
 A top-1/top-2 score margin can be diagnostic but is unreliable when multiple actions are legitimately similar; do not substitute it for gold-backed calibration.
 
-# 8. Serving, freshness, and consistency
+## Training and inference cost estimate
+
+**Assumptions:** 10K workflow requests/s; encode each once. An optional reranker scores 10 request–action pairs/request. The catalog contains 20K actions. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Frozen bi-encoder | None | 10K requests/s × 1 text encodings/request ÷ (5K text encodings/s/GPU) → 2 GPUs × ($4/GPU-h) = **$8/h** |
+| Optional retrieval adapter | 200K pairs × 3 passes ÷ (500 pairs/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$1.33/run** | Same as baseline |
+| Optional top-10 reranker | 200K pairs × 3 passes ÷ (500 pairs/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$1.33/run** | 10K requests/s × 10 pairs/request ÷ (5K pairs/s/GPU) → 20 GPUs × ($4/GPU-h) = **$80/h** |
+
+# 7. Serving, freshness, and consistency
 
 A 20K-vector catalog may be small enough for exact dense search; benchmark against ANN before adding operational complexity. At 768 dimensions in FP16, raw vectors are ~31 MB, so compute and metadata filtering may dominate rather than storage.
 
 For daily updates, embed and insert new actions into a small delta index immediately; tombstone deleted actions and recheck active state at decision time; search main+delta, merge top-K, periodically compact. Version embeddings/indexes together on model updates. Never let a stale embedding authorize a retired or forbidden workflow.
 
 Support retrieval/decision tracing for debugging and human correction. Keep executing actions **outside** the matcher and subject to independent authorization/parameter validation.
+
+# 8. High-level architecture
+
+<!-- system-design-diagram -->
+
+**Key design choice:** The workflow catalog is curated; do **not** apply topic clustering to main/delta catalogs. The index's vector-space partitioning (e.g., IVF K-means) is an implementation detail, not semantic topic discovery.
 
 # 9. Evaluation and diagnosis
 

@@ -39,19 +39,23 @@ A missing known label is not proof that the message concerns an entirely novel i
 
 # 5. Data
 
-**Sources:** Human-annotated tickets, adjudicated disagreement cases, historical routing feedback (noisy), and sampled production messages; millions of unlabeled messages support representation learning or selective teacher labeling.
+**Labeling approach:** Use the existing 200K human labels as an asset, not a reason to commission millions more. Split out prompt-development gold, validation/calibration gold and a locked human test set. Give a teacher the taxonomy, counterexamples and few-shot multilabel gold; use its checked pseudo-labels to cover unlabeled languages and rare categories.
+
+**Quality and escalation:** Require valid label IDs and supporting text; audit per-label precision/recall on validation gold, including missing labels. If prompt engineering or supported soft-prompt tuning misses the quality target, try teacher LoRA on development gold. Only fund targeted human bulk labels if that still fails and error costs justify it.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Cleaned title/body, language, product and preserved error codes feed a pooled multilingual embedding; the classifier emits 150 independent scores.
+
+**Sources:** Available gold tickets, adjudicated disagreements, noisy routing feedback and sampled production messages; the unlabeled corpus supplies bulk teacher-labeling candidates.
 
 **Annotation guidelines:** Define each label precisely with positive/negative examples; permit multiple labels; capture language, product, severity, and a `none-of-known-labels` evaluation slice. Double-label ambiguous/high-impact cases. Avoid treating unannotated labels as automatically negative when annotation is incomplete.
 
 **Preprocessing:** Remove signatures, templates, duplicate threads and personal information; preserve negations, error codes, product names, and meaningful metadata. Use language-stratified and time-based holdouts. Deduplicate near-identical templates across train/test to prevent leakage.
 
-**Class imbalance:** Oversample informative minority cases, use weighted binary cross-entropy or focal loss when appropriate, and actively request human labels for rare labels/languages. Do not assume a large volume of low-quality pseudo-labels beats 200K good gold labels.
+**Class imbalance:** Oversample informative minority cases, use weighted binary cross-entropy or focal loss when appropriate, and target teacher labeling plus sampled human audits at rare labels/languages. Do not assume a large volume of low-quality pseudo-labels beats 200K good gold labels.
 
-# 6. High-level architecture
-
-<!-- system-design-diagram -->
-
-# 7. Model and training
+# 6. Model and training
 
 Start with a compact multilingual Transformer encoder (e.g., distilled multilingual BERT or XLM-R family, benchmarked for target languages). Pool the sequence representation, apply a linear head with 150 logits, and train **binary cross-entropy (BCE) with logits**. Sigmoid allows labels to co-occur; softmax would force competition and is wrong for this task.
 
@@ -60,15 +64,28 @@ logits = classifier(encoder(ticket))  # shape: [batch, 150]
 loss = BCEWithLogitsLoss(pos_weight=weights)(logits, multi_hot_labels)
 ```
 
-Fine-tune on gold labels; add selective human-audited pseudo-labels from a large language model (LLM) only if validation learning curves show improvement potential in underrepresented slices. Evaluate a lighter student model for 20K QPS. Do not assume low training loss means more data is unnecessary: use held-out performance and learning curves.
+Benchmark the frozen encoder plus a trained multilabel head first. Train a compact student on filtered teacher pseudo-labels and available development gold; adapt encoder weights only if validation shows a real gap, preferring adapters where supported. Evaluate a lighter student model for 20K QPS. Do not assume low training loss means more data is unnecessary: use held-out performance and learning curves.
 
 Calibrate each threshold `T_i` with validation predictions. For a severe fraud label, choose a lower threshold to capture more cases (possibly with human review); for a label triggering irreversible automation, favor precision. Account for co-occurrence/hierarchy constraints only if the taxonomy requires them.
 
-# 8. Serving and scaling
+## Training and inference cost estimate
+
+**Assumptions:** 20K ticket requests/s, with one message classified per request. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Frozen encoder + trained head | 1M examples × 3 passes ÷ (500 examples/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$6.67/run** | 20K requests/s × 1 messages/request ÷ (5K messages/s/GPU) → 4 GPUs × ($4/GPU-h) = **$16/h** |
+| Optional encoder adapter | 1M examples × 3 passes ÷ (500 examples/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$6.67/run** | Same as baseline |
+
+# 7. Serving and scaling
 
 Batch inference opportunistically, but cap batch waiting time to protect P95. Use smaller encoders, model quantization/distillation if accuracy holds, and CPU/GPU cost benchmarks. At 20K QPS, even 2 ms of pure device compute per request represents ~40 device-seconds of work each second before batching efficiency; size the fleet from **measured throughput** plus headroom, not theoretical model size alone. Monitor language-specific token length and truncation.
 
 Cache repeated templates only when ticket-specific content is not accidentally masked. Deploy canary and rollback with versioned label mappings and threshold sets.
+
+# 8. High-level architecture
+
+<!-- system-design-diagram -->
 
 # 9. Evaluation and diagnosis
 
@@ -85,4 +102,4 @@ Cache repeated templates only when ticket-specific content is not accidentally m
 
 # 10. Interview summary
 
-> “Because categories are stable and a message can contain several issues, I’d fine-tune a multilingual encoder with 150 sigmoid outputs and weighted BCE, then calibrate thresholds per category based on false-positive and false-negative costs. I’d start from the 200K gold examples, target rare languages and high-severity labels for additional review, and measure macro-F1 plus per-label precision/recall. A distilled model and batched serving would address 20K QPS.”
+> “Because categories are stable and a message can contain several issues, I’d benchmark a frozen multilingual encoder and train a 150-output sigmoid head with weighted BCE, then calibrate thresholds per category based on false-positive and false-negative costs. I’d use development gold to calibrate an LLM teacher, expand with checked pseudo-labels, and reserve human gold for validation and tests, and measure macro-F1 plus per-label precision/recall. A distilled model and batched serving would address 20K QPS.”

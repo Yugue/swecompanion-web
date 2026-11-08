@@ -98,9 +98,9 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Mature event data"
         ],
-        "detail": "Keep timed examples"
+        "detail": "Outcomes + teacher tags"
       },
       {
         "kind": "service",
@@ -309,7 +309,7 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Encode current user interests, combine ANN and fresh or exploratory candidate sources, enforce eligibility, rank satisfaction-related utility, and construct a constrained slate. Log exposures and propensities. Update recent state and item vectors asynchronously, then evaluate time-correct examples before releasing paired models and indexes.",
-    "caption": "Orange constructs feeds. Green refreshes content and state. Blue evaluates satisfaction."
+    "caption": "Orange constructs feeds. Green refreshes content and state. Blue evaluates satisfaction. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "short-video-feed": {
     "nodes": [
@@ -408,9 +408,9 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Mature session data"
         ],
-        "detail": "Keep timed examples"
+        "detail": "Watch + teacher tags"
       },
       {
         "kind": "service",
@@ -619,7 +619,7 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Encode current user interests, combine ANN and fresh or exploratory candidate sources, enforce eligibility, rank satisfaction-related utility, and construct a constrained slate. Log exposures and propensities. Update recent state and item vectors asynchronously, then evaluate time-correct examples before releasing paired models and indexes.",
-    "caption": "Orange constructs feeds. Green refreshes content and state. Blue evaluates satisfaction."
+    "caption": "Orange constructs feeds. Green refreshes content and state. Blue evaluates satisfaction. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "search-ranking": {
     "nodes": [
@@ -707,13 +707,13 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Keep relevance evidence"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Review graded relevance"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -828,7 +828,7 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 516 H1488 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "9. Debias logs and refresh judgments"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -897,7 +897,7 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Normalize the query without losing exact identifiers. Combine lexical, dense and navigational candidates, apply cheap learned ranking, and cross-encode only a shortlist before quality and freshness constraints. Refresh documents independently. Train on graded judgments and debiased behavior, checking retrieval recall separately from NDCG.",
-    "caption": "Orange ranks pages. Green refreshes documents. Blue evaluates relevance."
+    "caption": "Orange ranks pages. Green refreshes documents. Blue evaluates relevance. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "ad-ctr-conversion": {
     "nodes": [
@@ -988,9 +988,9 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Matured impressions"
+          "Mature impressions"
         ],
-        "detail": "Join delayed labels"
+        "detail": "Clicks + conversions"
       },
       {
         "kind": "service",
@@ -1180,7 +1180,7 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Filter eligible ads, join consented features, predict calibrated click and conversion probabilities, and pass them into a separate auction policy. Log impressions and delayed outcomes. Refresh aggregates continuously, mature attribution labels before training, and evaluate cohort calibration before release.",
-    "caption": "Orange predicts auction inputs. Green refreshes features. Blue handles delayed outcomes."
+    "caption": "Orange predicts auction inputs. Green refreshes features. Blue handles delayed outcomes. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "payment-fraud": {
     "nodes": [
@@ -1281,9 +1281,9 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Matured labels"
+          "Confirmed outcomes"
         ],
-        "detail": "Keep confirmed outcomes"
+        "detail": "Mature fraud labels"
       },
       {
         "kind": "service",
@@ -1501,7 +1501,7 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Hard rules and bounded feature lookups precede a calibrated fraud model. A separate cost-sensitive policy selects approval, challenge, review or decline and records reason codes. Streamed events update velocity features. Investigation and chargeback outcomes mature before model training and risk-limited validation; release risk scores with their decision thresholds.",
-    "caption": "Orange chooses payment actions. Green refreshes signals. Blue waits for mature labels."
+    "caption": "Orange chooses payment actions. Green refreshes signals. Blue waits for mature labels. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "product-recommendation": {
     "nodes": [
@@ -1603,9 +1603,9 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Mature shopping data"
         ],
-        "detail": "Mature purchase labels"
+        "detail": "Purchases + returns"
       },
       {
         "kind": "service",
@@ -1826,6 +1826,6 @@ export const rrpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Condition retrieval on the shopper and placement, mixing collaborative, content, complementary and substitute sources. Rank purchase value and return risk, check current stock and price, and construct a diverse slate. Refresh vectors separately from live inventory, and evaluate delayed purchases, returns and cold-start coverage before model/index releases.",
-    "caption": "Orange recommends products. Green refreshes stock and context. Blue evaluates customer value."
+    "caption": "Orange recommends products. Green refreshes stock and context. Blue evaluates customer value. The learning lane uses the labeling approach described above; validation gold gates releases."
   }
 };

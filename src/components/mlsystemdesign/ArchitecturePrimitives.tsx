@@ -37,11 +37,21 @@ export function Store({ x, y, title, detail }: { x: number; y: number; title: st
 export type EdgeProps = { path: string; kind: PathKind; label: string[]; x: number; y: number; dashed?: boolean; markerPrefix?: string };
 
 export function Edge({ path, kind, label, x, y, dashed, markerPrefix = "duplicate" }: EdgeProps) {
+  const shortConnection = /^M[\d.]+ [\d.]+ H[\d.]+$/.test(path);
+  const lines = shortConnection
+    ? label.join(" ").replace(/^\d+\.\s*/, "").split(/\s+/).reduce<string[]>((lines, word) => {
+        const last = lines.length - 1;
+        if (last >= 0 && `${lines[last]} ${word}`.length <= 10) lines[last] += ` ${word}`;
+        else lines.push(word);
+        return lines;
+      }, [])
+    : label;
+  const fontSize = shortConnection ? Math.min(14, 140 / Math.max(...lines.map(line => line.length))) : 16;
   return (
     <g>
       <path d={path} fill="none" stroke={colors[kind]} strokeWidth={2.5} strokeDasharray={dashed ? "7 5" : undefined} strokeLinejoin="round" markerEnd={`url(#${markerPrefix}-${kind}-arrow)`} />
-      <text x={x} y={y} textAnchor="middle" fill="var(--color-text-muted)" fontSize={16}>
-        {label.map((line, index) => <tspan key={line} x={x} dy={index ? 20 : 0}>{line}</tspan>)}
+      <text x={x} y={y} textAnchor="middle" fill="var(--color-text-muted)" fontSize={fontSize}>
+        {lines.map((line, index) => <tspan key={index} x={x} dy={index ? 19 : 0}>{line}</tspan>)}
       </text>
     </g>
   );

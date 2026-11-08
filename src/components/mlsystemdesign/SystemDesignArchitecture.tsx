@@ -11,8 +11,8 @@ export function SystemDesignArchitecture({ id, title, graph }: { id: string; tit
   const paths = (Object.keys(colors) as PathKind[]).filter(kind => graph.edges.some(edge => edge.kind === kind));
   return (
     <figure className="my-5 overflow-hidden rounded-xl border border-outline bg-surface lg:-mx-28 xl:-mx-52">
-      <div role="region" aria-label={`${title}: scrollable architecture`} tabIndex={0} className="overflow-x-auto p-3 focus-visible:outline-2 focus-visible:outline-accent-blue sm:p-5">
-        <svg viewBox="0 0 1504 1020" className="h-auto w-full min-w-[1240px]" role="img" aria-labelledby={`${id}-architecture-title ${id}-architecture-description`}>
+      <div role="region" aria-label={`${title}: architecture diagram`} tabIndex={0} className="overflow-x-auto p-3 focus-visible:outline-2 focus-visible:outline-accent-blue sm:p-5">
+        <svg viewBox="0 0 1504 1020" className="h-auto w-full min-w-[960px]" role="img" aria-labelledby={`${id}-architecture-title ${id}-architecture-description`}>
           <title id={`${id}-architecture-title`}>{`${title}: architecture`}</title>
           <desc id={`${id}-architecture-description`}>{graph.description}</desc>
           <defs>
@@ -49,7 +49,6 @@ export function SystemDesignArchitecture({ id, title, graph }: { id: string; tit
       </div>
       <figcaption className="border-t border-outline/60 px-5 py-4 text-sm leading-relaxed text-text-muted">
         {graph.caption}
-        <p className="mt-2 text-xs">Scroll horizontally to follow the flow.</p>
       </figcaption>
     </figure>
   );

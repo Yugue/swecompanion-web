@@ -40,20 +40,22 @@ Extract structured fields from photographed/scanned invoices and receipts: merch
 
 # 5. Data
 
+**Labeling approach:** Prompt a multimodal teacher with small expert gold examples to draft OCR-linked fields, tables and evidence boxes. Admit pseudo-labels only after source-text alignment, arithmetic and schema checks; a plausible total is not evidence for a missing field.
+
+**Quality and escalation:** Keep vendor/template/time-separated human validation and locked tests. Improve prompts or supported soft prompts before teacher LoRA on development gold. Pay for targeted field/box correction only when persistent financial-error costs justify it.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Use page pixels, OCR tokens/boxes, reading order and table relations; preserve currency, units and page offsets for deterministic normalization.
+
 - Collect diverse vendors/templates, phone-camera distortions, scan noise, handwritten notes, multi-page examples, languages and currencies.
-- Labels: OCR text and bounding polygons, reading order, table structure, key-to-value relations, normalized field values, line item groupings.
-- Annotate evidence provenance: page + box for each extracted value.
+- Pseudo-label schema: OCR text and bounding polygons, reading order, table structure, key-to-value relations, normalized field values, line item groupings.
+- Require evidence provenance: page + box for each extracted value.
 - Split by **vendor/template and time** so memorization of one invoice layout does not inflate performance.
 - Use pretraining on document corpora; synthetic receipts can diversify layouts, but manually audit typography and realism.
 - Protect PII and payment data in training and logs.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-Alternative end-to-end models can generate structure directly from pixels. Compare with modular OCR+layout depending on language quality, debugging needs, and cost.
-
-# 7. Model selection and training
+# 6. Model selection and training
 
 **Baseline modular approach:**
 
@@ -66,13 +68,28 @@ Alternative end-to-end models can generate structure directly from pixels. Compa
 
 Training: token/span classification and relation losses for modular setup; sequence cross-entropy with constrained target syntax for generative extraction. Use teacher forcing and schema-constrained decoding where supported. Do not rely only on JSON syntax validity to infer factual correctness.
 
-# 8. Serving and safety
+## Training and inference cost estimate
+
+**Assumptions:** 10 invoice documents/s × 3 pages/document = 30 pages/s. Assume OCR processes 5 pages/s per CPU core; layout extraction processes 100 pages/s per GPU. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| OCR baseline | None | 10 requests/s × 3 pages/request ÷ (5 pages/s/CPU core) → 6 CPU cores × ($0.05/CPU core-h) = **$0.30/h** |
+| Layout extraction head/adapter | 100K pages × 5 passes ÷ (50 pages/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$11.11/run** | 10 requests/s × 3 pages/request ÷ (100 pages/s/GPU) → 1 GPU × ($4/GPU-h) = **$4/h** |
+
+# 7. Serving and safety
 
 - Image preprocessing and OCR usually dominate CPU/image handling; extraction model can batch across pages.
 - Multi-page context: process pages independently, merge using document-level constraints; handle totals repeated on later pages.
 - Use confidence-aware critical-field thresholds; request manual correction when totals disagree or evidence is missing.
 - Deterministic validators: `subtotal + taxes + adjustments ≈ total` within currency rounding tolerance; field presence; date plausibility; duplicate invoice ID checks.
 - Version extraction schemas separately from model versions; log evidence and reviewer corrections to build gold data.
+
+# 8. Architecture
+
+<!-- system-design-diagram -->
+
+Alternative end-to-end models can generate structure directly from pixels. Compare with modular OCR+layout depending on language quality, debugging needs, and cost.
 
 # 9. Evaluation and failure modes
 
@@ -81,7 +98,6 @@ Training: token/span classification and relation losses for modular setup; seque
 **Failures:** OCR swaps 0/O or 1/I, decimal separators, tax-inclusive prices, multi-currency invoices, overlapping stamps, split tables, hallucinated amounts.
 
 **L5 decision:** Separate **reading text**, **understanding layout**, **extracting fields**, and **validating financial truth**; do not use an LLM as a substitute for arithmetic checks.
-
 
 # 10. One-minute interview summary
 

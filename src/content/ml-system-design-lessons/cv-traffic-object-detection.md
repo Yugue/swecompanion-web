@@ -40,6 +40,12 @@ Detect and locate cars, pedestrians, cyclists and traffic lights in live camera 
 
 # 5. Data
 
+**Labeling approach:** Use a small expert box gold set to validate an open-vocabulary detector or multimodal teacher guided by text prompts. Generate bulk box/class pseudo-labels and use track consistency to filter them. LLM text judgments alone cannot supply precise box geometry.
+
+**Quality and escalation:** Measure class recall and box IoU on separate camera/time validation gold and locked tests. Tune prompts first; consider a supported vision-teacher adapter only if needed. If tiny/occluded objects still fail, fund targeted human box correction when safety and budget justify it.
+
+**Feature engineering:** Multi-scale image features, resized pixel geometry and optional track motion feed detection; preserve small-object detail and camera/site metadata.
+
 - Sample diverse cities, camera heights, seasons, light levels, weather and rare events.
 - Annotate each object with `(class, x_min, y_min, x_max, y_max)` and optionally track ID. Specify occluded/truncated/ignore regions and consistent class taxonomy.
 - Include small/faraway objects, crowded intersections and confusing negative examples (posters, reflections).
@@ -47,28 +53,37 @@ Detect and locate cars, pedestrians, cyclists and traffic lights in live camera 
 - Split by **camera/site and time**, not random adjacent frames; near-identical frames otherwise leak into both train and test.
 - Audit demographic/environmental and geographic performance where relevant; avoid unnecessary retention of identifiable video.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-**NMS:** Non-maximum suppression removes overlapping box predictions, although some detector families use set prediction and may not require conventional NMS.
-
-# 7. Model selection and training
+# 6. Model selection and training
 
 - **YOLO-style one-stage detector:** strong edge-speed baseline; feature pyramid supports multiple scales.
 - **DETR-style detector:** transformer-based set prediction; can avoid hand-designed anchors/NMS but performance and efficiency depend on variant.
-- Start with pretrained backbone and fine-tune on target camera data; compare accuracy–latency Pareto front, not headline benchmark alone.
+- Start with a pretrained detector and benchmark it unchanged; if needed, train its head or supported adapters on filtered teacher boxes and available development gold; full backbone tuning is an escalation. Then compare accuracy–latency Pareto front, not headline benchmark alone.
 - Typical detection training combines classification, bounding-box regression (e.g., L1/GIoU or CIoU) and optional objectness losses depending on architecture.
 - Oversample rare pedestrian/low-light cases and use class-aware data sampling; avoid overwhelming training with redundant adjacent frames.
 - Augment lighting, weather, blur, scale and occlusion while preserving label geometry; validate that synthetic augmentations resemble deployment.
 
-# 8. Inference and scaling
+## Training and inference cost estimate
+
+**Assumptions:** 1K cameras × 15 frames/s per camera = 15K frames/s. Assume 150 processed frames/s per pooled edge device, or 6.7 milliseconds/frame for the per-camera calculation. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Pretrained edge detector | None | 1K cameras × 15 frames/s/camera ÷ (150 frames/s/device) = **100 pooled device-equivalents**; local deployment: **1K devices** |
+| Optional detector head/adapter | 1M images × 10 passes ÷ (200 images/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$55.56/run** | 15 frames/s/camera × 6.7 ms/frame ≈ **101 ms compute/s/camera** |
+
+# 7. Inference and scaling
 
 - Resize frames; evaluate trade-off: lower resolution saves compute but destroys small-object recall.
 - Quantize to INT8 or FP16 when supported; benchmark degradation per class, not only aggregate mAP.
 - Edge inference minimizes network latency and data exposure; cloud permits bigger models but adds bandwidth and failure risk.
 - For tracking, run detector every frame or periodically with tracker interpolation depending on drift and safety requirements.
 - Capacity example: **1,000 cameras × 15 FPS = 15,000 frames/s**. If a device sustains 150 FPS on the chosen model under realistic load, compute lower bound ≈100 device-equivalents before redundancy/headroom; benchmark rather than trusting this hypothetical rate.
+
+# 8. Architecture
+
+<!-- system-design-diagram -->
+
+**NMS:** Non-maximum suppression removes overlapping box predictions, although some detector families use set prediction and may not require conventional NMS.
 
 # 9. Evaluation and failure analysis
 
@@ -77,7 +92,6 @@ Detect and locate cars, pedestrians, cyclists and traffic lights in live camera 
 **Failures:** Small pedestrians, glare, motion blur, heavy occlusion, distribution shift across camera placement, NMS suppressing adjacent individuals, poor annotation consistency.
 
 **L5 decision:** Optimize class-specific recall under a hard edge latency budget. Distinguish detection, tracking and downstream alerting as separate tasks.
-
 
 # 10. One-minute interview summary
 

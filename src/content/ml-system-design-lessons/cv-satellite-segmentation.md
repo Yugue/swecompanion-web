@@ -40,20 +40,20 @@ From satellite images, assign each pixel a class—building, road, water, vegeta
 
 # 5. Data
 
+**Labeling approach:** Start with pretrained features and existing geospatial layers where available. A small expert gold set guides text-conditioned segmentation teachers; use promptable mask models for pixel geometry and multimodal teachers for candidate class names. Reject masks with inconsistent sensor/geospatial alignment.
+
+**Quality and escalation:** Audit mask IoU, thin roads and rare classes on separate regions/sensors/seasons. Prompt engineering comes before supported teacher adapters; an LLM alone cannot draw accurate class masks. Fund human polygon correction only when remaining mapping errors justify it.
+
+**Feature engineering:** Use multispectral bands, sensor normalization, ground sample distance and overlapping tiles; preserve georeferencing and ignore/cloud masks.
+
 - Multispectral/RGB satellite imagery, georeferenced masks, sensor/time/geography metadata.
-- Experts label pixel masks, narrow roads, mixed pixels, cloud/occlusion or ignore zones; explicitly define ambiguities between vegetation/grass/crops.
+- Teacher masks cover pixel classes, roads and ignore zones; experts audit narrow roads, mixed pixels and cloud boundaries; explicitly define ambiguities between vegetation/grass/crops.
 - Sample different climates, resolutions, sensor brands, seasons and building styles; avoid overrepresenting easy urban scenes.
 - **Split geographically** by region/sensor, not adjacent tiles; overlapping neighboring tiles can leak nearly identical pixels.
 - Pretrain from unlabeled remote-sensing imagery or general vision models; human audit pseudo-label quality.
 - Ensure date/source licensing and provenance for imagery and reference labels.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-For medical-image segmentation, much of the same model/loss framework applies, but patient-level splits, clinical quality control and safety requirements differ substantially.
-
-# 7. Models and training
+# 6. Models and training
 
 - **U-Net / U-Net++:** excellent encoder–decoder baseline with skip connections preserving spatial detail.
 - **DeepLabv3+ or SegFormer:** stronger contextual/transformer alternatives depending compute and data volume.
@@ -63,13 +63,27 @@ For medical-image segmentation, much of the same model/loss framework applies, b
 - Oversample road-rich and small-building tiles; augment rotation, scale, brightness, sensor noise with correct mask transformations.
 - Avoid excessive resize: thin roads can disappear. Use overlapping tiles with context to reduce edge artifacts.
 
-# 8. Inference and scalability
+## Training and inference cost estimate
+
+**Assumptions:** 1M square kilometers/day at one square meter/pixel = 1000B pixels/day. Each 1024 × 1024 tile contains 1.04858e+06 pixels. An overlap factor of 1.25 means processing 25% extra pixels. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Pretrained encoder + segmentation head | 100K tiles × 10 passes ÷ (10 tiles/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$111.11/run** | 1T pixels/day × 1.25 overlap ÷ (1,048,576 pixels/tile) ÷ (20 tiles/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$66.23/day** |
+
+# 7. Inference and scalability
 
 - Predict in overlapping spatial tiles; blend logits near tile borders and reconstruct the georeferenced scene.
 - Compare patch sizes: larger context helps land-cover distinction but increases memory; mixed precision and distributed batch processing.
 - Monitor sensor-specific normalization and ground sample distance (meters/pixel); scale mismatch can destroy results.
 - For change maps, align imagery by geography/time; apparent changes due to seasonal color or registration error must be separated from true construction changes.
 - GPU cost scales primarily with pixels processed; budget based on total area × resolution, overlap factor and measured throughput.
+
+# 8. Architecture
+
+<!-- system-design-diagram -->
+
+For medical-image segmentation, much of the same model/loss framework applies, but patient-level splits, clinical quality control and safety requirements differ substantially.
 
 # 9. Evaluation and failures
 
@@ -78,7 +92,6 @@ For medical-image segmentation, much of the same model/loss framework applies, b
 **Failures:** Domain shift to new geography, unannotated rare classes, mixed-resolution data, class imbalance, mislabeled shadows, stitching seams, seasonal change mistaken for development.
 
 **L5 decision:** Pixel-level quality and geography-aware generalization drive the design; the split strategy is just as important as the architecture.
-
 
 # 10. One-minute interview summary
 

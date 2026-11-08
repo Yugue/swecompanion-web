@@ -102,6 +102,14 @@ These targets must be calibrated on representative validation data, not assumed 
 
 # 5. Data
 
+**Labeling approach:** A small adjudicated gold set teaches the distinction between the same issue and merely related issues. Separate prompt-development pairs, calibration/validation pairs and a locked human test set. Prompt an LLM teacher with both tickets, product/version details and gold counterexamples; bulk pseudo-label mined pairs, including hard negatives.
+
+**Quality and escalation:** Validate false-merge precision and duplicate recall by language. Filter unsupported judgments and sample disagreements; do not trust the teacher's self-reported confidence. If prompt engineering or supported soft-prompt tuning fails, try LoRA on development gold. Expand human training labels only for unresolved, costly cases when resources justify it.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Preserve negation, error codes and versions. The bi-encoder uses title/body embeddings; the pair verifier jointly reads both tickets and relevant metadata.
+
 This section should come before model selection because the available labels determine how we train and evaluate the system.
 
 ## 5.1 Data sources
@@ -172,7 +180,7 @@ Label: 0
 
 Hard negatives are especially important because the model must distinguish the same problem from merely related problems.
 
-We can mine hard negatives using an initial SBERT model: retrieve high-similarity candidates, exclude known positives, and send uncertain pairs for human review. We must not label all unmerged pairs as negatives automatically.
+We can mine hard negatives using an initial SBERT model: retrieve high-similarity candidates, exclude known positives, and pseudo-label them with the gold-calibrated teacher and audit disagreements. We must not label all unmerged pairs as negatives automatically.
 
 ## 5.4 Train / validation / test splitting
 
@@ -190,19 +198,7 @@ For retrieval evaluation, simulate the historical index as it existed at each qu
 
 Also measure performance by language, issue category, and rare product/error-code combinations.
 
-# 6. High-level architecture
-
-The central design is **retrieve → verify → decide**.
-
-<!-- system-design-diagram -->
-
-## Why two stages?
-
-A cross-encoder can compare two tickets accurately but cannot efficiently compare every incoming query against 100 million tickets.
-
-The bi-encoder performs efficient candidate generation. The cross-encoder spends more computation on only the most promising pairs.
-
-# 7. Stage 1: Candidate retrieval with multilingual SBERT
+# 6. Stage 1: Candidate retrieval with multilingual SBERT
 
 ## Model selection
 
@@ -222,7 +218,7 @@ At query time, Approximate Nearest Neighbor (ANN) search retrieves the most simi
 
 ## Training
 
-Fine-tune with contrastive learning:
+Begin with pretrained embeddings. If retrieval misses the validation target, adapt on checked pseudo-labels and available development gold with contrastive learning:
 
 - Anchor: incoming ticket.
 - Positive: confirmed duplicate.
@@ -248,7 +244,7 @@ Primary evaluation: Recall@K against verified duplicate relationships.
 
 Remember that semantic Recall@K is different from the ANN implementation's recall relative to exhaustive exact-vector search.
 
-# 8. Stage 2: Duplicate verification with a cross-encoder
+# 7. Stage 2: Duplicate verification with a cross-encoder
 
 A bi-encoder finds semantically related tickets. It may not reliably distinguish subtle differences such as:
 
@@ -297,7 +293,17 @@ For expensive false merges, optimize the threshold for high precision, with ambi
 
 A cross-encoder is not automatically mandatory. If the bi-encoder's ranking and thresholded final metrics are already sufficient, omit it to save latency and cost.
 
-# 9. Continuous ingestion and canonical groups
+## Training and inference cost estimate
+
+**Assumptions:** 1K ticket queries/s; encode each query once and verify 20 candidate ticket pairs/query. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Frozen retrieval baseline | None | 1K requests/s × 1 text encodings/request ÷ (5K text encodings/s/GPU) → 1 GPU × ($4/GPU-h) = **$4/h** |
+| Optional retrieval adapter | 1M pairs × 3 passes ÷ (500 pairs/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$6.67/run** | Same as baseline |
+| Top-20 verifier | 1M pairs × 3 passes ÷ (500 pairs/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$6.67/run** | 1K requests/s × 20 pairs/request ÷ (5K pairs/s/GPU) → 4 GPUs × ($4/GPU-h) = **$16/h** |
+
+# 8. Continuous ingestion and canonical groups
 
 Maintain two logical components:
 
@@ -327,6 +333,18 @@ Do not assume that pairwise semantic similarity is perfectly transitive: A≈B a
 For deletions, apply tombstones or immediate exclusion; for model upgrades, maintain consistent embedding versions and reindex as necessary.
 
 Clustering methods such as K-means or HDBSCAN are not the default way to decide strict duplicate equivalence.
+
+# 9. High-level architecture
+
+The central design is **retrieve → verify → decide**.
+
+<!-- system-design-diagram -->
+
+## Why two stages?
+
+A cross-encoder can compare two tickets accurately but cannot efficiently compare every incoming query against 100 million tickets.
+
+The bi-encoder performs efficient candidate generation. The cross-encoder spends more computation on only the most promising pairs.
 
 # 10. Evaluation and diagnosis
 
@@ -373,6 +391,6 @@ The highest-impact optimizations are cross-encoder distillation, batching pair e
 
 # 12. Final interview summary
 
-> “I would first clarify whether duplicates mean the same topic or the same actionable issue, since that determines our labels and false-merge risk. Given 100 million multilingual tickets and a strict precision requirement, I'd build a two-stage system. A fine-tuned multilingual SBERT encoder retrieves top-20 candidates through ANN, optimizing Recall@20. Then a cross-encoder verifies true duplicate equivalence, with a precision-calibrated threshold to return an existing canonical group or NOVEL. I'd train using historical merges, reviewer-confirmed nonduplicates, and especially hard negatives. Finally, I'd support fresh ticket ingestion using main and delta indexes, evaluate retrieval separately from final duplicate precision and recall, and monitor incorrect merges through human feedback.”
+> “I would first clarify whether duplicates mean the same topic or the same actionable issue, since that determines our labels and false-merge risk. Given 100 million multilingual tickets and a strict precision requirement, I'd build a two-stage system. A pretrained multilingual SBERT encoder, adapted only if necessary, retrieves top-20 candidates through ANN, optimizing Recall@20. Then a cross-encoder verifies true duplicate equivalence, with a precision-calibrated threshold to return an existing canonical group or NOVEL. I'd engineer the teacher from small human gold, then train only as needed on audited pair pseudo-labels, existing confirmed relationships and hard negatives. Finally, I'd support fresh ticket ingestion using main and delta indexes, evaluate retrieval separately from final duplicate precision and recall, and monitor incorrect merges through human feedback.”
 
 The most important design principle: retrieval must find the possible duplicate; verification must determine true equivalence; the acceptance threshold controls the risk of merging incorrectly.

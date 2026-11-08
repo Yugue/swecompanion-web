@@ -78,13 +78,13 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Publish evaluated recipe"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Review cited answers"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -189,7 +189,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1360 318 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "8. Audit answers"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -257,7 +257,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Authenticate the requester and retrieve only permitted passages. Check scope, authority and evidence sufficiency before generation, verify cited claims, and clarify or abstain when needed. Document changes and permission revocations update the evidence library independently.",
-    "caption": "Orange grounds answers. Green refreshes sources. Blue validates changes."
+    "caption": "Orange grounds answers. Green refreshes sources. Blue validates changes. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "tool-using-agent": {
     "nodes": [
@@ -352,13 +352,13 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Report completed actions"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Keep expert trajectories"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -433,7 +433,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1056 318 V350 H448 V321",
         "kind": "serving",
         "label": [
-          "5. Observe tool results"
+          "5. Tool results"
         ],
         "x": 940,
         "y": 340
@@ -501,7 +501,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 516 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "12. Review task outcomes"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -548,7 +548,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "The LLM proposes steps. Deterministic validation and argument-bound approvals gate idempotent tool execution. Results update durable task state and return to the planner. A separate verifier checks actual completion. Sandbox evaluation gates planner changes.",
-    "caption": "Orange executes validated steps. Blue evaluates planner changes."
+    "caption": "Orange executes validated steps. Blue evaluates planner changes. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "llm-inference": {
     "nodes": [
@@ -647,9 +647,9 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Replay + quality gold"
         ],
-        "detail": "Store representative traces"
+        "detail": "Benchmark live workloads"
       },
       {
         "kind": "service",
@@ -838,7 +838,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Route admitted requests to continuous-batching workers. Prefill processes prompts and populates KV state, while decode repeatedly generates tokens using that cache. Stream checked tokens, handle cancellation, and scale warm workers from token demand and telemetry. Benchmark quality before releases.",
-    "caption": "Orange serves tokens. Green manages capacity. Blue benchmarks releases."
+    "caption": "Orange serves tokens. Green manages capacity. Blue benchmarks releases. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "domain-adaptation": {
     "nodes": [
@@ -928,9 +928,9 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed gold"
+          "Gold + source data"
         ],
-        "detail": "Keep expert examples"
+        "detail": "Store task examples"
       },
       {
         "kind": "service",
@@ -1062,7 +1062,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1360 318 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "10. Review severe errors"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1130,7 +1130,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Retrieve changing policies while adapting stable response behavior. Generate with the student, use a larger model for difficult cases, and validate schema and grounding before replying or escalating. Optional teacher labels are audited, and student releases pass independent quality and cost checks.",
-    "caption": "Orange answers requests. Green refreshes policies. Blue validates adaptation."
+    "caption": "Orange answers requests. Green refreshes policies. Blue validates adaptation. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "text-to-sql": {
     "nodes": [
@@ -1226,13 +1226,13 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Check answer faithfulness"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Keep approved queries"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -1366,7 +1366,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 516 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "11. Review query outcomes"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1425,7 +1425,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Retrieve an authorized schema slice and metric definitions before generating SQL. Validate syntax, types, permissions and cost, then execute using database-native read-only authorization. Verify result interpretation, clarify ambiguity and permit only bounded safe repairs. Catalog changes update independently.",
-    "caption": "Orange validates queries. Green refreshes metadata. Blue checks execution accuracy."
+    "caption": "Orange validates queries. Green refreshes metadata. Blue checks execution accuracy. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "long-document-synthesis": {
     "nodes": [
@@ -1520,13 +1520,13 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Return cited output"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Keep reviewed documents"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -1668,7 +1668,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 516 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "12. Review long-case outputs"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1715,7 +1715,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Parse and chunk documents with source pointers. Run local summarization and cited fact extraction in parallel, preserve both in an evidence ledger, reconcile contradictions and chronology, synthesize a global summary, and verify claims against originals. Checkpoint large jobs and evaluate coverage separately from factuality.",
-    "caption": "Orange preserves both tracks. Blue validates synthesis changes."
+    "caption": "Orange preserves both tracks. Blue validates synthesis changes. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "evaluation-platform": {
     "nodes": [
@@ -1815,9 +1815,9 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Human gold"
+          "Judge + human gold"
         ],
-        "detail": "Keep trusted labels"
+        "detail": "Calibrate pseudo-scores"
       },
       {
         "kind": "service",
@@ -2034,7 +2034,7 @@ export const genaiArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Version manifests pin every experiment. Workers record traces, then deterministic checks, task metrics, calibrated judges and human reviewers grade them in parallel. Aggregate paired slice results and severe regressions for reports and release gates. Calibrate scoring against human gold and validate known failures before rollout.",
-    "caption": "Orange evaluates experiments. Blue calibrates graders and rollout gates.",
+    "caption": "Orange evaluates experiments. Blue calibrates graders and rollout gates. The learning lane uses the labeling approach described above; validation gold gates releases.",
     "primaryLabel": "EXPERIMENT EVALUATION",
     "learningLabel": "CALIBRATION AND ROLLOUT"
   }

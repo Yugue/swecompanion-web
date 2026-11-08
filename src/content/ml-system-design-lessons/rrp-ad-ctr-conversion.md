@@ -47,6 +47,14 @@ Let `I` be an impression, `C` a click, `V` a conversion attributed to that impre
 
 # 5. Data and labels
 
+**Labeling approach:** Clicks and matured attributed conversions are observed events, not labels an LLM can know. Use those logs for CTR/CVR. A small human semantic gold set guides teacher-generated ad-topic, query-relevance and creative-policy pseudo-labels for cold-start features.
+
+**Quality and escalation:** For semantic tags only, tune prompts or supported soft prompts before teacher LoRA; buy human bulk tags only for important remaining gaps. Keep independent human relevance/policy validation and tests, while calibrated probability tests use mature real outcomes.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Use sparse ad/campaign IDs, text embeddings, smoothed historical rates and context crosses computed as of the impression; never leak the future click or conversion.
+
 **Dataset rows:** one eligible ad impression with timestamp, observed position, auction context, features as-of impression, click label and conversion label after maturation window.
 
 **Feature groups**
@@ -62,13 +70,7 @@ Let `I` be an impression, `C` a click, `V` a conversion attributed to that impre
 
 **Splits:** chronological; hold out recent mature periods, plus slices for new advertisers, rare geographies, and traffic shifts.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-The auction mechanism itself is a separate system; never assert that raw `pCTR × bid` is the complete ranking formula.
-
-# 7. Models and training
+# 6. Models and training
 
 **Baselines:** logistic regression/FTRL with hashed sparse features; extremely efficient and interpretable for scale. GBDT handles numeric/tabular nonlinearities but sparse high-cardinality interactions are a challenge.
 
@@ -80,7 +82,16 @@ The auction mechanism itself is a separate system; never assert that raw `pCTR �
 
 **Calibration:** post-hoc isotonic regression or Platt/temperature scaling on validation slices, or adjust model loss/training to improve native calibration. Recalibrate after distribution shifts; ensure sample weighting/sampling correction maintains real-world probabilities.
 
-# 8. Exposure bias and counterfactual caveats
+## Training and inference cost estimate
+
+**Assumptions:** 200K auction requests/s × 100 candidate ads/auction = 20M candidate-ad scores/s. QPS means auctions here; if it counts individual ad predictions, divide this demand by 100. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Logistic baseline | 1B impressions × 2 passes ÷ (1M impressions/s/core) ÷ (3,600 s/h) × ($0.05/core-h) ≈ **$0.03/run** | 200K requests/s × 100 ad scores/request ÷ (200K ad scores/s/CPU core) → 100 CPU cores × ($0.05/CPU core-h) = **$5/h** |
+| Deep multi-task model | 1B examples × 2 passes ÷ (100K examples/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$22.22/run** | 200K requests/s × 100 ad scores/request ÷ (100K ad scores/s/GPU) → 200 GPUs × ($4/GPU-h) = **$800/h** |
+
+# 7. Exposure bias and counterfactual caveats
 
 Observed CTR depends on placement, competing ads, auction policy, and user behavior. A model trained only on selected shown ads may not generalize to unserved candidate ads.
 
@@ -89,7 +100,7 @@ Observed CTR depends on placement, competing ads, auction policy, and user behav
 - Reject simplistic inverse-propensity weighting when propensities are unknown/near-zero; high variance is a real issue.
 - Conversion lift is **causal**: observed conversion does not necessarily mean the ad caused it. Incrementality studies are separate from standard CVR prediction.
 
-# 9. Serving and production
+# 8. Serving and production
 
 - Batch candidate ad predictions per auction; cache shared ad features and embeddings.
 - Maintain streaming counters with time-decayed aggregates but avoid feature leakage and self-reinforcing estimation.
@@ -100,7 +111,17 @@ Observed CTR depends on placement, competing ads, auction policy, and user behav
 
 **Example throughput:** 200K candidate predictions/sec × 1 ms CPU each = 200 CPU-seconds of work per wall-clock second before other overhead; batching and vectorization change the actual provisioned capacity. Benchmark real hardware.
 
-# 10. Trade-offs and pitfalls
+# 9. Architecture
+
+<!-- system-design-diagram -->
+
+The auction mechanism itself is a separate system; never assert that raw `pCTR × bid` is the complete ranking formula.
+
+# 10. Evaluation and release gates
+
+Use a chronological, mature-outcome holdout. Measure log loss, calibration and PR-AUC by cohort; check business loss and false-positive costs at the chosen policy. Evaluate semantic pseudo-label quality separately from observed outcomes. Shadow, then canary the candidate with latency and outcome guardrails; do not promote on training fit or an LLM judge alone.
+
+# 11. Trade-offs and pitfalls
 
 - **CTR ≠ CVR ≠ incremental lift.** State the label/causal target clearly.
 - **Delays:** premature negative labels bias CVR downward.

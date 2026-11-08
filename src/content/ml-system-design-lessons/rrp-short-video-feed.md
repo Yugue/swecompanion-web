@@ -40,6 +40,14 @@ Design a personalized infinite-scroll short-video feed that adapts to a user's e
 
 # 5. Data and labels
 
+**Labeling approach:** Completion, skip, rewatch and follow events provide outcome labels at scale. An LLM cannot fabricate individual satisfaction. Prompt a multimodal teacher from small human gold examples for topic, content quality and safety pseudo-labels that help new clips.
+
+**Quality and escalation:** For semantic tags, improve prompts or supported soft prompts, then consider teacher LoRA on development gold if validation fails; funded human bulk tags are last. Keep independent human safety/relevance validation and tests plus chronological real watch outcomes.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Encode ordered session actions and time gaps with clip/audio/text embeddings, creator exposure and network state; exclude post-prediction events and buffering artifacts.
+
 **Events:** feed impression with visibility, autoplay start, play duration, swipe time, completion, rewatch, sound on/off, likes/shares/follows, reports, device/network, session ordering.
 
 **Content:** clip frames, speech transcript, audio features, creator metadata, language, upload time, safety labels. Build multimodal content embeddings from video/text/audio; behavioral ID embeddings when mature.
@@ -50,11 +58,7 @@ Design a personalized infinite-scroll short-video feed that adapts to a user's e
 
 **Evaluation splits:** chronological, user/session-aware, with slices for new clips and short/long video duration.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-# 7. Session modeling and retrieval
+# 6. Session modeling and retrieval
 
 **Baseline:** exponentially decayed topic/video-embedding average from the latest watches, optionally weighted by completion/like/skip. It is cheap, interpretable, and a strong place to start.
 
@@ -66,13 +70,27 @@ Combine long-term and short-term representations with gating or attention to avo
 
 **Retraining cadence:** new item/content embeddings immediately when uploaded; streaming recent-user aggregates instantly; model weights retrained in scheduled/near-line cycles depending on drift and stability.
 
-# 8. Ranking and diversification
+# 7. Ranking and diversification
 
 Train a multi-task ranker with heads for qualified watch, completion, share/follow, long skip, dislike/report. Use BCE for binary heads and bounded regression/survival models for watch duration.
 
 Ranking utility must balance short-term and long-term signals. Apply creator/topic caps, repetitive-video removal, policy filters, and controlled exploration at slate time.
 
 **Bandits:** contextual exploration can help learn new creator relevance. Account for delayed outcomes, non-stationarity, and exposure propensity logging; guard against boosting unsafe or low-quality clips.
+
+## Training and inference cost estimate
+
+**Assumptions:** 50K requests/s. Score 1K clips/request cheaply, encode one session/request, then deep-rank 200 clips/request. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Decayed-history + cheap ranker | 1B rows ÷ (1M rows/core-h) × ($0.05/core-h) = **$50/run** | 50K requests/s × 1000 clip scores/request ÷ (200K clip scores/s/CPU core) → 250 CPU cores × ($0.05/CPU core-h) = **$12.50/h** |
+| Optional sequence encoder | 1B examples × 2 passes ÷ (100K examples/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$22.22/run** | 50K requests/s × 1 session encodings/request ÷ (10K session encodings/s/GPU) → 5 GPUs × ($4/GPU-h) = **$20/h** |
+| Multi-task top-200 ranker | 1B examples × 2 passes ÷ (100K examples/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$22.22/run** | 50K requests/s × 200 clip scores/request ÷ (100K clip scores/s/GPU) → 100 GPUs × ($4/GPU-h) = **$400/h** |
+
+# 8. Architecture
+
+<!-- system-design-diagram -->
 
 # 9. Evaluation
 

@@ -40,11 +40,19 @@ CTR is observational and position-biased. It should not be the sole objective.
 
 # 5. Data and judgments
 
+**Labeling approach:** Use a small assessor gold set of graded query–page relevance to engineer an evidence-grounded LLM teacher prompt. Bulk pseudo-grade retrieved candidates and hard negatives; retain debiased click/dwell signals as a separate behavioral target.
+
+**Quality and escalation:** Hold out human query/intent/locale gold for validation and locked tests. Try prompt engineering or supported soft prompts before teacher LoRA on development gold. Commission human bulk relevance judgments only for valuable failing slices after this ladder fails.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Combine BM25, title/proximity, language, page quality/age, query–page embeddings and exposure-aware interaction features; compare candidates within the same query.
+
 **Log features:** query text, language, geo (as permitted), retrieved candidate IDs, shown positions, clicks/dwell, query reformulations, session success proxies.
 
 **Page features:** body/title/anchor text, freshness, domain-quality/spam signals, structured data, page language, authority and safety.
 
-**Gold labels:** human assessors assign grades, e.g. 0=irrelevant, 1=marginal, 2=useful, 3=highly relevant, 4=perfect. Label `(query, page)` with special query-intent and locale slices.
+**Gold calibration/test:** human assessors assign grades, e.g. 0=irrelevant, 1=marginal, 2=useful, 3=highly relevant, 4=perfect. Label `(query, page)` with special query-intent and locale slices.
 
 **Bias and leakage:**
 
@@ -52,17 +60,11 @@ CTR is observational and position-biased. It should not be the sole objective.
 - Prevent train/test leakage from near-identical queries and document versions; use time splits and head/tail query slices.
 - Beware stale human judgments on evolving pages; re-label high-impact changes.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-Semantic retrieval complements rather than replaces lexical search: exact names, identifiers, rare terms and new topics strongly favor lexical signals.
-
-# 7. Feature engineering and model selection
+# 6. Feature engineering and model selection
 
 **First-stage ranker:** LambdaMART/gradient-boosted decision trees with BM25, term proximity, title match, query-document language match, link/quality features, page age, intent features, and aggregate interaction features.
 
-**Neural reranker:** fine-tuned transformer cross-encoder jointly attends to query and candidate snippet/page chunks, capturing context and meaning. For long pages, select relevant passages first; do not blindly pass full documents to a limited context model.
+**Neural reranker:** pretrained transformer cross-encoder, adapted on checked teacher relevance pairs only when needed, which jointly attends to query and candidate snippet/page chunks, capturing context and meaning. For long pages, select relevant passages first; do not blindly pass full documents to a limited context model.
 
 **Training objectives:**
 
@@ -71,6 +73,21 @@ Semantic retrieval complements rather than replaces lexical search: exact names,
 - **Listwise / LambdaMART:** optimize ordering and approximate NDCG-related improvements; often strong for graded relevance labels.
 
 Train only on meaningful comparison sets within the same query; use hard negatives from retrieval, not random web pages alone.
+
+## Training and inference cost estimate
+
+**Assumptions:** 100K search queries/s. The tree ranker scores 1K candidate documents/query; the optional cross-encoder reranks 20 documents/query. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| LambdaMART stage | 100M rows ÷ (1M rows/core-h) × ($0.05/core-h) = **$5/run** | 100K requests/s × 1000 doc scores/request ÷ (200K doc scores/s/CPU core) → 500 CPU cores × ($0.05/CPU core-h) = **$25/h** |
+| Optional top-20 cross-encoder | 1M pairs × 3 passes ÷ (500 pairs/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$6.67/run** | 100K requests/s × 20 pairs/request ÷ (5K pairs/s/GPU) → 400 GPUs × ($4/GPU-h) = **$1,600/h** |
+
+# 7. Architecture
+
+<!-- system-design-diagram -->
+
+Semantic retrieval complements rather than replaces lexical search: exact names, identifiers, rare terms and new topics strongly favor lexical signals.
 
 # 8. Evaluation: NDCG and ranking diagnosis
 

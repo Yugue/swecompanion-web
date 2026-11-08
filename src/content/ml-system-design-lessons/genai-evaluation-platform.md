@@ -41,6 +41,14 @@ Make hard safety/privacy requirements explicit **gates**, not components buried 
 
 # 5. Data and gold standards
 
+**Labeling approach:** Use small independent human gold panels to engineer judge rubrics and calibrate LLM-generated pseudo-scores at scale. Run exact-match, execution and state validators first where available; sample model disagreements and critical errors for adjudication.
+
+**Quality and escalation:** Partition rubric-development gold, judge-validation gold and a hidden human release test. Try prompt engineering or supported soft-prompt tuning before judge LoRA on development gold. If judge agreement still fails, buy more human scoring only for important slices within reviewer capacity; otherwise report the metric as untrusted.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Judge inputs include the task rubric, authorized evidence and blinded responses; randomize response order. Store provenance and judge/prompt versions so pseudo-scores never masquerade as gold.
+
 **Evaluation dataset schema:** example ID, task, request, authorized context, gold answer/labels or validated expected final state, reference evidence, rubric, language/domain/risk slice, provenance, difficulty, creation time, ownership and access permissions.
 
 **Sources:** expert-labeled curated set, holdout production samples (consent/privacy controlled), adversarial tests, model failure clusters, synthetic scenarios (reviewed), incident regressions. Separate **public dev set** from **hidden release/test set** to limit overfitting.
@@ -49,13 +57,7 @@ Make hard safety/privacy requirements explicit **gates**, not components buried 
 
 **Annotation:** clear rubrics, independent double labeling of ambiguous cases, adjudication, inter-rater agreement. Reviewers should see necessary evidence while protecting private data. Store label provenance and updates.
 
-# 6. High-level architecture
-
-<!-- system-design-diagram -->
-
-**Core design choice:** the platform is a **versioned experiment system**, not just a dashboard of model-judged scores. Every reported metric needs a reproducible model/prompt/index/judge/dataset version and example set.
-
-# 7. LLM-as-judge: appropriate use and limitations
+# 6. LLM-as-judge: appropriate use and limitations
 
 A strong judge can evaluate semantic qualities difficult to assess with exact-match rules (helpfulness, completeness, entailment), but **judge scores are predictions, not ground truth**.
 
@@ -66,6 +68,22 @@ A strong judge can evaluate semantic qualities difficult to assess with exact-ma
 **Calibration procedure:** create human-labeled examples; measure judge precision/recall for severe errors, rank correlation/agreement, false-pass rate, and per-language slice behavior; choose thresholds and **send ambiguous or high-severity disagreements to humans**. Recalibrate when judge version, rubric, or evaluated task changes.
 
 Use deterministic checks wherever possible: JSON schema, exact numeric/date preservation, SQL execution, verified tool final state, permission tests. Reserve judges for genuinely semantic evaluations.
+
+## Training and inference cost estimate
+
+**Assumptions:** 100K sampled judgments/day, with 2K input tokens and 100 output tokens/judgment. Hosted judge prices are assumed to be $1 per 1M input tokens and $4 per 1M output tokens. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Exact/state validators | None | 100K cases/day ÷ (1K cases/s/core) ÷ (3,600 s/h) × ($0.05/core-h) ≈ **$0.0014/day** |
+| Prompted LLM judge | None | 200M input tokens/day × ($1/M input tokens) + 10M output tokens/day × ($4/M output tokens) = **$240/day** |
+| Optional judge LoRA | 20M tokens × 3 passes ÷ (500 tokens/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$133.33/run** | Same serving cost as baseline |
+
+# 7. High-level architecture
+
+<!-- system-design-diagram -->
+
+**Core design choice:** the platform is a **versioned experiment system**, not just a dashboard of model-judged scores. Every reported metric needs a reproducible model/prompt/index/judge/dataset version and example set.
 
 # 8. Online evaluation and experimentation
 

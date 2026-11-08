@@ -39,19 +39,21 @@ ROUGE/BERTScore measure lexical/semantic overlap and can supplement evaluation, 
 
 # 5. Data
 
+**Labeling approach:** Prompt a teacher to draft chunk facts, claim-to-source links and merged summaries using a small expert gold set. Validate exact numbers, offsets and contradictions against original documents; checked pseudo-labels supply scale without commissioning every summary.
+
+**Quality and escalation:** Separate document-family gold for prompt development, validation and locked tests. Try prompt engineering or supported soft-prompt tuning before teacher LoRA on development gold; fund human bulk summaries only for important persistent gaps.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Preserve sections, tables, source offsets and version precedence; chunk-level evidence ledgers provide the features for cross-chunk synthesis.
+
 **Source storage:** original bytes; page/paragraph offsets; headings, tables, figures, speaker and timestamp tags; OCR confidence; version and owner. Keep provenance for each extracted span.
 
 **Gold set:** source document → topic-specific summary → canonical structured facts → claim-to-source anchors → contradictions and precedence annotations. Include long-distance references (an event introduced in section 2 clarified in section 30), duplicates, outdated amendments, missing values, and adversarial misleading sections.
 
-**Labeling strategy:** experts annotate critical facts and their supporting spans first. A strong LLM can draft summary/fact candidates, but reviewers must validate numerical and high-stakes claims. Split by full document family/version to avoid nearly identical template leakage.
+**Label checks:** validate teacher-generated facts and supporting spans with source and exact-value checks; sample numerical and high-stakes claims for expert audits. Split by full document family/version to avoid nearly identical template leakage.
 
-# 6. High-level architecture
-
-<!-- system-design-diagram -->
-
-**Why parallel tracks?** Pure “summary of summaries” progressively loses precise numbers, negations, and minority but critical details. Independent extraction preserves exact claims and provides a verification source for the final generated summary.
-
-# 7. Modeling approach
+# 6. Modeling approach
 
 1. **Preprocess:** preserve document layout and tables; identify metadata. A bad OCR/table extraction propagates errors to every downstream model.
 2. **Chunk semantically:** target natural boundaries; choose lengths based on model context and retrieval quality, not arbitrary page count. Keep enough overlap for cross-boundary references, but consolidate repeated evidence later.
@@ -63,19 +65,35 @@ ROUGE/BERTScore measure lexical/semantic overlap and can supplement evaluation, 
 
 **Alternative:** if document fits comfortably in a long-context model, benchmark a single-pass baseline. Long context doesn't guarantee perfect retrieval of buried details (“lost in the middle”), and costs scale with input length. For targeted follow-up questions, retrieval over the source may outperform regenerating the whole summary.
 
-# 8. Training and adaptation
+# 7. Training and adaptation
 
-Start prompt-only with a strong LLM and structure-aware chunking; the bigger risk is source omissions, not necessarily a lack of generative capacity. Fine-tune a compact summarizer only after collecting high-quality document/summary pairs and fact-coverage annotations. Consider a small extraction model for repetitive factual fields to reduce per-chunk generative expense.
+Start prompt-only with a strong LLM and structure-aware chunking; the bigger risk is source omissions, not necessarily a lack of generative capacity. Consider a compact summarizer adapter only if prompted synthesis still fails, using evidence-checked teacher pairs and available development gold. Consider a small extraction model for repetitive factual fields to reduce per-chunk generative expense.
 
 Train/evaluate using document-level splits; include contradiction, number preservation, temporal ordering, and uncertainty examples. Distill teacher summaries only when they are evidence-checked; otherwise the student memorizes polished hallucination patterns.
 
-# 9. Serving, scale, and reliability
+## Training and inference cost estimate
+
+**Assumptions:** 0.1 documents/s, each containing 100K source tokens. Each document uses 50 map calls at 2K input tokens and 100 output tokens/call, then one merge call at 5K input tokens and 500 output tokens. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Prompted map stage | None | 10K input tokens/s ÷ (10K input tokens/s/GPU) → 1 GPUs; 500 output tokens/s ÷ (2K output tokens/s/GPU) → 1 GPUs. (1 + 1) GPUs × ($4/GPU-h) = **$8/h** |
+| Prompted merge stage | None | 500 input tokens/s ÷ (10K input tokens/s/GPU) → 1 GPUs; 50 output tokens/s ÷ (2K output tokens/s/GPU) → 1 GPUs. (1 + 1) GPUs × ($4/GPU-h) = **$8/h** |
+| Optional synthesis adapter | 20M tokens × 3 passes ÷ (500 tokens/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$133.33/run** | Same serving cost as baseline |
+
+# 8. Serving, scale, and reliability
 
 - Process chunks in parallel with a bounded worker pool; aggregate with dependency-aware scheduling and checkpoint intermediate facts/summaries.
 - Use asynchronous jobs for large inputs, with progress and retry/resume on failures. Set per-document token and cost caps.
 - Store compact intermediate representations and their source pointers so follow-ups can use them without reprocessing full source, while retaining access to original evidence.
 - Prevent cross-tenant content leakage in cache and job storage; apply retention policies and document ACLs.
 - For revisions, perform incremental reprocessing at changed-section granularity but re-run global conflict checks after material changes.
+
+# 9. High-level architecture
+
+<!-- system-design-diagram -->
+
+**Why parallel tracks?** Pure “summary of summaries” progressively loses precise numbers, negations, and minority but critical details. Independent extraction preserves exact claims and provides a verification source for the final generated summary.
 
 # 10. Evaluation and diagnosis
 

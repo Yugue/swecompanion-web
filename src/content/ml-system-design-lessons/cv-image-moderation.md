@@ -40,6 +40,14 @@ Automatically identify policy-violating images in a large user-generated content
 
 # 5. Data strategy
 
+**Labeling approach:** A small policy-expert gold set defines the rubric for a multimodal LLM teacher. Generate multi-label pseudo-labels with evidence and abstentions; audit benign lookalikes, rare harms and language/context slices before training a compact classifier.
+
+**Quality and escalation:** Separate prompt-development gold from validation/calibration and locked tests. Improve prompts or supported soft prompts, then use teacher LoRA on development gold if policy precision/recall still fails. Expert bulk labeling is a costed last resort for critical remaining categories; live appeals still need review.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Use image embeddings, optional text/context and known-content hashes; policy version and category-specific thresholds stay outside the model.
+
 - **Gold:** Policy-trained expert reviewers with documented labeling guidelines and adjudication for disagreements.
 - **Sources:** Reported and appealed content, randomly sampled uploads, synthetic/adversarial perturbations, policy update examples.
 - **Sampling bias:** Report-driven labels overrepresent obvious violations; build an unbiased/stratified random sample for reliable prevalence and production metrics.
@@ -47,28 +55,37 @@ Automatically identify policy-violating images in a large user-generated content
 - **Handling:** Strict storage/retention rules, access segregation, content hashing where appropriate, staff well-being safeguards; don't put sensitive user data into general external labeling tools.
 - Time-based test sets and “new attack” evaluation; document evolving policy annotation schema.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-Content hashing can catch **identical previously reviewed media**, but cannot replace semantic classification; malicious edits bypass exact hashes. Context and user signals should respect privacy, security and fairness rules.
-
-# 7. Models and training
+# 6. Models and training
 
 - Start with a pretrained image backbone (ViT or ConvNeXt), multi-label output head and **sigmoid activations** per category.
 - Train with binary cross-entropy; use class weighting, focal loss, or targeted sampling if imbalance is severe. Avoid tuning only on aggregate accuracy.
 - For context-rich policies, combine image representation with text features or a multimodal encoder; benchmark added complexity.
-- More severe categories often need special reviewer-trained classifiers and specialist labels.
+- More severe categories need specialist gold audits; add a dedicated classifier only when the measured error cost warrants it.
 - Calibrate scores per category; choose **two thresholds** per category: high confidence for auto-block, low risk for auto-allow, send ambiguous band to review. Risk costs may dictate asymmetric thresholds.
 - A foundation model/vision-language model may assist prelabeling, but cannot automatically define policy truth.
 
-# 8. Serving and operations
+## Training and inference cost estimate
+
+**Assumptions:** 1K uploads/s, with one image/upload. The context-aware variant is assumed to process half as many images/s per GPU as the simple image model. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Frozen backbone + trained head | 1M images × 3 passes ÷ (200 images/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$16.67/run** | 1K requests/s × 1 images/request ÷ (1K images/s/GPU) → 1 GPU × ($4/GPU-h) = **$4/h** |
+| Optional context-aware model | 1M images × 3 passes ÷ (100 images/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$33.33/run** | 1K requests/s × 1 images/request ÷ (500 images/s/GPU) → 2 GPUs × ($4/GPU-h) = **$8/h** |
+
+# 7. Serving and operations
 
 - Run inexpensive exact hash/checks first for known items, then GPU inference; prioritize fast dangerous-content routing where policy requires.
 - Use queues to buffer peak upload bursts; backpressure with safe temporary review/pending state rather than bypassing checks.
 - Separate model score from policy engine, so policy thresholds can change without retraining.
 - Continuous active learning: sample high-uncertainty predictions and appealed decisions for expert review; audit biased collection.
 - Maintain an appeal/rollback path with decision logs, model version and policy version.
+
+# 8. Architecture
+
+<!-- system-design-diagram -->
+
+Content hashing can catch **identical previously reviewed media**, but cannot replace semantic classification; malicious edits bypass exact hashes. Context and user signals should respect privacy, security and fairness rules.
 
 # 9. Evaluation and failures
 
@@ -77,7 +94,6 @@ Content hashing can catch **identical previously reviewed media**, but cannot re
 **Failures:** Distribution shift, adversarial crops/overlays, context-dependent meanings, mislabeled educational content, rare severe classes, reviewer disagreement.
 
 **L5 decision:** Treat moderation as a cost-sensitive, multi-label decision system with human review, not just image classification.
-
 
 # 10. One-minute interview summary
 

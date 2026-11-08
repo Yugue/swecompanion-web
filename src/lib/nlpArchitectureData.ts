@@ -68,13 +68,13 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Load model + thresholds"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Verify complete labels"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -160,7 +160,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1360 318 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "6. Review feedback"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -239,7 +239,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "An encoder and sigmoid head score all 150 labels. Per-label thresholds choose labels or review. Human corrections feed training, independent evaluation, and release of the model with its thresholds.",
-    "caption": "Orange routes tickets. Blue learns from reviewed corrections."
+    "caption": "Orange routes tickets. Blue learns from reviewed corrections. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "workflow-matching": {
     "nodes": [
@@ -325,13 +325,13 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Check auth + inputs"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Verify intended workflows"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -447,7 +447,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 516 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "9. Review feedback"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -515,7 +515,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Retrieve active workflow descriptions, optionally rerank, and apply a calibrated acceptance gate. The executor checks current permissions and arguments. Catalog edits enter independently, and encoder updates switch with a rebuilt index.",
-    "caption": "Orange selects actions. Green refreshes workflows. Blue evaluates model changes."
+    "caption": "Orange selects actions. Green refreshes workflows. Blue evaluates model changes. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "entity-linking": {
     "nodes": [
@@ -592,13 +592,13 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Check current attributes"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Review spans + IDs"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -704,7 +704,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1360 318 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "8. Review feedback"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -783,7 +783,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Detect every product span, encode its context, search lexical and vector indexes, and verify exact catalog attributes. Return an ID or NO_MATCH for each span. Catalog updates and evaluated model releases have separate paths.",
-    "caption": "Orange links each mention. Green refreshes products. Blue checks detection and linking."
+    "caption": "Orange links each mention. Green refreshes products. Blue checks detection and linking. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "emerging-issues": {
     "nodes": [
@@ -874,9 +874,9 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher + analyst data"
         ],
-        "detail": "Keep adjudicated incidents"
+        "detail": "Audit cluster proposals"
       },
       {
         "kind": "service",
@@ -886,7 +886,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
           "Candidate",
           "preparation"
         ],
-        "detail": "Train routing models"
+        "detail": "Tune discovery + routing"
       },
       {
         "kind": "service",
@@ -1060,7 +1060,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Filter noise, assign known issues directly, and cluster only plausible unknown reports. Rank groups using growth and independent reporters, then require analyst review. Approved issues become searchable prototypes before later supervised retraining.",
-    "caption": "Orange discovers candidates. Green publishes approved issues. Blue evaluates routing changes."
+    "caption": "Orange discovers candidates. Green publishes approved issues. Blue evaluates routing changes. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "grounded-question-answering": {
     "nodes": [
@@ -1139,13 +1139,13 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Publish evaluated recipe"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Review cited answers"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -1250,7 +1250,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1360 318 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "8. Audit answers"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1318,7 +1318,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Authenticate the requester and retrieve only permitted passages. Check scope, authority and evidence sufficiency before generation, verify cited claims, and clarify or abstain when needed. Document changes and permission revocations update the evidence library independently.",
-    "caption": "Orange grounds answers. Green refreshes evidence. Blue checks quality and access."
+    "caption": "Orange grounds answers. Green refreshes evidence. Blue checks quality and access. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "machine-translation": {
     "nodes": [
@@ -1387,13 +1387,13 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Load approved translator"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Keep audited translations"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -1403,7 +1403,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
           "Candidate",
           "preparation"
         ],
-        "detail": "Fine-tune or distill"
+        "detail": "Adapt only if needed"
       },
       {
         "kind": "service",
@@ -1479,7 +1479,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1360 318 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "6. Review translations"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1538,7 +1538,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Protect immutable values, fetch applicable live glossary entries, translate with a multilingual encoder-decoder, and validate terminology and numbers. Publish glossary changes without retraining, and separately evaluate fine-tuned or distilled translation models.",
-    "caption": "Orange translates messages. Green updates terminology. Blue improves translation quality."
+    "caption": "Orange translates messages. Green updates terminology. Blue improves translation quality. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "document-summarization": {
     "nodes": [
@@ -1615,13 +1615,13 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Load approved pipeline"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Keep reviewed cases"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -1726,7 +1726,7 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1360 318 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "8. Review handoffs"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1785,6 +1785,6 @@ export const nlpArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Parse source-aware chunks. For each chunk, produce a local summary and extracted facts in parallel, preserving evidence in a ledger. Reconcile cross-section events before synthesis, verify against original passages, and return cited facts and a summary.",
-    "caption": "Orange processes the case. Blue evaluates extraction and summary changes."
+    "caption": "Orange processes the case. Blue evaluates extraction and summary changes. The learning lane uses the labeling approach described above; validation gold gates releases."
   }
 };

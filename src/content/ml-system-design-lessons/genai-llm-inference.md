@@ -36,17 +36,17 @@ This is primarily an **inference systems** design, not an offline classification
 
 # 5. Workload and benchmarking data
 
+**Labeling approach:** This platform serves frozen models; it does not need bulk training labels. Build a sanitized workload replay from actual prompt/output-length and arrival distributions. A small human gold task suite checks quality after quantization, batching or routing changes.
+
+**Quality and escalation:** A prompted LLM may cheaply generate stress cases or pseudo-grade regressions after calibration on development gold; keep a separate human validation/test suite. Consider LoRA only for a demonstrated task-model gap, not as an inference optimization. Human scoring targets unresolved high-impact regressions.
+
+**Feature engineering:** Benchmark input/output token counts, cache hit rate, concurrency, model mix and KV memory. These workload features, rather than pseudo-label volume, determine capacity.
+
 You cannot estimate GPU count reliably from parameter count alone. Gather distributions of **input length**, **output length**, concurrency, model variant, per-tenant traffic, cache hit rate, burstiness, and geographic patterns. Collect hardware-specific benchmark curves under continuous batching with representative lengths.
 
 Build a replay corpus with production-like but privacy-sanitized prompts. Segment latency and cost by input/output token buckets; averages hide long-context tail failures. Track GPU high-bandwidth memory (HBM) usage, cache occupancy, batch sizes, queue wait, and scheduler preemptions.
 
-# 6. High-level architecture
-
-<!-- system-design-diagram -->
-
-**Prefill** consumes prompt tokens efficiently in large matrix operations and creates the attention key/value (KV) cache. **Decode** produces roughly one token per active sequence per step and repeatedly reads weights plus KV cache; batching many active sequences improves utilization but increases memory contention and can hurt latency.
-
-# 7. Core serving techniques
+# 6. Core serving techniques
 
 1. **Continuous/in-flight batching:** add/remove sequences between decoding iterations rather than waiting for a static batch to finish. Improves GPU occupancy under variable output lengths.
 2. **Paged KV cache management:** allocate KV blocks dynamically, reuse and free blocks; avoids major fragmentation. Prefix caching can reuse identical prompt prefixes when model/version/security isolation allow.
@@ -57,13 +57,24 @@ Build a replay corpus with production-like but privacy-sanitized prompts. Segmen
 7. **Autoscaling:** scale based on queueing, active token demand, KV pressure, per-model throughput—not only CPU/request counts. Warmup and model load times require prewarming and headroom.
 8. **Isolation:** per-tenant quotas, admission limits, traffic classes, region routing, cache partitioning; overload → backpressure or shed low-priority traffic rather than trigger systemic OOM.
 
-# 8. Back-of-envelope capacity
+## Training and inference cost estimate
 
-Illustrative **peak**: 2,000 requests/sec × 250 output tokens/request = **500,000 output tokens/sec** aggregate across all instances. Separately, 2,000 × 1,000 input tokens = **2,000,000 prefill tokens/sec**. These cannot be combined as equivalent compute: prefill and decode have different performance and resource bottlenecks.
+**Assumptions:** 8B-parameter model; 2K requests/s × (1K input tokens + 250 output tokens)/request. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
 
-If a measured deployment sustains 5,000 output tokens/sec/GPU-equivalent **at the required latency mix**, a crude decode-only floor is 500,000 / 5,000 = **100 GPU-equivalents**, before prefill, traffic bursts, replication, failures, model sharding, and headroom. The assumed 5,000 is only an illustrative benchmark; real performance varies dramatically by model/hardware/batching.
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Frozen 8B service | None | 2M input tokens/s ÷ (10K input tokens/s/GPU) → 200 GPUs; 500K output tokens/s ÷ (5K output tokens/s/GPU) → 100 GPUs. (200 + 100) GPUs × ($4/GPU-h) = **$1,200/h** |
+| Quantized/speculative variant | None | 2M input tokens/s ÷ (10K input tokens/s/GPU) + 500K output tokens/s ÷ (6,250 output tokens/s/GPU) = 280 GPUs × ($4/GPU-h) = **$1,120/h** |
+
+# 7. Memory capacity
 
 **KV cache estimate:** for a decoder-only model, approximate per-token KV bytes as `2 × layers × KV heads × head dimension × bytes/element` (per sequence, excluding overhead). With grouped-query attention, the number of KV heads may be much smaller than attention query heads. Multiply by concurrent stored tokens; **model weights + KV + activations + overhead must fit HBM**.
+
+# 8. High-level architecture
+
+<!-- system-design-diagram -->
+
+**Prefill** consumes prompt tokens efficiently in large matrix operations and creates the attention key/value (KV) cache. **Decode** produces roughly one token per active sequence per step and repeatedly reads weights plus KV cache; batching many active sequences improves utilization but increases memory contention and can hurt latency.
 
 # 9. Evaluation, failure modes, and rollout
 

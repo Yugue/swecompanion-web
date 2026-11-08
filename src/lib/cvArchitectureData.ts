@@ -78,13 +78,13 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Switch encoders + index"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Multimodal teacher"
         ],
-        "detail": "Review query-photo pairs"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -94,7 +94,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
           "Candidate",
           "preparation"
         ],
-        "detail": "Train paired encoders"
+        "detail": "Test frozen + adapters"
       },
       {
         "kind": "service",
@@ -190,7 +190,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1360 318 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "8. Review search results"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -268,7 +268,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Authenticate the query and search only permitted photo vectors. Apply current metadata and sharing rules, optionally rerank, and return thumbnails. Upload ingestion uses the image encoder independently of queries. Evaluate relevance and access before switching paired encoders and rebuilt indexes.",
-    "caption": "Orange searches private photos. Green refreshes uploads. Blue evaluates relevance."
+    "caption": "Orange searches private photos. Green refreshes uploads. Blue evaluates relevance. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "traffic-object-detection": {
     "nodes": [
@@ -345,13 +345,13 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Sample difficult frames"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Vision teacher"
         ],
-        "detail": "Review object boxes"
+        "detail": "Propose checked boxes"
       },
       {
         "kind": "service",
@@ -447,7 +447,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 516 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "7. Correct difficult frames"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -505,7 +505,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Decode frames, detect boxes and classes, apply model-appropriate postprocessing, and optionally track identities before alerts. Camera settings and hard-frame sampling support operation at the edge. Reviewed boxes train candidates that must pass class-specific recall and device-latency checks before deployment.",
-    "caption": "Orange detects road users. Blue improves edge models."
+    "caption": "Orange detects road users. Blue improves edge models. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "image-moderation": {
     "nodes": [
@@ -592,13 +592,13 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Review cases + appeals"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Multimodal teacher"
         ],
-        "detail": "Keep adjudicated labels"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -704,7 +704,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 516 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "8. Audit cases and appeals"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -773,7 +773,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Validate uploads, combine permitted context with image features, and score overlapping policy categories. A separately versioned policy engine chooses allow, review or block. Experts adjudicate uncertain cases and appeals; evaluated releases must meet severe-content recall, false-block and review-capacity targets.",
-    "caption": "Orange routes content. Blue learns from expert adjudication."
+    "caption": "Orange routes content. Blue learns from expert adjudication. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "invoice-understanding": {
     "nodes": [
@@ -860,13 +860,13 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Return validated fields"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Multimodal teacher"
         ],
-        "detail": "Review document fields"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -981,7 +981,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 516 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "9. Correct fields and evidence"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1040,7 +1040,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Prepare pages, recognize text and boxes, understand layout, and extract fields with source evidence. Deterministic checks validate amounts, currencies and required fields before JSON or human review. Reviewer corrections feed training and template-separated evaluation before a versioned extraction pipeline is released.",
-    "caption": "Orange extracts invoices. Blue evaluates reading and field accuracy."
+    "caption": "Orange extracts invoices. Blue evaluates reading and field accuracy. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "visual-product-search": {
     "nodes": [
@@ -1118,13 +1118,13 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Check stock + attributes"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Teacher labeling"
         ],
-        "detail": "Review image-SKU pairs"
+        "detail": "Audit pseudo-labels"
       },
       {
         "kind": "service",
@@ -1230,7 +1230,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1360 318 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "8. Review exact-match errors"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1299,7 +1299,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Select the intended product crop, retrieve catalog candidates from image embeddings, and verify exact variants using visual and current attribute evidence. Return exact matches only when supported and otherwise label similar results. Catalog imagery and stock refresh independently, and encoder releases switch with compatible indexes.",
-    "caption": "Orange separates exact from similar. Green refreshes inventory. Blue checks retrieval quality."
+    "caption": "Orange separates exact from similar. Green refreshes inventory. Blue checks retrieval quality. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "video-understanding": {
     "nodes": [
@@ -1395,13 +1395,13 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Keep permissioned videos"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Video teacher"
         ],
-        "detail": "Review activity intervals"
+        "detail": "Propose event intervals"
       },
       {
         "kind": "service",
@@ -1525,7 +1525,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 232 H1488 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "10. Review clip relevance"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1583,7 +1583,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Uploaded videos are sampled adaptively, temporally localized, captioned with optional audio evidence, and indexed as timestamped clips. Queries search only permitted clips and return source intervals. Temporal and text-image models are evaluated together, and compatible query and clip vectors are published with each release.",
-    "caption": "Orange searches clips. Green indexes videos. Blue checks events and relevance."
+    "caption": "Orange searches clips. Green indexes videos. Blue checks events and relevance. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "satellite-segmentation": {
     "nodes": [
@@ -1670,13 +1670,13 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "detail": "Inspect uncertain regions"
       },
       {
-        "kind": "store",
+        "kind": "service",
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Mask teacher"
         ],
-        "detail": "Review pixel masks"
+        "detail": "Propose class masks"
       },
       {
         "kind": "service",
@@ -1782,7 +1782,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M1472 516 V708 H16 V894 H29",
         "kind": "learning",
         "label": [
-          "8. Adjudicate mask errors"
+          "Sample for teacher + gold audit"
         ],
         "x": 752,
         "y": 695
@@ -1841,7 +1841,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Tile georeferenced scenes with overlap, predict pixel classes, blend spatial logits back into an aligned scene, and check uncertainty and changes against prior maps. Reviewed masks improve candidates that must pass geographically separated evaluation before deployment.",
-    "caption": "Orange builds map layers. Blue checks geographic generalization."
+    "caption": "Orange builds map layers. Blue checks geographic generalization. The learning lane uses the labeling approach described above; validation gold gates releases."
   },
   "defect-detection": {
     "nodes": [
@@ -1943,9 +1943,9 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "x": 32,
         "y": 808,
         "title": [
-          "Reviewed examples"
+          "Normal + defect gold"
         ],
-        "detail": "Review inspected parts"
+        "detail": "QA-verified examples"
       },
       {
         "kind": "service",
@@ -1955,7 +1955,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
           "Candidate",
           "preparation"
         ],
-        "detail": "Fit normality model"
+        "detail": "Build normal coreset"
       },
       {
         "kind": "service",
@@ -2031,7 +2031,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
         "path": "M448 318 V350 H1056 V427",
         "kind": "serving",
         "label": [
-          "6. Known-defect features"
+          "6. Defect features"
         ],
         "x": 610,
         "y": 340
@@ -2149,7 +2149,7 @@ export const cvArchitectures: Record<string, ArchitectureGraph> = {
       }
     ],
     "description": "Align images under camera calibration, extract patch features and compare them with verified normal references. Apply per-line anomaly thresholds and return a heatmap with pass, reject or review. A separate known-defect classifier only supplies familiar defect labels. Audited normal examples and an unseen-defect holdout gate reference and model releases.",
-    "caption": "Orange inspects parts. Blue validates normal references and rare defects.",
+    "caption": "Orange inspects parts. Blue validates normal references and rare defects. The learning lane uses the labeling approach described above; validation gold gates releases.",
     "learningLabel": "LEARNING"
   }
 };

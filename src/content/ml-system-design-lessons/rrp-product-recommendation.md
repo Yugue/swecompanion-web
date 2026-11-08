@@ -43,6 +43,14 @@ Avoid assuming observed purchases are unconfounded preference labels: users purc
 
 # 5. Data, labels, and product representations
 
+**Labeling approach:** Use actual impressions, carts, purchases and matured returns for behavioral targets. Catalog identity/attributes are inexpensive existing supervision. A small human gold set guides LLM-generated attribute and substitute/complement pseudo-labels for cold-start semantic features, not invented purchases.
+
+**Quality and escalation:** For semantic labels, try prompt engineering or supported soft prompts, then teacher LoRA on development gold if needed. Fund human bulk pair labels only for important remaining failures. Keep separate human relevance/safety validation and tests alongside chronological purchase/return evaluation.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Combine session/history affinity, item text/image embeddings, price/budget, stock, shipping and returns; distinguish substitute similarity from co-purchase complementarity.
+
 **User/session signals:** category/brand preferences, viewed items, cart state, purchases (with recency), returns, device, geography, query interactions where permitted, guest session context.
 
 **Product:** catalog ID/SKU, brand, taxonomy, structured attributes, price, stock, seller, text description, images and review/quality signals.
@@ -53,11 +61,7 @@ Avoid assuming observed purchases are unconfounded preference labels: users purc
 
 **Splitting:** temporal with point-in-time price/inventory; unseen-item and new-user slices, seasonal and geographic shifts.
 
-# 6. Architecture
-
-<!-- system-design-diagram -->
-
-# 7. Candidate generation: collaborative + content hybrid
+# 6. Candidate generation: collaborative + content hybrid
 
 **Collaborative filtering:** implicit matrix factorization/ALS/BPR, item-to-item co-occurrence, or two-tower user–item retrieval. Excellent when sufficient interaction history exists; fails for new items/users.
 
@@ -69,7 +73,7 @@ Avoid assuming observed purchases are unconfounded preference labels: users purc
 
 **Cold start:** new user = contextual popular items, session views, category affinity, lightweight onboarding; new item = metadata/image/text features, seller/category priors, controlled exploration.
 
-# 8. Ranking and constraint handling
+# 7. Ranking and constraint handling
 
 **Features:** user–item affinity, collaborative similarity, content match, prior interactions, price relative to budget, delivery estimates, availability, reviews/quality, promotions, return risk, user region.
 
@@ -88,6 +92,20 @@ Avoid simplistic profit-only ranking that harms user trust or pushes irrelevant 
 **Hard filters:** inventory and legal availability checked at serve time; do not rely on embeddings or last night's snapshot for stock correctness. Price and shipping eligibility should be refreshed from authoritative services.
 
 **Slate re-ranking:** enforce category/brand diversity, cap repeated variants, avoid redundant products. Explainable complementary suggestions can be added to product-detail pages.
+
+## Training and inference cost estimate
+
+**Assumptions:** 20K requests/s. Score 1K products/request with trees, encode one user/request, and optionally deep-rank 100 products/request. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| GBDT baseline | 1B rows ÷ (1M rows/core-h) × ($0.05/core-h) = **$50/run** | 20K requests/s × 1000 product scores/request ÷ (200K product scores/s/CPU core) → 100 CPU cores × ($0.05/CPU core-h) = **$5/h** |
+| Two-tower user encoder | 1B examples × 2 passes ÷ (100K examples/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$22.22/run** | 20K requests/s × 1 user encodings/request ÷ (10K user encodings/s/GPU) → 2 GPUs × ($4/GPU-h) = **$8/h** |
+| Optional top-100 deep ranker | 1B examples × 2 passes ÷ (100K examples/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$22.22/run** | 20K requests/s × 100 product scores/request ÷ (100K product scores/s/GPU) → 20 GPUs × ($4/GPU-h) = **$80/h** |
+
+# 8. Architecture
+
+<!-- system-design-diagram -->
 
 # 9. Evaluation, experiments, and scaling
 

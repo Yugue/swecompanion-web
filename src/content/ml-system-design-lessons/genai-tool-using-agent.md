@@ -37,29 +37,38 @@ A task can have 100% valid JSON and still be wrong (wrong user, incorrect date, 
 
 # 5. Data
 
+**Labeling approach:** Use a small human gold set of permitted plans and expected final states to prompt a teacher that generates sandbox trajectories. Execute them in a resettable sandbox; retain only traces with verified state changes, allowed tools and no forbidden side effects.
+
+**Quality and escalation:** Gold validation/test tasks and policy checks remain independent of the teacher. Improve prompts or supported soft prompts first; use teacher LoRA on development gold only for persistent planning errors. Human trace annotation is reserved for important unresolved tasks with funded review capacity.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Expose typed tool schemas, authorized state, user goal and bounded execution history. Success comes from sandbox state checks, not a teacher saying its plan succeeded.
+
 **Sources:** tool schemas and descriptions, policy/risk annotations, successful annotated task trajectories, failed and corrected executions, synthetic sandbox tasks, human feedback, API error patterns, authorization rules, test environment initial/final states.
 
 **Gold labels:** user goal; permitted tools; required information; expected final state; side effects allowed/forbidden; approval decisions; acceptable alternative plans. Capture both correct result and **evidence of how it happened**.
 
 **Data pitfalls:** don't train on raw uncontrolled action logs as if success was guaranteed; never mix production secrets into training. Construct adversarial traces (malicious tool outputs, mismatched identity, stale object IDs, transient 429/timeouts, cyclic tasks).
 
-# 6. High-level architecture
-
-<!-- system-design-diagram -->
-
-**Boundary:** LLM proposes actions; deterministic code validates and executes them. A prompt cannot replace authorization enforcement.
-
-**Planning strategy:** start with one-step tool calling or a small state machine. Use plan–execute–observe loops only when task dependencies warrant them. Keep a bounded max step count to prevent infinite loops.
-
-# 7. Models and training
+# 6. Models and training
 
 - Baseline: instruction-following LLM with structured function-calling output and curated tool descriptions/examples. Typed JSON schema validation is deterministic.
 - Give the model a **small filtered catalog** of tools based on the user's permissions and current task rather than thousands of unrelated APIs. For large dynamic catalogs, retrieve plausible tools with a bi-encoder + approximate nearest neighbor (ANN) search, then validate the choice; cross-encoder reranking is optional.
-- For recurring difficult tasks, supervised fine-tune (SFT) on expert tool-use trajectories (reasoning need not be recorded), structured decisions, and correct parameter extraction. Fine-tune only after verifying model/tool UX bottlenecks.
+- For recurring difficult tasks, use LoRA only if needed on sandbox-verified teacher trajectories plus development gold (reasoning need not be recorded), structured decisions, and correct parameter extraction. Adapt only after verifying model/tool UX bottlenecks.
 - Preference optimization or reinforcement learning can improve action choices, but reward hacking is a major risk; success must be judged by external task state and safety constraints.
-- Fine-tune a small risk classifier/verifier separately if it reduces cost; **policy enforcement still remains outside the LLM**.
+- Train a small risk head or adapter on checked pseudo-labels only if it improves cost and quality; **policy enforcement still remains outside the LLM**.
 
-# 8. Execution correctness and security
+## Training and inference cost estimate
+
+**Assumptions:** 10 tasks/s × 4 model calls/task. Each call processes 2K input tokens and produces 200 output tokens. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Prompted agent | None | 80K input tokens/s ÷ (10K input tokens/s/GPU) → 8 GPUs; 8K output tokens/s ÷ (2K output tokens/s/GPU) → 4 GPUs. (8 + 4) GPUs × ($4/GPU-h) = **$48/h** |
+| Optional planning adapter | 20M tokens × 3 passes ÷ (500 tokens/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$133.33/run** | Same as baseline |
+
+# 7. Execution correctness and security
 
 - **Tool arguments:** validate schema, types, account ownership, resource IDs, currency, time zone, required fields, and allowed scopes.
 - **Exactly-once effects:** networks rarely guarantee exactly-once execution. Use idempotency keys, transaction IDs, persisted action state, and post-timeout reconciliation before retrying writes. A timed-out send might have succeeded.
@@ -69,13 +78,21 @@ A task can have 100% valid JSON and still be wrong (wrong user, incorrect date, 
 - **Memory:** store explicit task state (goal, slots, steps, results, approvals), not only a growing unstructured conversation. Summarize older context with source pointers; expire secrets.
 - **External failures:** exponential backoff for safe reads, circuit breakers, deadlines, bounded parallelism, fallback/human handoff.
 
+# 8. High-level architecture
+
+<!-- system-design-diagram -->
+
+**Boundary:** LLM proposes actions; deterministic code validates and executes them. A prompt cannot replace authorization enforcement.
+
+**Planning strategy:** start with one-step tool calling or a small state machine. Use plan–execute–observe loops only when task dependencies warrant them. Keep a bounded max step count to prevent infinite loops.
+
 # 9. Evaluation and monitoring
 
 **Offline replay** against deterministic, sandboxed tools: task success (correct final state), tool selection and argument accuracy, approval compliance, unnecessary calls, latency and tokens, injected-message resistance. Include partial/ambiguous requests and tool errors.
 
 **Online:** per-step failure rate, unintended side effects, user corrections, requests for clarification, escalations, average cost/task, latency distribution; manual review of high-risk outcomes. A model claiming “done” is not evidence that a task completed.
 
-**Useful ablations:** (A) fixed workflow baseline; (B) LLM single tool; (C) planner + execution loop; (D) fine-tuned planner. Prefer the simplest approach meeting real task-success and safety goals.
+**Useful ablations:** (A) fixed workflow baseline; (B) LLM single tool; (C) planner + execution loop; (D) optional LoRA planner. Prefer the simplest approach meeting real task-success and safety goals.
 
 # 10. Trade-offs and interview summary
 

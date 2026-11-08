@@ -37,27 +37,38 @@ Example: “What were weekly paid subscriptions by region last quarter, excludin
 
 # 5. Data
 
+**Labeling approach:** Prompt a teacher with schema, business definitions and a small human gold set to generate question–SQL pseudo-labels. Execute in an isolated read-only fixture and check expected values, joins and permissions; execution without error alone does not prove semantic correctness.
+
+**Quality and escalation:** Keep human-approved schema/version holdouts for validation and locked testing. Refine prompts or supported soft prompts, then teacher LoRA on development gold if needed. Purchase expert SQL labels only for important remaining query classes after that ladder fails.
+
+**Prompt tuning** learns a small soft prompt while keeping base weights frozen; it requires model support. **LoRA** learns low-rank weight adapters. Neither uses validation/test gold for training.
+
+**Feature engineering:** Retrieve a compact schema subgraph, join keys, metric definitions and permitted sample values; schema-linking and dialect are explicit inputs.
+
 **Schema index:** names/descriptions for tables and columns, primary/foreign keys, join paths, freshness, owner, access-control labels, business metric glossary, example approved queries, data quality notes, database dialect. Maintain from the warehouse catalog and migration events.
 
 **Training pairs:** user question → relevant schema subset → approved SQL → result or explanation. Generate paraphrases and diverse question types (aggregation, filters, time zones, window functions, joins); experts verify hard/critical cases. Use query logs carefully: past SQL may be incorrect or unsafe, not automatic gold.
 
 **Gold evaluation:** schema-version snapshots and database fixtures with exact expected outputs. Split by time, schemas/joins and question templates to test generalization. Include questions requiring clarification, unsupported datasets, private columns, malicious injection, and high-cost queries.
 
-# 6. High-level architecture
-
-<!-- system-design-diagram -->
-
-**Schema retrieval:** dense retrieval handles business paraphrases; keyword retrieval handles exact names/IDs. Include related join keys and approved join paths even if not individually similar to the question. For enterprise metrics, the semantic layer is often more important than raw schema descriptions.
-
-# 7. Model and training
+# 6. Model and training
 
 - Start with a capable LLM grounded by retrieved schema, relevant metric definitions, dialect rules, and a small number of **authorized** examples. Structured output should include SQL and any unresolved assumptions.
-- For high QPS or repetitive workloads, fine-tune an encoder–decoder or smaller LLM on question/schema/SQL examples. Evaluate execution accuracy; matching SQL tokens is a weak proxy.
+- For persistent quality gaps or high-volume distillation, consider LoRA on checked question/schema/SQL pseudo-labels plus development gold after prompt-only baselines. Evaluate execution accuracy; matching SQL tokens is a weak proxy.
 - Use a schema linker (retrieval over tables/columns + optional pairwise reranking). For complex questions, expand graph neighbors to recover required join paths.
 - Constrain generation to SQL grammar or parseable abstract syntax trees (ASTs) where feasible, and validate the AST deterministically. Syntax validity alone does not ensure semantic correctness.
 - Use execution feedback to repair **safe** failures (missing column, type mismatch) with bounded attempts. Do not let the model loosen access policies, add broad `SELECT *`, or remove limits merely to “make query pass.”
 
-# 8. Safety and serving
+## Training and inference cost estimate
+
+**Assumptions:** 20 questions/s × one SQL-generation call/question, with 3K input tokens and 150 output tokens/call. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Prompted schema-grounded generator | None | 60K input tokens/s ÷ (10K input tokens/s/GPU) → 6 GPUs; 3K output tokens/s ÷ (2K output tokens/s/GPU) → 2 GPUs. (6 + 2) GPUs × ($4/GPU-h) = **$32/h** |
+| Optional SQL adapter | 15M tokens × 3 passes ÷ (500 tokens/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$100/run** | Same as baseline |
+
+# 7. Safety and serving
 
 - Execute with the **end user's database identity**, least-privilege read-only credentials, enforced row/column-level security, and approved datasets. A pre-execution LLM “permission check” is insufficient.
 - Reject mutation operations, multi-statements, forbidden functions, unsafe external resources; enforce query deadline, row limit, scanned-byte/cost budget, and tenant quota.
@@ -65,6 +76,12 @@ Example: “What were weekly paid subscriptions by region last quarter, excludin
 - For high-cost queries, present a plan/estimate or submit as an asynchronous job. Cache only when authorization and freshness allow.
 - On schema change, update the metadata index immediately; model retraining should not be required for a renamed column or added table. Consider schema aliases/migration compatibility.
 - Log SQL, schema version, approvals/validation, execution identifiers, and anonymized outcome; protect user data in logs.
+
+# 8. High-level architecture
+
+<!-- system-design-diagram -->
+
+**Schema retrieval:** dense retrieval handles business paraphrases; keyword retrieval handles exact names/IDs. Include related join keys and approved join paths even if not individually similar to the question. For enterprise metrics, the semantic layer is often more important than raw schema descriptions.
 
 # 9. Evaluation and diagnostics
 

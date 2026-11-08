@@ -46,17 +46,19 @@ Because the system discovers previously unknown groups, ground truth often requi
 
 # 5. Data
 
+**Labeling approach:** Discovery itself needs no bulk class labels. Use a frozen encoder and temporal clustering; prompt an LLM with representative reports to propose cluster names, known-issue matches and spam tags. A small analyst gold set guides the rubric and audits these pseudo-labels.
+
+**Quality and escalation:** Validate against future incidents and no-incident days; a convincing generated cluster title is not proof of a real incident. Tune prompts first, then consider teacher LoRA only for persistent tagging errors. Pay analysts for important unresolved incident judgments, rather than labeling every report.
+
+**Feature engineering:** Use text embeddings, unique-reporter counts, source diversity, product/version and rate-of-change features. Retain independent report counts after deduplication.
+
 **Inputs:** Ticket/chat/app-review text; timestamps; language; product/version/region/channel; anonymized user/source IDs; known issue categories; release calendar and incident logs; spam/promotion labels.
 
 **Data hygiene:** Normalize boilerplate and repeated templates; near-deduplicate exact/copied reports, but **retain counts of unique reporters and source diversity**, since independent repetition is meaningful evidence. Filter spam and generic feedback before clustering; preserve log/error codes and version info. Beware one viral copy-paste campaign being counted as 10,000 independent customer reports.
 
 **Labels:** Known-issue labels; human-validated novel clusters; historical incident onset times, severity, and reviewer dismissals. Hold out entire future incidents and releases to avoid hindsight leakage. Include days with no incidents to measure false alarms.
 
-# 6. High-level architecture
-
-<!-- system-design-diagram -->
-
-# 7. Modeling and temporal discovery
+# 6. Modeling and temporal discovery
 
 **Known routing:** Use a known-class classifier when taxonomy is stable, or embedding-to-prototype retrieval when issues are frequently added. Apply an appropriately calibrated novelty/abstention rule. Do not treat every low-confidence message as a true novel issue: explicitly screen out off-topic, unintelligible, generic, and spam content.
 
@@ -74,11 +76,24 @@ Conceptual score: `novelty × anomalous_growth × independent_support × severit
 
 **Promotion:** Human verifies examples, clusters, root-cause coherence, and severity. Approved issue gets one or multiple canonical descriptions/prototype embeddings in a known registry/delta index; supervised classifier can be periodically retrained as labels accumulate. Do not auto-promote raw clustering outputs to product incidents.
 
-# 8. Serving and lifecycle
+## Training and inference cost estimate
+
+**Assumptions:** 5M messages/day for batch encoding. Name 1K clusters/day with one teacher call/cluster, using 2K input tokens/call and 100 output tokens/call. Rates and dataset sizes below are illustrative; $4/GPU-h and $0.05/CPU-core-h. Full utilization; round serving fleets up to whole machines.
+
+| Model / stage | Training / preparation | Inference |
+|---|---|---|
+| Frozen encoder + clustering | None | 5M messages/day ÷ (5K messages/s/GPU) ÷ (3,600 s/h) × ($4/GPU-h) ≈ **$1.11/day** |
+| Prompted cluster naming | None | 1K calls/day × [(2K input tokens/call × $1/M input tokens) + (100 output tokens/call × $4/M output tokens)] = **$2.40/day** |
+
+# 7. Serving and lifecycle
 
 Use streaming windows for recent unknowns; micro-batch clustering and nightly/periodic larger re-clustering to repair fragmented groups. Store immutable message IDs, embeddings, model versions, cluster assignment history, and reviewer actions. Detect cluster splits/merges across time, with human oversight. Control reviewer load by ranking alerts and suppressing repeated notifications for already investigated incidents.
 
 Frequent known-category index updates should not require reclustering the whole known catalog. Re-embed unknown-pool messages on major encoder upgrades before comparing vectors.
+
+# 8. High-level architecture
+
+<!-- system-design-diagram -->
 
 # 9. Evaluation and diagnosis
 
