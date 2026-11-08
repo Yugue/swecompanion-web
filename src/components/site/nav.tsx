@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { AccountMenu } from '@/components/auth/AccountMenu'
+import { ProductMark } from '@/components/ProductMark'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Menu, X } from 'lucide-react'
@@ -34,9 +35,10 @@ export function Nav() {
         scrolled ? 'border-b border-border' : 'border-b border-transparent',
       )}
     >
-      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-[minmax(0,0.44fr)_minmax(0,0.56fr)] items-center gap-2 px-3 py-2 sm:grid-cols-2 md:flex md:gap-3 md:px-8 md:py-3">
-        <a href="#top" className="col-span-2 col-start-1 row-start-1 flex w-fit items-center gap-2" aria-label="SWECompanion home">
-          <Wordmark />
+      <div className="mx-auto flex w-full max-w-[1440px] items-center gap-2 px-3 py-2 md:gap-3 md:px-8 md:py-3">
+        <a href="#top" className="flex shrink-0 items-center gap-2" aria-label="SWECompanion home">
+          <span className="sm:hidden"><ProductMark size={30} /></span>
+          <Wordmark className="hidden sm:flex" />
         </a>
 
         <nav className="hidden items-center gap-1 min-[1440px]:flex">
@@ -54,7 +56,7 @@ export function Nav() {
         <Button
           variant="outline"
           size="sm"
-          className="col-start-1 row-start-2 h-9 w-full px-1.5 sm:px-3 md:ml-2 md:w-auto"
+          className="ml-auto h-9 px-2 sm:px-3 min-[1440px]:ml-2"
           render={
             <Link href="/coding" aria-label="Interview Prep Guides">
               <span className="whitespace-nowrap md:hidden">Interview Prep</span>
@@ -63,27 +65,20 @@ export function Nav() {
           }
         />
 
-        <div className="contents md:ml-auto md:flex md:items-center md:gap-3">
-          <Button
-            size="sm"
-            className="col-start-2 row-start-2 h-9 w-full px-1.5 sm:px-3 md:w-auto"
-            render={<a href="#download"><span className="whitespace-nowrap">Download for Free</span></a>}
+        <div className="flex shrink-0 items-center gap-2 min-[1440px]:ml-auto">
+          <AccountMenu
+            signInLabel="Login"
+            signInClassName="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-primary-foreground hover:bg-primary/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           />
-          <div className="col-start-2 row-start-1 flex items-center justify-self-end gap-2">
-            <AccountMenu
-              signInLabel="Login"
-              signInClassName="rounded-md bg-transparent px-2 font-mono font-normal text-muted-foreground hover:bg-muted hover:text-foreground hover:brightness-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-2"
-            />
-            <button
-              type="button"
-              className="inline-flex size-9 items-center justify-center rounded-md border border-border text-foreground min-[1440px]:hidden"
-              onClick={() => setOpen((v) => !v)}
-              aria-label={open ? 'Close menu' : 'Open menu'}
-              aria-expanded={open}
-            >
-              {open ? <X className="size-4" /> : <Menu className="size-4" />}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="inline-flex size-9 items-center justify-center rounded-md border border-border text-foreground min-[1440px]:hidden"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+          >
+            {open ? <X className="size-4" /> : <Menu className="size-4" />}
+          </button>
         </div>
       </div>
 
