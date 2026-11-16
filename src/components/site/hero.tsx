@@ -29,7 +29,7 @@ export function Hero() {
             <Button size="lg" className={cn('h-12 gap-5 rounded-lg px-5 text-white', styles.downloadCta)} render={
               <a href="#download">Download for macOS <ArrowRight className={cn('size-4', styles.downloadArrow)} aria-hidden /></a>
             } />
-            <p className="text-base font-medium text-muted-foreground">No card required</p>
+            <p className="text-sm font-medium text-muted-foreground">No card required</p>
           </div>
         </div>
         <div className="mt-10 sm:mt-12"><ProductDemo /></div>

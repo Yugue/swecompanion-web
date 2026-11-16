@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, Workflow as WorkflowIcon, Check, ChevronDown, Code2, Eye, EyeOff, LockKeyhole, MessageSquare, Mic, MicOff, Monitor, MoreHorizontal, Network, Play, Pointer, RotateCw, Settings2, ShieldCheck, Smile, SquareArrowUp, Users, Video } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Code2, Eye, EyeOff, LockKeyhole, MessageSquare, Mic, MicOff, Monitor, MoreHorizontal, Play, Pointer, RotateCw, Settings2, ShieldCheck, Smile, SquareArrowUp, Users, Video } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import captures from '../../../public/previews/manifest.json'
 import styles from './product-demo.module.css'
@@ -58,9 +58,9 @@ const workflows = [
 type Workflow = (typeof workflows)[number]
 
 const categories = [
-  { id: 'coding', label: 'Coding', group: 'Coding', firstScene: 0, icon: Code2 },
-  { id: 'system-design', label: 'System Design', group: 'System design', firstScene: 3, icon: Network },
-  { id: 'ml-design', label: 'ML System Design', group: 'ML system design', firstScene: 4, icon: WorkflowIcon },
+  { id: 'coding', label: 'Coding', group: 'Coding', firstScene: 0 },
+  { id: 'system-design', label: 'System Design', group: 'System design', firstScene: 3 },
+  { id: 'ml-design', label: 'ML System Design', group: 'ML system design', firstScene: 4 },
 ] as const
 
 // Each workflow plays automatically; category tabs can restart a different one.
@@ -297,7 +297,8 @@ export function ProductDemo() {
         A scanning transition pauses halfway for six and a half seconds to compare your screen with an illustrated Zoom screen share of the same HackerRank page
         with no companion window. Category tabs can jump to Coding, System Design, or ML System Design; playback otherwise continues automatically.
       </p>
-      <div className={styles.categoryTabs} role="tablist" aria-label="Preview category">
+      <div className={styles.categoryTabs} role="tablist" aria-label="Preview category" style={{ '--active-category': activeCategory } as CSSProperties}>
+        <span className={styles.categoryThumb} aria-hidden />
         {categories.map((category, index) => <button key={category.id} ref={(element) => { tabButtons.current[index] = element }}
           id={`demo-tab-${category.id}`} role="tab" type="button" aria-selected={activeCategory === index} aria-controls="demo-panel"
           tabIndex={activeCategory === index ? 0 : -1} onClick={() => selectCategory(index)}
@@ -309,7 +310,7 @@ export function ProductDemo() {
             event.preventDefault()
             selectCategory(next)
             tabButtons.current[next]?.focus()
-          }}><category.icon size={16} aria-hidden /><span>{category.label}</span></button>)}
+          }}><span>{category.label}</span></button>)}
       </div>
       <div id="demo-panel" role="tabpanel" tabIndex={0} aria-labelledby={`demo-tab-${categories[activeCategory].id}`} className={styles.demo} data-scene={workflow.id} data-phase={phase.id} data-view={comparing ? 'comparison' : showingCapture ? 'capture' : 'private'} data-running={visible} style={timing}>
         <div className={styles.stage}>
