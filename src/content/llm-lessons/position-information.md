@@ -21,12 +21,14 @@ Each coordinate pair uses its own rotation rate. RoPE changes query/key comparis
 ## 4. See the relative gap
 
 For one coordinate pair:
+
 \[
 \begin{aligned}
 q_m&=R_{m\omega}q,\quad k_n=R_{n\omega}k\\
 q_m^\top k_n&=q^\top R_{(n-m)\omega}k
 \end{aligned}
 \]
+
 q and k are unrotated content vectors; m and n their positions; ω a rotation rate; \(R_a\) rotates by angle a. Their comparison depends on the relative gap n−m.
 
 ```genai-visual
@@ -37,14 +39,10 @@ Rotating both arrows together preserves their angle. Changing the gap changes th
 
 ## 5. Distinguish masks from position signals
 
-A causal mask defines legal information access. Position encoding represents location within that access pattern.
-
-Both can encode aspects of order, but they perform different jobs. A position signal cannot make an otherwise illegal future token safe to read.
+Position signals describe location; masks control access. Knowing a future token’s position does not make reading its content legal.
 
 ## 6. Test longer contexts
 
-A **context window** is the supported number of input and generated positions under a model’s configuration. Extrapolating beyond trained lengths can distort relative-position behavior and use of distant evidence.
+A **context window** is the configured limit on input/generated positions. Longer inputs can distort positional comparisons. Test evidence at different locations and distances.
 
-Test evidence at different locations and distances. Accepting a long prompt is weaker evidence than using its relevant details correctly.
-
-A position vector marks where a token occurs, but does not authorize it to read later tokens. Keep location representation separate from the causal access rule when reasoning about a decoder.
+> **Reason it through:** Holding content fixed, rotate both RoPE positions equally. Why is the relative comparison preserved?

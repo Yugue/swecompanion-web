@@ -2,32 +2,30 @@
 
 ## 1. Make success checkable
 
-A **verifier** is a procedure that checks a candidate result, such as executing tests or comparing an arithmetic answer. **Verifiable rewards** derive training feedback from such checks.
+A **verifier** checks a candidate, such as by running tests. **Verifiable rewards** turn check results into training feedback.
 
-A verifier can be wrong or incomplete. Passing a few tests establishes success on those tests, not every possible input.
+Passing a limited test establishes only the property it checks.
 
 ## 2. Distinguish reward granularity
 
-An **outcome reward** scores the final result. A **process reward** scores intermediate steps under stated rules. The latter gives more localized feedback but requires reliable step judgments.
+An **outcome reward** scores the final result; a **process reward** scores intermediate steps. Process feedback is more localized but needs reliable step judgments.
 
-A correct final answer may follow an invalid derivation. An elegant-looking derivation can still reach the wrong result.
+A correct result can follow an invalid derivation, and a plausible derivation can end incorrectly.
 
 ## 3. Estimate group-relative advantages
 
-**Group relative policy optimization (GRPO)** estimates advantages by comparing sampled responses to the same prompt, rather than training a separate value baseline. It uses a clipped policy update; formulations also specify reference KL and normalization.
+**Group relative policy optimization (GRPO)** compares responses to one prompt to estimate advantages, instead of training a separate value baseline.
 
-For rewards [0,1,1,0], subtracting the mean gives [−0.5,0.5,0.5,−0.5]. Dividing by population standard deviation (the square root of mean squared deviation), 0.5, gives [−1,1,1,−1]. Equal rewards give no within-group preference signal; implementations must handle zero spread.
+For rewards [0,1,1,0], subtracting the mean gives [−0.5,0.5,0.5,−0.5]. Dividing by population standard deviation (the square root of mean squared deviation), 0.5, gives [−1,1,1,−1].
 
 ## 4. Separate estimation from updating
 
-Centering rewards estimates which samples did better in their group. It is not itself the optimizer. A GRPO-style update also specifies sampled-token ratios, clipping, and reference regularization.
+Centering rewards estimates relative advantage. The optimizer separately specifies token-probability ratios, clipping, and reference regularization.
 
-A group with identical outcomes supplies no within-group preference signal. Inspect problem difficulty and reward resolution rather than assuming more identical samples fix the issue.
+Equal rewards provide no within-group preference; handle zero spread before normalization. Check difficulty and reward resolution before generating more identical outcomes.
 
 ## 5. Keep verification honest
 
-Use hidden or held-out tests to detect exploitation of visible checks. Track reward accuracy on held-out outcomes as well as the policy’s measured reward.
+Use held-out tests to expose shortcuts. Track the checker’s reliability alongside policy reward; optimizing an exploitable checker teaches exploitation.
 
-A weak verifier can teach shortcuts. A strong but expensive verifier may suit training or difficult requests while being impractical for every production response.
-
-An answer can pass a weak checker through an unintended shortcut. Audit the checker and inspect successful trajectories; automatically computed reward is reliable only for the property the checker actually verifies.
+> **Reason it through:** Every answer in a sampled group earns one. Why is the within-group advantage signal uninformative?

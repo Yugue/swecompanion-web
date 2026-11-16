@@ -8,19 +8,15 @@ For example, 10 requests completed in one second give throughput 10 requests/sec
 
 ## 2. Handle unequal output lengths
 
-In **static batching**, requests often enter as a group and may leave unused slots as some finish early. **Continuous batching** admits new requests when slots become available during ongoing generation.
+**Static batching** starts a group together, often leaving slots idle as requests finish. **Continuous batching** fills freed slots during generation.
 
 ```genai-visual
 continuous-batching
 ```
 
-The scheduling unit can be a decoding iteration rather than a complete group of responses.
-
 ## 3. Budget prompt processing too
 
-Long prefills can interfere with ongoing decoding. **Chunked prefill** divides prompt processing into smaller scheduled pieces to balance prompt ingestion and active generation.
-
-Scheduling choices affect fairness, startup delay, and inter-token timing. A single large prompt should not silently monopolize the service.
+**Chunked prefill** schedules long prompts in pieces alongside decoding. Tune the balance between startup delay, fairness, and inter-token timing.
 
 ## 4. Reuse a compatible prefix
 
@@ -36,8 +32,6 @@ An **answer cache** stores final responses; unlike a KV prefix cache, it must al
 
 ## 6. Report useful service metrics
 
-Measure request throughput, generated-token throughput, first-token latency, complete latency, and tail percentiles. A **tail percentile** describes slow requests, such as the 95th percentile.
+Measure request/token throughput, first-token time, complete latency, and **tail percentiles** such as the 95th percentile. Use representative arrivals and lengths.
 
-Use representative lengths and arrival patterns. Saturation benchmarks with no realistic queue can hide poor user experience.
-
-Two matching text prefixes are insufficient for reuse if model version or position conventions differ. Reuse requires the same relevant computational state, not merely a familiar-looking string.
+> **Reason it through:** Two prompts look identical, but their adapters differ. Why is sharing computed prefix states unsafe?

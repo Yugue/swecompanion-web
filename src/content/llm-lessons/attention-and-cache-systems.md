@@ -2,15 +2,13 @@
 
 ## 1. Distinguish the resources
 
-Attention efficiency can change arithmetic, memory traffic, or allocation waste. **Memory bandwidth** is the rate at which stored values can be moved; it differs from arithmetic throughput.
-
-A system can have spare compute while waiting for weights or cached keys and values to arrive.
+**Memory bandwidth** is the rate of moving stored values. Spare arithmetic capacity cannot help while computation waits for weights or KV data.
 
 ## 2. Avoid materializing scores
 
-**FlashAttention** computes full softmax attention in tiles, keeping intermediate values in faster on-chip memory and maintaining running normalization statistics.
+**FlashAttention** tiles full softmax attention in fast on-chip memory, maintaining running normalization statistics.
 
-It avoids writing the complete attention-score matrix to slower device memory. Within floating-point differences, it computes the intended full attention operation rather than sparse or approximate attention.
+It avoids writing the full score matrix to slower memory while preserving full attention up to floating-point effects.
 
 ## 3. Keep the complexity straight
 
@@ -41,8 +39,6 @@ None changes the semantic causal mask by itself. Cache identity must include mod
 
 ## 7. Profile the actual regime
 
-Measure first-token latency, inter-token latency, throughput, and peak cache occupancy at realistic lengths and concurrency.
+Measure throughput, first/inter-token latency, and cache occupancy at realistic lengths and concurrency. Long-prefill and small-batch decoding have different bottlenecks.
 
-An optimization for long prefill may not help a small-batch decode workload. Verify that the intended kernel and cache strategy are active before interpreting the result.
-
-Avoiding a materialized full attention matrix reduces memory traffic without changing the mathematical attention result under the method's assumptions. Compressing or dropping cache content changes a different part of the computation.
+> **Reason it through:** Why can FlashAttention reduce memory traffic while full-prefill attention still has quadratic pairwise work?

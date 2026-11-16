@@ -18,15 +18,11 @@ Past queries need not be stored for this causal decoding procedure.
 
 ## 3. Understand why reuse is valid
 
-In a causal decoder, earlier positions cannot read future tokens. Appending D therefore does not change the earlier states under the same model and positional convention.
-
-Changing the prior prefix, model weights, or relevant formatting can invalidate reused states.
+Causality prevents earlier states from reading appended tokens. Their cached states stay valid under the same prefix, weights, and positional configuration.
 
 ## 4. Identify remaining computation
 
-Each new token still passes through model layers and reads the relevant cache. Caching removes repeated prefix projection work; it does not remove attention over previous positions or feed-forward computation.
-
-Generation remains sequential because the identity of the next token is not yet known.
+Each new token still traverses the layers and reads its prefix cache. Caching avoids recomputation, not the next-token dependency.
 
 ## 5. Measure different latencies
 
@@ -36,8 +32,6 @@ With roughly constant inter-token time d, an N-token output takes approximately 
 
 ## 6. Account for cache growth
 
-Cache storage increases with active sequences, context length, layers, and key/value width. A request can exhaust memory during generation even if its prompt initially fits.
+Cache grows with concurrent sequences, retained positions, layers, and KV width. Generation can exhaust memory after a prompt initially fits.
 
-Compare caching benefits under the actual prompt/output distribution. A tiny example hides the costs of long contexts and concurrent users.
-
-The first generated token is selected from logits produced by processing the prompt. Its own key/value entries are created when that selected token is subsequently processed; token selection and cache insertion are different moments.
+> **Reason it through:** Appending a token leaves earlier causal states unchanged. Why does this permit caching but not parallel selection of all future tokens?

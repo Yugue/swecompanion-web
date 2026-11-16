@@ -2,9 +2,7 @@
 
 ## 1. Select transformations per token
 
-A **mixture-of-experts (MoE)** layer contains several learned transformations called **experts** and a **router** that selects which to run for each token. Experts commonly implement feed-forward networks.
-
-A **dense** layer uses its full transformation for each token. An MoE layer activates a subset of its available expert parameters.
+A **mixture-of-experts (MoE)** layer uses a **router** to select learned **experts**, usually FFNs, for each token. A **dense** layer runs its full map per token.
 
 ## 2. Route and combine
 
@@ -24,20 +22,18 @@ A batch can activate every expert across different tokens. Sparse per-token comp
 
 ## 4. Prevent overloaded experts
 
-**Load balancing** encourages traffic to spread across experts. An expert's **capacity** is its allowed token assignments in a batch.
+**Load balancing** spreads token traffic. Expert **capacity** limits assignments per batch; excess tokens may be dropped or rerouted.
 
-A capacity-limited router may drop or reroute excess assignments, depending on the design. Always sending every token to one expert wastes capacity elsewhere and can bottleneck execution.
+Routing everything to one expert wastes other capacity and creates a bottleneck.
 
 ## 5. Account for communication
 
-**Expert parallelism** places experts on different devices. Tokens may travel to selected experts and outputs return for combination; this is often an all-to-all exchange.
+**Expert parallelism** puts experts on different devices; tokens and outputs travel between them.
 
-Small or uneven token groups can use devices poorly. **Tail latency** describes slow requests near the high end of the latency distribution; routing imbalance can worsen it even when average compute looks attractive.
+Uneven traffic can worsen **tail latency**, the slow end of the request-time distribution.
 
 ## 6. Compare at a real operating point
 
-Measure total weight memory, activated computation, communication, throughput, and task quality. **Throughput** is completed work per unit time.
+Measure stored weights, active compute, communication, task quality, and **throughput** (completed work per unit time). Fewer active parameters do not guarantee lower elapsed time.
 
-Sparse activation is an architectural resource tradeoff. It does not imply that experts neatly correspond to human topics or that every token costs the same wall-clock time.
-
-Routing a token to two experts means only those expert paths execute for it. Total stored parameters can be large while active work is smaller, but routing imbalance and communication still affect cost.
+> **Reason it through:** Routing becomes concentrated on one expert. Which resource and quality measurements would distinguish the consequences?

@@ -8,10 +8,10 @@ import { useAuth } from "@/lib/AuthProvider";
 import { db } from "@/lib/firebase";
 import { billingErrorMessage, getInvoices, openBillingPortal, refreshSubscription, startCheckout } from "@/lib/billing";
 import { AccountMenu } from "@/components/auth/AccountMenu";
-import { UpgradeButton } from "@/components/auth/UpgradeButton";
 import { Wordmark } from "@/components/site/wordmark";
 import { Button } from "@/components/ui/button";
 import { ChangePassword } from "./ChangePassword";
+import { SubscribeDialog } from "./SubscribeDialog";
 import { PRICING, formatPrice, isBillingPlan } from "@shared/pricing";
 import type { InvoiceSummary, SubscriptionSummary } from "@shared/billing";
 
@@ -141,10 +141,8 @@ function AccountDetails({ uid }: { uid: string }) {
         {subscription && subscription.status !== "none" && <Button variant="outline" className="h-11" disabled={busy} onClick={() => void manage()}>
           {busy ? "Opening…" : "Manage subscription & payment method"}<ArrowUpRight className="size-4" />
         </Button>}
-        {(!subscription || ["none", "canceled", "incomplete_expired"].includes(subscription.status)) && <>
-          <UpgradeButton plan="monthly" className="h-11" />
-          <Link href="/#pricing" className="inline-flex h-11 items-center text-sm text-muted-foreground underline underline-offset-4">Compare monthly &amp; yearly billing</Link>
-        </>}
+        {(!subscription || ["none", "canceled", "incomplete_expired"].includes(subscription.status)) &&
+          <SubscribeDialog disabled={busy} />}
       </div>}
     </section>
     <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">

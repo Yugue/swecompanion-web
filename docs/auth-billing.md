@@ -4,7 +4,7 @@ The static Next.js website uses Firebase Authentication (email/password and Goog
 
 ## One pricing definition
 
-`functions/src/shared/pricing.ts` is imported by the frontend, backend, and catalog synchronization script. It defines USD 299 monthly and USD 2,988 yearly (USD 249/month). Amounts are integer cents. The public product ID is `swecompanion_pro`. Lookup keys include the interval, currency, and amount.
+`functions/src/shared/pricing.ts` is imported by the frontend, backend, and catalog synchronization script. Enter each plan amount in integer cents. The website derives the annual plan’s monthly equivalent and savings from those amounts. The public product ID is `swecompanion_pro`. Lookup keys include the interval, currency, and amount.
 
 To change prices, edit that file, run `npm run billing:sync` with the sandbox `STRIPE_SECRET_KEY` in the environment, and deploy both the functions and website from the same version. The script creates immutable prices, selects the monthly default, and updates the portal choices using `STRIPE_PORTAL_CONFIGURATION_ID` in `functions/.env.swecompanion`. Existing subscriptions retain their agreed price. Old prices are not deleted.
 

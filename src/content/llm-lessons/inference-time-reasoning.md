@@ -10,9 +10,7 @@
 candidate-verification
 ```
 
-A candidate generator explores alternatives; a checker scores or rejects them; a selection rule chooses a final answer. These are separate components.
-
-A fluent candidate is not necessarily correct, and an incomplete check can approve a flawed solution.
+Generate alternatives → check them → select an answer. Candidate quality, checker reliability, and selection accuracy are separate measurements.
 
 ## 3. Separate availability from selection
 
@@ -20,14 +18,14 @@ A fluent candidate is not necessarily correct, and an incomplete check can appro
 
 ## 4. Interpret reasoning traces
 
-A **chain of thought** is generated intermediate reasoning text. It can help some tasks but is not guaranteed to faithfully explain the model's internal causal computation.
+A **chain of thought** is generated intermediate reasoning text, not a guaranteed faithful record of internal computation.
 
-Verify results with tools, proofs, or checks appropriate to the task. Repeating the same unsupported rationale across several samples does not make it independent evidence.
+Verify results independently. Repeating a shared misconception across samples does not create supporting evidence.
 
 ## 5. Choose a useful budget
 
-Extra samples help when they contain useful alternatives and the checker can identify them. Correlated mistakes can make repeated attempts much less valuable than the independent-sample calculation suggests.
+Extra samples help only if they supply useful alternatives and the selector finds them. Correlated errors weaken independent-sample estimates.
 
-Measure selected-answer accuracy, latency, tokens spent, and cost per solved task. Stop when extra computation fails to improve the required operating point.
+Measure selected accuracy, latency, and cost per solved task before increasing the budget.
 
-Taking more attempts improves the chance that some answer succeeds, but choosing the successful one needs a selector. Report one-attempt performance separately from best-of-many results with a privileged checker.
+> **Reason it through:** More candidates improve Pass@N but selected accuracy stays flat. Which component should you investigate?

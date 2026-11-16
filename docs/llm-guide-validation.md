@@ -1,6 +1,6 @@
 # LLM guide: curriculum and validation
 
-Updated October 29, 2026. Local route: `/mldomain/llm`.
+Updated November 2, 2026. Local route: `/mldomain/llm`.
 
 ## Scope
 
@@ -85,16 +85,16 @@ Independent topic assuming basic programming and school algebra. It teaches its 
 
 ## Current inventory
 
-54 lessons; 300 sections; 31 figures; 16 tables; 29 display formulas; 17,070 source words (231–504 per lesson). Internal lesson sections range from five to eight as a result of the material, not as a prescribed limit. Every lesson has a summary, three takeaways, and an interview probe.
+54 lessons; 300 sections; 31 figures; 17 tables; 29 display formulas; 14,456 source words (171–393 per lesson). Internal lesson sections range from five to eight as a result of the material, not as a prescribed limit. Every lesson has a summary, three takeaways, an interview probe, and a distinct closing reasoning prompt.
 
 Seven local premium quizzes contain 57 question/answer pairs. Question counts derive from coverage, not a lesson quota. They have not been published to Firestore.
 
 ## Validation
 
-The production build and built LLM validator pass for all 62 routes. Checks cover source/metadata consistency, numbering, definitions, duplicate passages, formulas, tables, numerical examples, figures, navigation links, canonical metadata, structured data, sitemap, premium gates, and quiz privacy in the static export. Targeted lint, TypeScript, and whitespace checks pass. All 54 lessons pass mobile page-overflow and KaTeX checks at 375×812.
+The production build (635 static pages across the workspace) and built LLM validator pass for all 62 LLM routes. Checks cover source/metadata consistency, numbering, definitions, duplicate passages, formulas, tables, numerical examples, figures, navigation links, canonical metadata, structured data, sitemap, premium gates, unique closing reasoning prompts, and quiz privacy in the static export. Targeted lint, TypeScript, and whitespace checks pass. All 54 lessons pass mobile page-overflow and KaTeX checks at 375×812.
 
 The quiz command ran with `--prefix=llm- --dry-run` only; no credentials were loaded or database writes made. Existing non-LLM quiz documents were compared with the restructuring baseline and preserved. All 42 original LLM pairs remain, plus 15 new pairs.
 
-See [the curriculum audit](llm-curriculum-audit.md) for split/merge decisions, source verification, and the retired recap. The [earlier editorial audit](llm-editorial-audit.md) is retained as historical evidence of the first content review.
+See [the concision audit](llm-concision-audit.md) for the November prose review and preservation checks. See [the curriculum audit](llm-curriculum-audit.md) for split/merge decisions, source verification, and the retired recap. The [earlier editorial audit](llm-editorial-audit.md) is retained as historical evidence of the first content review.
 
 Changes remain local. No commit, push, deployment, or quiz publication was performed.

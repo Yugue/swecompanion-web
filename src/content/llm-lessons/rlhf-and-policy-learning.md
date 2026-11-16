@@ -2,9 +2,9 @@
 
 ## 1. Build the feedback pipeline
 
-**Reinforcement learning from human feedback (RLHF)** uses human judgments to construct rewards and improve a policy. A common pipeline starts with SFT, collects response comparisons, fits a **reward model**, and then optimizes the policy.
+**Reinforcement learning from human feedback (RLHF)** uses human judgments to train rewards and improve a policy. A common sequence is SFT → comparisons → **reward model** (a learned response scorer) → policy optimization.
 
-A **rubric** specifies judgment criteria. Preference for clear prose is different from verification of a numerical answer.
+A **rubric** specifies judgment criteria. Preferred writing style is not proof of correctness.
 
 ```genai-visual
 rlhf-stages
@@ -12,16 +12,18 @@ rlhf-stages
 
 ## 2. Fit a comparison reward
 
-For one prompt, let the preferred and rejected responses have reward scores r_w and r_l. A common comparison model predicts preference probability σ(r_w−r_l), where **sigmoid** is σ(a)=1/(1+e^(−a)).
+For reward scores r_w (preferred) and r_l (rejected), predict preference with **sigmoid**, σ(r_w−r_l), where σ(a)=1/(1+e^(−a)).
 
-A reward difference log 3 predicts probability 0.75. Train with negative log probability of the observed preference. Only score differences are identified by these pairwise labels; the scores are not probabilities of factual correctness.
+Difference log 3 → probability 0.75. Minimize negative log observed-preference probability. These labels identify score differences, not factual-confidence probabilities.
 
 ## 3. Control policy drift
 
 For a fixed prompt, a common objective maximizes:
+
 \[
 \mathbb E_{y\sim\pi_\theta}[r(x,y)]-\beta D_{KL}(\pi_\theta\Vert\pi_{ref})
 \]
+
 x is the prompt; y a sampled response; π_θ the trainable policy; r its reward; π_ref a reference policy; β a positive penalty strength. Expectation means the average over sampled responses, and typically prompts too.
 
 The reference KL discourages drift. It cannot guarantee truth or prevent reward-model errors.
@@ -40,8 +42,6 @@ With old token probability 0.2 and new probability 0.3, the ratio is 1.5. For po
 
 ## 6. Evaluate outside the proxy
 
-Track held-out human judgments, factual checks, appropriate refusals, answer length, and task success. Inspect new policy samples as training changes their distribution.
+Check held-out task success, factuality, refusals, length, and human preference. If reward rises while verified accuracy falls, inspect the rubric and newly sampled outputs.
 
-If reward increases while verified accuracy falls, examine the rubric and reward model before increasing optimization strength. More optimization of a flawed proxy can amplify the flaw.
-
-A preference model can reward a convincing but unsupported explanation if comparison labels favor style. Evaluate independent task outcomes rather than treating higher learned reward as proof of better answers.
+> **Reason it through:** Learned reward rises while independently checked correctness falls. Which feedback assumptions would you inspect?

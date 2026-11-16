@@ -2,9 +2,7 @@
 
 ## 1. Use several information mixtures
 
-**Multi-head attention** applies separate query, key, and value projections in several heads. Each head forms its own attention weights; their outputs are concatenated and projected back to model width.
-
-Heads can learn different relationships, but there is no guarantee that one head corresponds to one interpretable linguistic rule.
+**Multi-head attention** learns separate query/key/value projections per head, concatenates their mixtures, then applies an output projection.
 
 ## 2. Keep dimensions explicit
 
@@ -34,8 +32,6 @@ Query projections and output combinations still run. Reducing KV heads is an arc
 
 ## 5. Avoid a head interpretation trap
 
-Separate projections allow different mixtures, but a head need not correspond to a stable human label such as “syntax.” Its role depends on the layer and input.
+A head’s role depends on layer and input; it need not map to one human label such as “syntax.” Choose head configurations using quality, memory, and throughput.
 
-Inspect measured quality, cache memory, and serving throughput rather than choosing the head count from interpretability alone.
-
-Sharing key/value heads reduces their stored projections, while query heads can still form distinct comparisons. Count query work and cached key/value storage separately when estimating the effect of head sharing.
+> **Reason it through:** Doubling query heads leaves KV head count unchanged. Which part of cache storage should remain unchanged, and why?

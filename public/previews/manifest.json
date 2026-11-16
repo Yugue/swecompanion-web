@@ -1,0 +1,62 @@
+{
+  "coding": {
+    "width": 2560,
+    "height": 1728
+  },
+  "coding-full": {
+    "width": 2560,
+    "height": 1728
+  },
+  "coding-mobile": {
+    "width": 1520,
+    "height": 2016
+  },
+  "debug": {
+    "width": 2560,
+    "height": 1728
+  },
+  "debug-full": {
+    "width": 2560,
+    "height": 1728
+  },
+  "debug-mobile": {
+    "width": 1520,
+    "height": 2016
+  },
+  "optimize": {
+    "width": 2560,
+    "height": 1640
+  },
+  "optimize-full": {
+    "width": 2560,
+    "height": 1640
+  },
+  "optimize-mobile": {
+    "width": 1520,
+    "height": 1944
+  },
+  "system-design": {
+    "width": 2560,
+    "height": 1712
+  },
+  "system-design-full": {
+    "width": 2560,
+    "height": 1712
+  },
+  "system-design-mobile": {
+    "width": 1520,
+    "height": 1888
+  },
+  "ml-design": {
+    "width": 2560,
+    "height": 2256
+  },
+  "ml-design-full": {
+    "width": 2560,
+    "height": 2256
+  },
+  "ml-design-mobile": {
+    "width": 1520,
+    "height": 2428
+  }
+}

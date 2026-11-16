@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Capabilities } from "@/components/site/capabilities";
 import { Cta } from "@/components/site/cta";
 import { Faq } from "@/components/site/faq";
 import { Footer } from "@/components/site/footer";
@@ -6,13 +7,12 @@ import { Hero } from "@/components/site/hero";
 import { HowItWorks } from "@/components/site/how-it-works";
 import { Nav } from "@/components/site/nav";
 import { Pricing } from "@/components/site/pricing";
-import { Proof } from "@/components/site/proof";
 import { Undetectability } from "@/components/site/undetectability";
 
 export const metadata: Metadata = {
   title: { absolute: "SWECompanion — A quiet companion for interview prep" },
   description:
-    "A macOS companion that reads the problem on your screen and returns concise, optimal solutions — invisible to screen capture, screen share, and recording. Free to download, $299/mo to unlock.",
+    "Capture a problem and generate clean code, precise fixes, or complete system designs with one key. Explore real SWECompanion examples and try the macOS app free.",
   alternates: { canonical: "/" },
 };
 
@@ -23,8 +23,8 @@ export default function Page() {
       <main>
         <Hero />
         <Undetectability />
+        <Capabilities />
         <HowItWorks />
-        <Proof />
         <Pricing />
         <Faq />
         <Cta />

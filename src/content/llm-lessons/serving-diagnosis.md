@@ -2,15 +2,13 @@
 
 ## 1. Fix the workload
 
-Specify prompt lengths, output lengths, concurrency, tool usage, and required quality. Compare deployment choices on the same representative requests.
-
-A short single-user demonstration does not establish performance for long-context concurrent traffic.
+Fix prompt/output lengths, concurrency, tools, and quality requirements before comparing configurations.
 
 ## 2. Separate the latency components
 
-If first-token latency worsens while inter-token time stays stable, inspect queueing, retrieval, prompt length, and prefill. If inter-token time worsens, inspect batch composition, cache growth, memory traffic, and hardware utilization.
+Slow first token, normal spacing → inspect queueing, retrieval, prompt length, and prefill. Slow spacing → inspect active batches, KV growth, and memory traffic.
 
-If only a high-latency tail worsens, inspect unusually long requests, expert imbalance where relevant, and scheduling contention.
+A worse tail suggests outliers or contention. Timing narrows hypotheses; profiling establishes the bottleneck.
 
 ## 3. Choose a targeted intervention
 
@@ -32,9 +30,7 @@ At 0.01 cost units per call, 110 calls cost 1.10; at 0.006, 200 calls cost 1.20.
 
 ## 5. Isolate quality regressions
 
-Keep requests fixed and compare previous versus current model, prompt, retrieved evidence, and decoding settings one at a time. Use verified evidence to distinguish retrieval failures from generation failures.
-
-Inspect important slices, abstention coverage, factual support, and tool authorization. Aggregate success can conceal a harmful local regression.
+On fixed requests, vary model, prompt, evidence, or decoding one at a time. Compare important slices, support, abstention coverage, and authorized tool success.
 
 ## 6. Choose the right kind of intervention
 
@@ -50,18 +46,12 @@ These can be combined after each contribution is measured.
 
 ## 7. Compare behavior under controlled evidence
 
-Keep the model and question fixed. Compare no evidence, current retrieval, and verified evidence. If only verified evidence succeeds, inspect retrieval; if all fail, inspect the task contract and model capability.
+Compare no evidence, retrieved evidence, and verified evidence. Gains only with verified evidence point toward retrieval/context selection.
 
-Use the same answer criterion and generation settings so a result change is interpretable.
-
-Compare the unchanged model with improved examples against the adapted model with the same examples. Include unseen cases and earlier general tasks to detect forgetting.
-
-A gain on training-like templates may hide failure under paraphrases. Hold out task variants, sources, or time ranges appropriate to deployment.
+Compare adapted and unchanged models under the same prompt. Hold out new wording and earlier skills to detect template overfitting or forgetting.
 
 ## 8. Make the choice reviewable
 
-Record model and tokenizer versions, adaptation weights, template, evidence snapshot, sampling settings, and serving configuration. Retain a known working baseline for rollback.
+Record model/tokenizer, adapters, template, evidence, sampling, and serving versions. Keep a working baseline for rollback; monitor quality, latency, and cost together.
 
-This lesson consolidates earlier mechanisms: choose the measured operating point that meets the task, then monitor whether that point remains valid as traffic and data change.
-
-Long time to first token with normal token spacing points toward queueing or prompt work; slow spacing points toward ongoing generation. These measurements narrow hypotheses without alone proving the bottleneck.
+> **Reason it through:** A cheaper model needs more retries and longer answers. Which measurements would determine whether to deploy it?

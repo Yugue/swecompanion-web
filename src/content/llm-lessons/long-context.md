@@ -8,9 +8,7 @@ With an 8,000-token budget, 500 instruction tokens, 1,000 history tokens, and 1,
 
 ## 2. Separate length from use
 
-A model accepting a long input may still fail to locate or combine evidence inside it. **Effective context use** is the ability to solve the intended task with information at different positions and distances.
-
-Test evidence at the beginning, middle, and end while keeping content fixed. Also test multiple required facts, contradictions, and distractors rather than one distinctive marker.
+**Effective context use** means finding and combining the information needed for a task. Test decisive evidence at beginning, middle, and end, with distractors and conflicts.
 
 ## 3. Understand position extension
 
@@ -31,14 +29,10 @@ A **summary** is a lossy representation unless the needed information is explici
 
 ## 5. Preserve constraints
 
-If a policy says “20 MB, except enterprise accounts allow 100 MB,” dropping the exception changes the answer. Preserve dates, entities, conditions, and source IDs alongside summaries.
-
-A short exact record can be more useful than a long narrative memory. Re-evaluate summaries when downstream questions change.
+“20 MB, except enterprise accounts allow 100 MB” becomes wrong if the exception disappears. Preserve conditions, entities, dates, and source IDs during compression.
 
 ## 6. Measure quality and resources
 
-Compare task correctness, evidence position sensitivity, input cost, first-token latency, and peak memory at realistic lengths.
+Compare correctness, position sensitivity, input cost, first-token latency, and peak memory. Single-fact lookup does not establish multi-document reasoning.
 
-A successful single-fact lookup is insufficient evidence for multi-document synthesis. Increasing the window can add both helpful information and more opportunities for distraction.
-
-An answer can use a recent mention while ignoring an earlier correction. Move decisive evidence across positions and test conflicting statements; merely fitting the entire document into the window does not establish reliable use.
+> **Reason it through:** A summary drops an account-type exception. Why can a shorter, fluent context make the final answer wrong?

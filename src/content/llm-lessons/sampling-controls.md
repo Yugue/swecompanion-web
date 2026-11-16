@@ -2,9 +2,7 @@
 
 ## 1. Sample rather than maximize
 
-**Sampling** randomly draws a token from a specified distribution. It can produce different valid continuations for the same prefix, unlike a fixed greedy choice.
-
-The sampling distribution can differ from the model's original softmax after temperature or filtering. Record those choices when evaluating stochastic outputs.
+**Sampling** draws a token randomly from a distribution. Temperature and filtering can change that distribution; record the actual settings when evaluating outputs.
 
 ## 2. Adjust temperature
 
@@ -24,12 +22,10 @@ For [4/7,2/7,1/7], p=0.8 retains the first two and yields [2/3,1/3,0]. The order
 sampling
 ```
 
-The vocabulary stays fixed while probability mass becomes more concentrated. None of these settings supplies new evidence about the world.
+Concentration changes; vocabulary and available evidence do not.
 
 ## 5. Diagnose unwanted repetition
 
-Repetition penalties change scores and may discourage loops, but can also damage repeated names, code identifiers, or exact quotations. Lower temperature does not supply missing evidence.
+Repetition penalties can suppress loops but harm repeated names or code identifiers. Compare task success, variation, and stopping under fixed prompts.
 
-Compare task success, useful variation, repetition, and stopping behavior under fixed prompts. A fixed random seed improves reproducibility but does not make a generated claim true.
-
-After top-p filtering, retained probabilities are renormalized. A token with original probability 0.3 can therefore be sampled more than 30% of the time if enough competing probability mass was removed.
+> **Reason it through:** How does nucleus filtering increase a retained token’s sampling frequency without changing its original logit?

@@ -2,15 +2,16 @@
 
 ## 1. Compose learned operations
 
-A **layer** transforms its input; a **hidden representation** is an intermediate feature vector. A multilayer perceptron, or **MLP**, stacks learned affine maps and nonlinear activations. An **affine map** is a linear transformation plus a bias.
+A **layer** transforms inputs. An **MLP** (multilayer perceptron) stacks **affine maps**—linear transforms plus biases—with nonlinear activations.
 
-Think of successive layers as recombining features rather than storing complete examples in individual neurons.
+Picture each layer recombining features rather than individual neurons storing complete examples.
 
 ## 2. Compute a hidden layer
 
 \[
 h=\operatorname{ReLU}(Wx+b)
 \]
+
 x is a column input vector, W a learned matrix, b a learned bias, and h the hidden output. **ReLU** replaces negative coordinates with zero and preserves positive ones.
 
 This lesson uses column vectors; implementations may use row vectors and transpose the weight matrix.
@@ -27,9 +28,9 @@ The zero coordinate suppresses that feature for this input. It does not delete t
 
 ## 4. Understand nonlinearity
 
-An **activation function** transforms coordinates between learned maps. Without a nonlinear activation, two affine layers combine into one affine layer.
+An **activation function** transforms coordinates between maps. Without a nonlinear activation, stacked affine layers collapse into one affine map.
 
-ReLU and smooth alternatives let different inputs activate different transformations, enabling curved decision boundaries and richer representations.
+Nonlinearity lets inputs activate different feature combinations.
 
 ## 5. Produce a task output
 
@@ -39,8 +40,6 @@ The output’s meaning determines its loss; not every head needs softmax.
 
 ## 6. Separate capacity from learning
 
-**Capacity** is a model’s ability to represent varied mappings. Increasing width or depth can add capacity, but useful behavior still requires suitable data, objectives, and optimization.
+**Capacity** is the range of mappings a model can represent. More width or depth can add capacity, but cannot fix incorrect targets.
 
-A large network can fit an incorrect target perfectly. Verify what the labels and loss actually reward.
-
-Without a nonlinear operation, composing affine layers still yields one affine mapping. Extra depth becomes useful because intermediate transformations can change which features the next learned map receives.
+> **Reason it through:** What changes in expressiveness if you remove every activation between the learned affine maps?

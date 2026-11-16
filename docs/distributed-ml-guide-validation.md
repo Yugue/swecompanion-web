@@ -14,9 +14,10 @@ The domain selector, sitemap, canonical metadata, search, filters, chapter expan
 mobile navigation, and independent distributed-topic progress are connected.
 
 The study-guide variant of the shared hero omits the interview explanation.
-Lesson pages use a technical overview without interview probes. There are no
-quiz routes, advertised quizzes, interview-practice chapters, final review chapters,
-or appended reading lists.
+Lesson pages use a technical overview without interview probes. Following the
+subsequent quiz request, six separate Part quizzes provide 60 questions and model
+answers through the existing premium Firestore flow. Lessons retain their original
+structure without added interview-practice or final review chapters or reading lists.
 
 ## Technical review decisions
 
@@ -102,3 +103,27 @@ learner-facing guide:
   https://arxiv.org/abs/2309.06180
 - DistServe and disaggregated prefill/decode:
   https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin
+
+## Supplemental quiz validation
+
+The six Part quiz banks contain 10, 12, 12, 8, 8, and 10 paired questions/answers
+respectively: 60 total. Coverage metadata in scripts/distributedQuizCoverage.json
+maps each question to this Part's lessons or earlier prerequisites and collectively
+covers all 28 lessons. Existing quiz banks were preserved unchanged.
+
+The guide checker also validates counts, distinct/nonempty plain-text payloads,
+complete answer pairing, prerequisite-ordered topic coverage, and 33 numerical
+results tied to their authored questions. Export validation checks six quiz routes,
+canonical URLs, sitemap entries, hub links, all 28 lesson quiz links, and signed-out
+premium gates. It scans all exported HTML, JavaScript, data, and sitemap files to
+confirm that the new questions and answers are not bundled publicly.
+
+The scoped seed command (npm run seed:quizzes -- --prefix=distributed-) wrote only
+the six new Distributed ML documents to the configured swecompanion Firestore
+project. A subsequent read-back compared all stored questions and answers with
+the local source and confirmed exact equality. The dry-run mode also passed.
+
+Browser verification covered the updated hub's 60-question count, the Part 1 quiz
+link, its return-to-curriculum link, and the signed-out premium access screen.
+The premium answer-reveal interaction was not exercised using a signed-in account.
+Build, repository lint, guide validation, and quiz export/privacy checks passed.

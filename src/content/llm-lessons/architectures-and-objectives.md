@@ -2,9 +2,7 @@
 
 ## 1. Choose allowed information
 
-An **encoder** builds representations using all valid positions of an available input. A **causal decoder** represents each position using its prefix. An **encoder–decoder** combines full-source reading with target-prefix generation.
-
-The names describe common arrangements, not a universal guarantee about every model bearing the label.
+An **encoder** reads all valid input positions; a **causal decoder** reads a prefix. An **encoder–decoder** combines full-source reading with target-prefix generation.
 
 ## 2. Match architecture to objective
 
@@ -28,9 +26,9 @@ Cross-attention mixes source evidence into target states; it does not require so
 
 ## 4. Understand generation behavior
 
-A causal decoder naturally models a probability for any left-to-right sequence. A masked model learns different conditional predictions, so repeatedly filling masks is not automatically equivalent to causal sampling.
+Masked prediction learns conditionals with both-side context. Repeated mask filling is not automatically causal sampling.
 
-Encoder–decoder models can generate autoregressively too. Their decoder predicts the next target token conditioned on both source and target prefix.
+An encoder–decoder also generates autoregressively, conditioned on source text and target prefix.
 
 ## 5. Avoid a terminology trap
 
@@ -40,8 +38,6 @@ A model called “decoder-only” commonly uses masked self-attention without th
 
 ## 6. Choose from the task
 
-For text classification, an encoder or small specialized model may suffice. For flexible continuation, consider a causal decoder. For source-to-target tasks, compare both decoder-only prompting and encoder–decoder designs.
+Compare encoders for representations/classification and causal decoders for flexible continuation. For source-to-target tasks, compare both decoder-only and encoder–decoder approaches on quality and serving cost.
 
-Measure quality, data needs, and serving cost. Architecture alone does not guarantee better multilingual behavior or factuality.
-
-Bidirectional access is valid when the full input is known before prediction. It would reveal answers if used unchanged for prefix-only next-token training; the architecture's access pattern must match the objective.
+> **Reason it through:** Which context is legal when translating a known source but predicting an unfinished target, and how do the masks differ?

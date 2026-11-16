@@ -117,3 +117,10 @@ Each approved numbered unit becomes a substantial lesson, usually with 7–10 in
 Define each mathematical variable and acronym on first use; use small worked examples, execution diagrams, and comparison tables where they clarify the mechanism; keep occasional Python/PyTorch examples to 1–5 lines.
 
 Teach each shared mechanism once and apply it later: communication in 2.1, global-batch normalization in 2.4, memory and precision in 3.1, attention computation in 3.3, and numerical validation in 5.1.
+
+## Supplemental Part Quizzes
+
+At the user’s subsequent request, six separate quizzes accompany the approved
+lessons: 10, 12, 12, 8, 8, and 10 questions respectively (60 total), with worked
+model answers. These use the existing premium quiz flow and do not change the
+28-lesson curriculum.

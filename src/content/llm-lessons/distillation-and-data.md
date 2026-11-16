@@ -2,9 +2,7 @@
 
 ## 1. Transfer behavior
 
-**Distillation** trains a **student** model to imitate a **teacher** model. The teacher may provide full token distributions, chosen responses, or checked demonstrations.
-
-The student does not inherit all teacher capabilities automatically. Transfer depends on student capacity, data coverage, and the objective.
+**Distillation** trains a **student** to imitate a **teacher** using distributions, responses, or verified demonstrations. Transfer depends on student capacity and example coverage.
 
 ## 2. Compare hard and soft targets
 
@@ -20,14 +18,10 @@ For distillation, a softened teacher distribution can expose alternatives. Teach
 
 ## 4. Choose transfer coverage
 
-A teacher can supply token distributions, complete answers, or verified demonstrations. Match the transfer data to the intended student workload, including difficult and rare cases.
-
-Imitating one chosen answer loses information about alternatives. Matching full distributions communicates more but may require access to teacher scores and compatible tokenization.
+Cover difficult and rare deployment cases. Chosen answers discard alternatives; full distributions retain them but require teacher scores and compatible tokens.
 
 ## 5. Measure transferred utility
 
-Compare accuracy and robustness on held-out cases, including where the teacher fails. Track retries, output length, and escalation to a larger model.
+Use independently verified tasks, including teacher failures. Count retries and escalation: half-price calls with three attempts can cost more per solved task.
 
-A student costing half as much per call but requiring three attempts per solved task can lose the cost advantage. Distillation should be judged at the application’s quality and latency target.
-
-A student's teacher-generated targets can preserve systematic teacher mistakes. Hold out human-verified or externally checked tasks so matching the teacher is not confused with improving actual correctness.
+> **Reason it through:** A student matches its teacher on easy prompts. What held-out cases would test whether rare capabilities transferred?

@@ -2,15 +2,16 @@
 
 ## 1. Learn a smaller update
 
-**Low-rank adaptation (LoRA)** freezes a pretrained weight matrix and learns a factored update beside it. **Rank** is the number of independent directions a matrix can represent; limiting update rank restricts its capacity.
+**Low-rank adaptation (LoRA)** freezes a base matrix and learns a factored update. **Rank** counts independent matrix directions; restricting it limits update capacity.
 
-The base model still runs during every forward pass.
+The frozen base still runs.
 
 ## 2. Factor the update
 
 \[
 y=W_0x+\frac{\alpha}{r}BAx
 \]
+
 x has width d; frozen \(W_0\) has shape [h,d]; A is [r,d]; B is [h,r]; r is update rank; α controls scaling. Train r(d+h) update parameters rather than hd entries in \(W_0\).
 
 ## 3. Follow both branches
@@ -25,9 +26,9 @@ Raising rank adds capacity and storage; improvement depends on the task.
 
 ## 4. Select target layers
 
-Adapters can be attached to attention projections, feed-forward projections, or both. Placement determines which transformations can change.
+Choose attention projections, FFNs, or both; placement controls what can change.
 
-Initialize one factor to zero and the other nonzero to start with no change to the base output. Initializing both to zero stalls both factors’ gradients through BA. Save the adapter with its compatible base model and tokenizer.
+Initialize one factor to zero and the other nonzero. Both zero → both gradients through BA stall. Save adapters with their compatible base/tokenizer.
 
 ## 5. Introduce QLoRA
 
@@ -37,8 +38,8 @@ Adapter weights and arithmetic are not necessarily four-bit. Gradients must stil
 
 ## 6. Choose by measured benefit
 
-Full fine-tuning provides broader update freedom; LoRA reduces trainable state; QLoRA additionally reduces base storage. Compare quality at an actual memory and time budget.
+Full tuning offers broader updates; LoRA reduces trainable state; QLoRA also compresses base storage. Compare quality at a memory/time budget.
 
-Merging an adapter into base weights can remove the extra branch at inference, subject to representation and quantization constraints.
+Adapters can sometimes merge into base weights, removing the extra inference branch; quantized representations need additional care.
 
-Freezing base weights removes their parameter updates, not the computation needed to propagate sensitivity through them. Adapter training can still require substantial saved activations, especially at long sequence lengths.
+> **Reason it through:** Both LoRA factors start at zero. Why does the initial backward pass fail to make either learn?

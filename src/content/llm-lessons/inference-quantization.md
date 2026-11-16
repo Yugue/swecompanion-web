@@ -2,19 +2,21 @@
 
 ## 1. Define the approximation
 
-Quantization, introduced with QLoRA, represents values using a smaller set of numerical levels. At inference, weights, activations, and cached keys/values can be compressed separately.
+Quantization maps values to finite numerical levels. Weights, activations, and KV state can use different formats.
 
-The represented values and actual arithmetic format need not match. A kernel may unpack low-bit weights into a wider format for computation.
+Storage and arithmetic precision can differ: kernels may unpack low-bit weights into wider values.
 
 ## 2. Map values to levels
 
 A simple symmetric quantizer uses integer levels from −Q to Q:
+
 \[
 \begin{aligned}
 q&=\operatorname{clip}(\operatorname{round}(x/s),-Q,Q)\\
 \hat x&=sq
 \end{aligned}
 \]
+
 x is an original value, s>0 a scale, q its stored integer, and x̂ its reconstruction. With s=0.5 and Q=2, 0.3 becomes 0.5; an outlier 3 clips to 1.
 
 ```genai-visual
@@ -31,14 +33,14 @@ This is a storage estimate, not a guarantee of fourfold speedup. Packing, unpack
 
 ## 4. Calibrate and validate
 
-**Quantization calibration** uses representative inputs to choose numerical ranges or settings without ordinary full training. This differs from calibrating confidence in answer correctness. Test rare inputs, long contexts, structured output, and task-critical calculations afterward.
+**Quantization calibration** chooses numerical ranges/settings from representative inputs. It is separate from answer-confidence calibration.
 
-Lower precision can reduce memory without improving latency if hardware kernels or conversion overhead are unfavorable.
+Test long contexts, rare inputs, calculations, and structured outputs. Conversion overhead or unsuitable kernels can erase latency gains.
 
 ## 5. Choose a precision scope
 
-Weight-only quantization targets model storage and weight traffic. Activation quantization affects intermediate computation; KV quantization targets the state that grows with concurrency and length.
+Weight compression targets the shared model footprint; activation compression targets intermediate computation; KV compression targets growing request state.
 
-Compare long-context correctness, structured outputs, rare inputs, and latency at the intended workload. More compression can save memory while moving errors into the task-critical cases.
+Compare quality and latency at actual concurrency, not bit count alone.
 
-A small value clipped into the representable range can lose precision differently from a large outlier clipped at the boundary. Evaluate error on representative activations rather than assuming a bit count predicts task quality.
+> **Reason it through:** Weight storage falls fourfold but latency worsens. What execution overhead or workload factor could explain it?

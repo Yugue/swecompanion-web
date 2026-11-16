@@ -2,15 +2,11 @@
 
 ## 1. Generate useful examples
 
-**Synthetic instruction data** pairs generated task inputs with generated or checked desired responses. Select examples covering missing task types, languages, and failure cases.
-
-For extracting dates, generate both explicit dates and genuine “not provided” cases. Filtering away every difficult example can train a model that never learns to express missing information.
+**Synthetic instruction data** pairs generated requests with desired responses. Target identified gaps, including difficult and genuine “not provided” cases.
 
 ## 2. Separate sources of correctness
 
-Generating both a question and its answer with the same model can reproduce a shared misconception. Agreement between the pair is not independent verification.
-
-For arithmetic, run the calculation. For extraction, check the source span. For tool tasks, validate arguments and expected outputs using a controlled environment.
+One model generating both question and answer can repeat a misconception. Verify with calculations, source spans, or controlled execution—not their agreement.
 
 ## 3. Filter without contaminating
 
@@ -20,14 +16,10 @@ Do not generate training variants from the final evaluation answers. A synthetic
 
 ## 4. Balance the mixture
 
-Deduplication and sampling determine how much generated material affects training. Thousands of paraphrases of one easy template can overwhelm rare but important real cases.
-
-Retain difficult examples when their targets can be verified. Mix representative real data and evaluate whether the model is learning the desired task rather than the generator's style.
+Many paraphrases of one easy template can overwhelm rare real cases. Deduplicate by source and mix representative data. Retain difficult examples when their targets are verifiable.
 
 ## 5. Measure new capability
 
-Compare a fixed training budget with and without the generated data on independent examples. Report changes by task, language, and difficulty, including genuine missing-information cases.
+At fixed training budget, compare held-out results with/without synthetic data by task, language, and difficulty. Gains only on generator-like wording suggest template imitation.
 
-If gains appear only on generator-like wording, test new templates and real requests. More fluent training text does not establish more useful supervision.
-
-Generating ten paraphrases of one seed question increases surface variation while preserving much of the same evidence. Track originating examples and split by source when evaluating transfer beyond the generation templates.
+> **Reason it through:** Thousands of generated examples paraphrase one seed. What should an independent test split keep separate?

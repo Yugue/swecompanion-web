@@ -4,7 +4,7 @@ export const PRICING = {
   productId: "swecompanion_pro",
   currency: "usd",
   monthly: { amount: 29_900, interval: "month", months: 1, label: "Monthly" },
-  yearly: { amount: 298_800, interval: "year", months: 12, label: "Yearly" },
+  yearly: { amount: 150_000, interval: "year", months: 12, label: "Yearly" },
 } as const;
 
 export type BillingPlan = "monthly" | "yearly";
@@ -26,5 +26,5 @@ export function formatPrice(amount: number): string {
 }
 
 export const ANNUAL_SAVINGS_PERCENT = Math.round(
-  (1 - PRICING.yearly.amount / (PRICING.monthly.amount * 12)) * 100,
+  (1 - PRICING.yearly.amount / (PRICING.monthly.amount * PRICING.yearly.months)) * 100,
 );
