@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { doc, onSnapshot } from "firebase/firestore";
 import { ArrowLeft, ArrowUpRight, CreditCard, FileText, LockKeyhole } from "lucide-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { db } from "@/lib/firebase";
-import { billingErrorMessage, getInvoices, openBillingPortal, refreshSubscription, startCheckout } from "@/lib/billing";
+import { billingErrorMessage, getInvoices, openBillingPortal, refreshSubscription } from "@/lib/billing";
+import { authPageHref } from "@/lib/authNavigation";
 import { AccountMenu } from "@/components/auth/AccountMenu";
 import { Wordmark } from "@/components/site/wordmark";
 import { Button } from "@/components/ui/button";
@@ -34,10 +36,17 @@ export function AccountPage() {
         <section className="mt-10 rounded-2xl border border-border bg-card p-8">
           <h2 className="text-lg font-medium">Everything in one place</h2>
           <p className="mt-2 text-sm text-muted-foreground">Sign in to manage your membership and view invoices.</p>
-          <Button className="mt-6 h-11" render={<Link href="/login">Sign in or create an account</Link>} />
+          <Suspense fallback={<Button className="mt-6 h-11" disabled>Sign in or create an account</Button>}>
+            <AccountSignInButton />
+          </Suspense>
         </section>}
     </main>
   </>;
+}
+
+function AccountSignInButton() {
+  const search = useSearchParams();
+  return <Button className="mt-6 h-11" render={<Link href={authPageHref("/login", `/account?${search}`)}>Sign in or create an account</Link>} />;
 }
 
 function AccountDetails({ uid }: { uid: string }) {
@@ -46,6 +55,7 @@ function AccountDetails({ uid }: { uid: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [checkout, setCheckout] = useState<string | null>(null);
   const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
   const [invoiceLoading, setInvoiceLoading] = useState(true);
@@ -78,13 +88,11 @@ function AccountDetails({ uid }: { uid: string }) {
         const result = await refreshSubscription();
         if (disposed) return;
         setSubscription(result); setLoading(false); setError(null); setCheckout(returnedCheckout);
-        if (isBillingPlan(upgradePlan)) {
-          window.history.replaceState(null, "", "/account");
-          if (!result?.subscribed) {
-            setBusy(true);
-            await startCheckout(upgradePlan);
-          }
-          setBusy(false);
+        if (upgradePlan === "true" || isBillingPlan(upgradePlan)) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("upgrade");
+          window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+          setSubscribeOpen(!result?.subscribed);
         }
         if (result?.subscribed) {
           await refreshClaims();
@@ -142,7 +150,7 @@ function AccountDetails({ uid }: { uid: string }) {
           {busy ? "Opening…" : "Manage subscription & payment method"}<ArrowUpRight className="size-4" />
         </Button>}
         {(!subscription || ["none", "canceled", "incomplete_expired"].includes(subscription.status)) &&
-          <SubscribeDialog disabled={busy} />}
+          <SubscribeDialog disabled={busy} open={subscribeOpen} onOpenChange={setSubscribeOpen} />}
       </div>}
     </section>
     <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">

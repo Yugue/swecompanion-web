@@ -13,7 +13,13 @@ const plans = [
   { plan: "yearly", label: "Annual" },
 ] as const;
 
-export function SubscribeDialog({ disabled }: { disabled: boolean }) {
+export function SubscribeDialog({ disabled, open, onOpenChange, className, label = "Subscribe" }: {
+  disabled: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  className?: string;
+  label?: string;
+}) {
   const portalContainer = useRef<HTMLDivElement>(null);
   const [pendingPlan, setPendingPlan] = useState<BillingPlan | null>(null);
   const busy = pendingPlan !== null;
@@ -32,12 +38,13 @@ export function SubscribeDialog({ disabled }: { disabled: boolean }) {
   }
 
   return (
-    <Dialog.Root onOpenChange={(open, event) => {
-      if (!open && busy) event.cancel();
+    <Dialog.Root open={open} onOpenChange={(open, event) => {
+      if (!open && busy) { event.cancel(); return; }
       if (open) setError(null);
+      onOpenChange?.(open);
     }}>
-      <Dialog.Trigger disabled={disabled} render={<Button className="h-11" />}>
-        Subscribe
+      <Dialog.Trigger disabled={disabled} render={<Button className={className ?? "h-11"} />}>
+        {label}
       </Dialog.Trigger>
       {/* Keep the portal inside the site theme so the popup inherits its colors and fonts. */}
       <div ref={portalContainer} className="contents" />

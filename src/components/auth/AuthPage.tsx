@@ -7,7 +7,6 @@ import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { authErrorMessage } from "@/lib/authErrors";
 import { authPageHref, safeAuthReturnPath } from "@/lib/authNavigation";
-import { isDesktopAuthPath } from "@/lib/desktopAuth";
 import { Wordmark } from "@/components/site/wordmark";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "./BrandIcons";
@@ -45,6 +44,7 @@ function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
   const search = useSearchParams();
   const next = safeAuthReturnPath(search.get("next"));
+  const hasReturnPath = search.has("next");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -55,8 +55,8 @@ function AuthForm({ mode }: { mode: Mode }) {
   const passwordId = useId();
 
   useEffect(() => {
-    if (!loading && user && mode !== "reset") router.replace(signingIn.current || isDesktopAuthPath(next) ? next : "/");
-  }, [loading, user, mode, next, router]);
+    if (!loading && user && mode !== "reset") router.replace(signingIn.current || hasReturnPath ? next : "/");
+  }, [loading, user, mode, next, hasReturnPath, router]);
 
   async function run(action: () => Promise<void>) {
     if (busy || loading) return;
