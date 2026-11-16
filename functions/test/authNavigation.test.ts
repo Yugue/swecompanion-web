@@ -28,3 +28,10 @@ test("switching between login, signup, and reset preserves the return destinatio
     assert.equal(url.searchParams.get("next"), next);
   }
 });
+
+test("desktop upgrade survives login and switching to signup", () => {
+  const destination = "/account?upgrade=true";
+  const login = new URL(authPageHref("/login", destination), "https://swecompanion.invalid");
+  const signup = new URL(authPageHref("/signup", login.searchParams.get("next")), login.origin);
+  assert.equal(safeAuthReturnPath(signup.searchParams.get("next")), destination);
+});

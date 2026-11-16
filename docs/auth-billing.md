@@ -38,7 +38,7 @@ After claims update, the billing listener forces an ID-token refresh. The accoun
 
 The subscription summary also publishes Stripe's trusted `billingCycleAnchor`. The AI backend uses it for monthly usage windows for both billing plans; it retains the first usage anchor across plan changes. Private usage counters are not exposed to browsers. See [Firestore schema](firestore-schema.md#ai-request-boundaries) for the request caps, atomic deductions and deadlines.
 
-Authentication uses dedicated `/login`, `/signup`, and `/forgot-password` pages. Existing signed-in users visiting login or signup are redirected home. Navigation preserves a validated local return destination for a new sign-in, including a selected monthly or yearly upgrade. After sign-in, the account page resumes checkout for that plan. External return URLs and loops back to authentication pages are rejected.
+Authentication uses dedicated `/login`, `/signup`, and `/forgot-password` pages. Existing signed-in users visiting login or signup are redirected to their validated return destination when supplied, or home otherwise. Navigation preserves the upgrade request through login, signup, Google authentication, and password reset. After authentication, `/account?upgrade=true` (or the existing `upgrade=monthly` / `upgrade=yearly` links) opens the pricing modal automatically for eligible free accounts. The user chooses a plan in the modal before Checkout begins; subscribed accounts do not open the modal. Signed-in users can also open the same modal directly from the landing-page Upgrade button. External return URLs and loops back to authentication pages are rejected.
 
 The learning guides and ML quizzes already shipped in the static export remain public. The Mac app's backend verifies the `subscribed` claim and `users/{uid}.subscription.subscribed` on every request; hiding frontend content is not an authorization boundary.
 
@@ -46,7 +46,7 @@ The learning guides and ML quizzes already shipped in the static export remain p
 
 The Mac app opens `/login` with `/desktop-auth` as the `next` destination, passing a random attempt state and the SHA-256 fingerprint of a secret it keeps in memory. The browser asks the user to confirm their account, then calls `createDesktopAuthCode` to approve the attempt and tells the user to return to the app. The Mac app checks `exchangeDesktopAuthCode` in the background, proving it holds the secret to redeem the approval for a custom token. Older Mac builds still receive a link the user can click to deliver a one-time code.
 
-Those two functions live in SWECompanionCore, which documents the flow in its README, because that codebase deploys automatically and also hosts the `claude` function. The website calls them by name, like its own callables. `claude` admits only tokens with the `subscribed` claim set by the billing functions here, so this claim is what the app shows as Free or Pro. The app's Upgrade button opens `/account`.
+Those two functions live in SWECompanionCore, which documents the flow in its README, because that codebase deploys automatically and also hosts the `claude` function. The website calls them by name, like its own callables. `claude` admits only tokens with the `subscribed` claim set by the billing functions here, so this claim is what the app shows as Free or Pro. The app's Upgrade button opens `/account?upgrade=true`, so the pricing modal opens after browser authentication. Updated Mac builds are required to send this upgrade request.
 
 ## Checks
 
