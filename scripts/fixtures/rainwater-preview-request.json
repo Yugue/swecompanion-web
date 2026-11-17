@@ -1,0 +1,133 @@
+{
+  "status": "awaiting_actual_core_generation_and_native_captures",
+  "problem": {
+    "title": "Trapping Rain Water",
+    "difficulty": "Hard",
+    "source": "https://leetcode.com/problems/trapping-rain-water/description/",
+    "statement": "Given non-negative bar heights, each of width 1, return the total units of rainwater trapped between the bars.",
+    "signature": "def trap(height):",
+    "constraints": [
+      "1 <= len(height) <= 20000",
+      "0 <= height[i] <= 100000"
+    ],
+    "examples": [
+      {
+        "height": [
+          0,
+          1,
+          0,
+          2,
+          1,
+          0,
+          1,
+          3,
+          2,
+          1,
+          2,
+          1
+        ],
+        "expected": 6
+      },
+      {
+        "height": [
+          4,
+          2,
+          0,
+          3,
+          2,
+          5
+        ],
+        "expected": 9
+      }
+    ]
+  },
+  "workflows": [
+    {
+      "id": "coding",
+      "label": "Solve",
+      "shortcut": "F2",
+      "candidateCode": "def trap(height):\n    pass",
+      "coreRequest": "Use the Core Solve action on the complete problem. Capture its actual generated answer: concise reasoning, a complete Python solution, and time/space complexity. Prefer an O(n)-time, O(1)-space solution."
+    },
+    {
+      "id": "debug",
+      "label": "Debug",
+      "shortcut": "F3",
+      "candidateCode": "def trap(height):\n    water = 0\n    for i in range(1, len(height) - 1):\n        left = max(height[:i], default=0)\n        right = max(height[i + 1:], default=0)\n        level = max(left, right)\n        water += level - height[i]\n    return water",
+      "bugs": [
+        {
+          "line": 6,
+          "title": "Wrong boundary selection",
+          "explanation": "Water is limited by the shorter boundary, not the taller one.",
+          "test": {
+            "height": [
+              3,
+              0,
+              1
+            ],
+            "actual": 3,
+            "expected": 1
+          }
+        },
+        {
+          "line": 7,
+          "title": "Negative water accumulation",
+          "explanation": "A bar above both surrounding boundaries contributes zero, never negative water.",
+          "test": {
+            "height": [
+              1,
+              3,
+              1
+            ],
+            "actual": -2,
+            "expected": 0
+          }
+        }
+      ],
+      "coreRequest": "Use the Core Debug action on this candidate code and problem. The generated answer must explain both bugs separately and show the full corrected function with both changed lines visibly highlighted. Retain the scan-based approach here so Improve can demonstrate the next two changes."
+    },
+    {
+      "id": "optimize",
+      "label": "Improve",
+      "shortcut": "F4",
+      "candidateCode": "def trap(height):\n    water = 0\n    for i in range(1, len(height) - 1):\n        left = max(height[:i], default=0)\n        right = max(height[i + 1:], default=0)\n        level = min(left, right)\n        water += max(0, level - height[i])\n    return water",
+      "improvements": [
+        {
+          "title": "O(n²) → O(n) time",
+          "explanation": "Replace repeated left/right scans with a single two-pointer traversal."
+        },
+        {
+          "title": "O(n) → O(1) auxiliary space",
+          "explanation": "Eliminate temporary array slices; track boundaries with scalar variables."
+        }
+      ],
+      "coreRequest": "Use the Core Improve action on the working scan-based implementation. The generated answer must present both time and memory improvements explicitly, with complete optimized Python code and visible change highlights."
+    }
+  ],
+  "presentation": {
+    "codingStreamMs": 650,
+    "readAnswerMs": 4000,
+    "keyOrder": [
+      "F2",
+      "F3",
+      "F4"
+    ],
+    "sequence": [
+      "Solve",
+      "Debug",
+      "Improve",
+      "single screen-share comparison"
+    ],
+    "showFullProblemWithoutScrolling": true,
+    "showCompleteAnswer": true,
+    "coreOpacity": 0.7
+  },
+  "completionRequirements": [
+    "Run the real Core Solve, Debug, and Improve actions using these inputs; do not substitute authored answer fixtures.",
+    "Preserve the generated answers and annotate any editorial shortening.",
+    "Export all new native coding captures with the existing Core renderer at desktop and mobile sizes.",
+    "Switch the landing-page coding question, draft code, capture assets, dimensions, and stream timer together so questions and answers cannot mismatch.",
+    "Keep the prior F2/F3/F4 keyboard correction and one comparison after all three actions.",
+    "Run algorithm correctness, two independent bug-case, build, and responsive visual checks before merging."
+  ]
+}
