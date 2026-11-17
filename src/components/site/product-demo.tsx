@@ -286,7 +286,6 @@ export function ProductDemo() {
   const timing = Object.fromEntries(phases.map((step) => [
     `--${step.id}-duration`, `${step.durationMs}ms`,
   ])) as CSSProperties
-  const keyNumber = Number(workflow.key.slice(1))
 
   return (
     <div id="demo" ref={container} className="scroll-mt-24" role="region" aria-roledescription="carousel" aria-label="Product walkthrough" aria-describedby="demo-summary">
@@ -352,11 +351,14 @@ export function ProductDemo() {
             <div className={styles.keyOverlay} aria-hidden>
               <div className={styles.keyboardAction}>
                 <div className={styles.keyboardDeck}>
-                  <span className={styles.neighborKey}>F{keyNumber - 1}</span>
-                  <kbd className={styles.pressedKey}>{workflow.key}</kbd>
-                  <span className={styles.neighborKey}>F{keyNumber + 1}</span>
+                  {(['F2', 'F3', 'F4'] as const).map((key) => (
+                    <kbd key={key} className={key === workflow.key ? styles.pressedKey : styles.neighborKey}
+                      style={key === workflow.key ? { position: 'relative' } : undefined}>
+                      {key}
+                      {key === workflow.key && <Pointer className={styles.pressFinger} size={42} strokeWidth={1.6} />}
+                    </kbd>
+                  ))}
                 </div>
-                <Pointer className={styles.pressFinger} size={42} strokeWidth={1.6} />
               </div>
             </div>
           )}
