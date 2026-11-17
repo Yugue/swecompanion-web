@@ -1,10 +1,9 @@
 'use client'
 
-import Image from 'next/image'
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, ChevronUp, Code2, Eye, EyeOff, LockKeyhole, MessageSquare, Mic, MicOff, Monitor, MoreHorizontal, Minus, Pause, Play, Pointer, Rows2, RotateCw, Settings2, Smile, Square, Users, VideoOff } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, ChevronUp, Code2, Eye, LockKeyhole, MessageSquare, Mic, MicOff, Monitor, MoreHorizontal, Minus, Pause, Play, Pointer, Rows2, RotateCw, Settings2, Smile, Square, Users, VideoOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import captures from '../../../public/previews/manifest.json'
+import { CompanionPreview } from './companion-preview'
 import styles from './product-demo.module.css'
 
 const rainWaterProblem = 'Given non-negative bar heights, each one unit wide, return the total water trapped after rain.'
@@ -17,21 +16,18 @@ const workflows = [
     difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
     task: "Solve in O(n) time and O(1) extra space.",
     draft: "def trap(height):\n    pass",
-    alt: "Native Trapping Rain Water answer with two pointers, complete Python code, explanation, and complexity.",
   },
   {
     id: 'debug', group: 'Coding', label: 'Debug', title: 'Trapping Rain Water — LeetCode 42', key: 'F3',
     difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
     task: "Fix both marked bugs: accumulate water; preserve the right maximum.",
     draft: "def trap(height):\n    left, right = 0, len(height) - 1\n    left_max = right_max = water = 0\n    while left < right:\n        if height[left] <= height[right]:\n            left_max = max(left_max, height[left])\n            water = left_max - height[left]  # BUG 1\n            left += 1\n        else:\n            right_max = min(right_max, height[right])  # BUG 2\n            water += right_max - height[right]\n            right -= 1\n    return water",
-    alt: "Native debugging answer with two numbered bugs and both corrected lines: accumulate water and use max for the right boundary.",
   },
   {
     id: 'optimize', group: 'Coding', label: 'Improve', title: 'Trapping Rain Water — LeetCode 42', key: 'F4',
     difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
     task: "1. O(n²) → O(n) time. 2. O(n) → O(1) extra space.",
     draft: "def trap(height):\n    water = 0\n    for i in range(1, len(height) - 1):\n        # 1. Repeated max scans: O(n²) time\n        # 2. Slices allocate O(n) extra space\n        left_max = max(height[:i + 1])\n        right_max = max(height[i:])\n        water += min(left_max, right_max) - height[i]\n    return water",
-    alt: "Native improvement answer with two numbered gains: eliminate repeated scans and slice allocations using two pointers.",
   },
   {
     id: 'system-design', group: 'System design', label: 'System design', title: 'Ticket booking — Ticketmaster', key: 'F2',
@@ -41,7 +37,6 @@ const workflows = [
     constraints: ['1 million fans arrive for a 50,000-seat event. Never sell the same seat twice. Handle expired holds, payment failures, and traffic spikes.'],
     task: 'Show the architecture, booking data, and failure handling.',
     draft: '1M fans · 50,000 seats\n\nBrowse → select → hold → pay → ticket\nHold expires after 5 minutes\nOne seat → one confirmed booking\nPayment retries must be safe',
-    alt: 'Native Ticketmaster design with a waiting room, atomic seat holds, idempotent payments, ticket delivery, and architecture diagram.',
   },
   {
     id: 'ml-design', group: 'ML system design', label: 'ML design', title: 'Classify Multilingual Support Messages', key: 'F2',
@@ -51,7 +46,6 @@ const workflows = [
     constraints: ['Return scored labels, review if uncertain, or no known label. Distinguish unknown issues from low confidence.'],
     task: 'Cover data, model, training, decision thresholds, evaluation, and serving.',
     draft: '150 stable categories · multiple labels\nMultilingual and mixed-language input\n\nOutput: labels + confidence scores\nUncertain → human review\nUnknown → no known label',
-    alt: 'Complete concise native multilingual classification design with data, model, training, calibration, evaluation, and serving diagram.',
   },
 ] as const
 
@@ -63,7 +57,7 @@ const categories = [
   { id: 'ml-design', label: 'ML System Design', group: 'ML system design', firstScene: 4 },
 ] as const
 
-// Each workflow plays automatically; category tabs can restart a different one.
+// Workflows advance manually by default, with optional automatic playback.
 const phases = [
   { id: 'problem', durationMs: 12000 },
   { id: 'key', durationMs: 1400 },
@@ -98,6 +92,19 @@ function advancePlayback(playback: Playback): Playback {
     return { ...playback, scene: nextScene, phase: 0 }
   }
   return { ...playback, phase: playback.phase + 1 }
+}
+
+// Follow the same route as autoplay, including the single comparison after Coding.
+const reviewSequence: Pick<Playback, 'scene' | 'phase'>[] = []
+let reviewStep: Playback = { scene: 0, phase: 0, run: 0 }
+do {
+  reviewSequence.push({ scene: reviewStep.scene, phase: reviewStep.phase })
+  reviewStep = advancePlayback(reviewStep)
+} while (reviewStep.scene !== 0 || reviewStep.phase !== 0)
+
+const phaseLabels: Record<(typeof phases)[number]['id'], string> = {
+  problem: 'Problem', key: 'Key press', stream: 'Answer appearing', answer: 'Complete answer',
+  scan: 'Scan to midpoint', compare: 'Side-by-side comparison', reveal: 'Finish reveal', captured: 'What others see',
 }
 
 const pythonTokens = /(#.*$|"[^"\n]*"|'[^'\n]*'|\b(?:def|return|if|elif|else|while|for|in|import|from|pass)\b|\b\d+\b)/g
@@ -257,19 +264,18 @@ function DesktopView({ workflow, captured, children }: { workflow: Workflow; cap
   )
 }
 
-function ViewLabel({ shared, hasAnswer }: { shared: boolean; hasAnswer: boolean }) {
+function ViewLabel({ shared }: { shared: boolean }) {
   return (
     <div className={cn(styles.viewLabel, shared && styles.sharedLabel)}>
       {shared ? <Monitor size={18} aria-hidden /> : <Eye size={18} aria-hidden />}
-      <div><strong>{shared ? 'SCREEN SHARE' : 'YOUR SCREEN'}</strong>
-        <span>{shared && <EyeOff size={11} aria-hidden />}{shared ? 'Hidden from interviewer' : hasAnswer ? 'Visible only to you' : 'Your candidate desktop'}</span>
-      </div>
+      <strong>{shared ? 'What others see' : 'Your screen'}</strong>
     </div>
   )
 }
 
 export function ProductDemo() {
   const [playback, setPlayback] = useState<Playback>({ scene: 0, phase: 0, run: 0 })
+  const [reviewing, setReviewing] = useState(true)
   const [visible, setVisible] = useState(false)
   const container = useRef<HTMLDivElement>(null)
   const tabButtons = useRef<(HTMLButtonElement | null)[]>([])
@@ -280,13 +286,32 @@ export function ProductDemo() {
   const showingCapture = phase.id === 'scan' || phase.id === 'compare' || phase.id === 'reveal' || phase.id === 'captured'
   const comparing = phase.id === 'compare'
   const activeCategory = categories.findIndex((category) => category.group === workflow.group)
+  const running = visible && !reviewing
+  const stepIndex = reviewSequence.findIndex((step) => step.scene === playback.scene && step.phase === playback.phase)
   const splitting = showingCapture && phase.id !== 'captured'
-  const hasAnswer = phase.id !== 'problem' && phase.id !== 'key'
 
   function selectCategory(index: number) {
     const run = ++generation.current
     remaining.current = { run, durationMs: phaseDuration({ scene: categories[index].firstScene, phase: 0 }) }
     setPlayback({ scene: categories[index].firstScene, phase: 0, run })
+  }
+
+  function seekStep(index: number) {
+    const next = reviewSequence[(index + reviewSequence.length) % reviewSequence.length]
+    const run = ++generation.current
+    remaining.current = { run, durationMs: phaseDuration(next) }
+    setReviewing(true)
+    setPlayback({ ...next, run })
+  }
+
+  function toggleReview() {
+    // Restart the current phase when resuming so its animation and clock stay aligned.
+    if (reviewing) {
+      const run = ++generation.current
+      remaining.current = { run, durationMs: phaseDuration(playback) }
+      setPlayback({ ...playback, run })
+    }
+    setReviewing(!reviewing)
   }
 
   useEffect(() => {
@@ -303,7 +328,7 @@ export function ProductDemo() {
   }, [])
 
   useEffect(() => {
-    if (!visible) return
+    if (!running) return
     const clock = remaining.current
     if (clock.run !== playback.run) return
     const startedAt = performance.now()
@@ -320,24 +345,23 @@ export function ProductDemo() {
       // A category click creates its own clock; old effect cleanup cannot shorten it.
       if (!finished && remaining.current === clock) clock.durationMs = Math.max(0, clock.durationMs - (performance.now() - startedAt))
     }
-  }, [visible, playback])
+  }, [running, playback])
 
   const timing = Object.fromEntries(phases.map((step, index) => [
     `--${step.id}-duration`, `${phaseDuration({ scene: playback.scene, phase: index })}ms`,
   ])) as CSSProperties
-  const keyNumber = Number(workflow.key.slice(1))
 
   return (
-    <div id="demo" ref={container} className="scroll-mt-24" role="region" aria-roledescription="carousel" aria-label="Product walkthrough" aria-describedby="demo-summary">
+    <div id="demo" ref={container} className={cn("scroll-mt-24", styles.preview)} role="region" aria-roledescription="carousel" aria-label="Product walkthrough" aria-describedby="demo-summary">
       <p id="demo-summary" className="sr-only">
-        Solve, debug, improve, system design, and ML system design play automatically in sequence.
+        Explore Solve, Debug, Improve, System Design, and ML System Design step by step, or choose Play demo to watch automatically.
         Each shows the entire concise problem, examples, and constraints without scrolling, an animated physical key press,
-        and the complete native answer. Coding uses shorter pauses and a 1.6-second example stream to move quickly through its three features.
+        and the complete companion answer. Coding uses shorter pauses and a 1.6-second example stream to move quickly through its three features.
         Design examples keep longer reading holds.
         Coding shows Solve, Debug, and Improve before a single screen-share comparison.
         System Design and ML System Design each have their own comparison.
         A scanning transition pauses halfway for six and a half seconds to compare your screen with an illustrated Zoom screen share of the same HackerRank page
-        with no companion window. Category tabs can jump to Coding, System Design, or ML System Design; playback otherwise continues automatically.
+        with no companion window. Category tabs jump to Coding, System Design, or ML System Design. Previous and Next move between steps; Pause returns to step-by-step mode.
       </p>
       <div className={styles.categoryTabs} role="tablist" aria-label="Preview category" style={{ '--active-category': activeCategory } as CSSProperties}>
         <span className={styles.categoryThumb} aria-hidden />
@@ -354,29 +378,19 @@ export function ProductDemo() {
             tabButtons.current[next]?.focus()
           }}><span>{category.label}</span></button>)}
       </div>
-      <div id="demo-panel" role="tabpanel" tabIndex={0} aria-labelledby={`demo-tab-${categories[activeCategory].id}`} className={styles.demo} data-scene={workflow.id} data-phase={phase.id} data-view={comparing ? 'comparison' : showingCapture ? 'capture' : 'private'} data-running={visible} style={timing}>
-        <div className={styles.stage}>
+      <div id="demo-panel" role="tabpanel" tabIndex={0} aria-labelledby={`demo-tab-${categories[activeCategory].id}`} className={styles.demo} data-scene={workflow.id} data-phase={phase.id} data-view={comparing ? 'comparison' : showingCapture ? 'capture' : 'private'} data-running={running} data-review={reviewing} style={{ ...timing, '--preview-play-state': running ? 'running' : 'paused' } as CSSProperties}
+        onCopy={(event) => event.preventDefault()} onCut={(event) => event.preventDefault()}
+        onDragStart={(event) => event.preventDefault()} onContextMenu={(event) => event.preventDefault()}>
+        <div className={styles.stage} aria-hidden="true" inert>
           {workflows.map((example, index) => {
             const active = playback.scene === index
             const showingAnswer = active && phase.id !== 'problem' && phase.id !== 'key' && phase.id !== 'captured'
-            const desktop = captures[example.id]
-            const mobile = captures[`${example.id}-mobile`]
-            const captureRevision = example.id === 'system-design' ? '?v=ticketmaster-2' : ''
             return (
               <div key={example.id} className={cn(styles.scene, active && styles.activeScene)} aria-hidden={!active} inert={!active}>
                 <DesktopView workflow={example} captured={false}>
                   <div className={cn(styles.solutionLayer, showingAnswer && styles.answerVisible)} aria-hidden={!showingAnswer}>
-                    <div className={styles.nativeWindow} style={{
-                      '--desktop-ratio': desktop.width / desktop.height,
-                      '--mobile-ratio': mobile.width / mobile.height,
-                    } as CSSProperties}>
-                      <picture>
-                        <source media="(max-width: 639px)" srcSet={`/previews/${example.id}-mobile.webp${captureRevision}`} />
-                        <Image src={`/previews/${example.id}.webp${captureRevision}`} alt={example.alt}
-                          width={desktop.width} height={desktop.height} draggable={false}
-                          loading="eager" fetchPriority={index === 0 ? 'high' : 'auto'}
-                          className={cn(styles.capture, active && phase.id === 'stream' && styles.streaming)} />
-                      </picture>
+                    <div className={styles.nativeWindow}>
+                      <CompanionPreview workflow={example.id} streaming={active && phase.id === 'stream'} />
                     </div>
                   </div>
                 </DesktopView>
@@ -389,21 +403,41 @@ export function ProductDemo() {
 
           {showingCapture && phase.id !== 'captured' && <div className={styles.scanBeam} aria-hidden />}
           {splitting ? <div className={styles.comparisonLabels} aria-hidden>
-            <ViewLabel shared hasAnswer={false} /><ViewLabel shared={false} hasAnswer />
-          </div> : phase.id !== 'key' && <div className={styles.singleViewLabel} aria-hidden><ViewLabel shared={phase.id === 'captured'} hasAnswer={hasAnswer} /></div>}
+            <ViewLabel shared /><ViewLabel shared={false} />
+          </div> : phase.id !== 'key' && <div className={styles.singleViewLabel} aria-hidden><ViewLabel shared={phase.id === 'captured'} /></div>}
           {phase.id === 'key' && (
             <div className={styles.keyOverlay} aria-hidden>
               <div className={styles.keyboardAction}>
                 <div className={styles.keyboardDeck}>
-                  <span className={styles.neighborKey}>F{keyNumber - 1}</span>
-                  <kbd className={styles.pressedKey}>{workflow.key}</kbd>
-                  <span className={styles.neighborKey}>F{keyNumber + 1}</span>
+                  {['F2', 'F3', 'F4'].map((key) => (
+                    <span key={key} className={styles.keySlot}>
+                      <kbd className={key === workflow.key ? styles.pressedKey : styles.neighborKey}>{key}</kbd>
+                      {key === workflow.key && <Pointer className={styles.pressFinger} size={42} strokeWidth={1.6} />}
+                    </span>
+                  ))}
                 </div>
-                <Pointer className={styles.pressFinger} size={42} strokeWidth={1.6} />
               </div>
             </div>
           )}
         </div>
+      </div>
+      <div className={styles.playbackControls} role="group" aria-label="Demo playback controls">
+        <div className={styles.playbackHeading}>
+          <span className={styles.playbackBadge}>{reviewing ? 'Step by step' : 'Autoplay'}</span>
+          <span className={styles.playbackStatus} aria-live="polite" aria-atomic="true">
+            Step {stepIndex + 1} of {reviewSequence.length} · {workflow.label} · {phaseLabels[phase.id]}
+          </span>
+        </div>
+        <div className={styles.playbackActions}>
+          <button type="button" onClick={() => seekStep(stepIndex - 1)}><ArrowLeft size={14} aria-hidden />Previous step</button>
+          <button type="button" onClick={toggleReview} aria-pressed={!reviewing}>
+            {reviewing ? <Play size={14} aria-hidden /> : <Pause size={14} aria-hidden />}
+            {reviewing ? 'Play demo' : 'Pause'}
+          </button>
+          <button type="button" onClick={() => seekStep(stepIndex + 1)}>Next step<ArrowRight size={14} aria-hidden /></button>
+          <button type="button" onClick={() => seekStep(0)}><RotateCw size={14} aria-hidden />Restart</button>
+        </div>
+        <p>{reviewing ? 'Explore at your own pace, or press Play demo to watch it unfold.' : 'Playing automatically. Pause or choose a step to explore at your own pace.'}</p>
       </div>
     </div>
   )

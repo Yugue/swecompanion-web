@@ -52,10 +52,10 @@ export function Nav() {
         <Button
           variant="outline"
           size="sm"
-          className="h-9 shrink-0 px-1.5 text-xs sm:px-3 sm:text-[0.8rem]"
+          className="h-9 shrink-0 rounded-full border-brand-blue/15 bg-brand-blue/5 px-3 text-xs font-semibold text-brand-blue hover:border-brand-blue/30 hover:bg-brand-blue/10 hover:text-brand-blue motion-reduce:transition-none sm:px-3.5 sm:text-[0.8rem]"
           render={
-            <Link href="/coding" aria-label="Interview Prep Guides">
-              <span className="whitespace-nowrap">Interview Prep Guides</span>
+            <Link href="/coding">
+              <span className="whitespace-nowrap">Free Interview Cheatsheets</span>
             </Link>
           }
         />

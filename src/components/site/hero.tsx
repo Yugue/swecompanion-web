@@ -15,7 +15,7 @@ export function Hero() {
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center lg:max-w-none">
           <span className="inline-flex items-center gap-2 rounded-full border border-brand-blue/15 bg-card/80 px-3 py-1.5 text-xs text-muted-foreground">
             <EyeOff className="size-3.5 text-brand-blue" aria-hidden />
-            Your private interview companion
+            Invisible on screen shares, across all meeting apps
           </span>
           <h1 className="mt-5 text-balance text-[clamp(2.3rem,5.2vw,4.25rem)] font-medium leading-[1.08] tracking-[-0.045em] lg:whitespace-nowrap">
             Undetectable AI<br className="lg:hidden" />{' '}

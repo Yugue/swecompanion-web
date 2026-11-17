@@ -1,150 +1,73 @@
 # Landing-page walkthrough
 
-The preview loops through Solve → Debug → Optimize → System Design → ML System
-Design automatically. Three category tabs above the preview let visitors jump
-to Coding, System Design, or ML System Design. Coding uses **Trapping Rain Water — LeetCode 42** throughout: generate a two-pointer solution,
-fix two marked bugs (overwritten total and incorrect right maximum), then show
-two improvements: O(n²) → O(n) time and O(n) → O(1) extra space.
-System Design uses **Ticket booking — Ticketmaster**: 1 million fans competing
-for 50,000 seats, with five-minute seat holds, safe payment retries, and no
-double booking. The answer covers admission control, transactional holds,
-payment reconciliation, ticket outbox delivery, and a native architecture diagram.
-F2 reveals the answer progressively inside the native Core window over 3 seconds.
-This is a prepared example: live generation was attempted but blocked by DNS
-resolution of Google's authentication endpoint in the editing environment.
+The hero is an interactive walkthrough that starts in step-by-step mode. Optional
+autoplay loops through Solve → Debug → Improve → System Design → ML System Design. Category tabs above the stage let
+visitors restart Coding, System Design, or ML System Design. These are prepared
+examples, not live generation or timing claims.
 
-## Space and readability
+## Editable companion window
 
-The illustrated Chrome/HackerRank window fills the stage. Complete, concise
-problem statements, examples, constraints, and tasks fit without scrolling or
-animated panning. Mobile stacks the complete problem above the editor using a
-content-sized question row rather than clipping the statement.
+`src/components/site/companion-preview.tsx` renders the Core-style status bar,
+shortcut hints, answer sections, syntax-highlighted Python, code diffs, complexity,
+and architecture diagrams as React elements. Its styles live in
+`companion-preview.module.css`. There are no screenshot images in the stage and
+no dependency on `public/previews/manifest.json`. The older capture script and
+assets remain available as historical visual references; regenerating captures
+is not required to update the hero.
 
-There is no SWECompanion/workflow banner, macOS menu bar, or separate
-technical-interview meeting title. Zoom participants float over the browser;
-the Zoom controls are centered at the bottom on desktop and mobile. The
-right pane is a framed candidate editor with an author label, saved status,
-line numbers, a highlighted current line, and a caret. It is a read-only
-illustration rather than an editable field.
+Coding uses Trapping Rain Water (LeetCode 42) throughout. Solve shows the complete
+two-pointer solution; Debug shows two removed/added lines (accumulate the water
+and preserve the right maximum); Improve replaces the original scan-based
+function with the complete two-pointer solution. Red means removed and amber
+means added. Time improves from O(n²) to O(n); extra space from O(n) to O(1).
 
-A blue YOUR SCREEN badge identifies the private view; a green SCREEN SHARE
-badge explicitly says the companion is hidden from the interviewer. Both
-labels remain visible during the scan and half-and-half comparison. They float
-over the browser chrome without adding a full-width banner or separate windows.
+System Design covers Ticketmaster: a signed waiting room, advisory seat caches,
+transactional five-minute holds, payment idempotency and reconciliation, and
+outbox-driven ticket delivery. ML System Design covers multilingual support
+classification, reviewed multilabel data, XLM-R, calibration, evaluation,
+versioned serving, and the online and learning pipelines. Architecture nodes,
+arrows, and labels are web elements, so they can be customized with the answers.
 
-The native companion displays at **70% opacity**. Its entire answer, including
-all code, complexity, and design diagrams, fits within the area above the Zoom
-bottom toolbar. Desktop and mobile use the same complete answer content.
+## Presentation and interaction
 
-## Native captures
+The illustrated browser, editor, companion, and meeting controls are decorative.
+The stage is inert and hidden from the accessibility tree; the adjacent summary
+provides an accessible description. Category tabs and playback controls are interactive and remain outside the inert
+stage. Tabs support arrow keys and Home/End.
 
-The capture harness imports the real app's `AnswerStatusBar`, `AnswerView`,
-syntax highlighter, code view, and offline Mermaid renderer. Concise, complete
-website fixtures live in `scripts/landing-preview-answers.swift`; exporting them
-does not change the app's bundled free-preview examples. These are illustrative
-example answers, not recorded live requests or timing claims.
+The preview disables text selection, touch callouts, normal copy/cut, dragging,
+and context menus locally. It does not change selection or copy behavior elsewhere
+on the page. This is video-like presentation, not DRM: browser inspection and
+screen capture remain possible.
 
-The offscreen window, SwiftUI environment, layer backing, and bitmap use 4×
-resolution. Desktop uses a 640-point layout exported at 2,560 pixels wide;
-mobile uses 380 points exported at 1,520 pixels wide. Lossless WebP preserves
-text and diagram lines. Images scale proportionally with `object-fit: contain`.
-No answer sections or code lines are removed from the displayed variants.
+Every keypress shows F2, F3, and F4 in that order, animating the appropriate key.
+The private and shared views have one title each: “Your screen” and “What others
+see.” The shared layer contains no companion window. A scan pauses at the midpoint
+for a six-and-a-half-second comparison before revealing the full shared view.
+The divider is not draggable. Answers fit above the meeting toolbar, with
+responsive typography and no internal scrolling. The companion uses a nearly
+opaque dark surface so the underlying editor does not obscure the answer.
 
-Regenerate on macOS with Xcode command-line tools installed:
+## Playback
 
-```sh
-bash scripts/capture-native-previews.sh
-```
+Coding plays its three actions before one shared-screen comparison. The initial
+problem holds for 4 seconds, subsequent coding prompts for 1.5 seconds, keypresses
+for 1 second, streaming for 1.6 seconds, and complete answers for 4 seconds.
+Design workflows each use a 12-second prompt, 1.4-second keypress, 3-second stream,
+and 8-second answer hold. Each comparison uses a 1.8-second initial scan, 6.5-second
+halfway hold, 1.4-second final reveal, and 5-second shared view.
 
-Pass the Core checkout path as the first argument if it is not the sibling
-`../SWECompanionCore`. The script exports all variants, compresses them to WebP,
-and updates `public/previews/manifest.json`. Production builds need neither
-Swift nor the Core checkout. `-full` exports contain the same complete content
-as the corresponding desktop images.
+Playback starts only after choosing Play demo and while visible; leaving the viewport or backgrounding the page
+pauses phase clocks and animations. Category changes reset the clock safely.
+Reduced-motion preferences remove streaming, key motion, and moving scans.
 
-## Automatic sequence
+## Playback controls
 
-Coding plays the problem, shortcut, streamed answer, and reading hold for Solve,
-then Debug, then Optimize. The first two actions proceed directly to the next
-coding problem without a scan or interviewer view. After Optimize, the scan,
-halfway comparison, and interviewer screen play once for the whole coding demo.
-System Design and ML System Design each retain their complete sequence and
-individual comparison. Selecting Coding restarts at Solve.
-
-Coding uses faster timings: 4 seconds for the initial problem, 1.5 seconds
-before Debug and Optimize, a 1-second key press, a 1.6-second stream, and a
-4-second complete-answer hold. All three coding features finish in 26.8 seconds
-before the single capture reveal. The comparison timings and all design timings
-in the table below stay unchanged. Phase clocks and CSS animations share the
-same duration function, including when switching categories or restarting.
-
-| Phase | Duration | Content |
-| --- | --- | --- |
-| Problem | 12,000 ms | The entire stationary problem and candidate draft, with no generated answer. |
-| Key press | 1,400 ms | A finger depresses F2, F3, or F4 on the small keyboard centered below the display. |
-| Stream | 3,000 ms | The native answer appears progressively in 36 steps. |
-| Read | 8,000 ms | The complete answer remains visible. |
-| Scan | 1,800 ms | The shared desktop reveals from the left to the center. |
-| Compare | 6,500 ms | Aligned 50/50 view: shared screen left, private companion right. |
-| Finish reveal | 1,400 ms | The divider continues to the right edge. |
-| Screen capture | 5,000 ms | The shared browser remains visible without the companion. |
-
-Two aligned desktop layers keep the problem and editor stationary during the
-reveal. Zoom chrome changes from the candidate's to the interviewer's view.
-The shared layer contains no companion window. Browser, editor, and meeting
-controls inside the simulated desktop are decorative; the comparison divider
-cannot be dragged. Only the category tabs are interactive. Clicking a category
-restarts its first problem with a fresh phase clock; Coding starts at Solve
-and then plays Debug and Optimize. Playback continues to the following
-categories automatically. Tabs support arrow keys, Home/End, selected states,
-and a labeled panel. A stale timer or cleanup from a previous selection cannot
-shorten or advance a new selection.
-
-Playback starts when visible. Page visibility pauses both the phase clock and
-CSS animations. Reduced-motion preferences use complete static answers and
-immediate capture cuts in place of streaming, key motion, and a moving scan.
-Assets load eagerly to avoid unloaded images during scene transitions.
-
-HackerRank and Zoom interfaces are illustrated, and no real meeting or
-assessment is represented. The native captures use genuine app rendering.
-The capture transition illustrates the feature; the app requests restricted
-window sharing, but its source cautions that some capture tools may include the
-window. Users should verify their setup, as the landing page explains.
-
-Visual references:
-
-- [HackerRank interview interface](https://candidatesupport.hackerrank.com/articles/4350314944-navigate-the-interview-interface-and-controls)
-- [Zoom screen-sharing controls](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0060596)
-- [Zoom participant controls](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0062674)
-
-## Zoom panel styling
-
-The floating bottom toolbar follows Zoom's screen-sharing layout, with compact
-icon/label controls, audio/video menu chevrons, a participant count, a bright
-green sharing strip, and red Stop share and Leave controls. The candidate is
-muted; the interviewer is unmuted. Both cameras are off, matching the black
-16:9 name tiles in the right panel. The private sharing toolbar includes Pause;
-the interviewer view ends with the host's End control.
-
-The right panel uses a small layout-selector header, an active-speaker green
-outline, lower-left microphone/name plates, and per-tile ellipsis menus. Its
-neutral black camera-off tiles replace the previous gradient/initial avatars.
-The bottom toolbar remains centered, and both panels scale down for mobile.
-All controls remain passive illustrations.
-
-## Feature descriptions
-
-A compact text caption above the desktop identifies the active feature and
-explains its result. It changes with the workflow, including during automatic
-playback, and announces only these content changes to screen readers.
-
-- **Solve**: Generate the complete solution, code, and complexity.
-- **Debug**: Find two bugs and show both fixes.
-- **Improve**: Show two improvements: faster code and less memory.
-
-The existing optimization capture and F4 shortcut are presented as Improve in
-the landing-page labels. Design workflows have their own concise descriptions.
-
-Debug and Improve show native code diffs: removed lines in red, additions in
-amber, using the Core renderer’s change markers. Debug keeps unchanged context;
-Improve shows the original scan-based function replaced by the two-pointer function.
+The controls appear below the preview in both development and production.
+Step-by-step mode is the default and shows each phase in its final pose.
+Previous step and Next step move through the same 32-step sequence as autoplay,
+wrapping at either end. Restart returns to the first Coding problem and stays
+paused. Category tabs also work in step-by-step mode. The panel labels the current
+step, workflow, and phase. Play demo starts automatic playback with a fresh,
+synchronized animation and timer for the current phase. Pause returns to
+step-by-step mode.
