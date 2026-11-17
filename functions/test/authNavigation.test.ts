@@ -35,3 +35,15 @@ test("desktop upgrade survives login and switching to signup", () => {
   const signup = new URL(authPageHref("/signup", login.searchParams.get("next")), login.origin);
   assert.equal(safeAuthReturnPath(signup.searchParams.get("next")), destination);
 });
+
+test("landing page upgrades preserve account pricing through signup and sign-in links", () => {
+  for (const plan of ["monthly", "threeMonthPass"]) {
+    const destination = `/account?upgrade=${plan}`;
+    const signup = new URL(authPageHref("/signup", destination), "https://swecompanion.invalid");
+    const afterSignup = safeAuthReturnPath(signup.searchParams.get("next"));
+    assert.equal(afterSignup, destination);
+
+    const login = new URL(authPageHref("/login", afterSignup), signup.origin);
+    assert.equal(safeAuthReturnPath(login.searchParams.get("next")), destination);
+  }
+});

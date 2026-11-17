@@ -32,7 +32,7 @@ export function AccountPage() {
       <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Back to home</Link>
       <h1 className="mt-8 text-3xl font-medium tracking-tight sm:text-4xl">Your account</h1>
       <p className="mt-3 text-sm text-muted-foreground">Your membership, billing history, and sign-in settings.</p>
-      {loading ? <p role="status" className="mt-10 text-sm text-muted-foreground">Loading your account…</p> : user ? <AccountDetails key={user.uid} uid={user.uid} /> :
+      {loading ? <p role="status" className="mt-10 text-sm text-muted-foreground">Loading your account…</p> : user ? <Suspense fallback={<p role="status" className="mt-10 text-sm text-muted-foreground">Loading your account…</p>}><AccountDetails key={user.uid} uid={user.uid} /></Suspense> :
         <section className="mt-10 rounded-2xl border border-border bg-card p-8">
           <h2 className="text-lg font-medium">Everything in one place</h2>
           <p className="mt-2 text-sm text-muted-foreground">Sign in to manage your membership and view invoices.</p>
@@ -50,12 +50,17 @@ function AccountSignInButton() {
 }
 
 function AccountDetails({ uid }: { uid: string }) {
-  const { user, refreshClaims } = useAuth();
+  const { user, subscribed, refreshClaims } = useAuth();
+  const searchParams = useSearchParams();
   const [subscription, setSubscription] = useState<SubscriptionSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [subscribeOpen, setSubscribeOpen] = useState(false);
+  // Pricing is local content: render it immediately without waiting for membership requests.
+  const [subscribeOpen, setSubscribeOpen] = useState(() => {
+    const plan = searchParams.get("upgrade");
+    return !subscribed && (plan === "true" || plan === "yearly" || isBillingPlan(plan));
+  });
   const [checkout, setCheckout] = useState<string | null>(null);
   const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
   const [invoiceLoading, setInvoiceLoading] = useState(true);
@@ -78,22 +83,27 @@ function AccountDetails({ uid }: { uid: string }) {
     const search = new URLSearchParams(window.location.search);
     const returnedCheckout = search.get("checkout");
     const upgradePlan = search.get("upgrade");
+    if (upgradePlan === "true" || upgradePlan === "yearly" || isBillingPlan(upgradePlan)) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("upgrade");
+      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+
     const unsubscribe = onSnapshot(doc(db, "users", uid), (snapshot) => {
-      setSubscription(snapshot.data()?.subscription as SubscriptionSummary ?? null);
+      if (disposed) return;
+      const currentSubscription = snapshot.data()?.subscription as SubscriptionSummary ?? null;
+      setSubscription(currentSubscription);
       setLoading(false);
-    }, () => { setLoading(false); setError("Unable to load your membership. Please try again."); });
+    }, () => {
+      if (disposed) return;
+      setLoading(false); setError("Unable to load your membership. Please try again.");
+    });
 
     async function sync(attempt = 0) {
       try {
         const result = await refreshSubscription();
         if (disposed) return;
         setSubscription(result); setLoading(false); setError(null); setCheckout(returnedCheckout);
-        if (upgradePlan === "true" || upgradePlan === "yearly" || isBillingPlan(upgradePlan)) {
-          const url = new URL(window.location.href);
-          url.searchParams.delete("upgrade");
-          window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-          setSubscribeOpen(!result?.subscribed);
-        }
         if (result?.subscribed) {
           await refreshClaims();
           if (!disposed) void loadInvoices();
@@ -145,13 +155,13 @@ function AccountDetails({ uid }: { uid: string }) {
         {(subscription.plan === "threeMonthPass" || subscription.cancelAtPeriodEnd) && " You won’t be charged again."}
       </p>}
       {error && <p role="alert" className="mt-4 text-sm text-accent-red">{error} <button type="button" onClick={() => window.location.reload()} className="underline">Retry</button></p>}
-      {!loading && <div className="mt-6 flex flex-wrap gap-3">
-        {subscription && subscription.status !== "none" && <Button variant="outline" className="h-11" disabled={busy} onClick={() => void manage()}>
+      <div className="mt-6 flex flex-wrap gap-3">
+        {!loading && subscription && subscription.status !== "none" && <Button variant="outline" className="h-11" disabled={busy} onClick={() => void manage()}>
           {busy ? "Opening…" : "Manage billing & payment method"}<ArrowUpRight className="size-4" />
         </Button>}
-        {(!subscription || ["none", "canceled", "incomplete_expired"].includes(subscription.status)) &&
+        {(subscribeOpen || !loading) && !subscribed && (!subscription || ["none", "canceled", "incomplete_expired"].includes(subscription.status)) &&
           <SubscribeDialog disabled={busy} open={subscribeOpen} onOpenChange={setSubscribeOpen} />}
-      </div>}
+      </div>
     </section>
     <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
       <h2 className="flex items-center gap-2 text-lg font-medium"><FileText className="size-5 text-muted-foreground" />Invoice history</h2>
