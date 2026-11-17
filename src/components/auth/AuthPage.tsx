@@ -3,11 +3,11 @@
 import { Suspense, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { authErrorMessage } from "@/lib/authErrors";
 import { authPageHref, safeAuthReturnPath } from "@/lib/authNavigation";
-import { Wordmark } from "@/components/site/wordmark";
+import { Nav } from "@/components/site/nav";
+import { ProductMark } from "@/components/ProductMark";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "./BrandIcons";
 
@@ -15,7 +15,7 @@ type Mode = "signin" | "signup" | "reset";
 
 export function AuthPage({ mode }: { mode: Mode }) {
   const title = mode === "signin" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset your password";
-  const description = mode === "reset" ? "Enter your email and we’ll send you a reset link." : "Manage your account and Pro membership.";
+  const description = mode === "reset" ? "Enter your email and we’ll send you a reset link." : undefined;
   return <AuthShell title={title} description={description}>
     <Suspense fallback={<p role="status" className="text-sm text-muted-foreground">Loading…</p>}>
       <AuthForm key={mode} mode={mode} />
@@ -23,17 +23,15 @@ export function AuthPage({ mode }: { mode: Mode }) {
   </AuthShell>;
 }
 
-export function AuthShell({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+export function AuthShell({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return <>
-    <header className="border-b border-border">
-      <div className="mx-auto flex h-20 max-w-5xl items-center justify-between gap-4 px-5 sm:px-8">
-        <Link href="/" aria-label="SWECompanion home"><Wordmark /></Link>
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Back to home</Link>
-      </div>
-    </header>
+    <Nav />
     <main className="mx-auto w-full max-w-md px-5 py-12 sm:py-20">
-      <h1 className="text-3xl font-medium tracking-tight">{title}</h1>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
+      <div className="flex flex-col items-center text-center">
+        <ProductMark size={48} />
+        <h1 className="mt-5 text-3xl font-medium tracking-tight">{title}</h1>
+        {description && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>}
+      </div>
       <div className="mt-8 rounded-2xl border border-border bg-card p-6 sm:p-7">{children}</div>
     </main>
   </>;

@@ -9,9 +9,9 @@ import { useEffect, useState } from 'react'
 import { Wordmark } from './wordmark'
 
 const links = [
-  { label: 'How it works', href: '#how' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'Help', href: '#faq' },
+  { label: 'How it works', href: '/#how' },
+  { label: 'Pricing', href: '/#pricing' },
+  { label: 'Help', href: '/#faq' },
 ]
 
 export function Nav() {
@@ -32,20 +32,20 @@ export function Nav() {
       )}
     >
       <div className="mx-auto flex w-full max-w-[1440px] items-center gap-1 px-2 py-2 sm:gap-2 sm:px-3 md:gap-2 md:px-5 md:py-3 lg:gap-3 lg:px-8">
-        <a href="#top" className="flex shrink-0 items-center gap-2" aria-label="SWECompanion home">
+        <Link href="/#top" className="flex shrink-0 items-center gap-2" aria-label="SWECompanion home">
           <span className="lg:hidden"><ProductMark size={30} /></span>
           <Wordmark className="hidden lg:flex" />
-        </a>
+        </Link>
 
         <nav className="hidden items-center gap-0 md:flex lg:gap-1">
           {links.map((l) => (
-            <a
+            <Link
               key={l.href}
               href={l.href}
               className="rounded-md px-2 py-1.5 text-sm lg:px-3 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
             >
               {l.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
