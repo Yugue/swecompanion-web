@@ -1,10 +1,11 @@
-import { ArrowUpRight, Bug, Camera, EyeOff, Layers2, Sparkles } from 'lucide-react'
+import { EyeOff } from 'lucide-react'
+import { ProductMark } from '@/components/ProductMark'
 import { cn } from '@/lib/utils'
 import styles from './companion-preview.module.css'
 
 export type PreviewWorkflow = 'coding' | 'debug' | 'optimize' | 'system-design' | 'ml-design'
 
-const solution = `def trap(height):
+const solution = `def retained_runoff(height):
     left, right = 0, len(height) - 1
     left_max = right_max = water = 0
     while left < right:
@@ -18,7 +19,7 @@ const solution = `def trap(height):
             right -= 1
     return water`
 
-const original = `def trap(height):
+const original = `def retained_runoff(height):
     water = 0
     for i in range(1, len(height) - 1):
         left_max = max(height[:i + 1])
@@ -56,7 +57,11 @@ function CodeAnswer({ workflow }: { workflow: PreviewWorkflow }) {
         <code>{text.split(tokens).map((token, part) => <span key={part} className={/^(def|return|if|else|while|for|in)$/.test(token) ? styles.keyword : /^\d+$/.test(token) ? styles.number : undefined}>{token}</span>)}</code>
       </div>)}
     </div>
-    <div className={styles.complexity}><span>Time <strong>O(n)</strong></span><span>Space <strong>O(1)</strong> extra</span></div>
+    <section className={styles.complexity}>
+      <h4>Complexity</h4>
+      <p><strong>Time: O(n).</strong> Each pointer moves inward without revisiting a section, so at most n sections are processed.</p>
+      <p><strong>Space: O(1) extra.</strong> Only two pointers, two running maxima, and the total are stored; no auxiliary arrays or slices are needed.</p>
+    </section>
   </>
 }
 
@@ -105,18 +110,23 @@ export function CompanionPreview({ workflow, streaming }: { workflow: PreviewWor
   const label = workflow === 'debug' ? 'Debug' : workflow === 'optimize' ? 'Improve' : 'Solve'
   return <div className={styles.window} data-workflow={workflow}>
     <div className={styles.statusBar}>
-      <Layers2 className={styles.brand} size={18} /><span className={styles.statusDot} /><strong>{label}</strong>
+      <ProductMark size={20} /><span className={styles.statusDot} /><span className={styles.mode}>{coding ? 'Coding' : workflow === 'ml-design' ? 'ML design' : 'System design'} /</span><strong>{label}</strong>
       <span className={styles.privacy}><EyeOff size={12} />Hide from screen share on</span>
       <div className={styles.shortcuts}>
-        <span><kbd>F1</kbd><Camera size={13} /></span><span><kbd>F2</kbd><Sparkles size={13} /></span>
-        <span><kbd>F3</kbd><Bug size={13} /></span><span><kbd>F4</kbd><ArrowUpRight size={13} /></span>
+        <span><kbd>F1</kbd>Capture</span><span><kbd>F2</kbd>Solve</span>
+        <span><kbd>F3</kbd>Debug</span><span><kbd>F4</kbd>Improve</span>
+        <span><kbd>F6/F7</kbd>Scroll up/down</span><span><kbd>F12</kbd>Clear</span>
       </div>
     </div>
     <div className={cn(styles.answer, streaming && styles.streaming)}>
       {coding ? <>
         <section className={styles.intro}>
           <h4>{workflow === 'coding' ? 'Explanation' : workflow === 'debug' ? 'Two bugs' : 'Two improvements'}</h4>
-          {workflow === 'coding' ? <p>Move the pointer at the shorter bar. Its running maximum bounds the water there; the opposite side is tall enough. Add the depth, then move inward. The examples trap <strong>6</strong> and <strong>9</strong> units.</p>
+          {workflow === 'coding' ? <div className={styles.explanation}>
+            <p>Water at a section is limited by the lower of the highest ground elevations to its left and right. Subtract the section’s elevation to get the retained depth. Each section covers 1 m², so that depth contributes the same number of cubic metres.</p>
+            <p>Start one pointer at each end and track the highest elevation seen from each side. Process the lower current elevation: the opposite boundary is already high enough, so this side’s running maximum determines its water depth. Add that depth and move the pointer inward.</p>
+            <p>Stop when the pointers meet. In the first example, the retained depths are 1, 1, 2, 1, and 1 across the low sections: <strong>6 m³</strong> in total. The second example retains <strong>9 m³</strong>.</p>
+          </div>
             : workflow === 'debug' ? <ol><li><strong>Overwritten total:</strong> = discards earlier water. Use +=.</li><li><strong>Wrong right boundary:</strong> min loses the tallest bar. Use max.</li></ol>
               : <ol><li><strong>Faster:</strong> Replace repeated maximum scans with one two-pointer pass. <strong>O(n²) → O(n)</strong> time.</li><li><strong>Less memory:</strong> Remove array slices; keep two running maxima. <strong>O(n) → O(1)</strong> extra space.</li></ol>}
         </section>

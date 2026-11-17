@@ -1,33 +1,38 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, ChevronUp, Code2, Eye, LockKeyhole, MessageSquare, Mic, MicOff, Monitor, MoreHorizontal, Minus, Pause, Play, Pointer, Rows2, RotateCw, Settings2, Smile, Square, Users, VideoOff } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUp, Circle, ChevronDown, ChevronUp, Code2, Eye, LockKeyhole, MessageSquare, Mic, Monitor, MoreHorizontal, Minus, Pause, Play, Pointer, Rows2, RotateCw, Settings2, Smile, Square, Users, VideoOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CompanionPreview } from './companion-preview'
+import { RunoffExample } from './runoff-example'
 import styles from './product-demo.module.css'
 
-const rainWaterProblem = 'Given non-negative bar heights, each one unit wide, return the total water trapped after rain.'
-const rainWaterExamples = ['[0,1,0,2,1,0,1,3,2,1,2,1] → 6', '[4,2,0,3,2,5] → 9']
-const rainWaterConstraints = ['1 ≤ height.length ≤ 20,000; 0 ≤ height[i] ≤ 100,000.']
+const rainWaterProblem = 'A city is sizing drainage for a roadside channel. The array height gives ground elevations in metres across consecutive 1 m × 1 m sections. After heavy rain, water fills depressions between higher sections and drains away at either end. Return the volume of water retained, in cubic metres.'
+const rainWaterExamples = [
+  'Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]\nOutput: 6 m³',
+  'Input: height = [4,2,0,3,2,5]\nOutput: 9 m³',
+]
+const rainWaterConstraints = ['1 ≤ height.length ≤ 20,000', '0 ≤ height[i] ≤ 100,000']
 
 const workflows = [
   {
-    id: 'coding', group: 'Coding', label: 'Solve', title: 'Trapping Rain Water — LeetCode 42', key: 'F2',
-    difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
+    id: 'coding', group: 'Coding', label: 'Solve', title: 'Roadside Drainage Capacity', key: 'F2',
+    difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples,
+    constraints: [...rainWaterConstraints, 'Time complexity: O(n)', 'Extra space: O(1)'],
     task: "Solve in O(n) time and O(1) extra space.",
-    draft: "def trap(height):\n    pass",
+    draft: "def retained_runoff(height):\n    pass",
   },
   {
-    id: 'debug', group: 'Coding', label: 'Debug', title: 'Trapping Rain Water — LeetCode 42', key: 'F3',
+    id: 'debug', group: 'Coding', label: 'Debug', title: 'Roadside Drainage Capacity', key: 'F3',
     difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
     task: "Fix both marked bugs: accumulate water; preserve the right maximum.",
-    draft: "def trap(height):\n    left, right = 0, len(height) - 1\n    left_max = right_max = water = 0\n    while left < right:\n        if height[left] <= height[right]:\n            left_max = max(left_max, height[left])\n            water = left_max - height[left]  # BUG 1\n            left += 1\n        else:\n            right_max = min(right_max, height[right])  # BUG 2\n            water += right_max - height[right]\n            right -= 1\n    return water",
+    draft: "def retained_runoff(height):\n    left, right = 0, len(height) - 1\n    left_max = right_max = water = 0\n    while left < right:\n        if height[left] <= height[right]:\n            left_max = max(left_max, height[left])\n            water = left_max - height[left]  # BUG 1\n            left += 1\n        else:\n            right_max = min(right_max, height[right])  # BUG 2\n            water += right_max - height[right]\n            right -= 1\n    return water",
   },
   {
-    id: 'optimize', group: 'Coding', label: 'Improve', title: 'Trapping Rain Water — LeetCode 42', key: 'F4',
+    id: 'optimize', group: 'Coding', label: 'Improve', title: 'Roadside Drainage Capacity', key: 'F4',
     difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
     task: "1. O(n²) → O(n) time. 2. O(n) → O(1) extra space.",
-    draft: "def trap(height):\n    water = 0\n    for i in range(1, len(height) - 1):\n        # 1. Repeated max scans: O(n²) time\n        # 2. Slices allocate O(n) extra space\n        left_max = max(height[:i + 1])\n        right_max = max(height[i:])\n        water += min(left_max, right_max) - height[i]\n    return water",
+    draft: "def retained_runoff(height):\n    water = 0\n    for i in range(1, len(height) - 1):\n        # 1. Repeated max scans: O(n²) time\n        # 2. Slices allocate O(n) extra space\n        left_max = max(height[:i + 1])\n        right_max = max(height[i:])\n        water += min(left_max, right_max) - height[i]\n    return water",
   },
   {
     id: 'system-design', group: 'System design', label: 'System design', title: 'Ticket booking — Ticketmaster', key: 'F2',
@@ -126,42 +131,50 @@ function SourceCode({ workflow }: { workflow: Workflow }) {
 }
 
 function ProblemStatement({ workflow }: { workflow: Workflow }) {
+  const pastedProblem = workflow.id === 'coding'
   return (
     <section className={styles.questionPanel}>
-      <div className={styles.questionTabs}><span>Problem</span><span>Notes</span></div>
-      <div className={styles.prompt}>
-        <div className={styles.questionMeta}><span>{workflow.difficulty}</span><span>{workflow.label}</span></div>
+      <div className={styles.questionTabs}><span>Problem</span><span>Shared by interviewer</span></div>
+      <div className={cn(styles.prompt, pastedProblem && styles.pastedProblem)}>
+        {!pastedProblem && <div className={styles.questionMeta}><span>{workflow.difficulty}</span><span>{workflow.label}</span></div>}
         <h3>{workflow.title}</h3>
         <p>{workflow.problem}</p>
-        <div className={styles.input}>{workflow.examples.join('\n')}</div>
-        <p className={styles.constraints}><strong>{workflow.group === 'Coding' ? 'Constraints' : 'Requirements'}:</strong> {workflow.constraints.join(' ')}</p>
-        <p><strong>{workflow.label}:</strong> {workflow.task}</p>
+        {pastedProblem ? <>
+          <RunoffExample />
+          <div className={styles.runoffSecondExample}><strong>Example 2:</strong> [4,2,0,3,2,5] → 9 m³</div>
+        </> : <div className={styles.input}>{workflow.examples.join('\n\n')}</div>}
+        <div className={styles.constraints}>
+          <p><strong>{workflow.group === 'Coding' ? 'Constraints' : 'Requirements'}</strong></p>
+          <ul>{workflow.constraints.map((constraint) => <li key={constraint}>{constraint}</li>)}</ul>
+        </div>
+        {!pastedProblem && <p><strong>{workflow.label}:</strong> {workflow.task}</p>}
       </div>
     </section>
   )
 }
 
-function Workspace({ workflow, captured }: { workflow: Workflow; captured: boolean }) {
+function Workspace({ workflow, captured, sessionTime }: { workflow: Workflow; captured: boolean; sessionTime: string }) {
   const coding = workflow.group === 'Coding'
   return (
     <div className={styles.browserWindow}>
       <div className={styles.browserTabs}>
         <span className={styles.trafficLights} aria-hidden><i /><i /><i /></span>
-        <span className={styles.browserTab}><span className={styles.tabMark}>H</span>{captured ? 'Interviewer workspace' : 'Technical interview'} · HackerRank<span className={styles.tabClose} aria-hidden>×</span></span>
+        <span className={styles.browserTab}><span className={styles.tabMark}>H</span>Live interview · HackerRank<span className={styles.tabClose} aria-hidden>×</span></span>
         <span className={styles.newTab} aria-hidden>+</span>
       </div>
       <div className={styles.addressBar}>
         <span className={styles.browserArrows} aria-hidden><ArrowLeft size={13} /><ArrowRight size={13} /><RotateCw size={12} /></span>
-        <span className={styles.address}><LockKeyhole size={11} aria-hidden />hackerrank.com</span>
+        <span className={styles.address}><LockKeyhole size={11} aria-hidden /><span>hackerrank.com/interview/demo-7f3a9c</span></span>
         <span className={cn(styles.browserProfile, captured && styles.interviewerProfile)} role="img" aria-label={captured ? 'Interviewer browser profile' : 'Candidate browser profile'}>{captured ? 'I' : 'C'}</span>
         <MoreHorizontal size={15} aria-hidden />
       </div>
       <div className={styles.hackerHeader}>
         <span className={styles.hackerLogo}>HackerRank<span aria-hidden>▮</span></span>
-        <span className={styles.interviewName}>{captured ? 'Interviewer workspace' : 'Technical interview'}</span>
+        <span className={styles.interviewName}>Live technical interview</span>
         {captured && <span className={styles.interviewerBadge}>Interviewer</span>}
-        <span className={styles.connection}><i />{captured ? 'Candidate connected' : 'Connected'}</span>
-        <span className={styles.interviewTimer}>38:42</span>
+        <span className={styles.connection}><i />Live<span className={styles.participantCount}> · 2 participants</span></span>
+        <span className={styles.recordingBadge}><i />Recording</span>
+        <span className={styles.interviewTimer}>{sessionTime}</span>
       </div>
       <div className={styles.interviewGrid}>
         <ProblemStatement workflow={workflow} />
@@ -174,18 +187,18 @@ function Workspace({ workflow, captured }: { workflow: Workflow; captured: boole
           <div className={styles.candidateHeading}>
             <span className={styles.candidateInitial} aria-hidden>C</span>
             <span>Candidate’s {coding ? 'code' : 'notes'}</span>
-            <span className={styles.savedStatus}>{captured ? <><Monitor size={10} aria-hidden />Live</> : <><Check size={10} aria-hidden />Saved</>}</span>
+            <span className={styles.savedStatus}><><Users size={10} aria-hidden />Live sync</></span>
           </div>
           <div className={styles.candidateInput}>
             <SourceCode workflow={workflow} />
-            <div className={styles.inputStatus}><span>{captured ? 'Viewing candidate’s work' : coding ? 'Write your solution here' : 'Write your approach here'}</span><span>Ln {workflow.draft.split('\n').length}, Col {workflow.draft.split('\n').at(-1)!.length + 1}</span></div>
+            <div className={styles.inputStatus}><span>{captured ? 'Viewing candidate live' : 'Shared live with interviewer'}</span><span>Ln {workflow.draft.split('\n').length}, Col {workflow.draft.split('\n').at(-1)!.length + 1}</span></div>
           </div>
           <div className={styles.runBar}>
-            {captured ? <><span className={styles.testCases}>Interviewer tools</span><span className={styles.runCode}>Private notes</span><span className={styles.submitCode}>Scorecard</span></> : coding ? <><span className={styles.testCases}>Test cases<ChevronDown size={10} aria-hidden /></span>
+            {captured ? <><span className={styles.testCases}>Interviewer tools</span><span className={styles.runCode}>Private notes</span><span className={styles.submitCode}>Scorecard</span></> : coding ? <><span className={styles.testCases}>Console<ChevronDown size={10} aria-hidden /></span>
               <span className={styles.runCode}><Play size={10} aria-hidden />Run code</span>
-              <span className={styles.submitCode}>Submit code</span></> : <><span className={styles.testCases}>Interview notes</span><span className={styles.runCode}>Whiteboard</span></>}
+              <span className={styles.endInterview}>Leave interview</span></> : <><span className={styles.testCases}>Interview notes</span><span className={styles.runCode}>Whiteboard</span></>}
           </div>
-          <div className={styles.editorStatus}><span>Changes saved automatically</span><span>UTF-8</span><span>{coding ? 'Python' : 'Markdown'}</span></div>
+          <div className={styles.editorStatus}><span>Live collaboration · changes synced</span><span>UTF-8</span><span>{coding ? 'Python' : 'Markdown'}</span></div>
         </section>
       </div>
     </div>
@@ -199,16 +212,16 @@ function MeetingParticipants({ captured }: { captured: boolean }) {
         <span className={styles.panelLayout}><Minus size={11} /><Square size={10} /><span className={styles.selectedLayout}><Rows2 size={12} /></span></span>
         <span className={styles.panelGrip}><i /><i /><i /><i /><i /><i /></span>
       </div>
-      <div className={cn(styles.videoTile, styles.speakerTile)}>
+      <div className={styles.videoTile}>
         <span className={styles.cameraOffName}>Interviewer</span>
         <span className={styles.tileOptions} aria-hidden><MoreHorizontal size={13} /></span>
         <span className={styles.participantName}><Mic size={11} aria-hidden />{captured ? 'Interviewer (me)' : 'Interviewer'}</span>
-        <span className={styles.audioLevel} aria-hidden><i /><i /><i /></span>
       </div>
-      <div className={styles.videoTile}>
+      <div className={cn(styles.videoTile, styles.speakerTile)}>
         <span className={styles.cameraOffName}>Candidate</span>
         <span className={styles.tileOptions} aria-hidden><MoreHorizontal size={13} /></span>
-        <span className={styles.participantName}><MicOff size={11} className={styles.mutedMic} aria-hidden />{captured ? 'Candidate' : 'Candidate (me)'}</span>
+        <span className={styles.participantName}><Mic size={11} aria-hidden />{captured ? 'Candidate' : 'Candidate (me)'}</span>
+        <span className={styles.audioLevel} aria-hidden><i /><i /><i /></span>
       </div>
     </aside>
   )
@@ -216,12 +229,13 @@ function MeetingParticipants({ captured }: { captured: boolean }) {
 
 function MeetingControls({ captured }: { captured: boolean }) {
   const tools = [
-    { icon: captured ? Mic : MicOff, label: 'Audio', menu: true, muted: !captured },
+    { icon: Mic, label: 'Audio', menu: true },
     { icon: VideoOff, label: 'Video', menu: true, muted: true, divider: true },
     { icon: Users, label: 'Participants', menu: true, count: '2' },
     { icon: MessageSquare, label: 'Chat', menu: true },
     { icon: Smile, label: 'React', optional: true },
     { icon: ArrowUp, label: 'Share', menu: true, sharing: !captured },
+    { icon: Circle, label: 'Recording', recording: true },
     ...(!captured ? [{ icon: Pause, label: 'Pause', optional: true }] : []),
     { icon: MoreHorizontal, label: 'More', optional: true },
   ]
@@ -238,9 +252,12 @@ function MeetingControls({ captured }: { captured: boolean }) {
           const optional = 'optional' in tool && tool.optional
           const muted = 'muted' in tool && tool.muted
           const sharing = 'sharing' in tool && tool.sharing
-          return <span key={label} className={cn(styles.zoomTool, optional && styles.optionalTool, muted && styles.mutedControl, sharing && styles.sharingTool, 'divider' in tool && tool.divider && styles.toolDivider)}>
+          return <span key={label} className={cn(styles.zoomTool, optional && styles.optionalTool, muted && styles.mutedControl, sharing && styles.sharingTool, 'recording' in tool && tool.recording && styles.recordingTool, 'divider' in tool && tool.divider && styles.toolDivider)}>
             <span className={styles.toolIconRow}>
-              <span className={cn(styles.toolGlyph, label === 'Share' && styles.shareGlyph)}><Icon size={22} strokeWidth={1.9} /></span>
+              <span className={cn(styles.toolGlyph, label === 'Share' && styles.shareGlyph)}>
+                <Icon size={22} strokeWidth={1.9} />
+                {label === 'Audio' && !captured && <span className={styles.micLevel}><Mic size={22} strokeWidth={1.9} fill="currentColor" fillOpacity={0.45} /></span>}
+              </span>
               {'count' in tool && <span className={styles.toolCount}>{tool.count}</span>}
               {'menu' in tool && tool.menu && <ChevronUp className={styles.toolChevron} size={9} />}
             </span>
@@ -253,10 +270,10 @@ function MeetingControls({ captured }: { captured: boolean }) {
   )
 }
 
-function DesktopView({ workflow, captured, children }: { workflow: Workflow; captured: boolean; children?: ReactNode }) {
+function DesktopView({ workflow, captured, sessionTime, children }: { workflow: Workflow; captured: boolean; sessionTime: string; children?: ReactNode }) {
   return (
     <div className={styles.desktopView}>
-      <Workspace workflow={workflow} captured={captured} />
+      <Workspace workflow={workflow} captured={captured} sessionTime={sessionTime} />
       <MeetingParticipants captured={captured} />
       <MeetingControls captured={captured} />
       {children}
@@ -277,6 +294,8 @@ export function ProductDemo() {
   const [playback, setPlayback] = useState<Playback>({ scene: 0, phase: 0, run: 0 })
   const [reviewing, setReviewing] = useState(true)
   const [visible, setVisible] = useState(false)
+  const [elapsedSeconds, setElapsedSeconds] = useState(4 * 60 + 32)
+  const sessionTime = `${Math.floor(elapsedSeconds / 60).toString().padStart(2, '0')}:${(elapsedSeconds % 60).toString().padStart(2, '0')}`
   const container = useRef<HTMLDivElement>(null)
   const tabButtons = useRef<(HTMLButtonElement | null)[]>([])
   const generation = useRef(0)
@@ -313,6 +332,12 @@ export function ProductDemo() {
     }
     setReviewing(!reviewing)
   }
+
+  useEffect(() => {
+    if (!visible) return
+    const interval = window.setInterval(() => setElapsedSeconds((seconds) => seconds + 1), 1000)
+    return () => window.clearInterval(interval)
+  }, [visible])
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
@@ -378,7 +403,7 @@ export function ProductDemo() {
             tabButtons.current[next]?.focus()
           }}><span>{category.label}</span></button>)}
       </div>
-      <div id="demo-panel" role="tabpanel" tabIndex={0} aria-labelledby={`demo-tab-${categories[activeCategory].id}`} className={styles.demo} data-scene={workflow.id} data-phase={phase.id} data-view={comparing ? 'comparison' : showingCapture ? 'capture' : 'private'} data-running={running} data-review={reviewing} style={{ ...timing, '--preview-play-state': running ? 'running' : 'paused' } as CSSProperties}
+      <div id="demo-panel" role="tabpanel" tabIndex={0} aria-labelledby={`demo-tab-${categories[activeCategory].id}`} className={styles.demo} data-scene={workflow.id} data-phase={phase.id} data-view={comparing ? 'comparison' : showingCapture ? 'capture' : 'private'} data-running={running} data-visible={visible} data-review={reviewing} style={{ ...timing, '--preview-play-state': running ? 'running' : 'paused' } as CSSProperties}
         onCopy={(event) => event.preventDefault()} onCut={(event) => event.preventDefault()}
         onDragStart={(event) => event.preventDefault()} onContextMenu={(event) => event.preventDefault()}>
         <div className={styles.stage} aria-hidden="true" inert>
@@ -387,15 +412,15 @@ export function ProductDemo() {
             const showingAnswer = active && phase.id !== 'problem' && phase.id !== 'key' && phase.id !== 'captured'
             return (
               <div key={example.id} className={cn(styles.scene, active && styles.activeScene)} aria-hidden={!active} inert={!active}>
-                <DesktopView workflow={example} captured={false}>
+                <DesktopView workflow={example} captured={false} sessionTime={sessionTime}>
                   <div className={cn(styles.solutionLayer, showingAnswer && styles.answerVisible)} aria-hidden={!showingAnswer}>
                     <div className={styles.nativeWindow}>
-                      <CompanionPreview workflow={example.id} streaming={active && phase.id === 'stream'} />
+                      <CompanionPreview workflow={example.id} streaming={active && phase.id === 'stream' && !reviewing} />
                     </div>
                   </div>
                 </DesktopView>
                 <div className={styles.captureView} aria-hidden>
-                  <DesktopView workflow={example} captured />
+                  <DesktopView workflow={example} captured sessionTime={sessionTime} />
                 </div>
               </div>
             )
@@ -406,7 +431,7 @@ export function ProductDemo() {
             <ViewLabel shared /><ViewLabel shared={false} />
           </div> : phase.id !== 'key' && <div className={styles.singleViewLabel} aria-hidden><ViewLabel shared={phase.id === 'captured'} /></div>}
           {phase.id === 'key' && (
-            <div className={styles.keyOverlay} aria-hidden>
+            <div key={playback.run} className={styles.keyOverlay} aria-hidden>
               <div className={styles.keyboardAction}>
                 <div className={styles.keyboardDeck}>
                   {['F2', 'F3', 'F4'].map((key) => (
@@ -436,6 +461,20 @@ export function ProductDemo() {
           </button>
           <button type="button" onClick={() => seekStep(stepIndex + 1)}>Next step<ArrowRight size={14} aria-hidden /></button>
           <button type="button" onClick={() => seekStep(0)}><RotateCw size={14} aria-hidden />Restart</button>
+          {process.env.NODE_ENV === 'development' && (
+            <form className={styles.stepJump} onSubmit={(event) => {
+              event.preventDefault()
+              const value = new FormData(event.currentTarget).get('step')
+              const step = Number(value)
+              if (Number.isInteger(step) && step >= 1 && step <= reviewSequence.length) seekStep(step - 1)
+            }}>
+              <label>
+                Jump to step
+                <input name="step" type="number" min={1} max={reviewSequence.length} step={1} required placeholder={String(stepIndex + 1)} />
+              </label>
+              <button type="submit">Go</button>
+            </form>
+          )}
         </div>
         <p>{reviewing ? 'Explore at your own pace, or press Play demo to watch it unfold.' : 'Playing automatically. Pause or choose a step to explore at your own pace.'}</p>
       </div>

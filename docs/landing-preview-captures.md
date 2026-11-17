@@ -15,7 +15,11 @@ no dependency on `public/previews/manifest.json`. The older capture script and
 assets remain available as historical visual references; regenerating captures
 is not required to update the hero.
 
-Coding uses Trapping Rain Water (LeetCode 42) throughout. Solve shows the complete
+Coding uses Roadside Drainage Capacity throughout, an interview scenario about
+retained stormwater in a channel with 1 m × 1 m terrain sections. The numeric
+inputs stay the same; the two outputs are 6 m³ and 9 m³. The first example
+animates six blue volume cells filling depressions, holds, then resets. It
+respects reduced motion and pauses offscreen. Solve shows the complete
 two-pointer solution; Debug shows two removed/added lines (accumulate the water
 and preserve the right maximum); Improve replaces the original scan-based
 function with the complete two-pointer solution. Red means removed and amber
@@ -71,3 +75,35 @@ paused. Category tabs also work in step-by-step mode. The panel labels the curre
 step, workflow, and phase. Play demo starts automatic playback with a fresh,
 synchronized animation and timer for the current phase. Pause returns to
 step-by-step mode.
+
+The candidate is always unmuted and is the active speaker in both private and
+shared views. The green speaker outline and audio-level bars belong to the
+candidate tile; both views show an unmuted microphone in the meeting toolbar.
+
+Candidate audio bars and the candidate Audio-button microphone share a speech
+envelope with short syllabic bursts, breaths, and longer quiet pauses. The
+interviewer microphone stays neutral in the shared view. The editor caret blinks even during
+step-by-step review. These ambient effects pause when the preview is hidden and
+remain static when reduced motion is requested.
+
+The coding prompt uses `retained_runoff(height)` consistently in the candidate
+editor, solution, and diffs. Mobile gives the illustrated first prompt extra
+height to keep the full constraints and coding pad visible without scrolling.
+
+The simulated browser uses the illustrative room address
+`hackerrank.com/interview/demo-7f3a9c` (decorative text, not a working invitation).
+The page identifies a live technical interview with two participants, a shared
+problem, live-synced editing, and a ticking elapsed timer. Recording indicators
+appear in both the interview header and Zoom toolbar, on private and shared
+views. The candidate can Run code or Leave interview rather than submit a
+challenge. These are illustrative session cues; the preview captures no media.
+The session design references HackerRank's
+[interview interface guide](https://support.hackerrank.com/articles/1597283498-navigate-the-interview-interface-and-controls).
+
+The Core-style answer header uses the shared SWECompanion app mark and named
+shortcut reminders (Capture, Solve, Debug, Improve, Scroll up/down, Clear),
+following the native `AnswerStatusBar`. On narrow windows the reminders wrap
+into two rows and retain their names. Solve explains the water-depth bound,
+two-pointer invariant, volume calculation, and both sample results. Complexity
+has separate time and space rows with the reason for each bound. The stage is
+tall enough to keep the expanded answer visible without internal scrolling.

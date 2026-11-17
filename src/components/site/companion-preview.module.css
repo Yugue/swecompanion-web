@@ -1,12 +1,12 @@
 .window { container-type: inline-size; color: #d9d9df; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-.statusBar { display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 8px 12px; border-bottom: 1px solid #34343a; font-size: 11px; background: #19191c; }
-.brand { flex-shrink: 0; color: #8a7aff; }
+.statusBar { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; min-height: 36px; padding: 8px 12px; border-bottom: 1px solid #34343a; font-size: 11px; background: #19191c; }
+.mode { color: #94949f; font-size: 10px; }
 .statusDot { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: #8bd2a0; }
 .statusBar strong { color: #f3f3f6; font-weight: 600; }
 .privacy { display: flex; align-items: center; gap: 5px; color: #9c9ca6; font-size: 9px; }
-.shortcuts { display: flex; align-items: center; gap: 10px; margin-left: auto; color: #a3a3ad; }
+.shortcuts { display: flex; align-items: center; gap: 8px; margin-left: auto; color: #a3a3ad; font-size: 9px; }
 .shortcuts > span { display: flex; align-items: center; gap: 4px; }
-.shortcuts kbd { padding: 2px 5px; border-radius: 4px; background: #303035; color: #ededf1; font-family: inherit; font-size: 10px; font-weight: 600; line-height: 1.3; }
+.shortcuts kbd { padding: 2px 5px; border-radius: 4px; background: #303035; color: #ededf1; font-family: inherit; font-size: 9px; font-weight: 600; line-height: 1.3; }
 .answer { padding: 12px 16px 14px; font-size: clamp(9px, 1.7cqw, 11px); line-height: 1.45; }
 .answer h4 { margin: 0 0 8px; color: #a4a4af; font-size: 0.85em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .answer p { margin: 0; }
@@ -26,8 +26,9 @@
 .removed code, .removed .lineNumber { color: #eb9494; }
 .added { background: #e9b34c15; }
 .added code, .added .lineNumber { color: #efd19a; }
-.complexity { display: flex; gap: 28px; margin-top: 10px; color: #a5a5b0; font-size: 0.95em; }
-.complexity strong { margin-left: 6px; }
+.complexity { display: grid; gap: 5px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #303035; color: #a5a5b0; font-size: 0.95em; }
+.complexity h4 { margin-bottom: 0; }
+.explanation { display: grid; gap: 6px; }
 .designPoints { display: grid; gap: 7px; margin: 0 0 14px; padding-left: 16px; }
 .diagram { display: grid; gap: 8px; padding: 12px; border: 1px solid #363642; border-radius: 7px; background: #111115; font-size: 0.85em; }
 .flow { display: flex; align-items: stretch; }
@@ -44,9 +45,7 @@
   .privacy svg { width: 10px; }
   .shortcuts { gap: 4px; }
   .shortcuts > span { gap: 2px; }
-  .shortcuts svg { display: none; }
   .shortcuts kbd { font-size: 8px; padding: 2px 3px; }
-  .brand { width: 14px; }
   .answer { padding: 10px; }
   .codeLine { grid-template-columns: 18px minmax(0, 1fr); }
   .diagram { padding: 8px; gap: 6px; }
@@ -54,3 +53,7 @@
   .node { padding: 4px 3px; }
 }
 @media (prefers-reduced-motion: reduce) { .streaming { animation: none; } }
+
+@container (max-width: 700px) {
+  .shortcuts { display: grid; grid-template-columns: repeat(3, max-content); justify-content: space-between; gap: 6px 8px; width: 100%; margin-top: 3px; }
+}
