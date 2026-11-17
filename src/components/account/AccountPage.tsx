@@ -88,7 +88,7 @@ function AccountDetails({ uid }: { uid: string }) {
         const result = await refreshSubscription();
         if (disposed) return;
         setSubscription(result); setLoading(false); setError(null); setCheckout(returnedCheckout);
-        if (upgradePlan === "true" || isBillingPlan(upgradePlan)) {
+        if (upgradePlan === "true" || upgradePlan === "yearly" || isBillingPlan(upgradePlan)) {
           const url = new URL(window.location.href);
           url.searchParams.delete("upgrade");
           window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
@@ -137,17 +137,17 @@ function AccountDetails({ uid }: { uid: string }) {
         </div>
       </div>
       {subscription?.plan && <p className="mt-6 text-sm">
-        {subscription.amount !== null ? money(subscription.amount, subscription.currency ?? PRICING.currency) : formatPrice(PRICING[subscription.plan].amount)} {subscription.currency?.toUpperCase()} / {subscription.plan === "yearly" ? "year" : "month"}
+        {subscription.amount !== null ? money(subscription.amount, subscription.currency ?? PRICING.currency) : subscription.plan !== "yearly" ? formatPrice(PRICING[subscription.plan].amount) : "Legacy annual plan"} {subscription.currency?.toUpperCase()} {subscription.plan === "threeMonthPass" ? "one-time · three-month pass" : subscription.plan === "yearly" ? "/ year" : "/ month"}
       </p>}
       {subscription?.status === "canceled" && <p className="mt-2 text-sm text-muted-foreground">Your subscription has ended. You can upgrade again at any time.</p>}
       {subscription?.currentPeriodEnd && subscription.status !== "canceled" && <p className="mt-2 text-sm text-muted-foreground">
-        {subscription.cancelAtPeriodEnd ? "Your subscription stays active until " : subscription.subscribed ? "Renews on " : "Billing period ends "}{date(subscription.currentPeriodEnd)}.
-        {subscription.cancelAtPeriodEnd && " You won’t be charged again."}
+        {subscription.plan === "threeMonthPass" ? "Pro access expires on " : subscription.cancelAtPeriodEnd ? "Your subscription stays active until " : subscription.subscribed ? "Renews on " : "Billing period ends "}{date(subscription.currentPeriodEnd)}.
+        {(subscription.plan === "threeMonthPass" || subscription.cancelAtPeriodEnd) && " You won’t be charged again."}
       </p>}
       {error && <p role="alert" className="mt-4 text-sm text-accent-red">{error} <button type="button" onClick={() => window.location.reload()} className="underline">Retry</button></p>}
       {!loading && <div className="mt-6 flex flex-wrap gap-3">
         {subscription && subscription.status !== "none" && <Button variant="outline" className="h-11" disabled={busy} onClick={() => void manage()}>
-          {busy ? "Opening…" : "Manage subscription & payment method"}<ArrowUpRight className="size-4" />
+          {busy ? "Opening…" : "Manage billing & payment method"}<ArrowUpRight className="size-4" />
         </Button>}
         {(!subscription || ["none", "canceled", "incomplete_expired"].includes(subscription.status)) &&
           <SubscribeDialog disabled={busy} open={subscribeOpen} onOpenChange={setSubscribeOpen} />}

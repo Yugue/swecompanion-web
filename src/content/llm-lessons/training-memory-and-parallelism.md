@@ -8,9 +8,9 @@ Training needs weights, **gradients**, **optimizer state** such as Adam's moving
 
 ## 2. Use precision intentionally
 
-**Mixed-precision training** uses different numerical formats for different operations or stored values. **BF16** and **FP16** are two-byte floating-point formats. BF16 has a wider exponent range but fewer precision bits than FP16, often reducing overflow risk at the cost of rounding precision.
+**Mixed-precision training** uses different formats for different state or operations. **BF16** and **FP16** use two bytes each; BF16 trades precision bits for a wider exponent range.
 
-Some recipes retain higher-precision master weights or reductions. Lower weight precision alone does not specify total training memory or numerical stability.
+Higher-precision master weights or reductions can add memory. Weight precision alone does not describe the complete training recipe.
 
 ## 3. Protect small gradients
 
@@ -26,8 +26,6 @@ Recomputed stochastic operations, such as dropout, must reproduce the intended r
 
 ## 5. Diagnose the peak
 
-Out-of-memory during model loading suggests weight placement. Failure only during backward suggests activations, gradients, or optimizer initialization. Failure on long batches suggests sequence-dependent state.
+Loading failures suggest weight placement; backward failures suggest saved activations, gradients, or buffers. Measure the complete step’s peak, especially for long batches.
 
-Measure peak allocated memory and communication time. A memory snapshot at loading time can miss the much larger backward peak.
-
-A model fitting its weights in memory can still fail during backward when saved activations, gradients, and temporary buffers coexist. Budget a complete training step rather than a single stored parameter table.
+> **Reason it through:** A job fits its weights but fails during backward. What would activation checkpointing save, and what would it cost?

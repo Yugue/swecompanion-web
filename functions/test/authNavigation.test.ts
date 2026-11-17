@@ -15,13 +15,13 @@ test("auth redirects avoid returning to another authentication page", () => {
 });
 
 test("auth redirects preserve a guide location and a selected billing plan", () => {
-  for (const value of ["/coding/hashmap#progress", "/account?upgrade=yearly", "/account?upgrade=monthly"]) {
+  for (const value of ["/coding/hashmap#progress", "/account?upgrade=threeMonthPass", "/account?upgrade=monthly"]) {
     assert.equal(safeAuthReturnPath(value), value);
   }
 });
 
 test("switching between login, signup, and reset preserves the return destination", () => {
-  const next = "/account?upgrade=yearly";
+  const next = "/account?upgrade=threeMonthPass";
   for (const page of ["/login", "/signup", "/forgot-password"] as const) {
     const url = new URL(authPageHref(page, next), "https://swecompanion.invalid");
     assert.equal(url.pathname, page);

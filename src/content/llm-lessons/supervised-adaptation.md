@@ -2,9 +2,7 @@
 
 ## 1. Adapt a pretrained model
 
-**Supervised fine-tuning (SFT)** trains on input–desired-output examples. **Continued pretraining** keeps learning from raw text, often from a particular domain. Both update parameters, but they supply different learning signals.
-
-Manuals provide domain text; expert demonstrations provide examples of desired answers.
+**Supervised fine-tuning (SFT)** learns desired responses; **continued pretraining** predicts raw domain text. Manuals provide the latter signal, not automatically good answers.
 
 ## 2. Construct a supervised example
 
@@ -28,20 +26,14 @@ No objective guarantees fresh factual recall or trustworthy citations.
 
 ## 4. Choose update scope
 
-**Full fine-tuning** allows all selected model parameters to change. Adapter methods instead restrict which updates are learned; the next lesson explains their mechanism.
-
-Use held-out tasks to decide whether more update capacity helps rather than defaulting to a full-model change.
+**Full fine-tuning** updates all selected parameters; adapters restrict the learned changes. Compare update capacity on held-out tasks.
 
 ## 5. Control forgetting
 
-**Catastrophic forgetting** is loss of earlier capabilities after adaptation. Excessive learning rates, narrow data, and repeated examples can accelerate it.
-
-Mixing representative earlier tasks, limiting updates, and monitoring broad evaluation can help. None removes the need to inspect domain performance.
+**Catastrophic forgetting** loses earlier capabilities during adaptation. Narrow data and excessive updates can accelerate it. Mix representative tasks and monitor both old and new capabilities.
 
 ## 6. Validate the actual improvement
 
-Check unseen requests, difficult cases, and general capabilities. Compare against an unchanged model with a good prompt.
+Compare with an unchanged model using a good prompt. Test unseen requests, missing evidence, and earlier skills. Fresh facts may need retrieval rather than weight updates.
 
-If the problem is missing current documents, training may be a costly substitute for retrieval. If the problem is response format, relevant demonstrations may be enough.
-
-A response ending in valid JSON can still contain unsupported field values. Format demonstrations teach an output behavior; evaluate factual extraction and missing-evidence handling separately from structural validity.
+> **Reason it through:** A domain-tuned assistant improves formatting but loses an earlier skill. How would you test and address forgetting?

@@ -2,15 +2,15 @@
 
 ## 1. Name the objects
 
-A **vector** is an ordered list of numbers. A **matrix** is a rectangular array; a **tensor** generalizes arrays to more axes. A **shape** lists their sizes.
+A **vector** is a number list; a **matrix** is a rectangular array; a **tensor** generalizes arrays to more axes. **Shape** lists axis sizes.
 
-Treat axes as meaningful labels. Two arrays with the same number of values can still describe different things.
+Label axes before reshaping: equal value counts do not imply equal meanings.
 
 ## 2. Read a language-model shape
 
-A **batch** groups examples for one computation. Hidden representations for B sequences, T token positions, and width d have shape [B,T,d]. A hidden representation is an intermediate feature vector.
+A **batch** groups examples. Hidden representations—intermediate feature vectors—have shape [B,T,d]: B sequences, T positions, d features.
 
-For [8,20,64], each of eight sequences has 20 positions with 64 features each. Doubling T doubles stored hidden values, before accounting for other model state.
+[8,20,64] → eight sequences × 20 positions × 64 features. Doubling T doubles this array’s stored values.
 
 ## 3. Multiply compatible matrices
 
@@ -26,8 +26,8 @@ A **dot product** multiplies matching coordinates and sums them. Vector length i
 
 ## 5. Diagnose an axis mistake
 
-A transformation intended for feature width should not accidentally mix batch examples. Check the named axes before reshaping or reducing.
+A feature transformation should not mix separate batch examples. Check axis names before reductions.
 
-**Padding** adds filler positions to align sequence lengths in a batch. Exclude those positions when computing an average intended to represent actual text.
+**Padding** supplies filler positions to align lengths. Exclude it when averaging actual text.
 
-A batch of four eight-token inputs with hidden width sixteen has shape [4,8,16]. Vocabulary size is a separate dimension that appears when hidden states are mapped to next-token scores.
+> **Reason it through:** You average [B,T,d] over B instead of T. What information gets mixed, and why does it fail to summarize each sequence?

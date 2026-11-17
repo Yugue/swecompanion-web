@@ -2,27 +2,23 @@
 
 ## 1. Define the mixture
 
-A **data mixture** sets how much training exposure comes from each source or category, such as code, books, dialogue, or different languages.
-
-Raw document count is insufficient: token lengths, filtering, and sampling determine actual exposure.
+A **data mixture** controls exposure to sources such as code, books, and languages. Count sampled tokens, not only documents.
 
 ## 2. Remove unwanted repetition
 
-**Deduplication** removes repeated or near-repeated content. Exact matching catches identical documents; approximate matching can catch lightly edited copies.
-
-Ten copies of one answer effectively increase its weight. Deduplicating only within training misses overlap between training and evaluation.
+**Deduplication** removes exact or near-copies. Ten copies of one answer increase its effective training weight. Check overlap across train/evaluation boundaries too.
 
 ## 3. Separate by source and time
 
-A **split** assigns examples to training, validation, or final test sets. Training updates parameters; validation guides development; the final test estimates performance after decisions are fixed.
+A **split** separates training (parameter updates), validation (development decisions), and test (final measurement).
 
-Group near-duplicates and related documents before splitting. For future-facing tasks, use time boundaries where appropriate. A sentence-level random split of one book can leak its style and facts.
+Group related documents and near-copies before splitting. Splitting sentences from one book can leak source-specific patterns.
 
 ## 4. Audit benchmark contamination
 
-**Contamination** occurs when evaluation examples, answers, or close derivatives enter training or development in a way that compromises measurement.
+**Contamination** places evaluation examples, answers, or close variants into training/development, compromising measurement.
 
-Search for exact text and semantic variants; inspect source lineage and dates. **Provenance** records where data came from and how it was transformed. High benchmark accuracy alone cannot establish unseen-task competence.
+**Provenance** records source and transformations. Audit exact/semantic overlap, lineage, and dates before interpreting a benchmark jump.
 
 ## 5. Balance quality and coverage
 
@@ -36,8 +32,6 @@ Search for exact text and semantic variants; inspect source lineage and dates. *
 
 ## 6. Trace a regression
 
-Compare held-out loss by source, language, and task under a fixed tokenizer. Audit removed and oversampled examples, not just aggregate quality scores.
+Compare held-out loss by source, language, and task under fixed scoring. Version sources, filters, and sampling weights so regressions can be traced.
 
-Keep a versioned manifest of sources, filters, sampling weights, and exclusions. It should be possible to explain which data change preceded a behavior change.
-
-Removing exact duplicate files does not remove a copied paragraph embedded in another document. Define the unit of deduplication and separately check evaluation contamination; these checks answer different data-quality questions.
+> **Reason it through:** Benchmark performance jumps after adding crawled text. How would you separate useful coverage from evaluation contamination?

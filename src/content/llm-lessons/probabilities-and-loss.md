@@ -3,9 +3,11 @@
 ## 1. Normalize scores
 
 A **probability distribution** assigns nonnegative probabilities summing to one. **Softmax** converts vocabulary logits to such a distribution:
+
 \[
 p_i=\frac{e^{z_i}}{\sum_{j=1}^{V}e^{z_j}}
 \]
+
 \(z_i\) is token i's logit; V is vocabulary size. Raising one logit relative to the others raises its probability. Adding the same constant to all logits changes nothing.
 
 ## 2. Calculate a small vocabulary
@@ -20,9 +22,11 @@ The final axis here indexes vocabulary choices.
 ## 3. Reward the observed target
 
 **Cross-entropy loss** is negative log probability of the observed target. For N scored tokens:
+
 \[
 L=-\frac1N\sum_{t=1}^{N}\log p_\theta(y_t\mid c_t)
 \]
+
 \(y_t\) is the target; \(c_t\) its allowed context; θ the parameters; log is natural logarithm. A loss is a scalar objective to minimize.
 
 **Likelihood** is the probability assigned to observed data viewed as a function of model parameters. Minimizing this negative log loss maximizes that likelihood on the scored targets.
@@ -31,14 +35,14 @@ Correct-token probability 0.5 gives loss about 0.693; 0.01 gives 4.605. Confiden
 
 ## 4. Connect loss to perplexity
 
-**Perplexity** is exp(L), the exponential of mean token cross-entropy. L=log 4 gives perplexity 4: an effective uncertainty, not a literal count of equally likely words at each position.
+**Perplexity** is exp(L). L=log 4 gives perplexity 4: effective prediction uncertainty, not four literal choices at every position.
 
-Compare on the same text, tokenizer, context policy, and scored positions. A tokenization change can change perplexity without improving the underlying text model.
+Compare with the same tokenizer, text, context policy, and scored positions.
 
 ## 5. Keep the training interface straight
 
-A standard cross-entropy implementation expects raw logits and integer target IDs; it computes stable log probabilities internally. Applying softmax first changes that interface.
+Standard hard-target cross-entropy takes raw logits and target IDs, computing stable log probabilities internally. Do not apply softmax first.
 
-Mean token loss can improve while rare factual answers worsen. Inspect task and language subsets as well as the average.
+Check task and language subsets: a better mean token loss can hide worse rare answers.
 
-For target token A, probabilities [0.8,0.2] incur less cross-entropy than [0.2,0.8]. The loss sees the probability assigned to the observed target, not whether a later sampled response happens to look convincing.
+> **Reason it through:** Correct-token probability doubles from 0.1 to 0.2. How does its negative log loss change?

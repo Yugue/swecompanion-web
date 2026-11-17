@@ -19,9 +19,11 @@ Do not normalize away meaningful signs, units, leading zeros in identifiers, or 
 ## 3. Understand token-overlap metrics
 
 **Precision** is the fraction of predicted items that are correct; **recall** is the fraction of required items recovered. For a token-overlap score, the items are defined tokens, not factual claims.
+
 \[
 F_1=\frac{2PR}{P+R}
 \]
+
 P is precision; R is recall. For P=0.5 and R=1, F₁=2/3. Define zero-denominator cases explicitly.
 
 ## 4. Recognize semantic gaps
@@ -32,14 +34,10 @@ P is precision; R is recall. For P=0.5 and R=1, F₁=2/3. Define zero-denominato
 
 ## 5. Check support claim by claim
 
-Break an answer into material claims. For each, locate a source span that supports its entity, time, and conditions. Check citation coverage as well as citation correctness.
-
-A long answer may cite one supported fact while leaving its conclusion unsupported. Do not score it as grounded merely because a link appears.
+For each material claim, locate a span supporting its entity, time, and conditions. Measure both citation coverage and citation correctness.
 
 ## 6. Diagnose with separate measures
 
-Report correctness, completeness, support, and formatting separately before forming a combined score. A single metric can hide why a system improved or failed.
+Report correctness, completeness, support, and formatting separately. Reward appropriately limited answers when evidence is missing.
 
-For missing evidence, reward an appropriate limited answer rather than forcing a fabricated complete response. Evaluate the policy for omission alongside answer accuracy.
-
-A response can cite the correct source yet state a fact the source does not support. Score correctness of the answer and support for its claims separately instead of awarding credit for citation presence alone.
+> **Reason it through:** An answer cites an outdated source faithfully. How can support and correctness receive different scores?

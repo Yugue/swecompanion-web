@@ -3,17 +3,14 @@
 import { useRef, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { ArrowRight, X } from "lucide-react";
-import { AnnualSavingsBadge, ProPrice } from "@/components/site/plan-pricing";
+import { PassSavingsBadge, ProPrice } from "@/components/site/plan-pricing";
 import { Button } from "@/components/ui/button";
 import { billingErrorMessage, startCheckout } from "@/lib/billing";
-import { PRICING, type BillingPlan } from "@shared/pricing";
+import { BILLING_PLANS, PRICING, type BillingPlan } from "@shared/pricing";
 
-const plans = [
-  { plan: "monthly", label: "Monthly" },
-  { plan: "yearly", label: "Annual" },
-] as const;
+const plans = BILLING_PLANS.map((plan) => ({ plan, label: PRICING[plan].label }));
 
-export function SubscribeDialog({ disabled, open, onOpenChange, className, label = "Subscribe" }: {
+export function SubscribeDialog({ disabled, open, onOpenChange, className, label = "Get Pro" }: {
   disabled: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -58,9 +55,9 @@ export function SubscribeDialog({ disabled, open, onOpenChange, className, label
           >
             <X className="size-4" />
           </Dialog.Close>
-          <Dialog.Title className="pr-8 text-xl font-medium">Subscribe to {PRICING.productName}</Dialog.Title>
+          <Dialog.Title className="pr-8 text-xl font-medium">Get {PRICING.productName}</Dialog.Title>
           <Dialog.Description className="mt-2 text-sm text-muted-foreground">
-            Choose monthly or annual billing.
+            Choose monthly Pro or pay once for three months.
           </Dialog.Description>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -69,9 +66,9 @@ export function SubscribeDialog({ disabled, open, onOpenChange, className, label
                 <div aria-hidden className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-brand-blue to-brand-cyan" />
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-mono text-xs tracking-widest text-brand-blue uppercase">{label}</h3>
-                  {plan === "yearly" && <AnnualSavingsBadge />}
+                  {plan === "threeMonthPass" && <PassSavingsBadge />}
                 </div>
-                <ProPrice annual={plan === "yearly"} />
+                <ProPrice plan={plan} />
                 <div className="mt-auto pt-4">
                   <Button className="h-11 w-full" disabled={busy} onClick={() => void checkout(plan)}>
                     {pendingPlan === plan ? "Opening checkout…" : `Choose ${label.toLowerCase()}`}
@@ -81,7 +78,7 @@ export function SubscribeDialog({ disabled, open, onOpenChange, className, label
               </div>
             ))}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">Prices in USD. Renews automatically until canceled.</p>
+          <p className="mt-4 text-xs text-muted-foreground">Prices in USD. Monthly renews until canceled. The pass does not renew.</p>
           {error && <p role="alert" className="mt-3 text-sm text-accent-red">{error}</p>}
         </Dialog.Popup>
       </Dialog.Portal>

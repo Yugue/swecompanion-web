@@ -20,7 +20,7 @@ test("paid active subscriptions grant access", () => {
   assert.equal(subscriptionSummary([subscription()]).subscribed, true);
 });
 
-test("both plans publish the trusted original billing anchor for monthly usage windows", () => {
+test("monthly and legacy annual subscriptions retain their original billing anchor", () => {
   for (const interval of ["month", "year"] as const) {
     const value = subscription({ billing_cycle_anchor: 123 });
     value.items.data[0].price.recurring!.interval = interval;

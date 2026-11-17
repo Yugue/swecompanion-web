@@ -2,15 +2,14 @@
 
 ## 1. Choose a next token
 
-**Decoding** selects output tokens from model probabilities. **Greedy decoding** chooses the highest-probability next token.
-
-Greedy choices are local. A first token with probability 0.6 followed by a 0.5 completion yields path probability 0.30; another first token with probability 0.4 and a 0.9 completion yields 0.36.
+**Decoding** selects output tokens. **Greedy decoding** takes the highest-probability next token at each step; that local choice need not start the best complete path.
 
 ## 2. Score a complete path
 
 \[
 \log P(y\mid x)=\sum_{t=1}^{T}\log P(y_t\mid x,y_{<t})
 \]
+
 x is the input; y a T-token candidate; y_<t its earlier tokens. A complete sequence includes stopping behavior, not merely its first plausible word.
 
 ```genai-visual
@@ -33,8 +32,6 @@ Length-normalized scoring can reduce short-output preference but changes the obj
 
 ## 5. Match search to the task
 
-Beam search can help structured sequence tasks with a useful sequence score. In open-ended writing, it may repeatedly select generic completions.
+Beam search suits tasks with useful sequence scores but can favor generic open-ended answers. Search improves its scoring objective, not necessarily factuality or usefulness.
 
-Search optimizes the supplied scoring rule. Higher model probability does not necessarily mean better factuality, usefulness, or diversity.
-
-A greedy answer can be consistently wrong while a sampled answer is occasionally right. Decoding changes the selection rule over a fixed model distribution; evaluate output reliability under the configuration users actually receive.
+> **Reason it through:** Why can a wider beam find a more probable sequence without finding a more useful answer?

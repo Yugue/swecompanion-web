@@ -10,7 +10,7 @@
 policy-loop
 ```
 
-The model samples a continuation; feedback scores what happened; a training update changes the policy. Rewards can arrive only after a complete answer even though many token choices contributed to it.
+Sample a continuation → score its outcome → update the policy. A delayed reward must influence the earlier token choices that produced it.
 
 ## 3. Define return and advantage
 
@@ -20,9 +20,9 @@ If the return is zero with the same 0.4 baseline, advantage is −0.4 instead. T
 
 ## 4. See the update direction
 
-A basic policy-gradient estimate weights the gradient of sampled-action log probability by advantage. Positive advantage encourages those actions; negative advantage discourages them, averaged over samples.
+A policy-gradient estimate weights sampled-action log-probability gradients by advantage. Positive advantage encourages those choices; negative advantage discourages them, averaged over samples.
 
-The signal attributes outcome feedback to choices without requiring a correct target token at every position. Noisy or incomplete rewards can reinforce the wrong behavior.
+This supplies feedback without a correct target token at every step. Bad rewards can reinforce bad behavior.
 
 ## 5. Contrast supervised and reward learning
 
@@ -34,4 +34,4 @@ The signal attributes outcome feedback to choices without requiring a correct ta
 
 **Exploration** means sampling behavior that can reveal better outcomes. A model that never tries a useful alternative cannot learn its advantage from outcome feedback alone.
 
-If reward is issued only after a complete response, many token decisions share that delayed signal. Assigning credit among them requires a learning estimator; calling each token an action does not solve credit assignment.
+> **Reason it through:** A response earns positive reward but less than its baseline. What update direction does its advantage suggest?

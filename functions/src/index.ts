@@ -5,11 +5,14 @@ import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { defineSecret, defineString } from "firebase-functions/params";
 import { setGlobalOptions } from "firebase-functions/v2";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import { HttpsError, onCall, onRequest, type CallableRequest } from "firebase-functions/v2/https";
 import Stripe from "stripe";
 import { PRICING, isBillingPlan, priceLookupKey, type BillingPlan } from "./shared/pricing";
 import type { InvoicePage, SubscriptionSummary } from "./shared/billing";
 import { isOurSubscription, subscriptionSummary } from "./subscriptions";
+import { checkoutPlanOptions, matchesCatalogPrice } from "./catalog";
+import { paidPass, passSummary, type PassEntitlement } from "./passes";
 import { privateBillingRef, saveSubscription, stripeCustomerRef, stripeEventRef } from "./store";
 
 initializeApp();
@@ -121,9 +124,39 @@ async function subscriptionsFor(stripe: Stripe, customerId: string): Promise<Str
   return subscriptions;
 }
 
+/** Recover from a missed webhook using the last server-created checkout. Replays never extend access. */
+async function reconcilePass(uid: string, stripe: Stripe, customerId: string): Promise<PassEntitlement | null> {
+  const ref = privateBillingRef(uid);
+  const record = await ref.get();
+  const prior = record.get("pass") as PassEntitlement | undefined;
+  if (record.get("checkoutPlan") !== "threeMonthPass" || !record.get("checkoutId")) return prior ?? null;
+  const session = await stripe.checkout.sessions.retrieve(record.get("checkoutId") as string);
+  if (session.status !== "complete" || session.payment_status !== "paid") return prior ?? null;
+  const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 2 });
+  const intentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
+  const intent = intentId ? await stripe.paymentIntents.retrieve(intentId, { expand: ["latest_charge"] }) : null;
+  let charge = intent?.latest_charge && typeof intent.latest_charge !== "string" ? intent.latest_charge : null;
+  if (charge?.disputed) {
+    const disputes = await stripe.disputes.list({ charge: charge.id, limit: 100 });
+    // A won/closed inquiry must not permanently revoke a paid pass.
+    const blocked = disputes.has_more || disputes.data.length === 0 || disputes.data.some((dispute) =>
+      !["won", "warning_closed"].includes(dispute.status));
+    charge = { ...charge, disputed: blocked };
+  }
+  const pass = paidPass({
+    checkoutId: record.get("checkoutId"), priceId: record.get("checkoutPrice"), customerId, uid,
+    amount: record.get("checkoutAmount"), currency: record.get("checkoutCurrency"), months: record.get("checkoutMonths"),
+  }, session, items.has_more ? [] : items.data, charge);
+  if (!pass) throw new Error("Invalid paid pass");
+  await ref.set({ pass }, { merge: true });
+  return pass;
+}
+
 async function syncSubscription(uid: string, stripe: Stripe, customerId: string): Promise<SubscriptionSummary> {
   // Read current state rather than trusting the event snapshot: delivery order is not guaranteed.
-  const summary = subscriptionSummary(await subscriptionsFor(stripe, customerId));
+  const recurring = subscriptionSummary(await subscriptionsFor(stripe, customerId));
+  const pass = await reconcilePass(uid, stripe, customerId);
+  const summary = recurring.subscribed || !pass ? recurring : passSummary(pass);
   const user = await adminAuth.getUser(uid);
   const prior = user.customClaims ?? {};
   const claimsVersion = randomUUID();
@@ -137,10 +170,7 @@ async function syncSubscription(uid: string, stripe: Stripe, customerId: string)
 async function catalogPrice(stripe: Stripe, plan: BillingPlan): Promise<Stripe.Price> {
   const prices = await stripe.prices.list({ active: true, lookup_keys: [priceLookupKey(plan)], limit: 1 });
   const price = prices.data[0];
-  const expected = PRICING[plan];
-  if (!price || price.livemode || price.product !== PRICING.productId ||
-    price.unit_amount !== expected.amount || price.currency !== PRICING.currency ||
-    price.recurring?.interval !== expected.interval || price.recurring.interval_count !== 1) {
+  if (!matchesCatalogPrice(price, plan)) {
     throw new HttpsError("failed-precondition", "Subscriptions are temporarily unavailable. Please try again later.");
   }
   return price;
@@ -158,6 +188,8 @@ export const createCheckout = safeCall(async (request) => {
     if (subscriptions.some((subscription) => !["canceled", "incomplete_expired"].includes(subscription.status))) {
       throw new HttpsError("already-exists", "You already have a subscription. Manage it in your account.");
     }
+    const membership = await syncSubscription(uid, stripe, customerId);
+    if (membership.subscribed) throw new HttpsError("already-exists", "You already have Pro access. Manage it in your account.");
     const price = await catalogPrice(stripe, plan);
     const ref = privateBillingRef(uid);
     const existing = await ref.get();
@@ -183,18 +215,18 @@ export const createCheckout = safeCall(async (request) => {
       ? pending : { id: randomUUID(), plan, priceId: price.id, returnUrl, createdAt: Date.now() };
     await ref.set({ pendingCheckout: attempt }, { merge: true });
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      ...checkoutPlanOptions(plan, uid),
       customer: customerId,
       client_reference_id: uid,
       line_items: [{ price: price.id, quantity: 1 }],
       payment_method_types: ["card"],
       adaptive_pricing: { enabled: false },
-      subscription_data: { metadata: { firebaseUID: uid, application: "swecompanion" } },
-      metadata: { firebaseUID: uid },
+      metadata: { firebaseUID: uid, plan },
       success_url: `${returnUrl}?checkout=success`,
       cancel_url: `${returnUrl}?checkout=canceled`,
     }, { idempotencyKey: `checkout:${uid}:${attempt.id}` });
-    await ref.set({ checkoutId: session.id, checkoutPlan: plan, checkoutPrice: price.id, checkoutReturnUrl: returnUrl, pendingCheckout: FieldValue.delete() }, { merge: true });
+    await ref.set({ checkoutId: session.id, checkoutPlan: plan, checkoutPrice: price.id, checkoutAmount: PRICING[plan].amount, checkoutCurrency: PRICING.currency,
+      checkoutMonths: PRICING[plan].months, checkoutReturnUrl: returnUrl, pendingCheckout: FieldValue.delete() }, { merge: true });
     if (!session.url) throw new Error("Missing checkout URL");
     return { url: session.url };
   });
@@ -263,9 +295,16 @@ export const stripeWebhook = onRequest({ secrets: [stripeSecret, webhookSecret],
     "checkout.session.completed", "checkout.session.async_payment_succeeded", "checkout.session.async_payment_failed",
     "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted",
     "customer.subscription.paused", "customer.subscription.resumed", "invoice.paid", "invoice.payment_failed",
+    "charge.refunded", "charge.dispute.created", "charge.dispute.closed",
   ]);
   if (!supported.has(event.type)) { response.sendStatus(200); return; }
-  const object = event.data.object as { customer?: string | { id: string } | null };
+  let object = event.data.object as { customer?: string | { id: string } | null };
+  if (event.type.startsWith("charge.dispute.")) {
+    const dispute = event.data.object as Stripe.Dispute;
+    const chargeId = typeof dispute.charge === "string" ? dispute.charge : dispute.charge.id;
+    try { object = await stripe.charges.retrieve(chargeId); }
+    catch { response.status(500).send("Please retry"); return; }
+  }
   const customerId = typeof object.customer === "string" ? object.customer : object.customer?.id;
   if (!customerId) { response.sendStatus(200); return; }
   try {
@@ -283,5 +322,28 @@ export const stripeWebhook = onRequest({ secrets: [stripeSecret, webhookSecret],
   } catch {
     logger.error("Subscription event failed", { eventId: event.id, type: event.type });
     response.status(500).send("Please retry");
+  }
+});
+
+/** Core API requests enforce currentPeriodEnd exactly; this also clears expired UI/claims. */
+export const expirePasses = onSchedule({
+  schedule: "every 60 minutes", secrets: [stripeSecret], retryCount: 3,
+}, async () => {
+  const stripe = stripeClient();
+  let cursor: FirebaseFirestore.QueryDocumentSnapshot | undefined;
+  while (true) {
+    let query = db.collection("users").where("subscription.plan", "==", "threeMonthPass").orderBy("__name__").limit(200);
+    if (cursor) query = query.startAfter(cursor);
+    const page = await query.get();
+    for (const snapshot of page.docs) {
+      const summary = snapshot.get("subscription") as SubscriptionSummary;
+      if (!summary.subscribed || (summary.currentPeriodEnd ?? 0) * 1000 > Date.now()) continue;
+      await withAccountLock(snapshot.id, async () => {
+        const customerId = await customerFor(snapshot.id, stripe);
+        if (customerId) await syncSubscription(snapshot.id, stripe, customerId);
+      });
+    }
+    if (page.size < 200) break;
+    cursor = page.docs.at(-1);
   }
 });

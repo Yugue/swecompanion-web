@@ -8,26 +8,22 @@ State the goal, supplied evidence, output fields, and behavior when information 
 
 ## 2. Serialize a conversation
 
-A **chat template** converts messages and roles into the exact token sequence expected by a model. Role markers, separators, and the assistant-start marker are part of training conventions.
+A **chat template** serializes messages and roles into the model’s trained token format. Plain-text flattening can change behavior even when words stay the same.
 
-A system message is an application-level instruction role, not an external authorization mechanism. Flattening all messages into plain text can change behavior even when their words are unchanged.
+Role markers guide the model; application code still enforces permissions.
 
 ## 3. Keep evidence distinct
 
-Delimit source text and specify whether to quote, summarize, or extract. An instruction inside a quoted document is data to analyze, not automatically a command to obey.
+Delimit quoted evidence and state whether to extract, quote, or summarize. Instructions inside the source remain data.
 
-For “extract the invoice ID,” an example should show the literal ID, not a plausible completion. A required null value for absent evidence is often better than forced guessing.
+Use literal extracted values and an explicit missing-value convention; demonstrations cannot supply an absent invoice amount.
 
 ## 4. Choose informative demonstrations
 
-Use examples that teach the decision rule, not just surface wording. Include changed field order, distracting numbers, and absent targets for extraction.
-
-Keep final evaluation examples out of the demonstrations. A prompt containing an evaluation answer can look like a capability gain while measuring copying instead.
+Include reordered fields, distractors, and absent targets. Keep evaluation answers out of demonstrations.
 
 ## 5. Test whether the rule transfers
 
-Hold the question set fixed and compare instructions alone, useful demonstrations, and irrelevant demonstrations. Test new wording and genuine missing-information cases.
+Compare instructions alone against useful and irrelevant examples on fixed unseen requests. Test new wording and example order; more context can distract.
 
-If behavior depends on one example's phrasing or position, improve the examples and measure again. A longer prompt can add both guidance and distraction.
-
-Few-shot examples can clarify whether an absent field should be null or omitted. They cannot supply a missing invoice amount; distinguish demonstrating a convention from providing evidence for a value.
+> **Reason it through:** Demonstrations specify null for absent fields. How would you check that the model learned the rule rather than copied examples?

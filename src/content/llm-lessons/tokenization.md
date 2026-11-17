@@ -2,9 +2,9 @@
 
 ## 1. Choose model units
 
-A **tokenizer** splits text into model units called **tokens** and maps them to integer IDs in a **vocabulary**, the finite inventory of allowed tokens. Tokens can be words, characters, bytes, or subword fragments.
+A **tokenizer** maps text pieces (**tokens**) to IDs in a **vocabulary**, its allowed inventory. Pieces may be words, subwords, characters, or bytes.
 
-An ID is an address in a table. Token 100 is not semantically twice token 50.
+An ID is a table address, not a numerical measure of meaning.
 
 ## 2. Use subwords
 
@@ -18,26 +18,26 @@ subwords
 
 ## 3. Distinguish other schemes
 
-**WordPiece** typically encodes left to right using the longest matching vocabulary piece. A **Unigram tokenizer** uses learned piece probabilities to choose a likely segmentation.
+**WordPiece** usually selects the longest matching piece from left to right. A **Unigram tokenizer** chooses a segmentation using learned piece probabilities.
 
-Tokenizer training fits pieces and their rules. Encoding new text applies those fixed rules; it does not relearn merges for each prompt.
+Encoding applies the fitted vocabulary and rules; it does not retrain them per prompt.
 
 ## 4. Balance vocabulary and length
 
-A larger vocabulary may shorten common sequences but enlarge the vocabulary-indexed parameter tables. Smaller units improve coverage while increasing sequence length and computation.
+Larger vocabulary → potentially shorter sequences, larger vocabulary-indexed parameter tables. Smaller units → broader coverage, longer sequences.
 
-Byte-level coverage avoids many unknown-character problems, but unfamiliar scripts can require many more tokens per word.
+Byte coverage avoids many unknown characters but can make unfamiliar scripts expensive in tokens.
 
 ## 5. Handle boundaries explicitly
 
-**Special tokens** mark structural information such as sequence boundaries, padding, or chat roles. Their IDs and interpretation are part of the trained model’s input contract.
+**Special tokens** mark boundaries, padding, or chat roles. Their IDs must match the model’s training contract.
 
-Changing tokenizer settings without matching model weights changes which vectors text selects.
+Changing tokenizer IDs without matching weights selects the wrong learned vectors.
 
 ## 6. Measure the actual workload
 
-Count tokens on representative languages, code, and formatting. Character count alone is a weak proxy for context usage and generation cost.
+Count tokens on representative languages and code; characters are a weak cost proxy.
 
-**Text normalization** transforms text before encoding, for example by changing case or Unicode forms. It can erase meaningful distinctions. Preserve originals when exact characters or source offsets matter.
+**Text normalization** changes case or Unicode forms before encoding. Preserve originals when exact characters or source offsets matter.
 
-A tokenizer change can turn one identifier into several pieces and assign different IDs. Even if the decoded text looks unchanged, the model receives a different input sequence; tokenizer compatibility is part of model identity.
+> **Reason it through:** A tokenizer update preserves displayed text but changes IDs. Why can the old model now behave differently?

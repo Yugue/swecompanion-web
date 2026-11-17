@@ -10,23 +10,23 @@
 rag-stages
 ```
 
-Keep qualifications with the claims they modify. Duplicated chunks can consume the evidence budget without adding coverage. Filter access before exposing text to the model or user.
+Retrieve authorized evidence, select context, generate, then check support. Access filtering must happen before exposing text to the model or user.
 
 ## 3. Construct useful context
 
-Select passages that jointly cover the answer, preserve entity/date qualifiers, and fit the token budget. Near-duplicate results can crowd out a necessary second source.
+Preserve entity/date qualifiers and cover all required facts within the token budget. Duplicates can crowd out a necessary second source.
 
 ```genai-visual
 chunk-boundaries
 ```
 
-Store source IDs with evidence so generated citations can resolve to the exact passages used.
+Retain source IDs so citations resolve to the supplied passages.
 
 ## 4. Require support
 
-**Faithfulness** means generated claims are supported by the supplied evidence. **Answer correctness** asks whether the answer is right for the task. They can diverge if the evidence itself is outdated.
+**Faithfulness** means support in supplied evidence; **answer correctness** means the right task result. Outdated evidence can make them diverge.
 
-A citation’s presence does not establish support. Check the cited span, entity, date, and qualification. Conflicting evidence may require an explicit uncertainty statement.
+Validate cited spans, entities, dates, and qualifications. Citation presence alone earns no support credit.
 
 ## 5. Locate the failure
 
@@ -34,4 +34,4 @@ Provide verified evidence directly: if the answer improves, inspect retrieval, c
 
 **Oracle evidence** is an ideal or manually verified evidence set used diagnostically. It estimates what better retrieval could enable; it is not a production retrieval method.
 
-Finding a relevant document is not enough if the needed clause is outside the supplied chunk. Trace the answer through document selection, passage selection, and claim support to locate the missing evidence.
+> **Reason it through:** Verified context fixes an answer that ordinary retrieval gets wrong. Which pipeline stages remain plausible causes?

@@ -2,15 +2,13 @@
 
 ## 1. Separate exposure routes
 
-**Memorization** is retention of training-specific information that can be reproduced. A system can also expose private information from retrieved documents, conversation history, tools, or logs.
-
-A copied passage does not by itself identify the route. Inspect the actual context and data lineage before concluding that it came from model weights.
+**Memorization** retains reproducible training-specific information. Exposure can also come from retrieval, history, tools, or logs. Inspect actual context before blaming weights.
 
 ## 2. Test sensitive recall
 
-**Extraction attacks** try to elicit sensitive or training-specific content. A **membership inference** attack tries to determine whether an example was used in training.
+**Extraction attacks** seek reproduced content; **membership inference** estimates whether an example was in training.
 
-Evaluate with authorized test data, including synthetic sensitive markers where useful. Absence of one memorized phrase is not proof that all private data is protected.
+Use authorized test data. Failure to extract one phrase does not establish general protection.
 
 ## 3. Limit collection and access
 
@@ -26,8 +24,6 @@ Removing a document from an index prevents future retrieval through that index, 
 
 ## 5. Verify the actual boundary
 
-Test the route you intended to close: direct retrieval, cached context, tool access, logs, and model-only generation require different probes.
+Probe retrieval, caches, tools, logs, and model-only generation separately. A refusal on one query does not prove data removal.
 
-Keep authorization and data minimization in the application as well as its model-facing prompt. A model refusing one tested query does not prove that the underlying data is absent.
-
-Removing one training document does not establish that a deployed model no longer reproduces its content. Test the relevant exposure routes and distinguish dataset deletion from verified behavior of the resulting model.
+> **Reason it through:** A deleted document is still reproduced. How would you distinguish stored context from memorization in weights?

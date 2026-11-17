@@ -9,19 +9,19 @@ import { PRICING, formatPrice } from '@shared/pricing'
 const faqs = [
   {
     q: 'Is it really invisible on a screen share?',
-    a: 'Yes. The overlay renders on a compositing layer that is excluded from the capture stream at the OS level — so it never appears in screen sharing, screenshots, or recordings. You can verify it yourself for free before subscribing.',
+    a: 'The native overlay requests restricted window sharing. Capture behavior varies by macOS version and sharing app, so verify your setup with the free app before relying on it. The landing-page animation illustrates the intended behavior.',
   },
   {
     q: 'Do I need a subscription to download it?',
-    a: 'No. The app is free to download and install. You can open it, run it, and confirm the invisibility on your own machine. A Pro subscription unlocks AI-powered solutions.',
+    a: 'No. Download the app free, explore the bundled example answers, and test screen-share behavior on your own Mac. Pro unlocks AI-powered solutions for your own problems.',
   },
   {
-    q: 'What does the subscription cost?',
-    a: `Pro is ${formatPrice(PRICING.monthly.amount)} USD per month, or ${formatPrice(PRICING.yearly.amount / PRICING.yearly.months)} USD per month billed annually at ${formatPrice(PRICING.yearly.amount)} USD. You can cancel anytime, and the app keeps working through the end of your billing period.`,
+    q: 'What does Pro cost?',
+    a: `Pro is ${formatPrice(PRICING.monthly.amount)} USD per month, renewing until canceled. Or pay ${formatPrice(PRICING.threeMonthPass.amount)} USD once for three months of Pro, with no automatic renewal. Both include the same Pro features and monthly usage limits.`,
   },
   {
     q: 'What kinds of problems does it handle?',
-    a: 'Data-structure and algorithm problems, debugging your own code, and system-design questions — including reviewing architecture diagrams for bottlenecks and scaling gaps.',
+    a: 'Coding problems, debugging and optimization, system design, and ML system design. Coding answers include the approach, code, and complexity. Design answers include the key decisions and a rendered architecture diagram.',
   },
   {
     q: 'Does it type or move my cursor?',

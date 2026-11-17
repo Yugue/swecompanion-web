@@ -1,9 +1,9 @@
-import type { BillingPlan } from "./pricing";
+import type { MembershipPlan } from "./pricing";
 
 export interface SubscriptionSummary {
   subscribed: boolean;
   status: "none" | "active" | "past_due" | "canceled" | "incomplete" | "unpaid" | "paused" | "trialing" | "incomplete_expired";
-  plan: BillingPlan | null;
+  plan: MembershipPlan | null;
   currentPeriodEnd: number | null;
   billingCycleAnchor: number | null;
   cancelAtPeriodEnd: boolean;

@@ -28,6 +28,7 @@ const quizzes = JSON.parse(fs.readFileSync("src/content/ml-quizzes.json", "utf8"
 assert.deepEqual(Object.keys(quizzes).filter(k => k.startsWith("llm-")).sort(), llmParts.map(p => `llm-${p.id}`).sort());
 const quizText: string[] = [], passages = new Map<string, string>(), usedVisuals = new Set<string>(), counts: number[] = [];
 const teaching: { id: string; text: string }[] = [];
+const closingPrompts = new Set<string>();
 let sections = 0, tables = 0, formulas = 0, figures = 0;
 function htmlAt(url: string) { return fs.readFileSync(`out${url}.html`, "utf8"); }
 for (const [pi, part] of llmParts.entries()) {
@@ -41,6 +42,12 @@ for (const [pi, part] of llmParts.entries()) {
     assert.ok(topic.summary && topic.interviewPrompt); assert.ok(topic.summary.split(/\s+/).length <= 35);
     const source = fs.readFileSync(`src/content/llm-lessons/${topic.id}.md`, "utf8");
     assert.ok(source.startsWith(`# ${topic.title}\n`));
+    const closing = source.trim().match(/> \*\*Reason it through:\*\* (.+\?)$/);
+    assert.ok(closing, `Missing closing reasoning prompt: ${topic.id}`);
+    assert.equal((source.match(/Reason it through:/g) ?? []).length, 1, topic.id);
+    assert.ok(!closingPrompts.has(closing[1]), `Repeated closing prompt: ${topic.id}`);
+    assert.notEqual(closing[1], topic.interviewPrompt, `Closing prompt repeats overview: ${topic.id}`);
+    closingPrompts.add(closing[1]);
     assert.doesNotMatch(source, /TODO|TBD|Builds on|Further reading|Interview reasoning|\/mldomain\/(?:genai|nlp|deeplearning|cv)/i);
     assert.equal((source.match(/^```/gm) ?? []).length % 2, 0);
     assert.equal((source.match(/^\\\[$/gm) ?? []).length, (source.match(/^\\\]$/gm) ?? []).length);
@@ -67,6 +74,7 @@ for (const [pi, part] of llmParts.entries()) {
       const html = htmlAt(`${LLM_PATH}/${topic.id}`);
       assert.ok(html.includes("INTERVIEW-READY OVERVIEW") && html.includes("Interview probe:") && html.includes("FULL LESSON"));
       assert.ok(!html.includes("katex-error"));
+      assert.ok(html.includes("Reason it through:"), `Closing prompt not rendered: ${topic.id}`);
       const canonical = html.match(/<link rel="canonical" href="([^"]+)"/); assert.ok(canonical); assert.equal(new URL(canonical[1]).pathname, `${LLM_PATH}/${topic.id}`);
       const ld = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/); assert.ok(ld); assert.equal(JSON.parse(ld[1]).name, topic.title);
       for (const block of blocks.filter(b => ["llm-visual", "genai-visual"].includes(b.type))) assert.ok(html.includes(`data-${block.type === "llm-visual" ? "llm" : "genai"}-visual="${block.text}"`) && html.includes('role="img"'));

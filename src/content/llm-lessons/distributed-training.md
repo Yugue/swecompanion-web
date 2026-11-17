@@ -3,9 +3,11 @@
 ## 1. Replicate across examples
 
 **Data parallelism** runs model replicas on different examples, then combines gradients, typically by a collective sum or average across replicas. **Gradient accumulation** processes multiple smaller batches before one optimizer update.
+
 \[
 B_{global}=bKR
 \]
+
 b is local batch size; K is accumulation steps; R is replica count. For b=2, K=4, R=8, the effective batch is 64 sequences, assuming equal batch sizes and correct loss normalization.
 
 ## 2. Divide state or computation
@@ -26,14 +28,14 @@ For four workers, evenly sharding 8 GB of optimizer moments ideally stores 2 GB 
 
 ## 4. Expose communication costs
 
-Data-parallel workers combine gradients; tensor-parallel layers exchange partial results; pipeline stages pass activations and backward signals.
+Data parallelism combines gradients; tensor parallelism exchanges partial layer results; pipeline stages exchange activations and backward signals.
 
-Small batches can leave pipeline stages idle. Fast matrix multiplication cannot hide every synchronization delay. Measure useful computation and communication separately.
+Small batches can leave pipeline stages idle. Profile communication separately from arithmetic.
 
 ## 5. Match the bottleneck
 
-If replicated optimizer state dominates, test state sharding. If one layer cannot fit, tensor parallelism may help; if layer groups can be placed separately, consider pipelining.
+Try sharding for replicated state, tensor parallelism for oversized layers, and pipelining for layer groups.
 
-More devices do not guarantee a faster or cheaper run. Check global batch size, token weighting, peak memory, and actual elapsed time after changing the distribution.
+After changing devices, verify global batch size, token weighting, peak memory, and elapsed time. More devices need not be faster.
 
-Two workers averaging their mean losses equally represent a global sample mean only when their effective supervised counts match. Variable-length masking can make equal batch sizes carry unequal numbers of target tokens.
+> **Reason it through:** If one layer is too large for a device, how do tensor parallelism and ordinary data parallelism differ?

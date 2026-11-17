@@ -17,11 +17,11 @@ export function Cta() {
           />
           <div className="relative mx-auto max-w-xl">
             <h2 className="text-balance text-3xl font-medium tracking-tight text-foreground md:text-4xl">
-              Install it free. See it vanish for yourself.
+              See the answers. Try the app free.
             </h2>
             <p className="mx-auto mt-4 max-w-md text-pretty leading-relaxed text-muted-foreground">
-              Download the macOS app, run your own screen share, and watch the
-              overlay disappear. Subscribe only when you are convinced.
+              Explore example answers in every interview mode.
+              Test it on your Mac, then upgrade when you are ready.
             </p>
 
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">

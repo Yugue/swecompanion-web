@@ -14,24 +14,16 @@ For 60 wins, 20 losses, and 20 ties, excluding ties gives 60/80=75%; awarding ha
 
 ## 3. Control presentation bias
 
-Hide model identity, randomize response order, and repeat selected comparisons with the order swapped. Keep formatting equivalent where formatting is not the criterion.
-
-**Position bias** favors an answer because it appears first or last. **Verbosity bias** favors length independently of useful content.
+Hide model identity and swap candidate order. **Position bias** favors placement; **verbosity bias** favors length independent of useful content.
 
 ## 4. Use model judges cautiously
 
-A **model judge** is a model prompted or trained to assess outputs. It can scale evaluation, but may share blind spots with the model being judged.
+A **model judge** assesses outputs using a task, evidence, and rubric. It can share the candidate model’s blind spots.
 
-Supply the task, evidence, rubric, and accepted alternatives. Ask for criterion-level scores rather than only a vague overall preference.
-
-Use deterministic checks for verifiable properties and human review for ambiguous or consequential cases. A judge's persuasive explanation is not proof that its score is correct.
-
-Version the judge model and prompt. A judge update can move reported quality even when the candidate system has not changed.
+Use deterministic checks where possible, humans for ambiguous cases, and criterion-level scores. Version the judge and prompt.
 
 ## 5. Validate the evaluator
 
-Compare judge decisions against an independently labeled set, including concise correct answers, polished wrong ones, missing evidence, and adversarial text inside candidates.
+Compare with independent labels on concise correct answers, polished wrong ones, missing evidence, and adversarial candidate text. Inspect disagreements by error type.
 
-Inspect disagreement by error type. Agreement on easy examples can conceal failure on the rare cases that matter most.
-
-If a judge sees system A first every time, order preference can masquerade as quality. Shuffle presentation and use known comparisons to measure whether its judgments track the intended rubric.
+> **Reason it through:** Swapping candidate order reverses a judge’s preference. What does that imply about the reported model comparison?

@@ -2,9 +2,9 @@
 
 ## 1. Define success before scoring
 
-An **evaluation** measures behavior against a stated goal. Define expected answers, accepted alternatives, evidence requirements, and severity of errors before comparing models.
+An **evaluation** measures a stated goal. Fix accepted answers, evidence requirements, and error severity before comparing systems.
 
-A benchmark is a fixed collection of evaluation tasks. Performance on it is evidence about those tasks, not a guarantee of general intelligence or interview readiness.
+A **benchmark** is a fixed task collection, not a guarantee of broader competence.
 
 ## 2. Separate measurement levels
 
@@ -19,9 +19,9 @@ Track the level corresponding to the product goal.
 
 ## 3. Construct independent cases
 
-Use representative requests plus difficult and safety-relevant cases. Keep the final test independent of prompts, training, and tuning decisions.
+Use representative, difficult, and safety-relevant requests independent of training and tuning.
 
-A **slice** is a meaningful subset, such as a language, task type, or account category. Include enough cases to identify important regressions rather than relying only on the aggregate.
+A **slice** is a subset such as language or task type. Report important regressions separately from the aggregate.
 
 ## 4. Compare on the same examples
 
@@ -31,12 +31,8 @@ A **confidence interval** describes uncertainty in an estimated statistic under 
 
 ## 5. Include generation variability
 
-For stochastic settings, repeat samples on selected cases and record the sampling configuration. Distinguish single-attempt accuracy from accuracy after retries or candidate selection.
+Separate single-attempt results from retries or candidate selection; repeat stochastic cases where needed.
 
-Keep tool, corpus, template, and model versions alongside results. Otherwise a model comparison can accidentally measure a changed retrieval index.
+Version the model, template, corpus, and tools. Set quality-by-slice, latency, and cost thresholds; keep the final test untouched during development.
 
-Choose minimum quality by important slice plus latency and cost limits. Do not offset a serious authorization failure with improvements on easy formatting tasks.
-
-Use offline results to qualify a candidate, then monitor real task outcomes under an appropriate rollout. Record failures for a separate development set without silently rewriting the final test.
-
-If development examples repeatedly influence prompts, they no longer provide independent final evidence. Reserve fresh tasks or an untouched test set and retain the evaluation procedure used for each comparison.
+> **Reason it through:** A model gains four net successes but introduces eight regressions. What should the release comparison show?

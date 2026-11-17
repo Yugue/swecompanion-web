@@ -4,9 +4,9 @@ The static Next.js website uses Firebase Authentication (email/password and Goog
 
 ## One pricing definition
 
-`functions/src/shared/pricing.ts` is imported by the frontend, backend, and catalog synchronization script. It defines USD 299 monthly and USD 2,988 yearly (USD 249/month). Amounts are integer cents. The public product ID is `swecompanion_pro`. Lookup keys include the interval, currency, and amount.
+`functions/src/shared/pricing.ts` is imported by the frontend, backend, and catalog synchronization script. Enter each plan amount in integer cents. Current offers are USD 149/month (recurring) and USD 349 once for three calendar months (no renewal). The website derives the pass savings from those amounts. Annual billing is no longer purchasable; existing subscriptions keep their agreed price and access. The public product ID is `swecompanion_pro`. Lookup keys include the interval, currency, and amount.
 
-To change prices, edit that file, run `npm run billing:sync` with the sandbox `STRIPE_SECRET_KEY` in the environment, and deploy both the functions and website from the same version. The script creates immutable prices, selects the monthly default, and updates the portal choices using `STRIPE_PORTAL_CONFIGURATION_ID` in `functions/.env.swecompanion`. Existing subscriptions retain their agreed price. Old prices are not deleted.
+To change prices, edit that file, run `npm run billing:sync` with the sandbox `STRIPE_SECRET_KEY` in the environment, and deploy both the functions and website from the same version. The script creates immutable prices, selects the monthly default, retires old purchase prices and open Checkout links, and disables portal plan switching using `STRIPE_PORTAL_CONFIGURATION_ID` in `functions/.env.swecompanion`. Existing subscriptions retain their agreed price. Old prices are not deleted.
 
 ## Configuration and deployment
 
@@ -23,8 +23,9 @@ The sandbox webhook URL is `https://us-central1-swecompanion.cloudfunctions.net/
 - `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`
 - `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`
 - `invoice.paid`, `invoice.payment_failed`
+- `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed`
 
-Configure the portal for invoice history, payment-method updates, cancellation at the period end, and monthly/yearly price changes with prorations. The current sandbox account is `acct_1UXmDDAM0OhRYdVT`; its portal configuration is `bpc_1UXmUVAM0OhRYdVTZTk2wQ8Z`.
+Configure the portal for invoice history, payment-method updates, and cancellation at the period end. Catalog sync disables subscription plan switching so annual prices cannot be selected. A pass is a separate one-time purchase, not a subscription swap. The current sandbox account is `acct_1UXmDDAM0OhRYdVT`; its portal configuration is `bpc_1UXmUVAM0OhRYdVTZTk2wQ8Z`.
 
 ## Access and lifecycle
 
@@ -32,13 +33,17 @@ Authenticated callable functions derive the user ID from the validated token. Br
 
 The signed webhook validates the raw request body and sandbox mode, resolves the customer through server-only mappings, retrieves current subscription state to handle out-of-order delivery, and ignores already processed event IDs. It merges `subscribed` into existing custom claims. Only an active subscription for our product grants access; incomplete, unpaid, overdue, paused, expired, and canceled subscriptions do not. No trial is offered. Cancellation at the period end keeps the status active and access enabled until cancellation takes effect.
 
+The three-month pass uses Checkout `mode=payment`, with a one-time Stripe Price and a paid invoice. Access starts at the successful charge timestamp and ends three calendar months later (month ends clamp to the last valid day). The server validates the customer, user, checkout ID, Price, amount, currency, quantity, paid status, and Charge/PaymentIntent before granting access. The expected price and duration are stored privately when creating Checkout, preserving already purchased passes across future price changes. Webhooks and account refresh both reconcile the last server-created Checkout, so duplicate or delayed events never extend access. A full refund or unresolved/lost dispute revokes the pass; a won dispute restores access only until its original expiry.
+
+The Core API already checks the trusted `currentPeriodEnd` on every request, so access ends exactly on expiry even if a token is stale. Deploy the `expirePasses` scheduled billing function as well: it runs hourly to clear expired membership summaries and claims. It needs no composite index and creates no recurring Stripe charge. Both plans keep the existing monthly AI usage limits.
+
 `users/{uid}` holds the owner-readable profile and server-owned `subscription` summary. Clients can edit only profile fields; they cannot change subscription access. `users/{uid}/private/billing` holds the Stripe customer mapping, checkout attempts and lock. The shared backend uses `users/{uid}/private/rateLimits` for the 60-per-minute AI limit and the separate 10-per-minute desktop-login limit. `system/stripe/customers/{customerId}` is the reverse lookup and `system/stripe/events/{eventId}` holds webhook receipts. Private documents and everything under `system` deny all browser access. Quiz content ships with the website; there is no Firestore quiz collection.
 
 After claims update, the billing listener forces an ID-token refresh. The account page also reconciles current billing state when opened or returned from Checkout; the return query alone never grants access. Password changes require reauthentication with the current password. Password-reset confirmations do not disclose whether an account exists.
 
 The subscription summary also publishes Stripe's trusted `billingCycleAnchor`. The AI backend uses it for monthly usage windows for both billing plans; it retains the first usage anchor across plan changes. Private usage counters are not exposed to browsers. See [Firestore schema](firestore-schema.md#ai-request-boundaries) for the request caps, atomic deductions and deadlines.
 
-Authentication uses dedicated `/login`, `/signup`, and `/forgot-password` pages. Existing signed-in users visiting login or signup are redirected to their validated return destination when supplied, or home otherwise. Navigation preserves the upgrade request through login, signup, Google authentication, and password reset. After authentication, `/account?upgrade=true` (or the existing `upgrade=monthly` / `upgrade=yearly` links) opens the pricing modal automatically for eligible free accounts. The user chooses a plan in the modal before Checkout begins; subscribed accounts do not open the modal. Signed-in users can also open the same modal directly from the landing-page Upgrade button. External return URLs and loops back to authentication pages are rejected.
+Authentication uses dedicated `/login`, `/signup`, and `/forgot-password` pages. Existing signed-in users visiting login or signup are redirected to their validated return destination when supplied, or home otherwise. Navigation preserves the upgrade request through login, signup, Google authentication, and password reset. After authentication, `/account?upgrade=true` (or `upgrade=monthly` / `upgrade=threeMonthPass`; old `upgrade=yearly` links open the current offers) opens the pricing modal automatically for eligible free accounts. The user chooses a plan in the modal before Checkout begins; subscribed accounts do not open the modal. Signed-in users can also open the same modal directly from the landing-page Upgrade button. External return URLs and loops back to authentication pages are rejected.
 
 The learning guides and ML quizzes already shipped in the static export remain public. The Mac app's backend verifies the `subscribed` claim and `users/{uid}.subscription.subscribed` on every request; hiding frontend content is not an authorization boundary.
 

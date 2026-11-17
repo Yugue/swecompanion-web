@@ -2,9 +2,9 @@
 
 ## 1. Create the supervision
 
-**Causal language modeling** trains a model to predict the next token from its prefix. The text supplies its own targets, making this **self-supervised learning**: labels are derived from the data itself.
+**Causal language modeling** predicts the next token from its prefix. It is **self-supervised learning** because the text supplies its own labels.
 
-**Teacher forcing** supplies the true preceding tokens during training, rather than earlier model-generated choices.
+**Teacher forcing** supplies true preceding tokens during training rather than the model’s earlier generated choices.
 
 ## 2. Shift by one position
 
@@ -18,9 +18,7 @@ Some libraries shift labels internally. Shifting again in the data pipeline acci
 
 ## 3. Score only intended positions
 
-The loss mask, introduced with attention masking, selects scored predictions without changing which input tokens remain visible.
-
-Padding targets should be ignored. For causal pretraining, most real continuation tokens contribute. In instruction tuning, user tokens may remain visible while only assistant targets are scored.
+Loss masking selects scored predictions without hiding input tokens. Ignore padding targets; response-only training may score assistant targets while keeping user tokens visible.
 
 ## 4. Pack examples deliberately
 
@@ -40,8 +38,6 @@ When accumulating gradients, weight by intended token counts. Incorrect normaliz
 
 ## 6. Check generation separately
 
-**Exposure bias** is the mismatch between training on true prefixes and generation from the model's own imperfect outputs. An early mistake can send later predictions into unfamiliar contexts.
+**Exposure bias** is the mismatch between true training prefixes and the model’s imperfect generated prefixes. Test free-running repetition and stopping as well as teacher-forced loss.
 
-A lower teacher-forced loss is useful but not sufficient. Inspect free-running continuations, end behavior, and repeated-token failures too.
-
-For input “A B C,” shifted supervision predicts B from A and C from A B. Predicting a token from a position already containing that same token would evaluate a different, potentially trivial task.
+> **Reason it through:** Two microbatches have unequal supervised-token counts. Why can averaging their mean losses change the intended objective?

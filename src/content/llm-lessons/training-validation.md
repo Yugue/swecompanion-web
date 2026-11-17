@@ -2,9 +2,9 @@
 
 ## 1. Interpret a loss curve
 
-A **learning curve** tracks a metric as training progresses. Training loss measures fit to optimization examples; validation loss measures fit to held-out examples under the chosen scoring rules.
+A **learning curve** tracks a metric during training. **Overfitting** fits training-specific patterns at the expense of unseen examples.
 
-**Overfitting** occurs when fitting training-specific patterns harms performance on new examples. A widening gap is evidence to investigate, not a unique diagnosis.
+A widening train/validation gap is a clue, not a unique diagnosis; changed preprocessing or population can also create it.
 
 ## 2. Keep comparisons controlled
 
@@ -25,20 +25,18 @@ A **non-finite** value is infinity or not-a-number. Trace the first invalid oper
 
 ## 4. Fit a tiny batch
 
-Train repeatedly on a small, verified example set. If it cannot be fit, inspect label shifting, frozen parameters, masking, and the optimizer.
-
-Success establishes that this path can learn these examples. It says little about generalization, multilingual balance, or long-context reliability.
+Repeatedly fit a small verified batch. Failure points toward targets, masks, frozen parameters, or optimizer wiring; success establishes learnability of those examples, not generalization.
 
 ## 5. Avoid development leakage
 
-Repeatedly choosing settings on a validation set can overfit development choices to it. Keep a final test untouched until decisions are fixed.
+Repeated validation-driven choices can overfit development decisions. Keep the final test untouched.
 
-Log data version, model configuration, optimizer settings, and random seed. A **seed** initializes pseudorandom choices; fixing it improves reproducibility without guaranteeing identical execution across every system.
+Record data/configuration versions and a **seed**, which initializes pseudorandom choices. A seed does not guarantee identical execution on every system.
 
 ## 6. Check outputs as well as loss
 
-Use a stable set of generation prompts to inspect repetition, truncation, and task following. These probes complement token loss rather than replacing a held-out evaluation.
+Use fixed generation probes for repetition, truncation, and task following.
 
-When a change fails, isolate one component at a time. An **ablation** removes or changes one component to estimate its contribution under controlled conditions.
+An **ablation** changes one component under controlled conditions to estimate its contribution. Keep token-loss evaluation separate from these output checks.
 
-A lower training loss with a higher held-out loss can reflect overfitting, but also a changed validation population or preprocessing mismatch. Check the evaluation contract before choosing a regularizer from the curve alone.
+> **Reason it through:** A wider train/validation gap appears after preprocessing changes. What should you verify before adding regularization?

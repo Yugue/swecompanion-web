@@ -2,9 +2,7 @@
 
 ## 1. Add an external operation
 
-A **tool** is an external function the application makes available, such as search, a calculator, or a database lookup. **Tool calling** generates a structured request naming a function and its arguments.
-
-The **executor** is application code that validates and performs the operation. Generated text alone cannot confer permission.
+A **tool** is an available external function. **Tool calling** proposes its name and arguments; an **executor** validates and performs the operation.
 
 ## 2. Follow the interaction
 
@@ -39,8 +37,6 @@ A **trust boundary** separates inputs with different authority. A page or tool r
 
 ## 6. Evaluate the whole loop
 
-Measure tool selection, argument correctness, authorization handling, execution success, and final answer support separately. Limit calls and handle missing or ambiguous results.
+Check tool choice, arguments, authorization, execution status, and final interpretation separately. “Completed” in generated prose does not establish execution.
 
-A model can invoke the right tool and still misstate its output. Final-task correctness requires checking the evidence returned and how it was used.
-
-A proposed tool call becomes an action only after runtime validation and execution. The returned operation ID and status establish what happened; generated prose saying “completed” cannot substitute for that result.
+> **Reason it through:** A write times out after dispatch. What evidence and retry property would prevent duplicating the action?

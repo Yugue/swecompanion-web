@@ -8,9 +8,9 @@ Specify what null means: missing evidence, an unknown value, and an execution fa
 
 ## 2. Constrain token selection
 
-**Constrained decoding** masks tokens that cannot continue a valid output under a grammar or supported schema representation. The remaining token probabilities are normalized before selecting a token.
+**Constrained decoding** masks tokens that cannot continue a valid grammar or supported schema, then renormalizes allowed probabilities.
 
-It changes which continuations are legal, not which customer or date is factually correct. Verify the constraints actually supported by the implementation.
+Check the implementation’s supported constraints. Legal syntax does not identify the correct customer or date.
 
 ## 3. Validate at several levels
 
@@ -22,14 +22,10 @@ It changes which continuations are legal, not which customer or date is factuall
 
 ## 4. Check semantics
 
-An account ID can be a valid string while belonging to the wrong customer. Check references against authorized records outside the generated response.
-
-A schema-valid answer may also omit a required factual qualification. Add task-specific checks and evaluate missing-information behavior.
+A numeric field accepts 17 even if the invoice says 71. Check correspondence with authorized source evidence separately from schema validity.
 
 ## 5. Repair with a bound
 
-If validation fails, a targeted repair prompt can include the error and original evidence. Limit retries and measure final success, additional latency, and refusal behavior.
+Give a repair attempt the validation error and original evidence. Bound retries, preserve null/missing rules, and measure final success and latency.
 
-Repeatedly asking for a valid answer can turn an honest “missing” into a fabricated value. Preserve the task’s evidence requirements throughout repair.
-
-A schema permitting a numeric amount accepts 17 even when the invoice says 71. Check parseability, required fields, and correspondence with source evidence as separate properties of the result.
+> **Reason it through:** An output passes JSON and schema checks but contains the wrong amount. Which validation layer must catch it?

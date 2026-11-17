@@ -28,7 +28,7 @@ export const openBillingPortal = () => redirect("createBillingPortal", {});
 export function billingErrorMessage(error: unknown): string {
   const code = (error as { code?: string } | null)?.code;
   if (code === "functions/unauthenticated") return "Please sign in again to continue.";
-  if (code === "functions/already-exists") return "You already have a subscription. Manage it in your account.";
+  if (code === "functions/already-exists") return "You already have Pro access. Manage it in your account.";
   if (code === "functions/aborted") return "Your account is updating. Please try again shortly.";
   return "Unable to complete this request. Please try again.";
 }

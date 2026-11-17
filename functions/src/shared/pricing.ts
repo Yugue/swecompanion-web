@@ -3,14 +3,17 @@ export const PRICING = {
   productName: "SWECompanion Pro",
   productId: "swecompanion_pro",
   currency: "usd",
-  monthly: { amount: 29_900, interval: "month", months: 1, label: "Monthly" },
-  yearly: { amount: 298_800, interval: "year", months: 12, label: "Yearly" },
+  monthly: { amount: 14_900, mode: "subscription", interval: "month", months: 1, label: "Pro monthly" },
+  threeMonthPass: { amount: 34_900, mode: "payment", months: 3, label: "Three-month pass" },
 } as const;
 
-export type BillingPlan = "monthly" | "yearly";
+export const BILLING_PLANS = ["monthly", "threeMonthPass"] as const;
+export type BillingPlan = typeof BILLING_PLANS[number];
+/** Existing annual purchases remain readable, but cannot be bought or selected again. */
+export type MembershipPlan = BillingPlan | "yearly";
 
 export function isBillingPlan(value: unknown): value is BillingPlan {
-  return value === "monthly" || value === "yearly";
+  return BILLING_PLANS.some((plan) => plan === value);
 }
 
 export function priceLookupKey(plan: BillingPlan): string {
@@ -19,12 +22,11 @@ export function priceLookupKey(plan: BillingPlan): string {
 
 export function formatPrice(amount: number): string {
   return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: PRICING.currency,
+    style: "currency", currency: PRICING.currency,
     maximumFractionDigits: amount % 100 === 0 ? 0 : 2,
   }).format(amount / 100);
 }
 
-export const ANNUAL_SAVINGS_PERCENT = Math.round(
-  (1 - PRICING.yearly.amount / (PRICING.monthly.amount * 12)) * 100,
+export const PASS_SAVINGS_PERCENT = Math.round(
+  (1 - PRICING.threeMonthPass.amount / (PRICING.monthly.amount * PRICING.threeMonthPass.months)) * 100,
 );

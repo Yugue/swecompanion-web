@@ -18,9 +18,9 @@ Mask before normalization. Simply zeroing a value vector after softmax leaves th
 
 ## 3. Separate training from generation
 
-During training, the true input prefix at every position is already known. Matrix operations compute all positions together, while the causal mask prevents each position from reading its own future target.
+Training knows every true prefix, so it scores positions in parallel under the causal mask.
 
-At generation, the next input token is unknown until a token is selected from the previous distribution. Parallel scoring of a known sequence does not remove this dependency.
+Generation must select the next token before that token can become input.
 
 ## 4. Distinguish access from supervision
 
@@ -30,13 +30,11 @@ Prompt tokens may be visible but not directly supervised in instruction tuning. 
 
 ## 5. Diagnose leakage and padding
 
-A suddenly excellent training loss after removing the mask often indicates target leakage, not better reasoning. Check which input position predicts which target.
-
-Padding errors may create batch-length-dependent behavior. Compare a sequence alone and in padded batches before blaming model capacity.
+Unexpectedly excellent loss after removing a mask suggests future-target leakage. Padding bugs often appear only in mixed-length batches; compare a sequence alone and padded.
 
 | Prompt position | May supply context? | Must contribute loss? |
 |---|---|---|
 | Instruction prefix | Yes | Not in response-only training |
 | Supervised answer token | Under the causal rule | Yes |
 
-Attention access controls available evidence. A loss mask independently selects supervised predictions.
+> **Reason it through:** A batch improves suspiciously when future positions become visible. Why can ignoring their loss still leave leakage?
