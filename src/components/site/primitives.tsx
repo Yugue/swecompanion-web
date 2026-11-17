@@ -25,11 +25,10 @@ export function Eyebrow({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-2 font-mono text-xs tracking-widest text-muted-foreground uppercase',
+        'inline-flex w-fit items-center text-lg font-semibold leading-7 tracking-tight text-brand-blue sm:text-xl sm:leading-8',
         className,
       )}
     >
-      <span aria-hidden className="size-1.5 rounded-full bg-signal" />
       {children}
     </span>
   )

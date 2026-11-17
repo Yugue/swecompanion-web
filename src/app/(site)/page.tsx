@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Capabilities } from "@/components/site/capabilities";
 import { Cta } from "@/components/site/cta";
 import { Faq } from "@/components/site/faq";
 import { Footer } from "@/components/site/footer";
@@ -23,7 +22,6 @@ export default function Page() {
       <main>
         <Hero />
         <Undetectability />
-        <Capabilities />
         <HowItWorks />
         <Pricing />
         <Faq />

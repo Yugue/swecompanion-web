@@ -1,12 +1,17 @@
 .downloadCta {
   position: relative;
   isolation: isolate;
-  background-color: var(--brand-blue);
+  background-color: var(--cta-background, var(--brand-blue));
   box-shadow: 0 2px 4px rgb(9 52 104 / 12%);
   transition:
     translate 240ms cubic-bezier(0.22, 1, 0.36, 1),
     background-color 240ms ease,
     box-shadow 240ms ease;
+}
+
+.downloadCtaOutline {
+  --cta-background: var(--background);
+  --cta-hover-background: var(--muted);
 }
 
 .downloadCta::before {
@@ -33,7 +38,7 @@
 @media (hover: hover) and (pointer: fine) {
   .downloadCta:hover {
     translate: 0 -2px;
-    background-color: color-mix(in oklch, var(--brand-blue) 90%, white);
+    background-color: var(--cta-hover-background, color-mix(in oklch, var(--brand-blue) 90%, white));
     box-shadow: 0 8px 20px -4px rgb(9 89 184 / 22%), 0 2px 4px rgb(9 52 104 / 10%);
   }
 

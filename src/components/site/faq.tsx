@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: 'What does Pro cost?',
-    a: `Pro is ${formatPrice(PRICING.monthly.amount)} USD per month, renewing until canceled. Or pay ${formatPrice(PRICING.threeMonthPass.amount)} USD once for three months of Pro, with no automatic renewal. Both include the same Pro features and monthly usage limits.`,
+    a: `Pro is ${formatPrice(PRICING.monthly.amount)} USD per month, renewing until canceled. Or pay ${formatPrice(PRICING.threeMonthPass.amount)} USD once for three months of Pro, with no automatic renewal. Both include unlimited usage of all Pro features.`,
   },
   {
     q: 'What kinds of problems does it handle?',

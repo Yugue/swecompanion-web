@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { ArrowRight, X } from "lucide-react";
-import { PassSavingsBadge, ProPrice } from "@/components/site/plan-pricing";
+import { MostPopularBadge, ProPrice } from "@/components/site/plan-pricing";
 import { Button } from "@/components/ui/button";
 import { billingErrorMessage, startCheckout } from "@/lib/billing";
 import { BILLING_PLANS, PRICING, type BillingPlan } from "@shared/pricing";
@@ -64,9 +64,9 @@ export function SubscribeDialog({ disabled, open, onOpenChange, className, label
             {plans.map(({ plan, label }) => (
               <div key={plan} className="relative flex flex-col overflow-hidden rounded-xl border border-brand-blue/30 bg-card p-5 ring-1 ring-brand-blue/10">
                 <div aria-hidden className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-brand-blue to-brand-cyan" />
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex min-h-7 flex-wrap items-center justify-between gap-2">
                   <h3 className="font-mono text-xs tracking-widest text-brand-blue uppercase">{label}</h3>
-                  {plan === "threeMonthPass" && <PassSavingsBadge />}
+                  {plan === "threeMonthPass" && <MostPopularBadge />}
                 </div>
                 <ProPrice plan={plan} />
                 <div className="mt-auto pt-4">
@@ -74,11 +74,11 @@ export function SubscribeDialog({ disabled, open, onOpenChange, className, label
                     {pendingPlan === plan ? "Opening checkout…" : `Choose ${label.toLowerCase()}`}
                     <ArrowRight className="size-4" />
                   </Button>
+                  <p className="mt-3 text-center text-xs text-muted-foreground">Secure Stripe checkout{plan === "monthly" && " · Cancel anytime"}</p>
                 </div>
               </div>
             ))}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">Prices in USD. Monthly renews until canceled. The pass does not renew.</p>
           {error && <p role="alert" className="mt-3 text-sm text-accent-red">{error}</p>}
         </Dialog.Popup>
       </Dialog.Portal>

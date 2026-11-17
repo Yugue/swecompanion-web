@@ -17,6 +17,12 @@ export function BillingPeriodToggle({ plan, onPlanChange }: {
   </div>;
 }
 
+export function MostPopularBadge() {
+  return <span className="rounded-full bg-brand-blue px-2.5 py-1 font-mono text-[10px] tracking-wide text-primary-foreground uppercase">
+    Most popular
+  </span>;
+}
+
 export function PassSavingsBadge() {
   return <span className="rounded-full border border-border bg-card px-2 py-0.5 font-mono text-xs text-signal">
     save {PASS_SAVINGS_PERCENT}%
@@ -24,13 +30,9 @@ export function PassSavingsBadge() {
 }
 
 export function ProPrice({ plan }: { plan: BillingPlan }) {
-  return <>
-    <div className="mt-4 flex items-baseline gap-1.5">
-      <span className="text-4xl font-medium tracking-tight">{formatPrice(PRICING[plan].amount)}</span>
-      <span className="text-sm text-muted-foreground">{plan === "monthly" ? "/ month" : "one-time"}</span>
-    </div>
-    <p className="mt-2 text-xs text-muted-foreground">
-      {plan === "monthly" ? "Billed monthly in USD. Cancel anytime." : "Three months of Pro. No renewal or further charges."}
-    </p>
-  </>;
+  return <div className="mt-4 flex items-baseline gap-1.5">
+    <span className="text-4xl font-medium tracking-tight">{formatPrice(PRICING[plan].amount)}</span>
+    <span className="text-sm text-muted-foreground">{plan === "monthly" ? "/ month" : "one-time"}</span>
+    {plan === "threeMonthPass" && <span className="ml-auto shrink-0"><PassSavingsBadge /></span>}
+  </div>;
 }

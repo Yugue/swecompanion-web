@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { Container } from './primitives'
+import { Container, Eyebrow } from './primitives'
 
 const specs = [
   {
@@ -40,10 +40,7 @@ export function Undetectability() {
       <Container>
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
           <div className="flex flex-col gap-4">
-            <span className="inline-flex items-center gap-2 font-mono text-xs tracking-widest text-brand-blue uppercase">
-              <span aria-hidden className="size-1.5 rounded-full bg-brand-blue" />
-              Undetectable
-            </span>
+            <Eyebrow>Undetectable</Eyebrow>
             <h2 className="text-balance text-3xl font-medium tracking-tight text-foreground md:text-4xl">
               Built to leave no trace.
             </h2>
