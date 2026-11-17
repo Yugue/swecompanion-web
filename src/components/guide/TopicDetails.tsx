@@ -3,10 +3,9 @@
    module-level map, never defines a new component; this pattern reads as unsafe to the linter's
    heuristic but isn't. */
 
-import { ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
+import { Check, ChevronDown, Lightbulb } from "lucide-react";
 import type { StudyTopic, StudyProblem } from "@/lib/studyData";
 import { getIcon } from "@/lib/icons";
-import { ProgressRing } from "@/components/ProgressRing";
 import { chapterPath } from "@/lib/codingPaths";
 import { codingTopicDescriptions } from "@/lib/codingTopicDescriptions";
 import { ProblemRow } from "./ProblemRow";
@@ -29,6 +28,7 @@ export function TopicDetails({
 }) {
   const Icon = getIcon(topic.icon);
   const doneCount = topic.problems.filter((p) => completed.has(p.id)).length;
+  const allDone = doneCount === topic.problems.length;
   const description = codingTopicDescriptions[topic.slug];
   const showProTip = topic.slug !== "data-structures-to-know" && topic.group !== "Challenge Rounds";
 
@@ -42,43 +42,42 @@ export function TopicDetails({
       className="scroll-mt-24 overflow-hidden rounded-xl border border-outline/70 bg-surface transition-colors hover:border-outline"
       style={{ "--accent": topic.color } as React.CSSProperties}
     >
-      <summary className="group grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 px-4 py-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-blue sm:px-5">
-        <div
-          className="flex size-10 shrink-0 items-center justify-center rounded-lg border"
-          style={{
-            background: "color-mix(in srgb, var(--accent) 10%, transparent)",
-            borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)",
-          }}
+      <summary className="group flex items-center gap-3 px-4 py-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-blue sm:gap-4 sm:px-5">
+        <span
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg"
+          style={{ background: "color-mix(in srgb, var(--accent) 8%, transparent)" }}
         >
-          <Icon size={20} style={{ color: "var(--accent)" }} aria-hidden="true" />
-        </div>
+          <Icon size={18} className="text-accent-ink" aria-hidden="true" />
+        </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-base font-bold leading-snug tracking-tight text-text sm:text-lg">{topic.title}</h3>
-        </div>
-        <div className="shrink-0">
-          <ProgressRing done={doneCount} total={topic.problems.length} color={topic.color} size={40} strokeWidth={3} />
-        </div>
-        {description && <p className="col-span-3 text-sm leading-relaxed text-text-muted">{description}</p>}
-        {showProTip && <div className="col-span-3 flex items-start gap-2.5">
-          <span
-            title="Pro tip: recognize this pattern"
-            className="inline-flex h-6 w-5 shrink-0 items-center justify-center"
-            style={{ color: "color-mix(in srgb, var(--color-yellow) 45%, var(--color-text))" }}
-          >
-            <Lightbulb size={17} strokeWidth={2} fill="currentColor" fillOpacity={0.12} aria-hidden="true" />
-          </span>
-          <p className="min-w-0 flex-1 py-0.5 text-sm leading-relaxed text-text-muted">
-            <span className="font-semibold text-text">Pro tip:</span>{" "}
-            {topic.note}
+          <h3 className="text-sm font-semibold leading-snug text-text sm:text-base">{topic.title}</h3>
+          <p className="mt-1 text-xs leading-relaxed text-text-muted">
+            {topic.problems.length} {topic.problems.length === 1 ? "problem" : "problems"}
+            {problems.length !== topic.problems.length && ` · ${problems.length} matching`}
           </p>
-        </div>}
-        <div className="col-span-3 flex min-h-8 items-center justify-between gap-3 border-t border-outline/40 pt-3 text-sm font-semibold text-text-muted group-hover:text-accent-ink">
-          <span>{open ? "Hide problems" : `View ${problems.length} ${problems.length === 1 ? "problem" : "problems"}`}</span>
-          {open ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}
         </div>
+        <div className="flex shrink-0 flex-col items-end gap-2" aria-label={`${doneCount} of ${topic.problems.length} complete`}>
+          <span className="flex items-center gap-1.5 text-xs font-medium tabular-nums text-text-muted">
+            {allDone && <Check size={13} className="text-accent-ink" aria-hidden="true" />}
+            <span>{doneCount}/{topic.problems.length}<span className="hidden sm:inline"> complete</span></span>
+          </span>
+          <span className="hidden h-1 w-24 overflow-hidden rounded-full bg-outline/40 sm:block" aria-hidden="true">
+            <span className="block h-full rounded-full" style={{ width: `${(doneCount / topic.problems.length) * 100}%`, background: "var(--accent)" }} />
+          </span>
+        </div>
+        <ChevronDown size={17} className={`shrink-0 text-text-muted transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
       </summary>
 
-      <div className="flex flex-col gap-6 border-t border-outline/50 px-4 pt-5 pb-5 sm:px-5">
+      <div className="flex flex-col gap-5 border-t border-outline/50 px-4 py-4 sm:px-5 sm:py-5">
+        {description && <p className="text-sm leading-relaxed text-text-muted">{description}</p>}
+        {showProTip && (
+          <div className="flex items-start gap-2.5 rounded-lg bg-surface-high/50 px-3 py-3">
+            <Lightbulb size={16} className="mt-0.5 shrink-0 text-text-muted" aria-hidden="true" />
+            <p className="text-[13px] leading-relaxed text-text-muted">
+              <span className="font-medium text-text">Pattern cue: </span>{topic.note}
+            </p>
+          </div>
+        )}
         {topic.slug === "binary-search" && <BinarySearchGuide />}
         {groupBySubcategory(problems).map(({ heading, rows }) => {
           // Progress is over the whole subcategory, not just the rows the current search shows.
@@ -88,7 +87,7 @@ export function TopicDetails({
             <section key={heading ?? rows[0].id}>
               {heading && (
                 <div className="mb-2.5 flex items-center gap-3 px-1">
-                  <h4 className="min-w-0 flex-1 truncate text-base font-bold tracking-tight text-text">
+                  <h4 className="min-w-0 flex-1 truncate text-sm font-semibold text-text">
                     {heading}
                   </h4>
                   <div

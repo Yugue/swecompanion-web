@@ -75,6 +75,7 @@ export default function AgenticAiHubPage() {
           <aside className="hidden w-[286px] shrink-0 lg:block">
             <div className="sticky top-0 h-screen">
               <MlSidebar
+                onHide={toggleSidebar}
                 parts={agenticParts}
                 completed={completed}
                 onJump={jump}
@@ -91,6 +92,7 @@ export default function AgenticAiHubPage() {
             <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
             <div className="absolute inset-y-0 left-0 w-[286px]">
               <MlSidebar
+                onHide={() => setDrawerOpen(false)}
                 parts={agenticParts}
                 completed={completed}
                 onJump={jump}

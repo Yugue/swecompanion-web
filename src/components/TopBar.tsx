@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftOpen } from "lucide-react";
 import { ProductMark } from "./ProductMark";
 import { ThemeToggle } from "./ThemeToggle";
 import { AccountMenu } from "./auth/AccountMenu";
@@ -23,19 +23,21 @@ export function TopBar({
   return (
     <header className="grid grid-cols-[1fr_auto] items-center gap-x-1 gap-y-2 border-b border-outline/55 bg-bg/95 px-2 py-3 sm:gap-x-2.5 sm:px-6 lg:h-[72px] lg:grid-cols-[1fr_auto_1fr] lg:py-0">
       <div className="flex items-center gap-1">
-        {onSidebarToggle && (
-          <button type="button" onClick={onSidebarToggle} className="hidden size-9 items-center justify-center rounded-md text-text-muted hover:bg-surface-high lg:flex" aria-label={sidebarCollapsed ? "Expand progress panel" : "Collapse progress panel"} aria-expanded={!sidebarCollapsed} title={sidebarCollapsed ? "Expand progress panel" : "Collapse progress panel"}>
-            {sidebarCollapsed ? <PanelLeftOpen size={22} /> : <PanelLeftClose size={22} />}
+        {onSidebarToggle && sidebarCollapsed && (
+          <button type="button" onClick={onSidebarToggle} className="hidden size-9 items-center justify-center rounded-md text-text-muted hover:bg-surface-high lg:flex" aria-label="Expand progress panel" aria-expanded={false} title="Expand progress panel">
+            <PanelLeftOpen size={22} />
           </button>
         )}
         {onMenuPressed && (
           <button
             type="button"
             onClick={onMenuPressed}
-            className="flex size-9 items-center justify-center text-text-muted lg:hidden"
-            aria-label="Open navigation"
+            className="flex size-9 items-center justify-center rounded-md text-text-muted hover:bg-surface-high lg:hidden"
+            aria-label="Expand progress panel"
+            aria-expanded={false}
+            title="Expand progress panel"
           >
-            <Menu size={22} />
+            <PanelLeftOpen size={22} />
           </button>
         )}
         <Link

@@ -79,6 +79,7 @@ export function CvHub() {
           <aside className="hidden w-[286px] shrink-0 lg:block">
             <div className="sticky top-0 h-screen">
               <MlSidebar
+                onHide={toggleSidebar}
                 parts={cvParts}
                 completed={completed}
                 onJump={jump}
@@ -101,6 +102,7 @@ export function CvHub() {
             />
             <div className="absolute inset-y-0 left-0 w-[286px]">
               <MlSidebar
+                onHide={() => setDrawerOpen(false)}
                 parts={cvParts}
                 completed={completed}
                 onJump={jump}

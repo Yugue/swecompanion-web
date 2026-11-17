@@ -5,7 +5,8 @@
    under an explicit .dark ancestor, which the site never sets. The guide uses data-theme instead. */
 @custom-variant dark (&:is(.dark *));
 
-:root {
+:root,
+.core-site {
   --color-bg: #f7f9fc;
   --color-surface: #ffffff;
   --color-surface-high: #e9eef6;

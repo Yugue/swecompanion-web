@@ -119,6 +119,7 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
           <aside className="hidden w-[286px] shrink-0 lg:block">
             <div className="sticky top-0 h-screen">
               <GuideSidebar
+                onHide={toggleSidebar}
                 topics={studyTopics}
                 completed={completed}
                 onJump={jump}
@@ -133,6 +134,7 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
             <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
             <div className="absolute inset-y-0 left-0 w-[286px]">
               <GuideSidebar
+                onHide={() => setDrawerOpen(false)}
                 topics={studyTopics}
                 completed={completed}
                 onJump={jump}
@@ -180,7 +182,7 @@ export function CodingHub({ initialChapter }: { initialChapter?: string }) {
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 {results.map(({ topic, problems }: { topic: StudyTopic; problems: StudyProblem[] }) => (
                   <TopicDetails
                     key={topic.slug}

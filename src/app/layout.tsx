@@ -31,12 +31,13 @@ export const metadata: Metadata = {
   manifest: "/favicon_io/site.webmanifest",
 };
 
-// Applied before hydration so the default theme (light) never flashes dark first, and a
-// returning visitor's saved choice is respected immediately.
+// Apply the saved guide theme before hydration; all other pages stay light.
 const noFlashThemeScript = `
 try {
   var saved = localStorage.getItem('theme_v1');
-  if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (saved === 'dark' && /^\\/(coding|mldomain|mlsystemdesign)(\\/|$)/.test(window.location.pathname)) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
 } catch (e) {}
 `;
 

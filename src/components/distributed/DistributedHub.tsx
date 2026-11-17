@@ -79,6 +79,7 @@ export function DistributedHub() {
           <aside className="hidden w-[286px] shrink-0 lg:block">
             <div className="sticky top-0 h-screen">
               <MlSidebar
+                onHide={toggleSidebar}
                 parts={distributedParts}
                 completed={completed}
                 onJump={jump}
@@ -101,6 +102,7 @@ export function DistributedHub() {
             />
             <div className="absolute inset-y-0 left-0 w-[286px]">
               <MlSidebar
+                onHide={() => setDrawerOpen(false)}
                 parts={distributedParts}
                 completed={completed}
                 onJump={jump}

@@ -79,6 +79,7 @@ export function RlHub() {
           <aside className="hidden w-[286px] shrink-0 lg:block">
             <div className="sticky top-0 h-screen">
               <MlSidebar
+                onHide={toggleSidebar}
                 parts={rlParts}
                 completed={completed}
                 onJump={jump}
@@ -101,6 +102,7 @@ export function RlHub() {
             />
             <div className="absolute inset-y-0 left-0 w-[286px]">
               <MlSidebar
+                onHide={() => setDrawerOpen(false)}
                 parts={rlParts}
                 completed={completed}
                 onJump={jump}

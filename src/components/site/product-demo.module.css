@@ -53,9 +53,6 @@
 .categoryTabs button:hover { color: var(--color-text); }
 .categoryTabs button[aria-selected='true'] { color: var(--color-blue); }
 .categoryTabs button:focus-visible, .demo:focus-visible { outline: 3px solid #6ba4e4; outline-offset: 4px; }
-.featureCaption { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 4px 10px; min-height: 42px; margin: -8px 0 12px; padding: 0 8px; text-align: center; }
-.featureCaption strong { color: var(--color-blue); font-size: 16px; font-weight: 700; }
-.featureCaption > span { color: var(--muted-foreground); font-size: 14px; line-height: 1.6; }
 .demo {
   --stage-height: clamp(560px, 72svh, 660px);
   --view-outline: #c2d7f2;
@@ -273,9 +270,6 @@
   .nativeWindow { width: min(720px, 100%, calc((var(--stage-height) - 112px) * var(--capture-ratio))); }
 }
 @media (max-width: 639px) {
-  .featureCaption { flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 62px; margin-top: -4px; }
-  .featureCaption strong { font-size: 15px; }
-  .featureCaption > span { font-size: 12px; }
   .categoryTabs { margin-bottom: 16px; }
   .categoryTabs button { min-height: 38px; padding: 6px 4px; font-size: 11px; }
   .demo { --stage-height: 680px; border-radius: 12px; }

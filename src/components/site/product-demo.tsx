@@ -14,7 +14,6 @@ const rainWaterConstraints = ['1 ≤ height.length ≤ 20,000; 0 ≤ height[i] �
 const workflows = [
   {
     id: 'coding', group: 'Coding', label: 'Solve', title: 'Trapping Rain Water — LeetCode 42', key: 'F2',
-    description: 'Generate the complete solution, code, and complexity.',
     difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
     task: "Solve in O(n) time and O(1) extra space.",
     draft: "def trap(height):\n    pass",
@@ -22,7 +21,6 @@ const workflows = [
   },
   {
     id: 'debug', group: 'Coding', label: 'Debug', title: 'Trapping Rain Water — LeetCode 42', key: 'F3',
-    description: 'Find two bugs and show both fixes.',
     difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
     task: "Fix both marked bugs: accumulate water; preserve the right maximum.",
     draft: "def trap(height):\n    left, right = 0, len(height) - 1\n    left_max = right_max = water = 0\n    while left < right:\n        if height[left] <= height[right]:\n            left_max = max(left_max, height[left])\n            water = left_max - height[left]  # BUG 1\n            left += 1\n        else:\n            right_max = min(right_max, height[right])  # BUG 2\n            water += right_max - height[right]\n            right -= 1\n    return water",
@@ -30,7 +28,6 @@ const workflows = [
   },
   {
     id: 'optimize', group: 'Coding', label: 'Improve', title: 'Trapping Rain Water — LeetCode 42', key: 'F4',
-    description: 'Show two improvements: faster code and less memory.',
     difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
     task: "1. O(n²) → O(n) time. 2. O(n) → O(1) extra space.",
     draft: "def trap(height):\n    water = 0\n    for i in range(1, len(height) - 1):\n        # 1. Repeated max scans: O(n²) time\n        # 2. Slices allocate O(n) extra space\n        left_max = max(height[:i + 1])\n        right_max = max(height[i:])\n        water += min(left_max, right_max) - height[i]\n    return water",
@@ -38,7 +35,6 @@ const workflows = [
   },
   {
     id: 'system-design', group: 'System design', label: 'System design', title: 'Ticket booking — Ticketmaster', key: 'F2',
-    description: 'Design the architecture, data flow, and failure handling.',
     difficulty: 'Architecture',
     problem: 'Design a service to discover events, view available seats, hold seats for 5 minutes, pay, and receive tickets.',
     examples: ['Two fans select the same seat → only one gets the hold', 'Payment retry → one booking, one charge'],
@@ -49,7 +45,6 @@ const workflows = [
   },
   {
     id: 'ml-design', group: 'ML system design', label: 'ML design', title: 'Classify Multilingual Support Messages', key: 'F2',
-    description: 'Plan the data, model, training, and serving architecture.',
     difficulty: 'ML architecture',
     problem: 'Build a multilingual system that predicts every applicable issue among 150 stable categories from a support message. A message may contain several issues or mixed languages.',
     examples: ['“Charged twice; impossible de me connecter.”\n→ Duplicate charge + login issue, each with a score'],
@@ -358,9 +353,6 @@ export function ProductDemo() {
             selectCategory(next)
             tabButtons.current[next]?.focus()
           }}><span>{category.label}</span></button>)}
-      </div>
-      <div className={styles.featureCaption} aria-live="polite" aria-atomic="true">
-        <strong>{workflow.label}</strong><span>{workflow.description}</span>
       </div>
       <div id="demo-panel" role="tabpanel" tabIndex={0} aria-labelledby={`demo-tab-${categories[activeCategory].id}`} className={styles.demo} data-scene={workflow.id} data-phase={phase.id} data-view={comparing ? 'comparison' : showingCapture ? 'capture' : 'private'} data-running={visible} style={timing}>
         <div className={styles.stage}>

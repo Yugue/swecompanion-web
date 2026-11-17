@@ -5,28 +5,26 @@ import type { StudyTopic } from "@/lib/studyData";
 import { uniqueProblems } from "@/lib/studyData";
 import { chapterPath } from "@/lib/codingPaths";
 import { ProgressRing } from "@/components/ProgressRing";
-import { ProductMark } from "@/components/ProductMark";
-import Link from "next/link";
+import { ProgressPanelHeader } from "@/components/ProgressPanelHeader";
 
 export function GuideSidebar({
   topics,
   completed,
   onJump,
   onResetProgress,
+  onHide,
 }: {
   topics: StudyTopic[];
   completed: Set<string>;
   onJump: (slug: string) => void;
   onResetProgress: () => void;
+  onHide: () => void;
 }) {
   const completedCount = uniqueProblems.filter((p) => completed.has(p.id)).length;
 
   return (
     <div className="flex h-full flex-col border-r border-outline/55 bg-surface/95">
-      <Link href="/" className="flex items-center gap-3 px-5 py-5">
-        <ProductMark size={30} />
-        <span className="text-[17px] font-bold text-text">SWE Companion</span>
-      </Link>
+      <ProgressPanelHeader onHide={onHide} />
 
       <button
         type="button"
