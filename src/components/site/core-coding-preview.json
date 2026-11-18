@@ -1,0 +1,17 @@
+{
+  "source": "SWECompanionCore/functions/src/answer.ts",
+  "prompt": "findSolutions",
+  "language": "Python",
+  "explanation": "Process the lower endpoint: its opposite boundary is high enough. Track each side’s maximum, add maximum minus height to `water`, and move inward.",
+  "example": "height = [2,0,3,0,1] → 3 m³",
+  "steps": [
+    "Right depression: 1 − 0 = 1 m³.",
+    "Left depression: 2 − 0 = 2 m³. Total: 3 m³."
+  ],
+  "solution": "def retained_runoff(height):\n    left, right = 0, len(height) - 1\n    left_max = right_max = water = 0\n    while left < right:\n        if height[left] <= height[right]:\n            left_max = max(left_max, height[left])\n            water += left_max - height[left]\n            left += 1\n        else:\n            right_max = max(right_max, height[right])\n            water += right_max - height[right]\n            right -= 1\n    return water",
+  "complexity": [
+    "Time: O(n). Each section is processed at most once.",
+    "Space: O(1) extra. No auxiliary arrays."
+  ],
+  "editedForPreview": true
+}

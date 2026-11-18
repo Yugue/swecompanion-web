@@ -135,6 +135,7 @@
 .editorStatus { display: flex; justify-content: end; gap: 13px; min-height: 21px; padding: 4px 12px; border-top: 1px solid #e5ebf0; background: #f0f4f8; color: #94a1ad; font-size: 7px; }
 .editorStatus span:first-child { margin-right: auto; }
 .participants { position: absolute; z-index: 2; top: 119px; right: 12px; width: 164px; padding: 4px; border: 1px solid #464648; border-radius: 6px; background: #242426; box-shadow: 0 7px 24px #00000038, 0 1px 3px #00000030; }
+.mobileParticipants { display: none; }
 .participantTitle { display: flex; align-items: center; justify-content: space-between; height: 23px; padding: 0 4px 4px; color: #c2c2c5; }
 .panelLayout { display: flex; align-items: center; gap: 8px; }
 .selectedLayout { display: grid; place-items: center; width: 22px; height: 17px; border-radius: 3px; background: #555558; color: #fff; }
@@ -185,7 +186,7 @@
   border: 1px solid #3c3f49;
   border-radius: 10px;
   background: #161619;
-  opacity: 0.96;
+  opacity: 0.85;
   box-shadow: 0 20px 60px -14px #0f172a66, 0 3px 12px #0f172a20;
 }
 .captureView { position: absolute; z-index: 5; inset: 0; visibility: hidden; clip-path: inset(0 100% 0 0); pointer-events: none; }
@@ -219,7 +220,9 @@
 .viewLabel > svg { flex-shrink: 0; }
 .viewLabel strong { display: block; font-size: 13px; font-weight: 700; line-height: 1.3; letter-spacing: 0.01em; }
 .sharedLabel { border-color: #b9e8d6; background: #157454f5; }
-.keyOverlay { position: absolute; z-index: 10; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.keyOverlay { position: absolute; z-index: 10; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; pointer-events: none; }
+.keyPrompt { padding: 9px 16px; border: 1px solid #46536b; border-radius: 10px; background: #202b3e; color: #f1f5fb; font-size: 15px; font-weight: 500; line-height: 1.5; box-shadow: 0 6px 20px #17233830; }
+.keyPrompt strong { color: #fff; font-weight: 700; }
 .keyboardAction { position: relative; width: 236px; height: 96px; pointer-events: none; }
 .keyboardDeck {
   display: grid;
@@ -289,61 +292,62 @@
 }
 @media (max-width: 639px) {
   .categoryTabs { margin-bottom: 16px; }
-  .categoryTabs button { min-height: 38px; padding: 6px 4px; font-size: 11px; }
-  .demo { --stage-height: 680px; border-radius: 12px; }
-  .participants { top: auto; bottom: 96px; right: 7px; width: 104px; padding: 3px; }
+  .categoryTabs button { min-height: 38px; padding: 4px 5px; font-size: 13px; line-height: 1.15; }
+  .demo { --stage-height: 1160px; border-radius: 12px; }
+  .participants { top: 12px; bottom: auto; right: 8px; width: 108px; padding: 4px; }
   .participantTitle { height: 20px; padding: 0 3px 3px; }
   .panelLayout { gap: 7px; }
   .panelGrip { display: none; }
   .cameraOffName { font-size: 11px; }
   .tileOptions { top: 2px; right: 2px; width: 15px; height: 12px; }
   .tileOptions svg { width: 11px; }
-  .participantName { bottom: 2px; left: 2px; gap: 2px; padding: 1px 2px; font-size: 6px; }
+  .participantName { bottom: 2px; left: 2px; gap: 2px; padding: 2px 3px; font-size: 9px; }
   .participantName svg { width: 8px; height: 8px; }
   .audioLevel { right: 3px; bottom: 5px; gap: 1px; }
   .browserTabs { height: 25px; min-height: 25px; gap: 5px; padding: 0 7px; }
   .trafficLights { gap: 4px; margin-right: 2px; }
   .trafficLights i { width: 6px; height: 6px; }
-  .browserTab { width: 215px; height: 21px; padding: 0 7px; gap: 5px; font-size: 7px; }
+  .browserTab { width: 215px; height: 23px; padding: 0 7px; gap: 5px; font-size: 10px; }
   .tabMark { width: 10px; height: 10px; font-size: 6px; }
   .newTab { font-size: 12px; }
   .addressBar { height: 27px; min-height: 27px; gap: 7px; padding: 0 7px; }
   .browserArrows { gap: 5px; }
   .browserArrows svg:nth-child(2) { display: none; }
-  .address { height: 20px; padding: 0 7px; font-size: 8px; }
+  .address { height: 22px; padding: 0 7px; font-size: 10px; }
   .browserProfile { width: 14px; height: 14px; font-size: 6px; }
   .hackerHeader { min-height: 33px; padding: 0 10px; gap: 8px; }
   .hackerLogo { font-size: 14px; }
   .hackerLogo > span { font-size: 17px; }
-  .connection { margin-left: auto; font-size: 6px; }
+  .connection { margin-left: auto; font-size: 9px; }
   .interviewTimer { font-size: 9px; }
-  .interviewGrid { grid-template-columns: 1fr; grid-template-rows: max-content minmax(0, 1fr); }
+  .interviewGrid { grid-template-columns: 1fr; grid-template-rows: max-content max-content; align-content: start; }
   .questionPanel { border-right: 0; border-bottom: 1px solid #e4e9ee; }
-  .questionTabs { min-height: 25px; gap: 16px; padding: 0 11px; font-size: 8px; }
+  .questionTabs { display: none; }
   .prompt { padding: 12px 14px 14px; }
-  .questionMeta { margin-bottom: 5px; font-size: 9px; }
+  .questionMeta { margin-bottom: 5px; font-size: 11px; }
   .prompt h3 { margin-top: 0; font-size: 16px; }
-  .prompt p { margin-top: 6px; font-size: 11px; line-height: 1.55; }
-  .prompt .constraints { font-size: 10px; line-height: 1.5; }
-  .input { margin-top: 6px; padding: 4px 6px; font-size: 9px; line-height: 1.5; }
-  .editorToolbar { min-height: 27px; padding: 0 9px; gap: 8px; font-size: 8px; }
-  .candidateHeading { padding: 8px 9px 0; font-size: 9px; }
+  .prompt p { margin-top: 6px; font-size: 12px; line-height: 1.55; }
+  .prompt .constraints { font-size: 12px; line-height: 1.5; }
+  .input { margin-top: 6px; padding: 6px 8px; font-size: 11px; line-height: 1.5; }
+  .codePanel { align-self: start; max-height: 380px; }
+  .editorToolbar { min-height: 30px; padding: 0 9px; gap: 8px; font-size: 11px; }
+  .candidateHeading { padding: 8px 9px 0; font-size: 11px; }
   .candidateInitial { width: 16px; height: 16px; font-size: 8px; }
-  .candidateInput { margin: 7px 8px 8px; }
-  .inputStatus { min-height: 21px; padding: 5px 7px; font-size: 6px; }
-  .sourceCode { padding-top: 10px; }
-  .codeLine { min-height: 17px; font-size: 9px; line-height: 1.8; }
-  .lineNumber { font-size: 8px; }
-  .runBar { min-height: 30px; padding: 5px 8px; gap: 5px; font-size: 7px; }
+  .candidateInput { flex: 0 1 auto; margin: 7px 8px 8px; max-height: 270px; }
+  .inputStatus { min-height: 24px; padding: 5px 7px; font-size: 9px; }
+  .sourceCode { flex: 0 1 auto; min-height: 80px; padding: 10px 6px 10px 0; }
+  .codeLine { grid-template-columns: 24px minmax(0, 1fr); min-height: 19px; font-size: 11px; line-height: 1.7; }
+  .lineNumber { padding-right: 5px; font-size: 10px; }
+  .runBar { min-height: 34px; padding: 5px 8px; gap: 5px; font-size: 10px; }
   .runCode, .submitCode { padding: 3px 5px; }
-  .testCases { font-size: 7px; }
+  .testCases { font-size: 10px; }
   .editorStatus { display: none; }
   .zoomControls { bottom: 8px; left: 50%; right: auto; width: calc(100% - 16px); transform: translateX(-50%); border-radius: 6px; }
-  .sharingStrip { font-size: 7px; line-height: 21px; }
+  .sharingStrip { font-size: 9px; line-height: 24px; }
   .sharingStrip > span { padding: 0 7px; gap: 4px; }
   .sharingStrip svg { width: 9px; }
   .meetingTools { height: 56px; padding: 10px 5px 5px; gap: 2px; }
-  .zoomTool { min-width: 33px; gap: 4px; font-size: 7px; }
+  .zoomTool { min-width: 28px; gap: 4px; font-size: 9px; }
   .toolIconRow { min-width: 27px; height: 21px; }
   .toolGlyph { width: 22px; height: 21px; }
   .toolGlyph svg { width: 19px; height: 19px; }
@@ -353,12 +357,12 @@
   .shareGlyph svg { width: 16px; height: 16px; }
   .toolDivider { margin-right: 0; padding-right: 5px; }
   .optionalTool { display: none; }
-  .leaveMeeting { min-width: 34px; margin-left: 3px; padding: 5px 6px; font-size: 8px; }
-  .solutionLayer { inset: 10px 8px 90px; }
-  .nativeWindow { width: 100%; border-radius: 8px; }
-  .viewLabel { gap: 6px; max-width: calc(100% - 12px); padding: 7px 8px; border-radius: 6px; }
-  .viewLabel > svg { width: 14px; height: 14px; }
-  .viewLabel strong { font-size: 10px; }
+  .leaveMeeting { min-width: 34px; margin-left: 3px; padding: 5px 6px; font-size: 10px; }
+  .solutionLayer { inset: 180px 8px 90px; }
+  .nativeWindow { top: 0; width: 100%; transform: translateX(-50%); border-radius: 8px; }
+  .viewLabel { gap: 6px; max-width: calc(100% - 12px); padding: 9px 10px; border-radius: 6px; }
+  .viewLabel > svg { width: 16px; height: 16px; }
+  .viewLabel strong { font-size: 13px; }
   .keyboardDeck { gap: 6px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -405,7 +409,7 @@
   .pastedProblem h3 { font-size: 18px; }
   .pastedProblem > p { font-size: 12px; line-height: 1.6; }
   .pastedProblem .input { padding: 8px; font-size: 10px; }
-  .pastedProblem .constraints { margin-top: 12px; font-size: 11px; }
+  .pastedProblem .constraints { margin-top: 12px; font-size: 12px; }
 }
 
 /* Ambient call activity continues during step review; hidden previews stop animating. */
@@ -469,18 +473,19 @@
 @media (max-width: 639px) {
   .runoffExample { padding: 8px; }
   .runoffDiagram { height: 74px; }
-  .runoffHeading, .runoffSecondExample { font-size: 10px; }
-  .runoffExample > code { font-size: 9px; }
+  .runoffHeading, .runoffSecondExample { font-size: 12px; }
+  .runoffExample > code { font-size: 11px; }
+  .runoffExample figcaption { font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .runoffWater { animation: none; } }
 @media (min-width: 640px) and (max-width: 899px) {
   .pastedProblem h3 { font-size: 20px; }
   .pastedProblem > p { font-size: 13px; line-height: 1.55; }
-  .pastedProblem .constraints { margin-top: 12px; font-size: 11px; }
+  .pastedProblem .constraints { margin-top: 12px; font-size: 12px; }
   .runoffDiagram { height: 76px; }
 }
-@media (max-width: 639px) {
-  .demo[data-scene='coding'] { --stage-height: 820px; }
+@media (max-width: 359px) {
+  .demo { --stage-height: 1280px; }
 }
 
 .address > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -491,7 +496,22 @@
 .endInterview { border: 1px solid #e0c3c6; border-radius: 4px; padding: 5px 8px; color: #a04850; background: #fff7f8; }
 @media (max-width: 639px) {
   .participantCount { display: none; }
-  .recordingBadge { gap: 3px; font-size: 7px; }
+  .desktopParticipants { display: none; }
+  .constraintsRow { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .prompt .constraintsRow .constraints { flex: 1; min-width: 0; margin-top: 0; overflow-wrap: anywhere; }
+  .mobileParticipants { display: block; position: relative; top: auto; right: auto; bottom: auto; flex-shrink: 0; width: clamp(124px, 35vw, 144px); padding: 4px; }
+  .mobileParticipants .cameraOffName { font-size: 13px; }
+  .mobileParticipants .participantName { font-size: 9px; }
+  .runBar { display: none; }
+  /* The prompt/editor view follows its content instead of reserving answer-window height. */
+  .demo:is([data-phase='problem'], [data-phase='key'], [data-phase='captured']) .stage { height: auto; }
+  .demo:is([data-phase='problem'], [data-phase='key'], [data-phase='captured']) .activeScene { position: relative; inset: auto; }
+  .demo:is([data-phase='problem'], [data-phase='key'], [data-phase='captured']) .activeScene > .desktopView { position: relative; }
+  .demo:is([data-phase='problem'], [data-phase='key'], [data-phase='captured']) .browserWindow { position: relative; padding-bottom: 100px; }
+  .demo:is([data-phase='problem'], [data-phase='key'], [data-phase='captured']) .interviewGrid { flex: none; }
+  .mobileHiddenTool { display: none; }
+  .savedStatus { font-size: 9px; }
+  .recordingBadge { gap: 3px; font-size: 9px; }
   .recordingBadge i { width: 4px; height: 4px; }
   .hackerHeader { gap: 6px; }
   .endInterview { padding: 3px 5px; }

@@ -21,6 +21,7 @@
 .codeLine code { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; color: #dddddf; }
 .lineNumber { text-align: center; color: #686873; }
 .keyword { color: #a6b1ff; }
+.comment { color: #8b8b97; }
 .number { color: #dac39b; }
 .removed { background: #df42421a; }
 .removed code, .removed .lineNumber { color: #eb9494; }
@@ -29,6 +30,11 @@
 .complexity { display: grid; gap: 5px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #303035; color: #a5a5b0; font-size: 0.95em; }
 .complexity h4 { margin-bottom: 0; }
 .explanation { display: grid; gap: 6px; }
+.streamLayout { display: grid; }
+.streamMeasure, .streamOutput { grid-area: 1 / 1; min-width: 0; }
+.streamMeasure { visibility: hidden; pointer-events: none; }
+.streamOutput { align-self: start; }
+.streamCursor { display: inline-block; width: 0.45em; height: 1em; margin-left: 2px; vertical-align: -0.15em; border-radius: 1px; background: #c7ccf5; }
 .designPoints { display: grid; gap: 7px; margin: 0 0 14px; padding-left: 16px; }
 .diagram { display: grid; gap: 8px; padding: 12px; border: 1px solid #363642; border-radius: 7px; background: #111115; font-size: 0.85em; }
 .flow { display: flex; align-items: stretch; }
@@ -37,23 +43,25 @@
 .node { display: grid; place-items: center; flex: 1; height: 100%; min-height: 30px; padding: 5px 6px; text-align: center; border: 1px solid #777bb0; border-radius: 5px; background: #202337; color: #e4e6fa; }
 .flowNote { color: #a4a4b6; text-align: center; font-size: 0.9em; }
 .laneTitle { font-weight: 600; color: #c5c6d8; }
-.streaming { animation: streamAnswer var(--stream-duration) steps(36, end) both; animation-play-state: var(--preview-play-state, running); }
-@keyframes streamAnswer { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+@container (max-width: 700px) {
+  .shortcuts { display: grid; grid-template-columns: repeat(3, max-content); justify-content: space-between; gap: 6px 8px; width: 100%; margin-top: 3px; }
+}
+
 @media (max-width: 639px) {
-  .statusBar { gap: 5px; padding: 7px 9px; font-size: 9px; }
-  .privacy { font-size: 7px; }
+  .statusBar { gap: 6px; padding: 9px 10px; font-size: 11px; }
+  .mode { font-size: 10px; }
+  .privacy { font-size: 9px; }
   .privacy svg { width: 10px; }
-  .shortcuts { gap: 4px; }
-  .shortcuts > span { gap: 2px; }
-  .shortcuts kbd { font-size: 8px; padding: 2px 3px; }
-  .answer { padding: 10px; }
-  .codeLine { grid-template-columns: 18px minmax(0, 1fr); }
+  .shortcuts { display: flex; flex-wrap: nowrap; justify-content: space-between; width: 100%; gap: 2px; white-space: nowrap; }
+  .shortcuts > span { gap: 1px; }
+  .shortcuts, .shortcuts kbd { font-size: clamp(5.5px, 2cqw, 8px); }
+  .shortcuts kbd { padding: 1px; }
+  .answer { padding: 12px; font-size: 13px; line-height: 1.5; }
+  .answer h4 { font-size: 11px; }
+  .codeLine, .window[data-workflow="optimize"] .codeLine { grid-template-columns: 20px minmax(0, 1fr); font-size: 10px; line-height: 1.5; }
+  .complexity { font-size: 12px; }
+  .sectionTitle > span { font-size: 10px; }
   .diagram { padding: 8px; gap: 6px; }
   .arrow { padding: 0 3px; }
   .node { padding: 4px 3px; }
-}
-@media (prefers-reduced-motion: reduce) { .streaming { animation: none; } }
-
-@container (max-width: 700px) {
-  .shortcuts { display: grid; grid-template-columns: repeat(3, max-content); justify-content: space-between; gap: 6px 8px; width: 100%; margin-top: 3px; }
 }

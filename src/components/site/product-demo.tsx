@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { ArrowLeft, ArrowRight, ArrowUp, Circle, ChevronDown, ChevronUp, Code2, Eye, LockKeyhole, MessageSquare, Mic, Monitor, MoreHorizontal, Minus, Pause, Play, Pointer, Rows2, RotateCw, Settings2, Smile, Square, Users, VideoOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CompanionPreview } from './companion-preview'
@@ -13,20 +13,21 @@ const rainWaterExamples = [
   'Input: height = [4,2,0,3,2,5]\nOutput: 9 m³',
 ]
 const rainWaterConstraints = ['1 ≤ height.length ≤ 20,000', '0 ≤ height[i] ≤ 100,000']
+const solveConstraints = [...rainWaterConstraints, 'Time complexity: O(n)', 'Extra space: O(1)']
 
 const workflows = [
   {
     id: 'coding', group: 'Coding', label: 'Solve', title: 'Roadside Drainage Capacity', key: 'F2',
     difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples,
-    constraints: [...rainWaterConstraints, 'Time complexity: O(n)', 'Extra space: O(1)'],
+    constraints: solveConstraints,
     task: "Solve in O(n) time and O(1) extra space.",
     draft: "def retained_runoff(height):\n    pass",
   },
   {
     id: 'debug', group: 'Coding', label: 'Debug', title: 'Roadside Drainage Capacity', key: 'F3',
-    difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: rainWaterConstraints,
-    task: "Fix both marked bugs: accumulate water; preserve the right maximum.",
-    draft: "def retained_runoff(height):\n    left, right = 0, len(height) - 1\n    left_max = right_max = water = 0\n    while left < right:\n        if height[left] <= height[right]:\n            left_max = max(left_max, height[left])\n            water = left_max - height[left]  # BUG 1\n            left += 1\n        else:\n            right_max = min(right_max, height[right])  # BUG 2\n            water += right_max - height[right]\n            right -= 1\n    return water",
+    difficulty: 'Hard', problem: rainWaterProblem, examples: rainWaterExamples, constraints: solveConstraints,
+    task: "Find and fix the errors in the candidate’s solution.",
+    draft: "def retained_runoff(height):\n    left, right = 0, len(height) - 1\n    left_max = right_max = water = 0\n    while left < right:\n        if height[left] <= height[right]:\n            left_max = max(left_max, height[left])\n            water = left_max - height[left]\n            left += 1\n        else:\n            right_max = min(right_max, height[right])\n            water += right_max - height[right]\n            right -= 1\n    return water",
   },
   {
     id: 'optimize', group: 'Coding', label: 'Improve', title: 'Roadside Drainage Capacity', key: 'F4',
@@ -65,7 +66,7 @@ const categories = [
 // Workflows advance manually by default, with optional automatic playback.
 const phases = [
   { id: 'problem', durationMs: 12000 },
-  { id: 'key', durationMs: 1400 },
+  { id: 'key', durationMs: 2200 },
   { id: 'stream', durationMs: 3000 },
   { id: 'answer', durationMs: 8000 },
   { id: 'scan', durationMs: 1800 },
@@ -75,14 +76,15 @@ const phases = [
 ] as const
 
 type Playback = { scene: number; phase: number; run: number }
+const devStepStorageKey = 'swecompanion:dev-preview-step:v1'
 
 function phaseDuration({ scene, phase }: Pick<Playback, 'scene' | 'phase'>): number {
   const step = phases[phase]
   if (workflows[scene].group !== 'Coding') return step.durationMs
   switch (step.id) {
     case 'problem': return scene === categories[0].firstScene ? 4000 : 1500
-    case 'key': return 1000
-    case 'stream': return 1600
+    case 'key': return 1800
+    case 'stream': return 2200
     case 'answer': return 4000
     default: return step.durationMs
   }
@@ -108,7 +110,7 @@ do {
 } while (reviewStep.scene !== 0 || reviewStep.phase !== 0)
 
 const phaseLabels: Record<(typeof phases)[number]['id'], string> = {
-  problem: 'Problem', key: 'Key press', stream: 'Answer appearing', answer: 'Complete answer',
+  problem: 'Problem', key: 'Key press', stream: 'Answer streaming', answer: 'Complete answer',
   scan: 'Scan to midpoint', compare: 'Side-by-side comparison', reveal: 'Finish reveal', captured: 'What others see',
 }
 
@@ -130,8 +132,8 @@ function SourceCode({ workflow }: { workflow: Workflow }) {
   )
 }
 
-function ProblemStatement({ workflow }: { workflow: Workflow }) {
-  const pastedProblem = workflow.id === 'coding'
+function ProblemStatement({ workflow, captured }: { workflow: Workflow; captured: boolean }) {
+  const pastedProblem = workflow.id === 'coding' || workflow.id === 'debug'
   return (
     <section className={styles.questionPanel}>
       <div className={styles.questionTabs}><span>Problem</span><span>Shared by interviewer</span></div>
@@ -143,9 +145,12 @@ function ProblemStatement({ workflow }: { workflow: Workflow }) {
           <RunoffExample />
           <div className={styles.runoffSecondExample}><strong>Example 2:</strong> [4,2,0,3,2,5] → 9 m³</div>
         </> : <div className={styles.input}>{workflow.examples.join('\n\n')}</div>}
-        <div className={styles.constraints}>
-          <p><strong>{workflow.group === 'Coding' ? 'Constraints' : 'Requirements'}</strong></p>
-          <ul>{workflow.constraints.map((constraint) => <li key={constraint}>{constraint}</li>)}</ul>
+        <div className={styles.constraintsRow}>
+          <div className={styles.constraints}>
+            <p><strong>{workflow.group === 'Coding' ? 'Constraints' : 'Requirements'}</strong></p>
+            <ul>{workflow.constraints.map((constraint) => <li key={constraint}>{constraint}</li>)}</ul>
+          </div>
+          <MeetingParticipants captured={captured} mobile />
         </div>
         {!pastedProblem && <p><strong>{workflow.label}:</strong> {workflow.task}</p>}
       </div>
@@ -177,7 +182,7 @@ function Workspace({ workflow, captured, sessionTime }: { workflow: Workflow; ca
         <span className={styles.interviewTimer}>{sessionTime}</span>
       </div>
       <div className={styles.interviewGrid}>
-        <ProblemStatement workflow={workflow} />
+        <ProblemStatement workflow={workflow} captured={captured} />
         <section className={styles.codePanel} aria-label="Candidate answer editor">
           <div className={styles.editorToolbar}>
             <span><Code2 size={12} aria-hidden />{coding ? 'solution.py' : 'design.md'}</span>
@@ -205,9 +210,9 @@ function Workspace({ workflow, captured, sessionTime }: { workflow: Workflow; ca
   )
 }
 
-function MeetingParticipants({ captured }: { captured: boolean }) {
+function MeetingParticipants({ captured, mobile = false }: { captured: boolean; mobile?: boolean }) {
   return (
-    <aside className={styles.participants} aria-label="Illustrated Zoom floating video panel">
+    <aside className={cn(styles.participants, mobile ? styles.mobileParticipants : styles.desktopParticipants)} aria-label="Illustrated Zoom floating video panel">
       <div className={styles.participantTitle} aria-hidden>
         <span className={styles.panelLayout}><Minus size={11} /><Square size={10} /><span className={styles.selectedLayout}><Rows2 size={12} /></span></span>
         <span className={styles.panelGrip}><i /><i /><i /><i /><i /><i /></span>
@@ -252,7 +257,7 @@ function MeetingControls({ captured }: { captured: boolean }) {
           const optional = 'optional' in tool && tool.optional
           const muted = 'muted' in tool && tool.muted
           const sharing = 'sharing' in tool && tool.sharing
-          return <span key={label} className={cn(styles.zoomTool, optional && styles.optionalTool, muted && styles.mutedControl, sharing && styles.sharingTool, 'recording' in tool && tool.recording && styles.recordingTool, 'divider' in tool && tool.divider && styles.toolDivider)}>
+          return <span key={label} className={cn(styles.zoomTool, label === 'Chat' && styles.mobileHiddenTool, optional && styles.optionalTool, muted && styles.mutedControl, sharing && styles.sharingTool, 'recording' in tool && tool.recording && styles.recordingTool, 'divider' in tool && tool.divider && styles.toolDivider)}>
             <span className={styles.toolIconRow}>
               <span className={cn(styles.toolGlyph, label === 'Share' && styles.shareGlyph)}>
                 <Icon size={22} strokeWidth={1.9} />
@@ -293,6 +298,7 @@ function ViewLabel({ shared }: { shared: boolean }) {
 export function ProductDemo() {
   const [playback, setPlayback] = useState<Playback>({ scene: 0, phase: 0, run: 0 })
   const [reviewing, setReviewing] = useState(true)
+  const [stepRestored, setStepRestored] = useState(process.env.NODE_ENV !== 'development')
   const [visible, setVisible] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(4 * 60 + 32)
   const sessionTime = `${Math.floor(elapsedSeconds / 60).toString().padStart(2, '0')}:${(elapsedSeconds % 60).toString().padStart(2, '0')}`
@@ -308,6 +314,34 @@ export function ProductDemo() {
   const running = visible && !reviewing
   const stepIndex = reviewSequence.findIndex((step) => step.scene === playback.scene && step.phase === playback.phase)
   const splitting = showingCapture && phase.id !== 'captured'
+
+  useLayoutEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem(devStepStorageKey) ?? 'null')
+      if (saved && typeof saved === 'object' && 'workflow' in saved && 'phase' in saved) {
+        const restored = reviewSequence.find((step) => workflows[step.scene].id === saved.workflow && phases[step.phase].id === saved.phase)
+        if (restored) {
+          const run = ++generation.current
+          remaining.current = { run, durationMs: phaseDuration(restored) }
+          // Restore browser-local preview state after hydration.
+          setPlayback({ ...restored, run })
+        }
+      }
+    } catch {
+      // Missing, invalid, or unavailable storage leaves the demo at its first step.
+    }
+    setStepRestored(true)
+  }, [])
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development' || !stepRestored) return
+    try {
+      localStorage.setItem(devStepStorageKey, JSON.stringify({ workflow: workflow.id, phase: phase.id }))
+    } catch {
+      // Playback remains usable when local storage is blocked or full.
+    }
+  }, [stepRestored, workflow.id, phase.id])
 
   function selectCategory(index: number) {
     const run = ++generation.current
@@ -381,7 +415,7 @@ export function ProductDemo() {
       <p id="demo-summary" className="sr-only">
         Explore Solve, Debug, Improve, System Design, and ML System Design step by step, or choose Play demo to watch automatically.
         Each shows the entire concise problem, examples, and constraints without scrolling, an animated physical key press,
-        and the complete companion answer. Coding uses shorter pauses and a 1.6-second example stream to move quickly through its three features.
+        and the complete companion answer. Coding uses shorter pauses and a 2.2-second example stream to move quickly through its three features.
         Design examples keep longer reading holds.
         Coding shows Solve, Debug, and Improve before a single screen-share comparison.
         System Design and ML System Design each have their own comparison.
@@ -415,7 +449,7 @@ export function ProductDemo() {
                 <DesktopView workflow={example} captured={false} sessionTime={sessionTime}>
                   <div className={cn(styles.solutionLayer, showingAnswer && styles.answerVisible)} aria-hidden={!showingAnswer}>
                     <div className={styles.nativeWindow}>
-                      <CompanionPreview workflow={example.id} streaming={active && phase.id === 'stream' && !reviewing} />
+                      <CompanionPreview key={active && phase.id === 'stream' ? playback.run : 'complete'} workflow={example.id} streaming={active && phase.id === 'stream'} running={visible && active} streamDurationMs={phaseDuration({ scene: index, phase: 2 })} />
                     </div>
                   </div>
                 </DesktopView>
@@ -432,6 +466,9 @@ export function ProductDemo() {
           </div> : phase.id !== 'key' && <div className={styles.singleViewLabel} aria-hidden><ViewLabel shared={phase.id === 'captured'} /></div>}
           {phase.id === 'key' && (
             <div key={playback.run} className={styles.keyOverlay} aria-hidden>
+              <div className={styles.keyPrompt}>
+                Press <strong>{workflow.key}</strong> to {workflow.id === 'debug' ? 'debug' : workflow.id === 'optimize' ? 'optimize' : 'solve'}
+              </div>
               <div className={styles.keyboardAction}>
                 <div className={styles.keyboardDeck}>
                   {['F2', 'F3', 'F4'].map((key) => (

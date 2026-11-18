@@ -21,7 +21,7 @@ export function Hero() {
             Undetectable AI<br className="lg:hidden" />{' '}
             for SWE interviews
           </h1>
-          <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
+          <p className="mt-5 w-[calc(100vw-24px)] max-w-xl text-pretty text-[clamp(9px,2.65vw,14px)] leading-relaxed text-muted-foreground sm:w-auto sm:text-lg">
             SWECompanion reads your screen and solves or debugs coding and
             system design problems in real time with clean, optimal solutions.
           </p>

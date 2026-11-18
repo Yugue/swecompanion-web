@@ -1,23 +1,15 @@
+'use client'
+
 import { EyeOff } from 'lucide-react'
 import { ProductMark } from '@/components/ProductMark'
 import { cn } from '@/lib/utils'
 import styles from './companion-preview.module.css'
+import coreCodingPreview from './core-coding-preview.json'
+import { StreamedAnswer } from './streamed-answer'
 
 export type PreviewWorkflow = 'coding' | 'debug' | 'optimize' | 'system-design' | 'ml-design'
 
-const solution = `def retained_runoff(height):
-    left, right = 0, len(height) - 1
-    left_max = right_max = water = 0
-    while left < right:
-        if height[left] <= height[right]:
-            left_max = max(left_max, height[left])
-            water += left_max - height[left]
-            left += 1
-        else:
-            right_max = max(right_max, height[right])
-            water += right_max - height[right]
-            right -= 1
-    return water`
+const solution = coreCodingPreview.solution
 
 const original = `def retained_runoff(height):
     water = 0
@@ -27,7 +19,7 @@ const original = `def retained_runoff(height):
         water += min(left_max, right_max) - height[i]
     return water`
 
-const tokens = /("[^"\n]*"|'[^'\n]*'|\b(?:def|return|if|else|while|for|in)\b|\b\d+\b)/g
+const tokens = /(#.*$|"[^"\n]*"|'[^'\n]*'|\b(?:def|return|if|else|while|for|in)\b|\b\d+\b)/g
 
 type CodeLine = { text: string; change?: 'removed' | 'added' }
 
@@ -36,6 +28,7 @@ function answerLines(workflow: PreviewWorkflow): CodeLine[] {
     ...original.split('\n').map((text) => ({ text, change: 'removed' as const })),
     ...solution.split('\n').map((text) => ({ text, change: 'added' as const })),
   ]
+  if (workflow === 'coding') return coreCodingPreview.solution.split('\n').map((text) => ({ text }))
   return solution.split('\n').flatMap((text): CodeLine[] => {
     if (workflow === 'debug' && text.includes('water += left_max')) return [
       { text: text.replace('+=', '='), change: 'removed' }, { text, change: 'added' },
@@ -47,45 +40,47 @@ function answerLines(workflow: PreviewWorkflow): CodeLine[] {
   })
 }
 
-function CodeAnswer({ workflow }: { workflow: PreviewWorkflow }) {
+function createCodeAnswer({ workflow }: { workflow: PreviewWorkflow }) {
   const lines = answerLines(workflow)
   return <>
     <div className={styles.sectionTitle}><h4>{workflow === 'coding' ? 'Solution' : 'Code diff'}</h4><span>python · {lines.length} lines</span></div>
     <div className={styles.codeBlock}>
       {lines.map(({ text, change }, index) => <div key={index} className={cn(styles.codeLine, change && styles[change])}>
         <span className={styles.lineNumber}>{change === 'added' ? '+' : change === 'removed' ? '−' : index + 1}</span>
-        <code>{text.split(tokens).map((token, part) => <span key={part} className={/^(def|return|if|else|while|for|in)$/.test(token) ? styles.keyword : /^\d+$/.test(token) ? styles.number : undefined}>{token}</span>)}</code>
+        <code>{text.split(tokens).map((token, part) => <span key={part} className={token.startsWith('#') ? styles.comment : /^(def|return|if|else|while|for|in)$/.test(token) ? styles.keyword : /^\d+$/.test(token) ? styles.number : undefined}>{token}</span>)}</code>
       </div>)}
     </div>
     <section className={styles.complexity}>
       <h4>Complexity</h4>
-      <p><strong>Time: O(n).</strong> Each pointer moves inward without revisiting a section, so at most n sections are processed.</p>
-      <p><strong>Space: O(1) extra.</strong> Only two pointers, two running maxima, and the total are stored; no auxiliary arrays or slices are needed.</p>
+      {workflow === 'coding' ? coreCodingPreview.complexity.map((line) => <p key={line}>{line}</p>) : <>
+        <p><strong>Time: O(n).</strong> Each section is processed at most once.</p>
+        <p><strong>Space: O(1) extra.</strong> Two pointers, two maxima, and the total; no auxiliary arrays.</p>
+      </>}
     </section>
   </>
 }
 
-function Flow({ nodes }: { nodes: string[] }) {
+function createFlow({ nodes }: { nodes: string[] }) {
   return <div className={styles.flow}>{nodes.map((node, index) => <div key={node} className={styles.flowStep}>
     {index > 0 && <span className={styles.arrow}>→</span>}<span className={styles.node}>{node}</span>
   </div>)}</div>
 }
 
-function Architecture({ ml }: { ml: boolean }) {
+function createArchitecture({ ml }: { ml: boolean }) {
   return <div className={styles.diagram}>
     {ml ? <>
       <span className={styles.laneTitle}>Online inference</span>
-      <Flow nodes={['Message', 'XLM-R', '150 scores + policy', 'Labels / review / unknown']} />
+      {createFlow({ nodes: ['Message', 'XLM-R', '150 scores + policy', 'Labels / review / unknown'] })}
       <span className={styles.flowNote}>↓ Outcome audits feed reviewed training data</span>
       <span className={styles.laneTitle}>Learning pipeline</span>
-      <Flow nodes={['Reviewed data', 'Train + calibrate + evaluate', 'Versioned bundle']} />
+      {createFlow({ nodes: ['Reviewed data', 'Train + calibrate + evaluate', 'Versioned bundle'] })}
       <span className={styles.flowNote}>Approved release → model, tokenizer, and thresholds</span>
     </> : <>
-      <Flow nodes={['Fans', 'Waiting room', 'Booking', 'SQL + outbox']} />
+      {createFlow({ nodes: ['Fans', 'Waiting room', 'Booking', 'SQL + outbox'] })}
       <span className={styles.flowNote}>Signed token → admission · atomic seat holds + order state</span>
-      <Flow nodes={['Search / seat cache', 'Booking', 'Payments']} />
+      {createFlow({ nodes: ['Search / seat cache', 'Booking', 'Payments'] })}
       <span className={styles.flowNote}>Order ID → payment · verified callback → booking</span>
-      <Flow nodes={['SQL + outbox', 'Retry delivery', 'Tickets']} />
+      {createFlow({ nodes: ['SQL + outbox', 'Retry delivery', 'Tickets'] })}
     </>}
   </div>
 }
@@ -104,9 +99,31 @@ const mlPoints = [
   ['Serving', 'Version weights, tokenizer, and cutoffs together. Batch inference; canary releases. Model failure → review.'],
 ]
 
-/** Decorative web rendering of the Core answer window; all content is editable here. */
-export function CompanionPreview({ workflow, streaming }: { workflow: PreviewWorkflow; streaming: boolean }) {
+function createAnswerContent(workflow: PreviewWorkflow) {
   const coding = workflow === 'coding' || workflow === 'debug' || workflow === 'optimize'
+  return coding ? <>
+    <section className={styles.intro}>
+      <h4>{workflow === 'coding' ? 'Explanation' : workflow === 'debug' ? 'Two bugs' : 'Two improvements'}</h4>
+      {workflow === 'coding' ? <div className={styles.explanation}>
+        <p>{coreCodingPreview.explanation.split(/(`[^`]+`)/g).map((part, index) => part.startsWith('`') ? <code key={index}>{part.slice(1, -1)}</code> : part)}</p>
+        <p><strong>Example:</strong> {coreCodingPreview.example}</p>
+        <ol>{coreCodingPreview.steps.map((step) => <li key={step}>{step}</li>)}</ol>
+      </div>
+        : workflow === 'debug' ? <ol><li><strong>Overwritten total:</strong> = discards earlier water. Use +=.</li><li><strong>Wrong right boundary:</strong> min loses the tallest bar. Use max.</li></ol>
+          : <ol><li><strong>Faster:</strong> Replace repeated maximum scans with one two-pointer pass. <strong>O(n²) → O(n)</strong> time.</li><li><strong>Less memory:</strong> Remove array slices; keep two running maxima. <strong>O(n) → O(1)</strong> extra space.</li></ol>}
+    </section>
+    {createCodeAnswer({ workflow })}
+  </> : <>
+    <h4>{workflow === 'ml-design' ? 'Model & training' : 'Design'}</h4>
+    <ul className={styles.designPoints}>{(workflow === 'ml-design' ? mlPoints : designPoints).map(([title, text]) => <li key={title}><strong>{title}:</strong> {text}</li>)}</ul>
+    <h4>Architecture</h4>{createArchitecture({ ml: workflow === 'ml-design' })}
+  </>
+}
+
+/** Decorative Core answer window, adapted from a saved Core generation for the preview. */
+export function CompanionPreview({ workflow, streaming, running, streamDurationMs }: { workflow: PreviewWorkflow; streaming: boolean; running: boolean; streamDurationMs: number }) {
+  const coding = workflow === 'coding' || workflow === 'debug' || workflow === 'optimize'
+  const content = createAnswerContent(workflow)
   const label = workflow === 'debug' ? 'Debug' : workflow === 'optimize' ? 'Improve' : 'Solve'
   return <div className={styles.window} data-workflow={workflow}>
     <div className={styles.statusBar}>
@@ -118,24 +135,8 @@ export function CompanionPreview({ workflow, streaming }: { workflow: PreviewWor
         <span><kbd>F6/F7</kbd>Scroll up/down</span><span><kbd>F12</kbd>Clear</span>
       </div>
     </div>
-    <div className={cn(styles.answer, streaming && styles.streaming)}>
-      {coding ? <>
-        <section className={styles.intro}>
-          <h4>{workflow === 'coding' ? 'Explanation' : workflow === 'debug' ? 'Two bugs' : 'Two improvements'}</h4>
-          {workflow === 'coding' ? <div className={styles.explanation}>
-            <p>Water at a section is limited by the lower of the highest ground elevations to its left and right. Subtract the section’s elevation to get the retained depth. Each section covers 1 m², so that depth contributes the same number of cubic metres.</p>
-            <p>Start one pointer at each end and track the highest elevation seen from each side. Process the lower current elevation: the opposite boundary is already high enough, so this side’s running maximum determines its water depth. Add that depth and move the pointer inward.</p>
-            <p>Stop when the pointers meet. In the first example, the retained depths are 1, 1, 2, 1, and 1 across the low sections: <strong>6 m³</strong> in total. The second example retains <strong>9 m³</strong>.</p>
-          </div>
-            : workflow === 'debug' ? <ol><li><strong>Overwritten total:</strong> = discards earlier water. Use +=.</li><li><strong>Wrong right boundary:</strong> min loses the tallest bar. Use max.</li></ol>
-              : <ol><li><strong>Faster:</strong> Replace repeated maximum scans with one two-pointer pass. <strong>O(n²) → O(n)</strong> time.</li><li><strong>Less memory:</strong> Remove array slices; keep two running maxima. <strong>O(n) → O(1)</strong> extra space.</li></ol>}
-        </section>
-        <CodeAnswer workflow={workflow} />
-      </> : <>
-        <h4>{workflow === 'ml-design' ? 'Model & training' : 'Design'}</h4>
-        <ul className={styles.designPoints}>{(workflow === 'ml-design' ? mlPoints : designPoints).map(([title, text]) => <li key={title}><strong>{title}:</strong> {text}</li>)}</ul>
-        <h4>Architecture</h4><Architecture ml={workflow === 'ml-design'} />
-      </>}
+    <div className={styles.answer}>
+      {streaming ? <StreamedAnswer durationMs={streamDurationMs} running={running}>{content}</StreamedAnswer> : content}
     </div>
   </div>
 }

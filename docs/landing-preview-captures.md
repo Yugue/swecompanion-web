@@ -56,8 +56,8 @@ opaque dark surface so the underlying editor does not obscure the answer.
 
 Coding plays its three actions before one shared-screen comparison. The initial
 problem holds for 4 seconds, subsequent coding prompts for 1.5 seconds, keypresses
-for 1 second, streaming for 1.6 seconds, and complete answers for 4 seconds.
-Design workflows each use a 12-second prompt, 1.4-second keypress, 3-second stream,
+for 1.8 seconds, streaming for 2.2 seconds, and complete answers for 4 seconds.
+Design workflows each use a 12-second prompt, 2.2-second keypress, 3-second stream,
 and 8-second answer hold. Each comparison uses a 1.8-second initial scan, 6.5-second
 halfway hold, 1.4-second final reveal, and 5-second shared view.
 
@@ -68,7 +68,7 @@ Reduced-motion preferences remove streaming, key motion, and moving scans.
 ## Playback controls
 
 The controls appear below the preview in both development and production.
-Step-by-step mode is the default and shows each phase in its final pose.
+Step-by-step mode is the default. The stream step emits small text chunks with a trailing cursor, retaining syntax highlighting and a stable window size. It also plays when selected manually. Other phases show their final pose.
 Previous step and Next step move through the same 32-step sequence as autoplay,
 wrapping at either end. Restart returns to the first Coding problem and stays
 paused. Category tabs also work in step-by-step mode. The panel labels the current
