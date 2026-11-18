@@ -25,12 +25,23 @@ and preserve the right maximum); Improve replaces the original scan-based
 function with the complete two-pointer solution. Red means removed and amber
 means added. Time improves from O(n²) to O(n); extra space from O(n) to O(1).
 
-System Design covers Ticketmaster: a signed waiting room, advisory seat caches,
-transactional five-minute holds, payment idempotency and reconciliation, and
-outbox-driven ticket delivery. ML System Design covers multilingual support
-classification, reviewed multilabel data, XLM-R, calibration, evaluation,
-versioned serving, and the online and learning pipelines. Architecture nodes,
-arrows, and labels are web elements, so they can be customized with the answers.
+System Design and ML System Design show saved Core answers
+(`core-system-design-preview.json`, `core-ml-design-preview.json`): Core's
+`systemDesign` and `mlSystemDesign` prompts with its system prompt, run on Core's
+model against screenshots of the hero problems.
+
+System Design covers Ticketmaster with Core's Summary, Explanation, and
+Architecture sections; Nice to Have stays in the JSON but is left out so the
+window fits the minimum stage height. ML System Design covers multilingual
+support classification and shows the bullets that carry the main decisions,
+verbatim: Data (ML Objective, Labels, Flow), Model & Training (Model, Decision
+rule), and Evaluation & Scaling (Offline monitoring). The remaining bullets, the
+cost-estimate tables, and the cost summary stay in the JSON.
+
+Both Mermaid diagrams are redrawn as SVG by one `ArchitectureDiagram` component:
+the same components, numbered edges, and Core's path colours (write/read/async
+for Ticketmaster; inference path and training loop for ML). Below a 520px window
+width each falls back to one lane per path.
 
 ## Presentation and interaction
 

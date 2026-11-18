@@ -1,0 +1,75 @@
+{
+  "source": "SWECompanionCore/functions/src/prompts/mlSystemDesign.ts",
+  "prompt": "mlSystemDesign",
+  "model": "claude-sonnet-5-5",
+  "problem": "Classify Multilingual Support Messages (hero screenshot)",
+  "data": [
+    [
+      "ML Objective",
+      "assume 10M msgs/day, 600/s peak: P(issue k | message) per 150 labels -> auto-tag, human review, or NOVEL."
+    ],
+    [
+      "Labels",
+      "message -> 150-dim multi-hot from agents' final ticket tags; catch: agents omit secondary issues -> LLM re-labels, humans audit 5% per language."
+    ],
+    [
+      "Hard negatives",
+      "confusable pairs (duplicate charge vs refund, login vs password reset) -> mined from top false-positive pairs and teacher-student disagreements, upweighted."
+    ],
+    [
+      "Data problems",
+      "long-tail labels (<200 rows) -> LLM-synthesized examples per language, real rows only for calibration; language skew -> 5% sampling floor per language."
+    ],
+    [
+      "Flow",
+      "message -> tokenize + micro-batch 10 ms -> encoder, 151 scores in 20 ms -> policy 1 ms -> tags / review / NOVEL, p99 < 50 ms."
+    ]
+  ],
+  "modelTraining": [
+    [
+      "Baseline",
+      "char n-gram TF-IDF + one-vs-rest **logistic regression** -> misses code-switched text and low-resource languages that the encoder closes."
+    ],
+    [
+      "Model",
+      "fine-tuned **distilled multilingual encoder** (XLM-R style): text -> pooled embedding -> 150 sigmoid heads + 1 **Unknown head** for no-known-label."
+    ],
+    [
+      "Training",
+      "**sigmoid BCE** with per-label weights, hard negatives x3, 12-month window, Unknown head trained on human-confirmed no-label messages, retrain monthly and after NOVEL review."
+    ],
+    [
+      "Decision rule",
+      "per-label thresholds on calibration split -> auto-tag at precision >= 95%, review band by reviewer capacity, NOVEL if Unknown head high and labels low."
+    ]
+  ],
+  "costEstimates": [
+    {
+      "for": "Baseline",
+      "training": "2M rows x 150 heads / 1M rows per core-h = 300 core-h x $0.05 = ~$15",
+      "inference": "600 texts/s x 150 labels = 90K scores/s / 200K per core = 0.45 -> 1 core x $0.05 = ~$0.05/h"
+    },
+    {
+      "for": "Model",
+      "training": "2M rows x 3 epochs = 6M / 1.5K rows/s per GPU = 4,000 s = ~1.1 GPU-h x $4 = ~$4.4",
+      "inference": "600 texts/s x 1 = 600 texts/s / 5K per GPU = 0.12 -> 1 GPU x 2 replicas x $4 = ~$8/h"
+    }
+  ],
+  "costSummary": "Encoder costs ~$8/h (~$190/day, ~$0.00002 per message) vs ~$0.05/h baseline, worth it for cross-lingual and code-switched accuracy.",
+  "evaluationScaling": [
+    [
+      "Offline monitoring",
+      "**macro-F1** and recall at 95% precision on the latest 4 weeks, per language and code-switched slices, rare labels <200 rows; Unknown AUROC with 10 labels held out; LLM labels vs human gold >= 90% agreement."
+    ],
+    [
+      "Online monitoring",
+      "A/B on **agent override rate** of auto-tags, counter-metric ticket reopen rate; shadow -> 5% canary -> ramp, registry rollback; per-language score drift or NOVEL-rate spike -> hold ramp, widen review band."
+    ],
+    [
+      "Scaling",
+      "micro-batching on 2 GPU replicas holds peak; reviewer corrections reach Labeled Data nightly; model server down -> all messages to Review Queue unscored."
+    ]
+  ],
+  "mermaid": "%%{init: {\"themeVariables\": {\"fontSize\": \"12px\"}}}%%\nflowchart TD\n    subgraph Flow[\" \"]\n        direction LR\n        Client([Client]) -->|\"1. Send<br>message\"| Infer[\"Inference Service<br><span style='font-size:11px'>Tokenizes,<br>micro-batches 16</span>\"]\n        Infer -->|\"2. Run<br>live model\"| Model[\"Model Server<br><span style='font-size:11px'>text -> 151 scores<br>2 GPU replicas</span>\"]\n        Model -->|\"3. Load<br>live version\"| Registry[(\"Model Registry<table style='font-size:10px;text-align:left;border-collapse:collapse;margin:4px auto'><tr><td style='border:1px solid white;padding:1px 6px'>model_id</td><td style='border:1px solid white;padding:1px 6px'>PK</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>version</td><td style='border:1px solid white;padding:1px 6px'>UK</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>metrics</td><td style='border:1px solid white;padding:1px 6px'>json</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>status</td><td style='border:1px solid white;padding:1px 6px'>index</td></tr></table><span style='font-size:11px'>PostgreSQL —<br>versions, metrics,<br>fast rollback</span>\")]\n        Model -->|\"4. Score<br>to decision\"| Policy[\"Decision Policy<br><span style='font-size:11px'>Per-label threshold -><br>tag, review, NOVEL</span>\"]\n        Policy -->|\"5. Route<br>uncertain\"| Review[\"Review Queue<br><span style='font-size:11px'>Agents confirm tags,<br>NOVEL clusters</span>\"]\n        Policy -->|\"6. Log<br>prediction\"| Predictions[(\"Prediction Log<table style='font-size:10px;text-align:left;border-collapse:collapse;margin:4px auto'><tr><td style='border:1px solid white;padding:1px 6px'>request_id</td><td style='border:1px solid white;padding:1px 6px'>PK</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>text</td><td style='border:1px solid white;padding:1px 6px'>text</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>scores</td><td style='border:1px solid white;padding:1px 6px'>json</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>language</td><td style='border:1px solid white;padding:1px 6px'>index</td></tr></table><span style='font-size:11px'>S3 (Parquet) —<br>cheap, append-only</span>\")]\n        Predictions -->|\"7. Pre-label<br>sample\"| Teacher[\"Teacher Language Model<br><span style='font-size:11px'>text -> pseudo-labels</span>\"]\n        Teacher -->|\"8. Teacher<br>labels\"| Labels[(\"Labeled Data<table style='font-size:10px;text-align:left;border-collapse:collapse;margin:4px auto'><tr><td style='border:1px solid white;padding:1px 6px'>text_id</td><td style='border:1px solid white;padding:1px 6px'>PK</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>text</td><td style='border:1px solid white;padding:1px 6px'>text</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>labels</td><td style='border:1px solid white;padding:1px 6px'>multi-hot</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>split</td><td style='border:1px solid white;padding:1px 6px'>index</td></tr></table><span style='font-size:11px'>Delta Lake —<br>versioned splits:<br>train, calib, test</span>\")]\n        Review -->|\"9. Human<br>corrections\"| Labels\n        Labels -->|\"10. Train<br>candidate\"| Trainer[\"Training Job<br><span style='font-size:11px'>Fine-tunes encoder,<br>BCE, hard negatives</span>\"]\n        Trainer -->|\"11. Score vs<br>live model\"| Eval[\"Offline Eval<br><span style='font-size:11px'>Macro-F1 vs live<br>on frozen test set</span>\"]\n        Eval -->|\"12. Promote<br>if better\"| Registry\n    end\n    subgraph Legend\n        direction LR\n        LegendInfer[Orange — Inference path]:::inferKey ~~~ LegendTrain[Blue — Training loop]:::trainKey\n    end\n    Flow ~~~ Legend\n    style Flow fill:none,stroke:none\n    classDef inferKey fill:none,stroke:#ff8a65,stroke-width:2px,color:#ff8a65,font-size:12px\n    classDef trainKey fill:none,stroke:#64b5f6,stroke-width:2px,color:#64b5f6,font-size:12px\n    linkStyle 0,1,2,3,4,5 stroke:#ff8a65,stroke-width:2px\n    linkStyle 6,7,8,9,10,11 stroke:#64b5f6,stroke-width:2px",
+  "editedForPreview": false
+}

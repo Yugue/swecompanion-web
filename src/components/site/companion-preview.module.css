@@ -36,13 +36,10 @@
 .streamOutput { align-self: start; }
 .streamCursor { display: inline-block; width: 0.45em; height: 1em; margin-left: 2px; vertical-align: -0.15em; border-radius: 1px; background: #c7ccf5; }
 .designPoints { display: grid; gap: 7px; margin: 0 0 14px; padding-left: 16px; }
-.diagram { display: grid; gap: 8px; padding: 12px; border: 1px solid #363642; border-radius: 7px; background: #111115; font-size: 0.85em; }
 .flow { display: flex; align-items: stretch; }
 .flowStep { display: flex; flex: 1; align-items: center; min-width: 0; }
-.arrow { flex-shrink: 0; padding: 0 6px; color: #9a9fbe; }
 .node { display: grid; place-items: center; flex: 1; height: 100%; min-height: 30px; padding: 5px 6px; text-align: center; border: 1px solid #777bb0; border-radius: 5px; background: #202337; color: #e4e6fa; }
 .flowNote { color: #a4a4b6; text-align: center; font-size: 0.9em; }
-.laneTitle { font-weight: 600; color: #c5c6d8; }
 @container (max-width: 700px) {
   .shortcuts { display: grid; grid-template-columns: repeat(3, max-content); justify-content: space-between; gap: 6px 8px; width: 100%; margin-top: 3px; }
 }
@@ -61,7 +58,37 @@
   .codeLine, .window[data-workflow="optimize"] .codeLine { grid-template-columns: 20px minmax(0, 1fr); font-size: 10px; line-height: 1.5; }
   .complexity { font-size: 12px; }
   .sectionTitle > span { font-size: 10px; }
-  .diagram { padding: 8px; gap: 6px; }
-  .arrow { padding: 0 3px; }
-  .node { padding: 4px 3px; }
+    .node { padding: 4px 3px; }
+}
+
+/* Design answers: Core answer sections and the redrawn architecture diagrams. */
+.window[data-workflow="system-design"] .designPoints, .window[data-workflow="ml-design"] .designPoints { gap: 4px; margin: 0; }
+.window[data-workflow="system-design"] .intro, .window[data-workflow="ml-design"] .intro { margin-bottom: 8px; padding-bottom: 8px; }
+.window[data-workflow="system-design"] .answer, .window[data-workflow="ml-design"] .answer { padding-bottom: 10px; }
+.window[data-workflow="system-design"] .answer h4, .window[data-workflow="ml-design"] .answer h4 { margin-bottom: 5px; }
+.sdDiagram { display: grid; gap: 4px; padding: 6px 10px 7px; border: 1px solid #363642; border-radius: 7px; background: #111115; }
+.sdSvg { display: block; width: 100%; height: auto; overflow: visible; font-family: inherit; }
+.sdTitle, .sdLine, .sdBadge { text-anchor: middle; }
+.sdService rect { fill: #1f2236; stroke: #777bb0; stroke-width: 1; }
+.sdStore rect { fill: #17232a; stroke: #5f97ad; stroke-width: 1; }
+.sdStore line { stroke: #5f97ad66; stroke-width: 0.8; }
+.sdActor rect { fill: #24242b; stroke: #8e8e9c; stroke-width: 1; }
+.sdTitle { fill: #eceefb; font-size: 10.5px; font-weight: 600; }
+.sdLine { fill: #a9adc4; font-size: 8.5px; }
+.sdStore .sdLine { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7.8px; }
+.sdBadge { font-size: 8px; font-weight: 700; }
+.sdEdgeLabel { fill: #b7b9c9; font-size: 8.5px; }
+.sdLanes { display: none; gap: 6px; font-size: 0.85em; }
+.sdLane { display: grid; gap: 3px; }
+.sdLane .node { border-color: var(--lane); background: #1b1c26; }
+.sdLaneArrow { flex-shrink: 0; display: flex; align-items: center; gap: 1px; padding: 0 4px; color: var(--lane); }
+.sdLaneArrow b { font-size: 0.8em; }
+.sdLegend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; font-size: 0.78em; }
+.sdLegend span { padding: 1px 7px; border: 1px solid; border-radius: 4px; }
+@container (max-width: 520px) {
+  .sdSvg { display: none; }
+  .sdLanes { display: grid; }
+}
+@container (max-width: 700px) {
+  .window[data-workflow="system-design"] .answer, .window[data-workflow="ml-design"] .answer { padding-top: 10px; padding-bottom: 10px; font-size: 10px; line-height: 1.4; }
 }

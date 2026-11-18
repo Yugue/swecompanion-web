@@ -1,0 +1,41 @@
+{
+  "source": "SWECompanionCore/functions/src/prompts/systemDesign.ts",
+  "prompt": "systemDesign",
+  "model": "claude-sonnet-5-5",
+  "problem": "Ticket booking — Ticketmaster (hero screenshot)",
+  "summary": "When a fan picks a seat, one atomic update claims it for five minutes, so nobody else can grab it while they pay. The payment carries that claim's id, so a retry never charges twice, and an unpaid claim just expires.",
+  "explanation": [
+    [
+      "Scale",
+      "~1.7k joins/s (assume 10-minute rush), ~5k seat-map reads/s, ~1k hold writes/s on 50k rows — contention, not volume, is hard."
+    ],
+    [
+      "Two fans never hold the same seat",
+      "the hold is one conditional update setting status HELD and hold_expires_at = now + 5 min, only if the seat is available or its hold expired. One row-level winner; lapsed holds free themselves, so no sweeper race."
+    ],
+    [
+      "A payment retry charges once",
+      "hold_id is the idempotency key on the charge and unique on the seat row, so retries replay the same result. A charge landing after the hold lapsed is refunded with the same key."
+    ],
+    [
+      "1M fans cannot stampede 50k seats",
+      "the Waiting Room admits signed-token batches sized to the hold write rate, and seat maps come from the Cache keyed by event_id. Fans over capacity wait; sold-out pages never touch the Inventory Database."
+    ]
+  ],
+  "mermaid": "flowchart TD\n    subgraph Flow[\" \"]\n        direction LR\n        Client([Client]) -->|\"1. Join queue\"| WaitRoom[\"Waiting Room<br><span style='font-size:11px'>Admits signed-token<br>batches at hold rate</span>\"]\n        WaitRoom -->|\"2. Admit with token\"| SeatSvc[\"Seat Service<br><span style='font-size:11px'>Lists events, holds<br>seats for 5 minutes</span>\"]\n        SeatSvc -->|\"3. Hold seat<br><span style='font-size:10px'>UPDATE seat SET HELD<br>WHERE event_id, seat_id<br>AND free or expired<br>O(1) key lookup</span>\"| InvDB[(\"Inventory Database<table style='font-size:10px;text-align:left;border-collapse:collapse;margin:4px auto'><tr><td style='border:1px solid white;padding:1px 6px'>event_id, seat_id</td><td style='border:1px solid white;padding:1px 6px'>PK</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>status</td><td style='border:1px solid white;padding:1px 6px'>enum</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>hold_id</td><td style='border:1px solid white;padding:1px 6px'>UK</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>hold_expires_at</td><td style='border:1px solid white;padding:1px 6px'>time</td></tr></table><span style='font-size:11px'>PostgreSQL —<br>atomic row updates<br>and unique keys</span>\")]\n        Client -->|\"4. Pay for hold\"| PaySvc[\"Payment Service<br><span style='font-size:11px'>Charges with<br>hold_id idempotency key</span>\"]\n        PaySvc -->|\"5. Charge card<br><span style='font-size:10px'>key = hold_id</span>\"| Provider([\"Payment Provider\"])\n        PaySvc -->|\"6. Confirm booking<br><span style='font-size:10px'>UPDATE seat SET SOLD<br>WHERE hold_id = ?<br>AND not expired<br>plus INSERT outbox<br>O(1) unique index</span>\"| InvDB\n        Client -->|\"7. Open seat map\"| SeatSvc\n        SeatSvc -->|\"8. Check seat map<br><span style='font-size:10px'>GET event_id<br>O(1) hash lookup</span>\"| Cache[(\"Cache<table style='font-size:10px;text-align:left;border-collapse:collapse;margin:4px auto'><tr><td style='border:1px solid white;padding:1px 6px'>event_id</td><td style='border:1px solid white;padding:1px 6px'>KEY</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>seat_bitmap</td><td style='border:1px solid white;padding:1px 6px'>VALUE</td></tr></table><span style='font-size:11px'>Redis —<br>in-memory seat maps,<br>1 s TTL</span>\")]\n        SeatSvc -->|\"9. On miss, load map<br><span style='font-size:10px'>SELECT seat_id, status<br>WHERE event_id = ?<br>O(log n + k) range scan</span>\"| InvDB\n        InvDB -->|\"10. Relay outbox<br><span style='font-size:10px'>PUBLISH booking<br>O(1) log append</span>\"| Queue[(\"Message Queue<table style='font-size:10px;text-align:left;border-collapse:collapse;margin:4px auto'><tr><td style='border:1px solid white;padding:1px 6px'>hold_id</td><td style='border:1px solid white;padding:1px 6px'>KEY</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>event_id</td><td style='border:1px solid white;padding:1px 6px'>VALUE</td></tr><tr><td style='border:1px solid white;padding:1px 6px'>seat_id</td><td style='border:1px solid white;padding:1px 6px'>VALUE</td></tr></table><span style='font-size:11px'>Kafka —<br>durable, replayable<br>booking events</span>\")]\n        Queue -->|\"11. Consume booking<br>event\"| TicketSvc[\"Ticket Service<br><span style='font-size:11px'>Issues one ticket<br>per hold_id</span>\"]\n    end\n    subgraph Legend\n        direction LR\n        LegendWrite[Orange — Write path]:::writeKey ~~~ LegendRead[Blue — Read path]:::readKey ~~~ LegendAsync[Green — Async work]:::asyncKey\n    end\n    Flow ~~~ Legend\n    style Flow fill:none,stroke:none\n    classDef writeKey fill:none,stroke:#ff8a65,stroke-width:2px,color:#ff8a65,font-size:10px\n    classDef readKey fill:none,stroke:#64b5f6,stroke-width:2px,color:#64b5f6,font-size:10px\n    classDef asyncKey fill:none,stroke:#81c784,stroke-width:2px,color:#81c784,font-size:10px\n    linkStyle 0,1,2,3,4,5 stroke:#ff8a65,stroke-width:2px\n    linkStyle 6,7,8 stroke:#64b5f6,stroke-width:2px\n    linkStyle 9,10 stroke:#81c784,stroke-width:2px",
+  "niceToHave": [
+    [
+      "Best-available auto-pick",
+      "spreads contention across seats instead of hot rows."
+    ],
+    [
+      "Bot and scalper screening at queue entry",
+      "keeps fake fans out of admitted batches."
+    ],
+    [
+      "Seat map pushed over WebSocket",
+      "removes polling load at 10x scale."
+    ]
+  ],
+  "editedForPreview": false
+}
