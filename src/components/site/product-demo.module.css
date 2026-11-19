@@ -120,7 +120,8 @@
 .sourceCode { flex: 1; min-height: 0; overflow: hidden; padding: 13px 10px 12px 0; }
 .codeLine { display: grid; grid-template-columns: 35px minmax(0, 1fr); min-height: 21px; color: #374c5f; font-size: 11px; line-height: 1.8; }
 .lineNumber { padding-right: 10px; color: #a2acb7; font-family: var(--font-mono), monospace; font-size: 9px; text-align: right; user-select: none; }
-.codeLine code { padding-left: 8px; border-left: 1px solid #edf1f4; font-family: var(--font-mono), monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Indentation is padding, so a wrapped line continues one step under its own indent. */
+.codeLine code { padding-left: calc(8px + var(--indent, 0ch) + 4ch); text-indent: -4ch; border-left: 1px solid #edf1f4; font-family: var(--font-mono), monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
 .codeKeyword { color: #8c5bae; }
 .codeComment { color: #8c9ba6; }
 .codeString { color: #2d8663; }
@@ -329,11 +330,11 @@
   .prompt p { margin-top: 6px; font-size: 12px; line-height: 1.55; }
   .prompt .constraints { font-size: 12px; line-height: 1.5; }
   .input { margin-top: 6px; padding: 6px 8px; font-size: 11px; line-height: 1.5; }
-  .codePanel { align-self: start; max-height: 380px; }
+  .codePanel { align-self: start; }
   .editorToolbar { min-height: 30px; padding: 0 9px; gap: 8px; font-size: 11px; }
   .candidateHeading { padding: 8px 9px 0; font-size: 11px; }
   .candidateInitial { width: 16px; height: 16px; font-size: 8px; }
-  .candidateInput { flex: 0 1 auto; margin: 7px 8px 8px; max-height: 270px; }
+  .candidateInput { flex: 0 1 auto; margin: 7px 8px 8px; }
   .inputStatus { min-height: 24px; padding: 5px 7px; font-size: 9px; }
   .sourceCode { flex: 0 1 auto; min-height: 80px; padding: 10px 6px 10px 0; }
   .codeLine { grid-template-columns: 24px minmax(0, 1fr); min-height: 19px; font-size: 11px; line-height: 1.7; }
@@ -359,7 +360,8 @@
   .optionalTool { display: none; }
   .leaveMeeting { min-width: 34px; margin-left: 3px; padding: 5px 6px; font-size: 10px; }
   .solutionLayer { inset: 180px 8px 90px; }
-  .nativeWindow { top: 0; width: 100%; transform: translateX(-50%); border-radius: 8px; }
+  /* Nearly opaque on phones: the page behind is dense text at this width. */
+  .nativeWindow { top: 0; width: 100%; transform: translateX(-50%); border-radius: 8px; opacity: 0.97; }
   .viewLabel { gap: 6px; max-width: calc(100% - 12px); padding: 9px 10px; border-radius: 6px; }
   .viewLabel > svg { width: 16px; height: 16px; }
   .viewLabel strong { font-size: 13px; }

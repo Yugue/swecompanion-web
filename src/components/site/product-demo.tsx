@@ -123,9 +123,9 @@ function SourceCode({ workflow }: { workflow: Workflow }) {
       {lines.map((line, index) => (
         <div key={index} className={cn(styles.codeLine, index === lines.length - 1 && styles.currentLine)}>
           <span className={styles.lineNumber} aria-hidden>{index + 1}</span>
-          <code>{workflow.group === 'Coding' ? line.split(pythonTokens).map((token, part) => (
+          <code style={{ '--indent': `${line.length - line.trimStart().length}ch` } as CSSProperties}>{workflow.group === 'Coding' ? line.trimStart().split(pythonTokens).map((token, part) => (
             <span key={part} className={token.startsWith('#') ? styles.codeComment : /^("|')/.test(token) ? styles.codeString : /^(def|return|if|elif|else|while|for|in|import|from|pass)$/.test(token) ? styles.codeKeyword : /^\d+$/.test(token) ? styles.codeNumber : undefined}>{token}</span>
-          )) : line}{!line && ' '}{index === lines.length - 1 && <span className={styles.editorCaret} aria-hidden />}</code>
+          )) : line.trimStart()}{!line && ' '}{index === lines.length - 1 && <span className={styles.editorCaret} aria-hidden />}</code>
         </div>
       ))}
     </div>

@@ -18,7 +18,8 @@
 .codeBlock { padding: 9px 0; border: 1px solid #303035; border-radius: 7px; background: #101013; }
 .codeLine { display: grid; grid-template-columns: 25px minmax(0, 1fr); padding: 0 9px 0 0; font: clamp(6px, 1.55cqw, 11px)/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .window[data-workflow="optimize"] .codeLine { font-size: clamp(6px, 1.55cqw, 9px); line-height: 1.35; }
-.codeLine code { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; color: #dddddf; }
+/* Indentation is padding, so a wrapped line continues one step under its own indent. */
+.codeLine code { padding-left: calc(var(--indent, 0ch) + 4ch); text-indent: -4ch; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; color: #dddddf; }
 .lineNumber { text-align: center; color: #686873; }
 .keyword { color: #a6b1ff; }
 .comment { color: #8b8b97; }
@@ -49,16 +50,20 @@
   .mode { font-size: 10px; }
   .privacy { font-size: 9px; }
   .privacy svg { width: 10px; }
-  .shortcuts { display: flex; flex-wrap: nowrap; justify-content: space-between; width: 100%; gap: 2px; white-space: nowrap; }
-  .shortcuts > span { gap: 1px; }
-  .shortcuts, .shortcuts kbd { font-size: clamp(5.5px, 2cqw, 8px); }
-  .shortcuts kbd { padding: 1px; }
+  /* Two readable rows of shortcuts instead of one row of ~6px text. */
+  .shortcuts { display: grid; grid-template-columns: repeat(3, max-content); justify-content: space-between; width: 100%; gap: 5px 6px; white-space: nowrap; }
+  .shortcuts > span { gap: 3px; }
+  .shortcuts, .shortcuts kbd { font-size: 9px; }
+  .shortcuts kbd { padding: 1px 4px; }
   .answer { padding: 12px; font-size: 13px; line-height: 1.5; }
   .answer h4 { font-size: 11px; }
-  .codeLine, .window[data-workflow="optimize"] .codeLine { grid-template-columns: 20px minmax(0, 1fr); font-size: 10px; line-height: 1.5; }
+  /* Code fits 49 monospace columns (≈ 29.5em) after the answer padding, block
+     border, number column, and right padding (46px), but never below 8.5px; the
+     longer lines wrap under their own indent. */
+  .codeLine, .window[data-workflow="optimize"] .codeLine { grid-template-columns: 16px minmax(0, 1fr); padding-right: 4px; font-size: clamp(8.5px, calc((100cqw - 46px) / 30), 10px); line-height: 1.55; }
   .complexity { font-size: 12px; }
   .sectionTitle > span { font-size: 10px; }
-    .node { padding: 4px 3px; }
+  .node { padding: 4px 3px; }
 }
 
 /* Design answers: Core answer sections and the redrawn architecture diagrams. */
@@ -91,4 +96,11 @@
 }
 @container (max-width: 700px) {
   .window[data-workflow="system-design"] .answer, .window[data-workflow="ml-design"] .answer { padding-top: 10px; padding-bottom: 10px; font-size: 10px; line-height: 1.4; }
+}
+@container (max-width: 300px) {
+  /* Very narrow phones: four boxes plus step arrows must fit one lane row. */
+  .sdDiagram { padding-inline: 6px; }
+  .sdLanes { font-size: 0.68em; }
+  .sdLaneArrow { padding: 0 1px; }
+  .sdLane .node { padding: 4px 2px; }
 }

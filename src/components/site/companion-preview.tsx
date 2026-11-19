@@ -50,7 +50,7 @@ function createCodeAnswer({ workflow }: { workflow: PreviewWorkflow }) {
     <div className={styles.codeBlock}>
       {lines.map(({ text, change }, index) => <div key={index} className={cn(styles.codeLine, change && styles[change])}>
         <span className={styles.lineNumber}>{change === 'added' ? '+' : change === 'removed' ? '−' : index + 1}</span>
-        <code>{text.split(tokens).map((token, part) => <span key={part} className={token.startsWith('#') ? styles.comment : /^(def|return|if|else|while|for|in)$/.test(token) ? styles.keyword : /^\d+$/.test(token) ? styles.number : undefined}>{token}</span>)}</code>
+        <code style={{ '--indent': `${text.length - text.trimStart().length}ch` } as CSSProperties}>{text.trimStart().split(tokens).map((token, part) => <span key={part} className={token.startsWith('#') ? styles.comment : /^(def|return|if|else|while|for|in)$/.test(token) ? styles.keyword : /^\d+$/.test(token) ? styles.number : undefined}>{token}</span>)}</code>
       </div>)}
     </div>
     <section className={styles.complexity}>
