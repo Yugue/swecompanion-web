@@ -109,6 +109,16 @@ do {
   reviewStep = advancePlayback(reviewStep)
 } while (reviewStep.scene !== 0 || reviewStep.phase !== 0)
 
+// Jump the interview clock forward so later steps read as later in the session:
+// +10 min from step 8 (Debug answer), then +5 min more once Improve begins.
+const improveScene = workflows.findIndex((workflow) => workflow.id === 'optimize')
+const improveStartStep = reviewSequence.findIndex((step) => step.scene === improveScene)
+
+function sessionOffsetSeconds(stepIndex: number, scene: number): number {
+  const reachedImprove = scene === improveScene || stepIndex >= improveStartStep
+  return (stepIndex >= 7 ? 10 * 60 : 0) + (reachedImprove ? 5 * 60 : 0)
+}
+
 const phaseLabels: Record<(typeof phases)[number]['id'], string> = {
   problem: 'Problem', key: 'Key press', stream: 'Answer streaming', answer: 'Complete answer',
   scan: 'Scan to midpoint', compare: 'Side-by-side comparison', reveal: 'Finish reveal', captured: 'What others see',
@@ -301,7 +311,6 @@ export function ProductDemo() {
   const [stepRestored, setStepRestored] = useState(process.env.NODE_ENV !== 'development')
   const [visible, setVisible] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(4 * 60 + 32)
-  const sessionTime = `${Math.floor(elapsedSeconds / 60).toString().padStart(2, '0')}:${(elapsedSeconds % 60).toString().padStart(2, '0')}`
   const container = useRef<HTMLDivElement>(null)
   const tabButtons = useRef<(HTMLButtonElement | null)[]>([])
   const generation = useRef(0)
@@ -313,6 +322,8 @@ export function ProductDemo() {
   const activeCategory = categories.findIndex((category) => category.group === workflow.group)
   const running = visible && !reviewing
   const stepIndex = reviewSequence.findIndex((step) => step.scene === playback.scene && step.phase === playback.phase)
+  const sessionSeconds = elapsedSeconds + sessionOffsetSeconds(stepIndex, playback.scene)
+  const sessionTime = `${Math.floor(sessionSeconds / 60).toString().padStart(2, '0')}:${(sessionSeconds % 60).toString().padStart(2, '0')}`
   const splitting = showingCapture && phase.id !== 'captured'
 
   useLayoutEffect(() => {

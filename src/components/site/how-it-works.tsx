@@ -40,7 +40,7 @@ const steps = [
   {
     step: '03',
     title: 'Read the concise answer',
-    body: 'The approach, complexity, and clean code appear in a compact overlay — no essays, no filler. Just what you need to move forward, rendered on a layer only you can see.',
+    body: 'Works with any programming language. Get the approach, complexity, and clean code in your chosen language, displayed in a compact overlay only you can see.',
     link: 'View a sample answer',
     visual: (
       <div className="overflow-hidden rounded-lg border border-border bg-brand-navy p-4">
