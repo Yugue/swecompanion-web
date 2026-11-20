@@ -9,7 +9,7 @@
     "lint": "eslint",
     "billing:build": "npm --prefix functions run build",
     "billing:test": "npm --prefix functions test",
-    "billing:sync": "npm --prefix functions run sync:catalog",
+    "billing:sync": "npm --prefix functions run sync:catalog --",
     "check:nlp": "tsx scripts/checkNlpGuide.ts",
     "check:cv": "tsx scripts/checkCvGuide.ts",
     "check:genai": "tsx scripts/checkGenaiGuide.ts",

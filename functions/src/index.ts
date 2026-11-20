@@ -14,13 +14,15 @@ import { hasPaidIntroduction, isOurSubscription, subscriptionSummary } from "./s
 import { checkoutPlanOptions, matchesCatalogPrice } from "./catalog";
 import { addCalendarMonths, paidPass, passSummary, type PassEntitlement } from "./passes";
 import { privateBillingRef, saveSubscription, stripeCustomerRef, stripeEventRef } from "./store";
+import { ensurePaidRenewal } from "./renewals";
+import { CHECKOUT_PRESENTATION_VERSION } from "./shared/business";
 
 initializeApp();
 const db = getFirestore();
 const adminAuth = getAuth();
 const stripeSecret = defineSecret("STRIPE_SECRET_KEY");
 const webhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
-const siteUrl = defineString("SITE_URL", { default: "https://swecompanion.web.app" });
+const siteUrl = defineString("SITE_URL", { default: "https://www.swecompanion.com" });
 const localSiteUrl = defineString("LOCAL_SITE_URL", { default: "" });
 const portalConfiguration = defineString("STRIPE_PORTAL_CONFIGURATION_ID", { default: "" });
 setGlobalOptions({ region: "us-central1", maxInstances: 10, timeoutSeconds: 120 });
@@ -139,10 +141,10 @@ async function reconcilePass(uid: string, stripe: Stripe, customerId: string): P
   const record = await ref.get();
   const prior = record.get("pass") as PassEntitlement | undefined;
   if (record.get("checkoutPlan") !== "threeMonthPass" || !record.get("checkoutId")) return prior ?? null;
-  const session = await stripe.checkout.sessions.retrieve(record.get("checkoutId") as string);
-  // New introductions have a subscription. Only legacy payment-mode passes use this entitlement path.
+  const session = await stripe.checkout.sessions.retrieve(record.get("checkoutId") as string, { expand: ["invoice"] });
+  // The first introduction implementation used subscription-mode Checkout; keep it readable.
   if (session.mode !== "payment") return prior ?? null;
-  if (session.status !== "complete" || session.payment_status !== "paid") return prior ?? null;
+  if (session.status !== "complete" || !["paid", "no_payment_required"].includes(session.payment_status)) return prior ?? null;
   const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 2 });
   const intentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
   const intent = intentId ? await stripe.paymentIntents.retrieve(intentId, { expand: ["latest_charge"] }) : null;
@@ -165,8 +167,13 @@ async function reconcilePass(uid: string, stripe: Stripe, customerId: string): P
 
 async function syncSubscription(uid: string, stripe: Stripe, customerId: string): Promise<SubscriptionSummary> {
   // Read current state rather than trusting the event snapshot: delivery order is not guaranteed.
-  const recurring = subscriptionSummary(await subscriptionsFor(stripe, customerId));
   const pass = await reconcilePass(uid, stripe, customerId);
+  let subscriptions = await subscriptionsFor(stripe, customerId);
+  if (pass) {
+    const session = await stripe.checkout.sessions.retrieve(pass.checkoutId);
+    subscriptions = await ensurePaidRenewal(stripe, uid, customerId, pass, session, subscriptions);
+  }
+  const recurring = subscriptionSummary(subscriptions, pass);
   const summary = recurring.subscribed || !pass ? recurring : passSummary(pass);
   const user = await adminAuth.getUser(uid);
   const prior = user.customClaims ?? {};
@@ -209,7 +216,8 @@ export const createCheckout = safeCall(async (request) => {
     if (checkoutId) {
       const checkout = await stripe.checkout.sessions.retrieve(checkoutId);
       if (checkout.status === "open" && checkout.url) {
-        if (existing.get("checkoutPlan") === plan && existing.get("checkoutPrice") === price.id && existing.get("checkoutReturnUrl") === returnUrl) return { url: checkout.url };
+        if (existing.get("checkoutPresentationVersion") === CHECKOUT_PRESENTATION_VERSION &&
+          existing.get("checkoutPlan") === plan && existing.get("checkoutPrice") === price.id && existing.get("checkoutReturnUrl") === returnUrl) return { url: checkout.url };
         await stripe.checkout.sessions.expire(checkout.id);
       }
       if (checkout.status === "complete") {
@@ -222,22 +230,22 @@ export const createCheckout = safeCall(async (request) => {
       }
     }
     // Persist the attempt before calling Stripe, so retries after a crash use the same key.
-    const pending = existing.get("pendingCheckout") as { id: string; plan: string; priceId: string; returnUrl: string; createdAt: number } | undefined;
-    const attempt = pending?.plan === plan && pending.priceId === price.id && pending.returnUrl === returnUrl && Date.now() - pending.createdAt < 23 * 60 * 60 * 1000
-      ? pending : { id: randomUUID(), plan, priceId: price.id, returnUrl, createdAt: Date.now() };
+    const pending = existing.get("pendingCheckout") as { id: string; plan: string; priceId: string; returnUrl: string; presentationVersion?: string; createdAt: number } | undefined;
+    const attempt = pending?.presentationVersion === CHECKOUT_PRESENTATION_VERSION && pending.plan === plan &&
+      pending.priceId === price.id && pending.returnUrl === returnUrl && Date.now() - pending.createdAt < 23 * 60 * 60 * 1000
+      ? pending : { id: randomUUID(), plan, priceId: price.id, returnUrl, presentationVersion: CHECKOUT_PRESENTATION_VERSION, createdAt: Date.now() };
     await ref.set({ pendingCheckout: attempt }, { merge: true });
     const session = await stripe.checkout.sessions.create({
       ...checkoutPlanOptions(plan, uid, price.id, monthlyPrice.id),
       customer: customerId,
       client_reference_id: uid,
       payment_method_types: ["card"],
-      adaptive_pricing: { enabled: false },
-      metadata: { firebaseUID: uid, plan },
       success_url: `${returnUrl}?checkout=success`,
       cancel_url: `${returnUrl}?checkout=canceled`,
     }, { idempotencyKey: `checkout:${uid}:${attempt.id}` });
     await ref.set({ checkoutId: session.id, checkoutPlan: plan, checkoutPrice: price.id, checkoutAmount: PRICING[plan].amount, checkoutCurrency: PRICING.currency,
-      checkoutMonths: PRICING[plan].months, checkoutReturnUrl: returnUrl, pendingCheckout: FieldValue.delete() }, { merge: true });
+      checkoutMonths: PRICING[plan].months, checkoutReturnUrl: returnUrl, checkoutPresentationVersion: CHECKOUT_PRESENTATION_VERSION,
+      pendingCheckout: FieldValue.delete() }, { merge: true });
     if (!session.url) throw new Error("Missing checkout URL");
     return { url: session.url };
   });

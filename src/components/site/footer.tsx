@@ -1,6 +1,10 @@
 import { Container } from './primitives'
 import { Wordmark } from './wordmark'
 
+const destinations: Record<string, string> = {
+  Privacy: '/privacy', Terms: '/terms', Contact: '/contact', Support: '/contact', Refunds: '/refund-policy',
+}
+
 const groups = [
   {
     title: 'Product',
@@ -12,7 +16,7 @@ const groups = [
   },
   {
     title: 'Company',
-    links: ['About', 'Privacy', 'Terms', 'Contact'],
+    links: ['About', 'Privacy', 'Terms', 'Refunds', 'Contact'],
   },
 ]
 
@@ -37,7 +41,7 @@ export function Footer() {
                 {g.links.map((l) => (
                   <li key={l}>
                     <a
-                      href="#top"
+                      href={destinations[l] ?? '/#top'}
                       className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {l}

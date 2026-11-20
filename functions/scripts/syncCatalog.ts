@@ -1,6 +1,6 @@
 import Stripe from "stripe";
-import { BILLING_PLANS, PRICING, priceLookupKey } from "../src/shared/pricing";
-import { matchesCatalogPrice, portalFeatures } from "../src/catalog";
+import { BILLING_PLANS, PRICING, priceLookupKey, productIdForPlan } from "../src/shared/pricing";
+import { matchesCatalogPrice, portalFeatures, productDescriptionForPlan } from "../src/catalog";
 
 const key = process.env.STRIPE_SECRET_KEY ?? "";
 if (!/^(sk|rk)_test_/.test(key)) throw new Error("Provide a sandbox STRIPE_SECRET_KEY.");
@@ -8,9 +8,16 @@ const stripe = new Stripe(key);
 
 async function main() {
   const priceIds: string[] = [];
-  const products = await stripe.products.list({ ids: [PRICING.productId] });
-  if (!products.data.length) {
-    await stripe.products.create({ id: PRICING.productId, name: PRICING.productName, metadata: { application: "swecompanion" } });
+  for (const plan of BILLING_PLANS) {
+    const id = productIdForPlan(plan);
+    const name = plan === "threeMonthPass" ? PRICING.threeMonthPass.productName : PRICING.productName;
+    const description = productDescriptionForPlan(plan);
+    const products = await stripe.products.list({ ids: [id] });
+    if (!products.data.length) {
+      await stripe.products.create({ id, name, description, images: [PRICING.productImageUrl], metadata: { application: "swecompanion" } });
+    } else {
+      await stripe.products.update(id, { name, description, images: [PRICING.productImageUrl] });
+    }
   }
   for (const plan of BILLING_PLANS) {
     const expected = PRICING[plan];
@@ -24,7 +31,7 @@ async function main() {
       continue;
     }
     const price = await stripe.prices.create({
-      product: PRICING.productId, currency: PRICING.currency, unit_amount: expected.amount,
+      product: productIdForPlan(plan), currency: PRICING.currency, unit_amount: expected.amount,
       ...(plan === "monthly" ? { recurring: { interval: PRICING.monthly.interval } } : {}),
       lookup_key: lookupKey, nickname: `${PRICING.productName} — ${expected.label}`,
     }, { idempotencyKey: `price:${lookupKey}` });
@@ -39,14 +46,21 @@ async function main() {
     });
     console.log("Portal plan switching disabled; cancellation and payment management remain available.");
   }
+  // Prepare the new catalog before deployment without breaking Checkout on the old backend.
+  if (process.argv.includes("--prepare")) {
+    console.log("New catalog prepared; previous purchase prices and links retained until backend deployment.");
+    return;
+  }
   // Retire old purchase prices without changing any existing customer's agreed subscription.
-  for await (const price of stripe.prices.list({ product: PRICING.productId, active: true, limit: 100 })) {
-    if (!priceIds.includes(price.id)) await stripe.prices.update(price.id, { active: false });
+  for (const product of BILLING_PLANS.map(productIdForPlan)) {
+    for await (const price of stripe.prices.list({ product, active: true, limit: 100 })) {
+      if (!priceIds.includes(price.id)) await stripe.prices.update(price.id, { active: false });
+    }
   }
   // Retired annual/monthly prices must not remain purchasable through previously opened Checkout links.
   for await (const session of stripe.checkout.sessions.list({ status: "open", limit: 100 })) {
     const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 });
-    if (items.data.some((item) => item.price?.product === PRICING.productId && !priceIds.includes(item.price.id))) {
+    if (items.data.some((item) => BILLING_PLANS.some((plan) => item.price?.product === productIdForPlan(plan)) && !priceIds.includes(item.price!.id))) {
       await stripe.checkout.sessions.expire(session.id);
     }
   }

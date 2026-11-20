@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/lib/ThemeProvider";
 import { AuthProvider } from "@/lib/AuthProvider";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://swecompanion.web.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.swecompanion.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

@@ -24,10 +24,11 @@ import { DEEP_LEARNING_PATH, APPLIED_ML_PATH, AGENTIC_AI_PATH, RRP_PATH, CV_PATH
 
 export const dynamic = "force-static";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://swecompanion.web.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.swecompanion.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [
+    ...["/terms", "/privacy", "/refund-policy", "/contact"].map((path) => ({ url: `${siteUrl}${path}`, priority: 0.3 })),
     { url: `${siteUrl}${ML_SYSTEM_DESIGN_PATH}`, priority: 1 },
     { url: `${siteUrl}${NLP_SYSTEM_DESIGN_PATH}`, priority: 0.9 },
     ...nlpDesignProblems.map(({ id }) => ({ url: `${siteUrl}${NLP_SYSTEM_DESIGN_PATH}/${id}`, priority: 0.8 })),
