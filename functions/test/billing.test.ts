@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type Stripe from "stripe";
-import { subscriptionSummary } from "../src/subscriptions";
+import { hasPaidIntroduction, subscriptionSummary } from "../src/subscriptions";
 import { PRICING } from "../src/shared/pricing";
 import { authErrorMessage } from "../../src/lib/authErrors";
 
@@ -82,4 +82,75 @@ test("provider details and stack traces never become public messages", () => {
   for (const mode of ["signin", "signup", "reset", "password"] as const) {
     assert.doesNotMatch(authErrorMessage(failure, mode) ?? "", /Firebase|Stripe|diagnostic|stack/i);
   }
+});
+
+function introduction(): Stripe.Subscription {
+  const value = subscription({ status: "trialing", trial_start: 100, trial_end: 1000, billing_cycle_anchor: 1000,
+    customer: "cus_intro", metadata: { introductoryOffer: "three_month_monthly_v1", upfrontPrice: "price_intro",
+      upfrontAmount: "34900", upfrontCurrency: "usd" } });
+  value.latest_invoice = {
+    id: "in_intro", livemode: false, status: "paid", billing_reason: "subscription_create", customer: "cus_intro",
+    amount_paid: 34900, currency: "usd", parent: { subscription_details: { subscription: value.id } },
+    lines: { has_more: false, data: [{ amount: 34900, quantity: 1, pricing: { price_details: { price: "price_intro" } } }] },
+  } as Stripe.Invoice;
+  return value;
+}
+
+test("a paid introduction grants three-month access with a monthly renewal amount and original usage anchor", () => {
+  const result = subscriptionSummary([introduction()]);
+  assert.equal(result.subscribed, true);
+  assert.equal(result.plan, "threeMonthPass");
+  assert.equal(result.amount, 34900);
+  assert.equal(result.renewalAmount, 14900);
+  assert.equal(result.currentPeriodEnd, 1000);
+  assert.equal(result.billingCycleAnchor, 100);
+  assert.equal(result.cancelAtPeriodEnd, false);
+});
+
+test("canceling monthly renewal during the introduction retains paid access", () => {
+  const value = introduction();
+  value.cancel_at_period_end = true;
+  value.cancel_at = 1000;
+  const result = subscriptionSummary([value]);
+  assert.equal(result.subscribed, true);
+  assert.equal(result.currentPeriodEnd, 1000);
+  assert.equal(result.cancelAtPeriodEnd, true);
+  value.status = "canceled";
+  assert.equal(subscriptionSummary([value]).subscribed, false);
+});
+
+test("unpaid, zero-cost, wrong-owner and mismatched introductory invoices fail closed", () => {
+  for (const changes of [{ status: "open" }, { amount_paid: 0 }, { customer: "cus_other" }, { livemode: true },
+    { amount_paid: 1 }, { currency: "cad" }, { billing_reason: "subscription_cycle" }, { parent: null }]) {
+    const value = introduction();
+    value.latest_invoice = { ...(value.latest_invoice as Stripe.Invoice), ...changes } as Stripe.Invoice;
+    assert.equal(hasPaidIntroduction(value), false, JSON.stringify(changes));
+    assert.equal(subscriptionSummary([value]).subscribed, false);
+  }
+  const value = introduction();
+  value.latest_invoice = "in_not_expanded";
+  assert.equal(subscriptionSummary([value]).subscribed, false);
+  value.latest_invoice = null;
+  assert.equal(subscriptionSummary([value]).subscribed, false);
+  value.latest_invoice = introduction().latest_invoice;
+  (value.latest_invoice as Stripe.Invoice).lines.data[0].pricing!.price_details!.price = "price_other";
+  assert.equal(subscriptionSummary([value]).subscribed, false);
+});
+
+test("after introduction, only the regular monthly amount is shown and failed renewal revokes access", () => {
+  const value = introduction();
+  value.status = "active";
+  value.items.data[0].current_period_end = 2000;
+  const result = subscriptionSummary([value]);
+  assert.equal(result.plan, "monthly");
+  assert.equal(result.amount, 14900);
+  assert.equal(result.renewalAmount, undefined);
+  assert.equal(result.currentPeriodEnd, 2000);
+  assert.equal(result.billingCycleAnchor, 100);
+  value.status = "past_due";
+  assert.equal(subscriptionSummary([value]).subscribed, false);
+});
+
+test("a newer canceled subscription cannot hide a paid introduction", () => {
+  assert.equal(subscriptionSummary([subscription({ status: "canceled", created: 500 }), introduction()]).subscribed, true);
 });

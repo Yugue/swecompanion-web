@@ -2,6 +2,32 @@ import type Stripe from "stripe";
 import type { SubscriptionSummary } from "./shared/billing";
 import { PRICING } from "./shared/pricing";
 
+export function isIntroSubscription(subscription: Stripe.Subscription): boolean {
+  return subscription.metadata?.introductoryOffer === "three_month_monthly_v1";
+}
+
+/** A trial status alone never proves the upfront three-month charge was paid. */
+export function hasPaidIntroduction(subscription: Stripe.Subscription): boolean {
+  if (!isIntroSubscription(subscription)) return false;
+  const invoice = subscription.latest_invoice;
+  if (!invoice || typeof invoice === "string") return false;
+  const owner = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+  const customer = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+  const parent = invoice.parent?.subscription_details?.subscription;
+  const subscriptionId = typeof parent === "string" ? parent : parent?.id;
+  const amount = Number(subscription.metadata.upfrontAmount);
+  return !invoice.livemode && invoice.status === "paid" && invoice.billing_reason === "subscription_create" &&
+    Boolean(customer) && owner === customer && subscriptionId === subscription.id &&
+    Number.isSafeInteger(amount) && amount > 0 && invoice.amount_paid === amount &&
+    invoice.currency === subscription.metadata.upfrontCurrency && !invoice.lines.has_more &&
+    invoice.lines.data.some((line) => line.pricing?.price_details?.price === subscription.metadata.upfrontPrice &&
+      line.amount === amount && line.quantity === 1);
+}
+
+function hasAccess(subscription: Stripe.Subscription): boolean {
+  return subscription.status === "active" || (subscription.status === "trialing" && hasPaidIntroduction(subscription));
+}
+
 export function isOurSubscription(subscription: Stripe.Subscription): boolean {
   return !subscription.livemode && subscription.items.data.some(
     (item) => item.price.product === PRICING.productId ||
@@ -12,7 +38,7 @@ export function isOurSubscription(subscription: Stripe.Subscription): boolean {
 /** Keep paid access until cancellation actually takes effect. Failed payments fail closed. */
 export function subscriptionSummary(subscriptions: Stripe.Subscription[]): Omit<SubscriptionSummary, "claimsVersion"> {
   const relevant = subscriptions.filter(isOurSubscription).sort((a, b) => {
-    const activeDifference = Number(b.status === "active") - Number(a.status === "active");
+    const activeDifference = Number(hasAccess(b)) - Number(hasAccess(a));
     return activeDifference || b.created - a.created;
   });
   const subscription = relevant[0];
@@ -20,14 +46,17 @@ export function subscriptionSummary(subscriptions: Stripe.Subscription[]): Omit<
     const product = candidate.price.product;
     return (typeof product === "string" ? product : product.id) === PRICING.productId;
   });
+  const introductory = subscription?.status === "trialing" && isIntroSubscription(subscription);
+  const periodEnd = introductory ? subscription.trial_end : item?.current_period_end;
   return {
-    subscribed: subscription?.status === "active",
+    subscribed: subscription ? hasAccess(subscription) : false,
     status: subscription?.status ?? "none",
-    plan: item?.price.recurring?.interval === "year" ? "yearly" : item ? "monthly" : null,
-    currentPeriodEnd: item?.current_period_end ?? null,
-    billingCycleAnchor: subscription?.billing_cycle_anchor ?? subscription?.created ?? null,
+    plan: introductory ? "threeMonthPass" : item?.price.recurring?.interval === "year" ? "yearly" : item ? "monthly" : null,
+    currentPeriodEnd: periodEnd && subscription?.cancel_at ? Math.min(periodEnd, subscription.cancel_at) : periodEnd ?? null,
+    billingCycleAnchor: subscription && isIntroSubscription(subscription) ? subscription.created : subscription?.billing_cycle_anchor ?? subscription?.created ?? null,
     cancelAtPeriodEnd: Boolean(subscription?.cancel_at_period_end || subscription?.cancel_at),
-    amount: item?.price.unit_amount ?? null,
+    amount: introductory ? Number(subscription.metadata.upfrontAmount) || null : item?.price.unit_amount ?? null,
+    ...(introductory && item?.price.unit_amount !== null && item?.price.unit_amount !== undefined ? { renewalAmount: item.price.unit_amount } : {}),
     currency: item?.price.currency ?? null,
   };
 }

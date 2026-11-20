@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { BILLING_PLANS, PRICING, priceLookupKey } from "../src/shared/pricing";
-import { matchesCatalogPrice } from "../src/catalog";
+import { matchesCatalogPrice, portalFeatures } from "../src/catalog";
 
 const key = process.env.STRIPE_SECRET_KEY ?? "";
 if (!/^(sk|rk)_test_/.test(key)) throw new Error("Provide a sandbox STRIPE_SECRET_KEY.");
@@ -25,7 +25,7 @@ async function main() {
     }
     const price = await stripe.prices.create({
       product: PRICING.productId, currency: PRICING.currency, unit_amount: expected.amount,
-      ...(expected.mode === "subscription" ? { recurring: { interval: expected.interval } } : {}),
+      ...(plan === "monthly" ? { recurring: { interval: PRICING.monthly.interval } } : {}),
       lookup_key: lookupKey, nickname: `${PRICING.productName} — ${expected.label}`,
     }, { idempotencyKey: `price:${lookupKey}` });
     console.log(`${plan}: ${price.id}`);
@@ -34,9 +34,8 @@ async function main() {
   await stripe.products.update(PRICING.productId, { name: PRICING.productName, default_price: priceIds[0] });
   const configuration = process.env.STRIPE_PORTAL_CONFIGURATION_ID;
   if (configuration) {
-    // A one-time pass is not a subscription swap. Remove old annual portal choices.
     await stripe.billingPortal.configurations.update(configuration, {
-      features: { subscription_update: { enabled: false } },
+      features: portalFeatures,
     });
     console.log("Portal plan switching disabled; cancellation and payment management remain available.");
   }

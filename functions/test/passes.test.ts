@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type Stripe from "stripe";
 import { addCalendarMonths, paidPass, passSummary, type PassPurchase } from "../src/passes";
-import { checkoutPlanOptions, matchesCatalogPrice } from "../src/catalog";
+import { checkoutPlanOptions, matchesCatalogPrice, portalFeatures } from "../src/catalog";
 import { BILLING_PLANS, PRICING, isBillingPlan, priceLookupKey } from "../src/shared/pricing";
 
 const paidAt = Date.UTC(2026, 10, 16, 14, 25) / 1000;
@@ -24,11 +24,11 @@ function fixture() {
   return { purchase, session, items, charge };
 }
 
-test("only $149 monthly and $349 nonrecurring three-month passes are purchasable", () => {
+test("only $149 monthly and $349 introductory subscriptions are purchasable", () => {
   assert.deepEqual(BILLING_PLANS, ["monthly", "threeMonthPass"]);
   assert.equal(PRICING.monthly.amount, 14900);
   assert.equal(PRICING.threeMonthPass.amount, 34900);
-  assert.equal(PRICING.threeMonthPass.mode, "payment");
+  assert.equal(PRICING.threeMonthPass.mode, "subscription");
   assert.equal(isBillingPlan("yearly"), false);
   assert.equal(isBillingPlan("threeMonthPass"), true);
   assert.notEqual(priceLookupKey("monthly"), priceLookupKey("threeMonthPass"));
@@ -94,12 +94,27 @@ test("refunded or disputed payments revoke access without changing expiry", () =
   }
 });
 
-test("pass Checkout is a single payment with an invoice and no subscription", () => {
-  const pass = checkoutPlanOptions("threeMonthPass", "owner");
-  assert.equal(pass.mode, "payment");
-  assert.equal(pass.subscription_data, undefined);
-  assert.equal(pass.invoice_creation?.enabled, true);
-  const monthly = checkoutPlanOptions("monthly", "owner");
+test("intro Checkout charges upfront once and defers a cancellable monthly subscription", () => {
+  const intro = checkoutPlanOptions("threeMonthPass", "owner", "price_intro", "price_monthly", paidAt);
+  assert.equal(intro.mode, "subscription");
+  assert.deepEqual(intro.line_items, [{ price: "price_intro", quantity: 1 }, { price: "price_monthly", quantity: 1 }]);
+  assert.equal(intro.subscription_data?.trial_period_days, 92);
+  assert.equal(intro.subscription_data?.metadata?.introductoryOffer, "three_month_monthly_v1");
+  assert.equal(intro.subscription_data?.metadata?.upfrontAmount, "34900");
+  assert.equal(intro.payment_method_collection, "always");
+  assert.match(intro.custom_text?.submit?.message ?? "", /149.*month until canceled/);
+  const monthly = checkoutPlanOptions("monthly", "owner", "price_monthly", "price_monthly");
   assert.equal(monthly.mode, "subscription");
-  assert.equal(monthly.payment_intent_data, undefined);
+  assert.deepEqual(monthly.line_items, [{ price: "price_monthly", quantity: 1 }]);
+  assert.equal(monthly.subscription_data?.trial_period_days, undefined);
+});
+
+test("portal allows cancellation at the paid period end and prevents plan switching", () => {
+  assert.deepEqual(portalFeatures.subscription_cancel, { enabled: true, mode: "at_period_end", proration_behavior: "none" });
+  assert.equal(portalFeatures.subscription_update?.enabled, false);
+  assert.equal(portalFeatures.payment_method_update?.enabled, true);
+});
+
+test("new introductory checkout uses a different price key from legacy nonrenewing passes", () => {
+  assert.notEqual(priceLookupKey("threeMonthPass"), "swecompanion_pro_threeMonthPass_usd_34900");
 });

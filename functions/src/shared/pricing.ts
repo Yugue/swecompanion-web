@@ -4,7 +4,7 @@ export const PRICING = {
   productId: "swecompanion_pro",
   currency: "usd",
   monthly: { amount: 14_900, mode: "subscription", interval: "month", months: 1, label: "Pro monthly" },
-  threeMonthPass: { amount: 34_900, mode: "payment", months: 3, label: "Three-month pass" },
+  threeMonthPass: { amount: 34_900, mode: "subscription", months: 3, label: "Three-month Pro" },
 } as const;
 
 export const BILLING_PLANS = ["monthly", "threeMonthPass"] as const;
@@ -17,7 +17,7 @@ export function isBillingPlan(value: unknown): value is BillingPlan {
 }
 
 export function priceLookupKey(plan: BillingPlan): string {
-  return `swecompanion_pro_${plan}_${PRICING.currency}_${PRICING[plan].amount}`;
+  return `swecompanion_pro_${plan}_${PRICING.currency}_${PRICING[plan].amount}${plan === "threeMonthPass" ? `_monthly_${PRICING.monthly.amount}_renewal_v1` : ""}`;
 }
 
 export function formatPrice(amount: number): string {

@@ -10,9 +10,9 @@ import { HttpsError, onCall, onRequest, type CallableRequest } from "firebase-fu
 import Stripe from "stripe";
 import { PRICING, isBillingPlan, priceLookupKey, type BillingPlan } from "./shared/pricing";
 import type { InvoicePage, SubscriptionSummary } from "./shared/billing";
-import { isOurSubscription, subscriptionSummary } from "./subscriptions";
+import { hasPaidIntroduction, isOurSubscription, subscriptionSummary } from "./subscriptions";
 import { checkoutPlanOptions, matchesCatalogPrice } from "./catalog";
-import { paidPass, passSummary, type PassEntitlement } from "./passes";
+import { addCalendarMonths, paidPass, passSummary, type PassEntitlement } from "./passes";
 import { privateBillingRef, saveSubscription, stripeCustomerRef, stripeEventRef } from "./store";
 
 initializeApp();
@@ -118,7 +118,16 @@ async function customerFor(uid: string, stripe: Stripe, create = false): Promise
 
 async function subscriptionsFor(stripe: Stripe, customerId: string): Promise<Stripe.Subscription[]> {
   const subscriptions: Stripe.Subscription[] = [];
-  for await (const subscription of stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 })) {
+  for await (let subscription of stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100,
+    expand: ["data.latest_invoice"] })) {
+    // Calendar months start when Stripe creates the subscription, including late/month-end checkouts.
+    if (subscription.status === "trialing" && hasPaidIntroduction(subscription) && !subscription.metadata.introductoryEnd) {
+      const end = addCalendarMonths(subscription.trial_start ?? subscription.created, 3);
+      subscription = await stripe.subscriptions.update(subscription.id, {
+        ...(subscription.trial_end !== end ? { trial_end: end, proration_behavior: "none" as const } : {}),
+        metadata: { introductoryEnd: String(end) }, expand: ["latest_invoice"],
+      }, { idempotencyKey: `intro-end:${subscription.id}` });
+    }
     subscriptions.push(subscription);
   }
   return subscriptions;
@@ -131,6 +140,8 @@ async function reconcilePass(uid: string, stripe: Stripe, customerId: string): P
   const prior = record.get("pass") as PassEntitlement | undefined;
   if (record.get("checkoutPlan") !== "threeMonthPass" || !record.get("checkoutId")) return prior ?? null;
   const session = await stripe.checkout.sessions.retrieve(record.get("checkoutId") as string);
+  // New introductions have a subscription. Only legacy payment-mode passes use this entitlement path.
+  if (session.mode !== "payment") return prior ?? null;
   if (session.status !== "complete" || session.payment_status !== "paid") return prior ?? null;
   const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 2 });
   const intentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
@@ -191,6 +202,7 @@ export const createCheckout = safeCall(async (request) => {
     const membership = await syncSubscription(uid, stripe, customerId);
     if (membership.subscribed) throw new HttpsError("already-exists", "You already have Pro access. Manage it in your account.");
     const price = await catalogPrice(stripe, plan);
+    const monthlyPrice = plan === "monthly" ? price : await catalogPrice(stripe, "monthly");
     const ref = privateBillingRef(uid);
     const existing = await ref.get();
     const checkoutId = existing.get("checkoutId") as string | undefined;
@@ -215,10 +227,9 @@ export const createCheckout = safeCall(async (request) => {
       ? pending : { id: randomUUID(), plan, priceId: price.id, returnUrl, createdAt: Date.now() };
     await ref.set({ pendingCheckout: attempt }, { merge: true });
     const session = await stripe.checkout.sessions.create({
-      ...checkoutPlanOptions(plan, uid),
+      ...checkoutPlanOptions(plan, uid, price.id, monthlyPrice.id),
       customer: customerId,
       client_reference_id: uid,
-      line_items: [{ price: price.id, quantity: 1 }],
       payment_method_types: ["card"],
       adaptive_pricing: { enabled: false },
       metadata: { firebaseUID: uid, plan },

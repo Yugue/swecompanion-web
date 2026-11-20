@@ -30,9 +30,13 @@ export function PassSavingsBadge() {
 }
 
 export function ProPrice({ plan }: { plan: BillingPlan }) {
-  return <div className="mt-4 flex items-baseline gap-1.5">
+  return <><div className="mt-4 flex items-baseline gap-1.5">
     <span className="text-4xl font-medium tracking-tight">{formatPrice(PRICING[plan].amount)}</span>
-    <span className="text-sm text-muted-foreground">{plan === "monthly" ? "/ month" : "one-time"}</span>
+    <span className="text-sm text-muted-foreground">{plan === "monthly" ? "/ month" : "for 3 months"}</span>
     {plan === "threeMonthPass" && <span className="ml-auto shrink-0"><PassSavingsBadge /></span>}
-  </div>;
+  </div>
+    <p className="mt-3 text-sm text-muted-foreground">{plan === "threeMonthPass"
+      ? `Then ${formatPrice(PRICING.monthly.amount)} USD/month until canceled. Cancel renewal anytime.`
+      : "Renews monthly until canceled. Cancel anytime."}</p>
+  </>;
 }

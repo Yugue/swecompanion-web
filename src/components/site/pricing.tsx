@@ -81,7 +81,7 @@ export function Pricing() {
                 ))}
               </ul>
               <UpgradeButton plan={plan} className={cn('mt-7 h-11 w-full gap-2.5 text-white', styles.downloadCta)} arrowClassName={styles.downloadArrow} />
-              <p className="mt-3 text-center text-xs text-muted-foreground">Secure Stripe checkout{plan === 'monthly' && ' · Cancel anytime'}</p>
+              <p className="mt-3 text-center text-xs text-muted-foreground">Secure Stripe checkout · Cancel anytime</p>
             </div>
           ))}
         </div>

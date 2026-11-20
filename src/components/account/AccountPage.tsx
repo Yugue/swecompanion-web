@@ -66,6 +66,7 @@ function AccountDetails({ uid }: { uid: string }) {
   const [invoiceLoading, setInvoiceLoading] = useState(true);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const legacyPass = subscription?.plan === "threeMonthPass" && subscription.renewalAmount === undefined;
 
   const loadInvoices = useCallback(async (cursor?: string) => {
     setInvoiceLoading(true); setInvoiceError(null);
@@ -147,17 +148,18 @@ function AccountDetails({ uid }: { uid: string }) {
         </div>
       </div>
       {subscription?.plan && <p className="mt-6 text-sm">
-        {subscription.amount !== null ? money(subscription.amount, subscription.currency ?? PRICING.currency) : subscription.plan !== "yearly" ? formatPrice(PRICING[subscription.plan].amount) : "Legacy annual plan"} {subscription.currency?.toUpperCase()} {subscription.plan === "threeMonthPass" ? "one-time · three-month pass" : subscription.plan === "yearly" ? "/ year" : "/ month"}
+        {subscription.amount !== null ? money(subscription.amount, subscription.currency ?? PRICING.currency) : subscription.plan !== "yearly" ? formatPrice(PRICING[subscription.plan].amount) : "Legacy annual plan"} {subscription.currency?.toUpperCase()} {subscription.plan === "threeMonthPass" ? subscription.renewalAmount !== undefined ? `for the first three months · then ${money(subscription.renewalAmount, subscription.currency ?? PRICING.currency)}/month` : "one-time · three-month pass" : subscription.plan === "yearly" ? "/ year" : "/ month"}
       </p>}
       {subscription?.status === "canceled" && <p className="mt-2 text-sm text-muted-foreground">Your subscription has ended. You can upgrade again at any time.</p>}
       {subscription?.currentPeriodEnd && subscription.status !== "canceled" && <p className="mt-2 text-sm text-muted-foreground">
-        {subscription.plan === "threeMonthPass" ? "Pro access expires on " : subscription.cancelAtPeriodEnd ? "Your subscription stays active until " : subscription.subscribed ? "Renews on " : "Billing period ends "}{date(subscription.currentPeriodEnd)}.
-        {(subscription.plan === "threeMonthPass" || subscription.cancelAtPeriodEnd) && " You won’t be charged again."}
+        {legacyPass ? "Pro access expires on " : subscription.cancelAtPeriodEnd ? "Your subscription stays active until " : subscription.subscribed ? "Renews on " : "Billing period ends "}{date(subscription.currentPeriodEnd)}.
+        {(legacyPass || subscription.cancelAtPeriodEnd) && " You won’t be charged again."}
       </p>}
+      {subscription?.subscribed && subscription.renewalAmount !== undefined && !subscription.cancelAtPeriodEnd && <p className="mt-2 text-sm text-muted-foreground">Cancel automatic monthly renewal through Manage plan. Your access continues through the paid period.</p>}
       {error && <p role="alert" className="mt-4 text-sm text-accent-red">{error} <button type="button" onClick={() => window.location.reload()} className="underline">Retry</button></p>}
       <div className="mt-6 flex flex-wrap gap-3">
         {!loading && subscription && subscription.status !== "none" && <Button variant="outline" className="h-11" disabled={busy} onClick={() => void manage()}>
-          {busy ? "Opening…" : "Manage billing & payment method"}<ArrowUpRight className="size-4" />
+          {busy ? "Opening…" : "Manage plan"}<ArrowUpRight className="size-4" />
         </Button>}
         {(subscribeOpen || !loading) && !subscribed && (!subscription || ["none", "canceled", "incomplete_expired"].includes(subscription.status)) &&
           <SubscribeDialog disabled={busy} open={subscribeOpen} onOpenChange={setSubscribeOpen} />}

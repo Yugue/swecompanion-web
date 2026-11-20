@@ -57,7 +57,7 @@ export function SubscribeDialog({ disabled, open, onOpenChange, className, label
           </Dialog.Close>
           <Dialog.Title className="pr-8 text-xl font-medium">Get {PRICING.productName}</Dialog.Title>
           <Dialog.Description className="mt-2 text-sm text-muted-foreground">
-            Choose monthly Pro or pay once for three months.
+            Choose monthly Pro or start with three months upfront, then renew monthly.
           </Dialog.Description>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -74,7 +74,7 @@ export function SubscribeDialog({ disabled, open, onOpenChange, className, label
                     {pendingPlan === plan ? "Opening checkout…" : `Choose ${label.toLowerCase()}`}
                     <ArrowRight className="size-4" />
                   </Button>
-                  <p className="mt-3 text-center text-xs text-muted-foreground">Secure Stripe checkout{plan === "monthly" && " · Cancel anytime"}</p>
+                  <p className="mt-3 text-center text-xs text-muted-foreground">Secure Stripe checkout · Cancel anytime</p>
                 </div>
               </div>
             ))}

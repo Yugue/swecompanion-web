@@ -8,6 +8,8 @@ export interface SubscriptionSummary {
   billingCycleAnchor: number | null;
   cancelAtPeriodEnd: boolean;
   amount: number | null;
+  /** Present only during a paid three-month introductory subscription; absent on legacy passes. */
+  renewalAmount?: number;
   currency: string | null;
   claimsVersion: string;
 }
